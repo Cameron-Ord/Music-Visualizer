@@ -38,39 +38,30 @@ void fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 } /*fft_push*/
 
 void generate_visual(FourierTransform* FT, SongState* SS) {
-  int             DS              = FT->fft_data->DS_AMOUNT;
   float*          out_log         = FT->fft_buffers->out_log;
   float*          smoothed        = FT->fft_buffers->smoothed;
-  float*          processed       = FT->fft_buffers->processed;
   float*          combined_window = FT->fft_buffers->combined_window;
   float _Complex* out_raw         = FT->fft_buffers->out_raw;
 
-  create_hann_window(DS, FT);
+  create_hann_window(FT);
   fft_func(combined_window, 1, out_raw, N);
   FT->fft_data->output_len = apply_amp(N / 2, out_raw, out_log, smoothed);
 } /*generate_visual*/
 
-void create_hann_window(int DS, FourierTransform* FT) {
+void create_hann_window(FourierTransform* FT) {
   float* combined_window = FT->fft_buffers->combined_window;
   float* fft_in          = FT->fft_buffers->fft_in;
 
   f32 tmp[DOUBLE_N];
   memcpy(tmp, fft_in, sizeof(f32) * DOUBLE_N);
 
-  for (int i = 0; i < HALF_DOUB; i += DEFAULT_DS) {
+  for (int i = 0; i < N; ++i) {
     // hann window to reduce spectral leakage before passing it to FFT
+    // Summing left and right channels
+    f32 sum            = tmp[i * 2] + tmp[i * 2 + 1];
+    combined_window[i] = sum / 2;
 
-    f32 sum = 0.0f;
-    for (int j = 0; j < DEFAULT_DS; ++j) {
-      f32 left  = tmp[i * 2 + j];
-      f32 right = tmp[i * 2 + 1 + j];
-      sum += left + right;
-    }
-
-    combined_window[i] = (sum / 2) / DEFAULT_DS;
-
-    int   H    = HALF_DOUB;
-    float Nf   = (float)H;
+    float Nf   = (float)N;
     float t    = (float)i / (Nf - 1);
     float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 

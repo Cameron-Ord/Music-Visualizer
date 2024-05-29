@@ -75,6 +75,7 @@ struct FileContext {
   struct FileState* file_state;
 };
 
+// Not using these
 typedef enum {
   MAX_BUFFER_DS = (1 << 5),
   MIN_BUFFER_DS = (1 << 2),
@@ -231,7 +232,7 @@ void              generate_visual(FourierTransform* FT, SongState* SS);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
 void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
-void              create_hann_window(int DS, FourierTransform* FT);
+void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 
