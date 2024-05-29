@@ -8,31 +8,10 @@
 
 **A music visualizer for Linux systems written in C. This is unfinished software, so keep your expectations low.**
 
-I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with fftplayer for now. 
+I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
 
 ## Releases
-
-If you're interested in giving it a try, I currently have a **deb package and a zip file**.
-
-> Go to the releases page on the repo and select the **beta tag**.
-
----
-> For the deb package you can just run it and it will **install the libraries as dependencies.**
-- ```sudo mv fftplayer_86_64.deb /tmp```
-- ```sudo apt install ./fftplayer_86_64.deb```
-
-> To run the application:
-- Type ```fftplayer``` in a terminal or launcher. The binary is located in /usr/local/bin.
-
-**If you don't want that, or you just aren't using a Debian based distrobution, there is also the zip file which just includes the shared library object files**.
-
-> For the zip file, unzip it and launch the install.sh script.
-- ```unzip fftplayer_86_64.zip```
-- ```sudo ./install.sh```
-
-> To run the application:
-- Type ```runfft``` in a terminal or launcher. The binary is located in /usr/local/bin.
----
+I am working on creating a release for this program at the moment.
 
 **For more details on how the program works, go below.**
 

@@ -5,3 +5,5 @@ libs/
 *.out
 *.profraw
 *.profdata
+*.json
+*.txt
