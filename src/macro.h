@@ -2,13 +2,15 @@
 #define MACRO_H
 #define PRINT_SDL_ERR(stream, msg) fprintf(stream, "%s\n", msg)
 #define PRINT_STR_ERR(stream, context, msg) fprintf(stream, "%s : %s\n", context, msg)
-#define FONT_PATH "/usr/share/fonts/fftplayer_fonts/NotoSansMono-SemiBold.ttf"
+#define FONT_PATH "/usr/share/fonts/fftplayer_fonts/OpenSans-Semibold.ttf"
 #define SCROLLBAR_WIDTH 20
 #define SCROLLBAR_HEIGHT 10
 #define SCROLLBAR_HEIGHT_OFFSET (SCROLLBAR_HEIGHT / 2)
 #define SCROLLBAR_OFFSET (SCROLLBAR_WIDTH / 2)
 #define N (1 << 12)
-#define HALF_BUFF (N / 2)
+#define DOUBLE_N (N * 2)
+#define HALF_N (N / 2)
+#define HALF_DOUB (DOUBLE_N / 2)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define ABS(x) (((x) < 0) ? -(x) : (x))

@@ -60,11 +60,11 @@ void baseline_fft_values(FTransformData* data) {
 }
 
 void instantiate_buffers(FTransformBuffers* bufs) {
-  memset(bufs->combined_window, 0, sizeof(f32)* N);
-  memset(bufs->out_log, 0, sizeof(f32)*N);
-  memset(bufs->out_raw, 0 , sizeof(f32c)*N);
-  memset(bufs->smoothed, 0, sizeof(f32)*HALF_BUFF);
-  memset(bufs->processed,0, sizeof(f32) * HALF_BUFF);
+  memset(bufs->combined_window, 0, sizeof(f32) * DOUBLE_N);
+  memset(bufs->out_log, 0, sizeof(f32) * DOUBLE_N);
+  memset(bufs->out_raw, 0, sizeof(f32c) * DOUBLE_N);
+  memset(bufs->smoothed, 0, sizeof(f32) * HALF_DOUB);
+  memset(bufs->processed, 0, sizeof(f32) * HALF_DOUB);
 }
 
 void set_spec_data(SDLContext* SDLC) {

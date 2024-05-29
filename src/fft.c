@@ -32,17 +32,8 @@ void fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
 } /*fft_func*/
 
 void fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
-  // Two channels when combined  is 8192 but seperate them and we get - 4096 : 4096
   if (channels == 2) {
-    int samples = bytes / (channels * sizeof(float));
-    // memcpying the left side of the buffer into a seperate left buffer. This works because we are
-    // only copying 4096 * 4
-    memcpy(FT->fft_buffers->in_left, SS->audio_data->buffer + SS->audio_data->audio_pos,
-           samples * sizeof(float));
-    // same idea, but we advance the audio position by the amount of samples, effectively nabbing
-    // the 2nd half
-    memcpy(FT->fft_buffers->in_right, SS->audio_data->buffer + SS->audio_data->audio_pos + samples,
-           samples * sizeof(float));
+    memcpy(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
   }
 } /*fft_push*/
 
@@ -51,39 +42,39 @@ void generate_visual(FourierTransform* FT, SongState* SS) {
   float*          out_log         = FT->fft_buffers->out_log;
   float*          smoothed        = FT->fft_buffers->smoothed;
   float*          processed       = FT->fft_buffers->processed;
-  float*          in_right        = FT->fft_buffers->in_right;
-  float*          in_left         = FT->fft_buffers->in_left;
   float*          combined_window = FT->fft_buffers->combined_window;
   float _Complex* out_raw         = FT->fft_buffers->out_raw;
 
   create_hann_window(DS, FT);
-  fft_func(combined_window, 1, out_raw, N);
-  get_log(out_raw, out_log, N);
-  low_pass(out_log, N, 5000.0f, SS->audio_data->sr);
-  FT->fft_data->output_len = apply_amp(HALF_BUFF, processed, out_log, smoothed);
+  fft_func(combined_window, 1, out_raw, DOUBLE_N);
+  FT->fft_data->output_len = apply_amp(HALF_DOUB, out_raw, out_log, smoothed);
 } /*generate_visual*/
 
 void create_hann_window(int DS, FourierTransform* FT) {
-  float* in_right        = FT->fft_buffers->in_right;
-  float* in_left         = FT->fft_buffers->in_left;
   float* combined_window = FT->fft_buffers->combined_window;
+  float* fft_in          = FT->fft_buffers->fft_in;
 
-  for (int i = 0; i < N; ++i) {
-    f32 sum = in_left[i] + in_right[i];
-    combined_window[i] = sum / 2;
+  memcpy(combined_window, fft_in, sizeof(f32) * DOUBLE_N);
+
+  for (int i = 0; i < HALF_DOUB; ++i) {
     // hann window to reduce spectral leakage before passing it to FFT
-    float Nf = (float)N;
+    int   H    = DOUBLE_N;
+    float Nf   = (float)H;
     float t    = (float)i / (Nf - 1);
     float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 
-    combined_window[i] *= hann;
+    combined_window[i * 2] *= hann;
+    combined_window[i * 2 + 1] *= hann;
   }
 }
 
 void get_log(float _Complex* out_raw, float* out_log, int len) {
   for (int q = 0; q < len; ++q) {
-    if (crealf(out_raw[q]) != 0.0 || cimagf(out_raw[q]) != 0.0) {
-      out_log[q] = amp(out_raw[q]);
+    if (crealf(out_raw[q * 2]) != 0.0 || cimagf(out_raw[q * 2]) != 0.0) {
+      out_log[q * 2] = amp(out_raw[q * 2]);
+    }
+    if (crealf(out_raw[q * 2 + 1]) != 0.0 || cimagf(out_raw[q * 2 + 1]) != 0.0) {
+      out_log[q * 2 + 1] = amp(out_raw[q * 2 + 1]);
     }
   }
 } /*get_log*/
@@ -97,7 +88,7 @@ void low_pass(float* input, int size, float cutoff, int SR) {
   }
 } /*low_pass*/
 
-int apply_amp(int size, float* out_processed, float* out, float* out_smoothed) {
+int apply_amp(int size, f32c* out_raw, f32* out_log, f32* smoothed) {
   float  step     = 1.06f;
   float  lowf     = 1.0f;
   size_t m        = 0;
@@ -107,19 +98,23 @@ int apply_amp(int size, float* out_processed, float* out, float* out_smoothed) {
     float fs = ceilf(f * step);
     float a  = 0.0f;
     for (size_t q = (size_t)f; q < size && q < (size_t)fs; ++q) {
-      float b = out[q];
+      float b = 0.0f;
+      if (crealf(out_raw[q]) != 0.0 || cimagf(out_raw[q]) != 0.0) {
+        b = amp(out_raw[q]);
+      }
+
       if (b > a)
         a = b;
     }
-    if (max_ampl < a){
+    if (max_ampl < a) {
       max_ampl = a;
     }
-    out_processed[m++] = a;
+    out_log[m++] = a;
   }
 
   for (size_t i = 0; i < m; ++i) {
-    out_processed[i] /= max_ampl;
-    out_smoothed[i] = out_smoothed[i] + (out_processed[i] - out_smoothed[i]) * 7 * (1.0 / FPS);
+    out_log[i] /= max_ampl;
+    smoothed[i] = smoothed[i] + (out_log[i] - smoothed[i]) * 8 * (1.0 / FPS);
   }
 
   return (int)m;

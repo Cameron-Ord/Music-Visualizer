@@ -284,13 +284,11 @@ void get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
 
 void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
   int DS = FTData->DS_AMOUNT;
-  memset(FTBuf->in_left, 0, N * sizeof(float));
-  memset(FTBuf->in_right, 0, N * sizeof(float));
-  memset(FTBuf->combined_window, 0, N * sizeof(float));
-  memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
-  memset(FTBuf->processed, 0, HALF_BUFF * sizeof(float));
-  memset(FTBuf->smoothed, 0, HALF_BUFF * sizeof(float));
-  memset(FTBuf->out_log, 0, N * sizeof(float));
+  memset(FTBuf->combined_window, 0, DOUBLE_N * sizeof(float));
+  memset(FTBuf->out_raw, 0, DOUBLE_N * sizeof(float _Complex));
+  memset(FTBuf->processed, 0, HALF_DOUB * sizeof(float));
+  memset(FTBuf->smoothed, 0, HALF_DOUB * sizeof(float));
+  memset(FTBuf->out_log, 0, DOUBLE_N * sizeof(float));
 }
 
 void reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
@@ -510,7 +508,6 @@ void poll_events(SDLContext* SDLC) {
         prev_song(SDLC);
         break;
       }
-
       }
     }
 
