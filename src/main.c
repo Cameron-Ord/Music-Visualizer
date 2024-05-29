@@ -284,11 +284,12 @@ void get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
 
 void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
   int DS = FTData->DS_AMOUNT;
-  memset(FTBuf->combined_window, 0, DOUBLE_N * sizeof(float));
-  memset(FTBuf->out_raw, 0, DOUBLE_N * sizeof(float _Complex));
-  memset(FTBuf->processed, 0, HALF_DOUB * sizeof(float));
-  memset(FTBuf->smoothed, 0, HALF_DOUB * sizeof(float));
-  memset(FTBuf->out_log, 0, DOUBLE_N * sizeof(float));
+  memset(FTBuf->fft_in, 0, DOUBLE_N * sizeof(float));
+  memset(FTBuf->combined_window, 0, N * sizeof(float));
+  memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
+  memset(FTBuf->processed, 0, (N / 2) * sizeof(float));
+  memset(FTBuf->smoothed, 0, (N / 2) * sizeof(float));
+  memset(FTBuf->out_log, 0, N * sizeof(float));
 }
 
 void reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
@@ -399,9 +400,6 @@ void callback(void* data, Uint8* stream, int len) {
 
   float* f32_stream = (float*)stream;
 
-  // for (int i = 0; i < samples_to_copy; i++) {
-  // f32_stream[i] = Aud->buffer[i + Aud->audio_pos];
-  //}
   memcpy(f32_stream, Aud->buffer + Aud->audio_pos, samples_to_copy * sizeof(float));
   if (Aud->audio_pos > 0 && Aud->audio_pos < Aud->wav_len) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));

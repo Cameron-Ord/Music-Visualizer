@@ -34,11 +34,11 @@ struct SDLContext {
 
 struct FTransformBuffers {
   f32  fft_in[DOUBLE_N];
-  f32  combined_window[DOUBLE_N];
-  f32c out_raw[DOUBLE_N];
-  f32  out_log[DOUBLE_N];
-  f32  processed[HALF_DOUB];
-  f32  smoothed[HALF_DOUB];
+  f32  combined_window[N];
+  f32c out_raw[N];
+  f32  out_log[N];
+  f32  processed[N / 2];
+  f32  smoothed[N / 2];
 };
 
 struct FTransformData {
@@ -76,8 +76,8 @@ struct FileContext {
 };
 
 typedef enum {
-  MAX_BUFFER_DS = (1 << 3),
-  MIN_BUFFER_DS = (1 << 1),
+  MAX_BUFFER_DS = (1 << 5),
+  MIN_BUFFER_DS = (1 << 2),
   DEFAULT_DS    = (1 << 2)
 } DOWNSAMPLING_BINDS;
 
@@ -226,7 +226,6 @@ void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
 void              baseline_pb_state(PlaybackState* pbste);
 int               apply_amp(int size, f32c* out_raw, f32* out_proc, f32* smooth_buf);
-void              get_log(float _Complex* out_raw, float* out_log, int len);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT, SongState* SS);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
