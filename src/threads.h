@@ -15,16 +15,19 @@ struct ThreadWrapper {
 
 struct HannThread {
   f32             tmp[DOUBLE_N];
+  f32             win[N];
   int             start;
   int             end;
   pthread_mutex_t mutex;
   pthread_cond_t  cond;
   int             paused;
   int             termination_flag;
+  int             cycle_complete;
 };
 
 struct LogThread {
-  f32             tmp[N];
+  f32c            tmp[N];
+  f32             tmp_proc[N / 2];
   f32             start;
   int             end;
   size_t          m;
@@ -33,6 +36,7 @@ struct LogThread {
   pthread_cond_t  cond;
   int             paused;
   int             termination_flag;
+  int             cycle_complete;
 };
 
 void* hann_window_worker(void* arg);
@@ -45,4 +49,5 @@ void  resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_st
 void  join_thread(pthread_t* context);
 void  destroy_threads(ThreadWrapper* t_wrapper);
 void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag);
+void  wait_for_completion(int cycle_state);
 #endif

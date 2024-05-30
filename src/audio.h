@@ -89,13 +89,13 @@ void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
 void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
 void              baseline_pb_state(PlaybackState* pbste);
-void              apply_amp(int size, FourierTransform* FT);
+void              apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW);
 float             amp(float _Complex z);
-void              generate_visual(FourierTransform* FT, SongState* SS);
+void              generate_visual(FourierTransform* FT, ThreadWrapper* TW);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
 void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
-void              create_hann_window(FourierTransform* FT);
+void              create_hann_window(FourierTransform* FT, ThreadWrapper* TW);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 

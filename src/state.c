@@ -41,7 +41,7 @@ void song_is_playing(SDLContext* SDLC) {
 
   i8 buffers_ready = SDLC->FTPtr->fft_data->buffers_ready;
   if (buffers_ready) {
-    generate_visual(SDLC->FTPtr, SDLC->SSPtr);
+    generate_visual(SDLC->FTPtr, SDLC->THPtr);
     render_bars(SDLC);
 
     i8 latched = SDLC->SSPtr->seek_bar->latched;
