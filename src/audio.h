@@ -98,7 +98,5 @@ void              fft_push(FourierTransform* FT, SongState* SS, int channels, in
 void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
-void*             hann_window_worker(void* arg);
-void*             log_worker(void* arg);
 
 #endif

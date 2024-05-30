@@ -4,43 +4,42 @@
 #include "music_visualizer.h"
 #include "threads.h"
 
-int main(int argc, char* argv[]) {
-  pid_t pid;
-  int   result;
-  pid = fork();
+// int main(int argc, char* argv[]) {
+// pid_t pid;
+// int   result;
+// pid = fork();
+//
+// if (pid < 0) {
+// PRINT_STR_ERR(stderr, "Failed to fork process", strerror(errno));
+// exit(EXIT_FAILURE);
+//} else if (pid == 0) {
+//
+// umask(0);
+// if (setsid() < 0) {
+// PRINT_STR_ERR(stderr, "Failed to create session ID", strerror(errno));
+// exit(EXIT_FAILURE);
+//}
+//
+// char* home = getenv("HOME");
+// if (home == NULL) {
+// PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
+//}
+//
+// if (chdir(home) < 0) {
+// PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
+// exit(EXIT_FAILURE);
+//}
+//
+// result = music_player(argc, argv);
+// exit(result);
+//} else if (pid > 0) {
+// exit(EXIT_SUCCESS);
+//}
+//
+// return result;
+//}
 
-  if (pid < 0) {
-    PRINT_STR_ERR(stderr, "Failed to fork process", strerror(errno));
-    exit(EXIT_FAILURE);
-  } else if (pid == 0) {
-
-    umask(0);
-    if (setsid() < 0) {
-      PRINT_STR_ERR(stderr, "Failed to create session ID", strerror(errno));
-      exit(EXIT_FAILURE);
-    }
-
-    char* home = getenv("HOME");
-    if (home == NULL) {
-      PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
-    }
-
-    if (chdir(home) < 0) {
-      PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
-      exit(EXIT_FAILURE);
-    }
-
-    result = music_player(argc, argv);
-    exit(result);
-  } else if (pid > 0) {
-    exit(EXIT_SUCCESS);
-  }
-
-  return result;
-}
-
-int music_player(int argc, char** argv) {
-  setup_dirs();
+int main(int argc, char** argv) {
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -170,9 +169,11 @@ int music_player(int argc, char** argv) {
   printf("Cores : %d\n", cores);
 
   ThreadWrapper ThrdWrap;
-  ThrdWrap.cores = cores;
-  ThrdWrap.hann  = NULL;
-  ThrdWrap.log   = NULL;
+  ThrdWrap.cores                = cores;
+  ThrdWrap.hann                 = NULL;
+  ThrdWrap.log                  = NULL;
+  ThrdWrap.log_thread_contexts  = NULL;
+  ThrdWrap.hann_thread_contexts = NULL;
 
   ThrdWrap.log = malloc(sizeof(LogThread) * cores);
   if (ThrdWrap.log == NULL) {
@@ -185,6 +186,20 @@ int music_player(int argc, char** argv) {
     PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
     return 1;
   }
+
+  ThrdWrap.log_thread_contexts = malloc(sizeof(pthread_t) * cores);
+  if (ThrdWrap.log_thread_contexts == NULL) {
+    PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
+    return 1;
+  }
+
+  ThrdWrap.hann_thread_contexts = malloc(sizeof(pthread_t) * cores);
+  if (ThrdWrap.hann_thread_contexts == NULL) {
+    PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
+    return 1;
+  }
+
+  create_threads(&ThrdWrap);
 
   SDLChunk.FntPtr = &FontChunk;
   SDLChunk.SSPtr  = &AudioChunk;
@@ -225,6 +240,7 @@ int music_player(int argc, char** argv) {
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FontChunk, &FileChunk);
   clear_dirs(&FontChunk, &FileChunk);
+  destroy_threads(&ThrdWrap);
 
   TTF_Quit();
   SDL_Quit();
