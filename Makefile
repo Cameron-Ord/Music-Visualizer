@@ -4,7 +4,7 @@ BUILD_DIR := ./build
 SRC_DIRS := ./src
 LDFLAGS := -lSDL2 -lsndfile -lSDL2_ttf -lm -g -Wall -Wextra 
 
-CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O3
+CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2
 LDFLAGS += -pg -fprofile-instr-generate
 
 # Find all the C and C++ files we want to compile
