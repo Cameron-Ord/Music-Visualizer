@@ -53,7 +53,27 @@ struct FTransformData {
 struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
+  int                       cpu_cores;
 };
+
+struct HannThread {
+  struct FourierTransform* FT;
+  f32                      tmp[DOUBLE_N];
+  int                      start;
+  int                      end;
+};
+
+struct LogThread {
+  struct FourierTransform* FT;
+  f32                      tmp[N];
+  f32                      start;
+  int                      end;
+  size_t                   m;
+  f32                      max_ampl;
+};
+
+typedef struct LogThread  LogThread;
+typedef struct HannThread HannThread;
 
 struct DirState {
   char** directories;
@@ -226,7 +246,7 @@ void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
 void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
 void              baseline_pb_state(PlaybackState* pbste);
-int               apply_amp(int size, f32c* out_raw, f32* out_proc, f32* smooth_buf);
+void              apply_amp(int size, FourierTransform* FT);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT, SongState* SS);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
@@ -235,6 +255,8 @@ void              fft_push(FourierTransform* FT, SongState* SS, int channels, in
 void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
+void*             hann_window_worker(void* arg);
+void*             log_worker(void* arg);
 
 int  music_player(int argc, char** argv);
 int  start_daemon(int argc, char** argv);

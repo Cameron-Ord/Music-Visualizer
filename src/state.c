@@ -180,4 +180,3 @@ void clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
   FntPtr->active->tex  = destroy_texture(FntPtr->active->tex);
   FntPtr->active->text = free_ptr(FntPtr->active->text);
 }
-
