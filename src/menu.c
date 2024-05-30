@@ -1,5 +1,7 @@
+#include "audio.h"
+#include "font.h"
+#include "init.h"
 #include "music_visualizer.h"
-#include <errno.h>
 
 int point_in_rect(int x, int y, SDL_Rect rect) {
   return (x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h);

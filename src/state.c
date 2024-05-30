@@ -1,5 +1,6 @@
+#include "audio.h"
+#include "font.h"
 #include "music_visualizer.h"
-
 int song_is_over(SDLContext* SDLC) {
   i8  files_exist = SDLC->FCPtr->file_state->files_exist;
   i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;

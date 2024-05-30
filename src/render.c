@@ -1,4 +1,20 @@
+#include "audio.h"
+#include "font.h"
 #include "music_visualizer.h"
+
+void* destroy_surface(SDL_Surface* surf) {
+  if (surf != NULL) {
+    SDL_FreeSurface(surf);
+  }
+  return NULL;
+}
+
+void* destroy_texture(SDL_Texture* tex) {
+  if (tex != NULL) {
+    SDL_DestroyTexture(tex);
+  }
+  return NULL;
+}
 
 void clear_render(SDL_Renderer* r) { SDL_RenderClear(r); }
 void render_background(SDL_Renderer* r) { SDL_SetRenderDrawColor(r, 40, 42, 54, 0); }

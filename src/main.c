@@ -1,15 +1,8 @@
-#include "macro.h"
+#include "audio.h"
+#include "font.h"
+#include "init.h"
 #include "music_visualizer.h"
-#include <SDL2/SDL.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <linux/limits.h>
-#include <sndfile.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <unistd.h>
+#include "threads.h"
 
 int main(int argc, char* argv[]) {
   pid_t pid;
@@ -157,11 +150,8 @@ int music_player(int argc, char** argv) {
   baseline_fft_values(&FTransData);
   instantiate_buffers(&FTransBufs);
 
-  int cores = sysconf(_SC_NPROCESSORS_ONLN);
-  printf("Cores : %d\n", cores);
   FTransform.fft_data    = &FTransData;
   FTransform.fft_buffers = &FTransBufs;
-  FTransform.cpu_cores   = cores;
   SongState AudioChunk;
 
   AudioData     ADta;
@@ -176,12 +166,32 @@ int music_player(int argc, char** argv) {
   AudioChunk.seek_bar   = &SKBar;
   AudioChunk.audio_data = &ADta;
 
+  int cores = sysconf(_SC_NPROCESSORS_ONLN);
+  printf("Cores : %d\n", cores);
+
+  ThreadWrapper ThrdWrap;
+  ThrdWrap.cores = cores;
+  ThrdWrap.hann  = NULL;
+  ThrdWrap.log   = NULL;
+
+  ThrdWrap.log = malloc(sizeof(LogThread) * cores);
+  if (ThrdWrap.log == NULL) {
+    PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
+    return 1;
+  }
+
+  ThrdWrap.hann = malloc(sizeof(HannThread) * cores);
+  if (ThrdWrap.hann == NULL) {
+    PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
+    return 1;
+  }
+
   SDLChunk.FntPtr = &FontChunk;
   SDLChunk.SSPtr  = &AudioChunk;
   SDLChunk.FTPtr  = &FTransform;
   SDLChunk.FCPtr  = &FileChunk;
+  SDLChunk.THPtr  = &ThrdWrap;
 
-  fprintf(stdout, "Updating viewports..\n");
   update_viewports(&SDLChunk);
 
   float prev_time = SDL_GetTicks64();
@@ -220,219 +230,6 @@ int music_player(int argc, char** argv) {
   SDL_Quit();
 
   return 0;
-}
-
-int initialize_SDL() {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    PRINT_SDL_ERR(stderr, SDL_GetError());
-    return -1;
-  }
-  return 0;
-}
-
-int create_window(SDL_Window** w) {
-  *w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, BWIDTH,
-                        BHEIGHT, 0);
-  if (!*w) {
-    PRINT_SDL_ERR(stderr, SDL_GetError());
-    return -1;
-  }
-  SDL_SetWindowResizable(*w, SDL_TRUE);
-  return 0;
-}
-
-int create_renderer(SDL_Window** w, SDL_Renderer** r) {
-  if (*w) {
-    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!*r) {
-      PRINT_SDL_ERR(stderr, SDL_GetError());
-      SDL_DestroyWindow(*w);
-      return -1;
-    }
-    return 0;
-  }
-  return -1;
-}
-
-SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec) {
-  SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, 0);
-  if (!dev) {
-    PRINT_SDL_ERR(stderr, SDL_GetError());
-    return -1;
-  }
-  return dev;
-}
-
-int initialize_TTF(TTFData* cntxtdata) {
-  if (TTF_Init() < 0) {
-    PRINT_SDL_ERR(stderr, SDL_GetError());
-    return -1;
-  }
-  return 0;
-}
-
-int open_font(TTFData* cntxtdata) {
-  cntxtdata->font = TTF_OpenFont(FONT_PATH, LRG);
-  if (cntxtdata->font == NULL) {
-    PRINT_SDL_ERR(stderr, SDL_GetError());
-    return -1;
-  }
-  return 0;
-}
-
-void get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
-  SDL_GetWindowSize(w, &SDLCnt->win_width, &SDLCnt->win_height);
-}
-
-void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
-  int DS = FTData->DS_AMOUNT;
-  memset(FTBuf->fft_in, 0, DOUBLE_N * sizeof(float));
-  memset(FTBuf->combined_window, 0, N * sizeof(float));
-  memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
-  memset(FTBuf->processed, 0, (N / 2) * sizeof(float));
-  memset(FTBuf->smoothed, 0, (N / 2) * sizeof(float));
-  memset(FTBuf->out_log, 0, N * sizeof(float));
-}
-
-void reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
-  Aud->audio_pos  = 0;
-  PBste->is_ready = FALSE;
-  Aud->wav_len    = 0;
-  Aud->buffer     = free_ptr(Aud->buffer);
-}
-
-void* free_ptr(void* ptr) {
-  if (ptr != NULL) {
-    free(ptr);
-  }
-  return NULL;
-}
-
-int read_to_buffer(SDLContext* SDLC) {
-#ifdef __LINUX__
-
-  char* home = getenv("HOME");
-  if (home == NULL) {
-    PRINT_STR_ERR(stderr, "Err getting home DIR", strerror(errno));
-    return -1;
-  }
-
-  SongState*   SSPtr = SDLC->SSPtr;
-  FileContext* FCPtr = SDLC->FCPtr;
-
-  FileState* FS  = FCPtr->file_state;
-  AudioData* Aud = SSPtr->audio_data;
-
-  char combined_path[PATH_MAX];
-  char path[PATH_MAX];
-
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/%s/", home, FS->selected_dir);
-  sprintf(combined_path, "%s%s", path, FS->files[FS->file_index]);
-  printf("\nREADING FILE : %s\n\n", FS->files[FS->file_index]);
-
-  SNDFILE* sndfile;
-  SF_INFO  sfinfo;
-
-  sndfile = sf_open(combined_path, SFM_READ, &sfinfo);
-  if (!sndfile) {
-    PRINT_STR_ERR(stderr, "Err opening file for reading", strerror(errno));
-    return -1;
-  }
-
-  if (sfinfo.channels != 2) {
-    fprintf(stderr, "Must be a 2 channel audio file!\n");
-    return -1;
-  }
-
-  Aud->channels = sfinfo.channels;
-  Aud->sr       = sfinfo.samplerate;
-  Aud->format   = sfinfo.format;
-
-  printf("--CHANNELS : %d\n", Aud->channels);
-  printf("--SAMPLE RATE : %d\n", Aud->sr);
-  printf("--FORMAT : %x\n", Aud->format);
-  printf("--FRAMES :  %ld\n", sfinfo.frames);
-
-  Aud->samples = sfinfo.frames * sfinfo.channels;
-  Aud->buffer  = malloc(Aud->samples * sizeof(float));
-  if (Aud->buffer == NULL) {
-    return -1;
-  }
-
-  memset(Aud->buffer, 0, Aud->samples * sizeof(float));
-  printf("--BUFFER : %p\n", Aud->buffer);
-
-  sf_count_t num_read = sf_read_float(sndfile, Aud->buffer, Aud->samples);
-  if (num_read < 0) {
-    PRINT_STR_ERR(stderr, "Err reading audio data", strerror(errno));
-    free_ptr(Aud->buffer);
-    sf_close(sndfile);
-    return -1;
-  }
-
-  Aud->wav_len = Aud->samples;
-
-  FourierTransform* FTPtr = SDLC->FTPtr;
-
-  float DSf                  = (float)N / FTPtr->fft_data->DS_AMOUNT;
-  FTPtr->fft_data->freq_step = (float)Aud->sr / DSf;
-  printf("\n..Done reading. Closing file\n\n");
-
-  sf_close(sndfile);
-
-  return 0;
-#endif
-
-  return -1;
-}
-
-/*I would like to implement a volume control but i also want to not loop in my callback for
- * performance reasons but whatever, could use paralell idk*/
-void callback(void* data, Uint8* stream, int len) {
-  SDLContext*       SDLCPtr = (struct SDLContext*)data;
-  SongState*        SSPtr   = SDLCPtr->SSPtr;
-  FourierTransform* FTPtr   = SDLCPtr->FTPtr;
-
-  AudioData* Aud = SSPtr->audio_data;
-
-  int remaining_samples = (Aud->wav_len - Aud->audio_pos);
-
-  int samples_to_copy =
-      (len / sizeof(float) < remaining_samples) ? len / sizeof(float) : remaining_samples;
-
-  float* f32_stream = (float*)stream;
-
-  memcpy(f32_stream, Aud->buffer + Aud->audio_pos, samples_to_copy * sizeof(float));
-  if (Aud->audio_pos > 0 && Aud->audio_pos < Aud->wav_len) {
-    fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
-  }
-
-  Aud->audio_pos += samples_to_copy;
-
-  if (Aud->audio_pos >= Aud->wav_len) {
-    fprintf(stdout, "\n AUDIO POS: %d, WAV_LEN: %d\n", Aud->audio_pos, Aud->wav_len);
-    fprintf(stdout, "End reached.. Starting next song.\n");
-    SSPtr->pb_state->song_ended = TRUE;
-  }
-}
-
-void print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
-  printf(
-      "\nFORMAT : %d\n CHANNELS: %d\n FREQ: %d\n USERDATA: %p\n CALLBACK %p\n SAMPLES: %d\n SIZE "
-      ": %d\n",
-      spec.format, spec.channels, spec.freq, spec.userdata, spec.callback, spec.samples, spec.size);
-  printf("\nDEVICE ID : %d\n", dev);
-}
-
-void update_audio_position(AudioData* ADta, SeekBar* SKBar) {
-  int ttl_length       = SKBar->vp.w;
-  int current_position = SKBar->seek_box.x + SCROLLBAR_OFFSET;
-  if (current_position < 0.0 || current_position > SKBar->vp.w) {
-    return;
-  }
-  f32 normalized  = ((float)current_position / (float)ttl_length);
-  int scaled_pos  = normalized * ADta->wav_len;
-  ADta->audio_pos = scaled_pos;
 }
 
 void poll_events(SDLContext* SDLC) {
@@ -525,4 +322,11 @@ void poll_events(SDLContext* SDLC) {
     }
     }
   }
+}
+
+void* free_ptr(void* ptr) {
+  if (ptr != NULL) {
+    free(ptr);
+  }
+  return NULL;
 }

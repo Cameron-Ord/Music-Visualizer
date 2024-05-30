@@ -1,9 +1,5 @@
+#include "font.h"
 #include "music_visualizer.h"
-#include <errno.h>
-#include <linux/limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 SDL_Surface* create_font_surface(TTF_Font** font, SDL_Color color, char* text) {
   SDL_Surface* text_surface = TTF_RenderText_Blended((*font), text, color);
@@ -22,20 +18,6 @@ SDL_Texture* create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
     return NULL;
   }
   return font_texture;
-}
-
-void* destroy_surface(SDL_Surface* surf) {
-  if (surf != NULL) {
-    SDL_FreeSurface(surf);
-  }
-  return NULL;
-}
-
-void* destroy_texture(SDL_Texture* tex) {
-  if (tex != NULL) {
-    SDL_DestroyTexture(tex);
-  }
-  return NULL;
 }
 
 int create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {

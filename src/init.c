@@ -1,5 +1,69 @@
-#include "macro.h"
+#include "init.h"
+#include "audio.h"
+#include "font.h"
 #include "music_visualizer.h"
+
+int initialize_SDL() {
+  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return -1;
+  }
+  return 0;
+}
+
+int create_window(SDL_Window** w) {
+  *w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, BWIDTH,
+                        BHEIGHT, 0);
+  if (!*w) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return -1;
+  }
+  SDL_SetWindowResizable(*w, SDL_TRUE);
+  return 0;
+}
+
+int create_renderer(SDL_Window** w, SDL_Renderer** r) {
+  if (*w) {
+    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!*r) {
+      PRINT_SDL_ERR(stderr, SDL_GetError());
+      SDL_DestroyWindow(*w);
+      return -1;
+    }
+    return 0;
+  }
+  return -1;
+}
+
+SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec) {
+  SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, 0);
+  if (!dev) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return -1;
+  }
+  return dev;
+}
+
+int initialize_TTF(TTFData* cntxtdata) {
+  if (TTF_Init() < 0) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return -1;
+  }
+  return 0;
+}
+
+int open_font(TTFData* cntxtdata) {
+  cntxtdata->font = TTF_OpenFont(FONT_PATH, LRG);
+  if (cntxtdata->font == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return -1;
+  }
+  return 0;
+}
+
+void get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
+  SDL_GetWindowSize(w, &SDLCnt->win_width, &SDLCnt->win_height);
+}
 
 void baseline_context_data(TTFData* cntxt) {
   memset(&cntxt->color, 0, sizeof(SDL_Color));

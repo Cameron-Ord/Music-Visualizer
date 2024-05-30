@@ -1,11 +1,10 @@
-#include "macro.h"
-#include "music_visualizer.h"
+#include "audio.h"
 #include <assert.h>
 #include <complex.h>
 #include <math.h>
-#include <pthread.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifndef M_PI
 #define M_PI 3.14159265359
 #endif
@@ -51,43 +50,16 @@ void generate_visual(FourierTransform* FT, SongState* SS) {
 } /*generate_visual*/
 
 void create_hann_window(FourierTransform* FT) {
-  f32* fft_in = FT->fft_buffers->fft_in;
-
-  pthread_t  threads[FT->cpu_cores];
-  HannThread hann_thread[FT->cpu_cores];
-  int        chunk = N / FT->cpu_cores;
-
-  for (int t = 0; t < FT->cpu_cores; ++t) {
-    hann_thread[t].FT    = FT;
-    hann_thread[t].start = t * chunk;
-
-    memcpy(hann_thread[t].tmp, fft_in, sizeof(f32) * DOUBLE_N);
-
-    int end = (t == FT->cpu_cores - 1) ? N : (t + 1) * chunk;
-
-    hann_thread[t].end = end;
-
-    pthread_create(&threads[t], NULL, hann_window_worker, &hann_thread[t]);
-  }
-
-  for (int t = 0; t < FT->cpu_cores; ++t) {
-    pthread_join(threads[t], NULL);
-  }
-}
-
-void* hann_window_worker(void* arg) {
-  HannThread* _FT = (HannThread*)arg;
-
-  float* combined_window = _FT->FT->fft_buffers->combined_window;
-  float* fft_in          = _FT->FT->fft_buffers->fft_in;
+  f32* fft_in          = FT->fft_buffers->fft_in;
+  f32* combined_window = FT->fft_buffers->combined_window;
 
   f32 Nf     = (float)N;
   f32 TWO_PI = 2.0f * M_PI;
 
-  for (int i = _FT->start; i < _FT->end; ++i) {
+  for (int i = 0; i < N; ++i) {
     // hann window to reduce spectral leakage before passing it to FFT
     // Summing left and right channels
-    f32 sum            = _FT->tmp[i * 2] + _FT->tmp[i * 2 + 1];
+    f32 sum            = fft_in[i * 2] + fft_in[i * 2 + 1];
     combined_window[i] = sum / 2;
 
     float t    = (float)i / (Nf - 1);
@@ -96,8 +68,29 @@ void* hann_window_worker(void* arg) {
     combined_window[i] *= hann;
   }
 
-  return NULL;
+  // pthread_t  threads[FT->cpu_cores];
+  // HannThread hann_thread[FT->cpu_cores];
+  // int        chunk = N / FT->cpu_cores;
+  //
+  // for (int t = 0; t < FT->cpu_cores; ++t) {
+  // hann_thread[t].FT    = FT;
+  // hann_thread[t].start = t * chunk;
+  //
+  // memcpy(hann_thread[t].tmp, fft_in, sizeof(f32) * DOUBLE_N);
+  //
+  // int end = (t == FT->cpu_cores - 1) ? N : (t + 1) * chunk;
+  //
+  // hann_thread[t].end = end;
+  //
+  // pthread_create(&threads[t], NULL, hann_window_worker, &hann_thread[t]);
+  //}
+  //
+  // for (int t = 0; t < FT->cpu_cores; ++t) {
+  // pthread_join(threads[t], NULL);
+  //}
 }
+
+void* hann_window_worker(void* arg) { return NULL; }
 
 void low_pass(float* input, int size, float cutoff, int SR) {
   /*Just a simple attenuation, don't feel like complicating this*/
@@ -110,20 +103,35 @@ void low_pass(float* input, int size, float cutoff, int SR) {
 
 void apply_amp(int size, FourierTransform* FT) {
 
-  pthread_t threads[FT->cpu_cores];
-  LogThread log_thread[FT->cpu_cores];
-  int       chunk = size / FT->cpu_cores;
-
-  for (int t = 0; t < FT->cpu_cores; ++t) {
-    log_thread[t].FT       = FT;
-    f32 start              = (t == 0) ? (t * chunk) + 1.0f : (t * chunk);
-    log_thread[t].start    = start;
-    log_thread[t].m        = 0;
-    log_thread[t].max_ampl = 1.0f;
-    int end                = (t == FT->cpu_cores - 1) ? size : (t + 1) * chunk;
-    log_thread[t].end      = end;
-    pthread_create(&threads[t], NULL, log_worker, &log_thread[t]);
-  }
+  // pthread_t threads[FT->cpu_cores];
+  // LogThread log_thread[FT->cpu_cores];
+  // int       chunk = size / FT->cpu_cores;
+  //
+  // for (int t = 0; t < FT->cpu_cores; ++t) {
+  // log_thread[t].FT       = FT;
+  // f32 start              = (t == 0) ? (t * chunk) + 1.0f : (t * chunk);
+  // log_thread[t].start    = start;
+  // log_thread[t].m        = 0;
+  // log_thread[t].max_ampl = 1.0f;
+  // int end                = (t == FT->cpu_cores - 1) ? size : (t + 1) * chunk;
+  // log_thread[t].end      = end;
+  // pthread_create(&threads[t], NULL, log_worker, &log_thread[t]);
+  //}
+  //
+  //
+  // size_t tmp_m    = 0;
+  // int    increm   = 0;
+  // f32    max_ampl = 1.0f;
+  //
+  // for (int t = 0; t < FT->cpu_cores; ++t) {
+  // pthread_join(threads[t], NULL);
+  // tmp_m = log_thread[t].m;
+  // memcpy(out_log + increm, log_thread[t].tmp, sizeof(float) * tmp_m);
+  // increm += tmp_m;
+  // if (log_thread[t].max_ampl > max_ampl) {
+  // max_ampl = log_thread[t].max_ampl;
+  //}
+  //}
 
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;
@@ -131,57 +139,61 @@ void apply_amp(int size, FourierTransform* FT) {
   f32* smoothed = ftbuf->smoothed;
   f32* out_log  = ftbuf->out_log;
 
-  size_t tmp_m    = 0;
-  int    increm   = 0;
-  f32    max_ampl = 1.0f;
+  float  step     = 1.06f;
+  float  lowf     = 1.0f;
+  size_t m        = 0;
+  float  max_ampl = 1.0f;
 
-  for (int t = 0; t < FT->cpu_cores; ++t) {
-    pthread_join(threads[t], NULL);
-    tmp_m = log_thread[t].m;
-    memcpy(out_log + increm, log_thread[t].tmp, sizeof(float) * tmp_m);
-    increm += tmp_m;
-    if (log_thread[t].max_ampl > max_ampl) {
-      max_ampl = log_thread[t].max_ampl;
+  for (float f = lowf; (size_t)f < size; f = ceilf(f * step)) {
+    float fs = ceilf(f * step);
+    float a  = 0.0f;
+    for (size_t q = (size_t)f; q < size && q < (size_t)fs; ++q) {
+      float b = amp(ftbuf->out_raw[q]);
+      if (b > a)
+        a = b;
     }
+    if (max_ampl < a) {
+      max_ampl = a;
+    }
+    ftbuf->processed[m++] = a;
   }
-
-  size_t m = (size_t)increm;
 
   for (size_t i = 0; i < m; ++i) {
-    out_log[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (out_log[i] - smoothed[i]) * 8 * (1.0 / FPS);
+    ftbuf->processed[i] /= max_ampl;
+    ftbuf->smoothed[i] =
+        ftbuf->smoothed[i] + (ftbuf->processed[i] - ftbuf->smoothed[i]) * 7 * (1.0 / FPS);
   }
 
-  ftdata->output_len = m;
+  FT->fft_data->output_len = m;
 
 } /*apply_amp*/
 
 void* log_worker(void* arg) {
-  LogThread* _FT = (LogThread*)arg;
-
-  float step = 1.06f;
-
-  FTransformBuffers* ftbuf  = _FT->FT->fft_buffers;
-  FTransformData*    ftdata = _FT->FT->fft_data;
-
-  memset(_FT->tmp, 0, sizeof(f32) * N);
-
-  for (float f = _FT->start; (size_t)f < _FT->end; f = ceilf(f * step)) {
-    float fs = ceilf(f * step);
-    float a  = 0.0f;
-    for (size_t q = (size_t)f; q < _FT->end && q < (size_t)fs; ++q) {
-      float b = 0.0f;
-
-      b = amp(ftbuf->out_raw[q]);
-
-      if (b > a)
-        a = b;
-    }
-    if (_FT->max_ampl < a) {
-      _FT->max_ampl = a;
-    }
-    _FT->tmp[_FT->m++] = a;
-  }
+  // LogThread* _FT = (LogThread*)arg;
+  //
+  // float step = 1.06f;
+  //
+  // FTransformBuffers* ftbuf  = _FT->FT->fft_buffers;
+  // FTransformData*    ftdata = _FT->FT->fft_data;
+  //
+  // memset(_FT->tmp, 0, sizeof(f32) * N);
+  //
+  // for (float f = _FT->start; (size_t)f < _FT->end; f = ceilf(f * step)) {
+  // float fs = ceilf(f * step);
+  // float a  = 0.0f;
+  // for (size_t q = (size_t)f; q < _FT->end && q < (size_t)fs; ++q) {
+  // float b = 0.0f;
+  //
+  // b = amp(ftbuf->out_raw[q]);
+  //
+  // if (b > a)
+  // a = b;
+  //}
+  // if (_FT->max_ampl < a) {
+  //_FT->max_ampl = a;
+  //}
+  //_FT->tmp[_FT->m++] = a;
+  //}
 
   return NULL;
 }
