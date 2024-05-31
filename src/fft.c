@@ -103,6 +103,7 @@ void apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW) {
     log[i].start = (i == 0) ? (i * chunk) + 1.0f : (i * chunk);
     log[i].end   = (i == cores - 1) ? size : (i + 1) * chunk;
     log[i].m     = 0;
+    memset(log[i].tmp_proc, 0, sizeof(f32) * (N / 2));
     memcpy(log[i].tmp, ftbuf->out_raw, sizeof(f32c) * N);
     resume_thread(&TW->log[i].cond, &TW->log[i].mutex, &TW->log[i].paused);
   }
