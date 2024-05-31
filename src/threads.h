@@ -50,4 +50,6 @@ void  join_thread(pthread_t* context);
 void  destroy_threads(ThreadWrapper* t_wrapper);
 void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag);
 void  wait_for_completion(int cycle_state);
+void  create_hann_window_th(FourierTransform* FT, ThreadWrapper* TW);
+void  apply_amp_th(int size, FourierTransform* FT, ThreadWrapper* TW);
 #endif

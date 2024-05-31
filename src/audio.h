@@ -49,7 +49,6 @@ struct FTransformBuffers {
   f32  fft_in[DOUBLE_N];
   f32  combined_window[N];
   f32c out_raw[N];
-  f32  out_log[N];
   f32  processed[N / 2];
   f32  smoothed[N / 2];
 };
@@ -91,7 +90,7 @@ void              baseline_seek_bar(SeekBar* skbar);
 void              baseline_pb_state(PlaybackState* pbste);
 void              apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW);
 float             amp(float _Complex z);
-void              generate_visual(FourierTransform* FT, ThreadWrapper* TW);
+void              generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
 void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);

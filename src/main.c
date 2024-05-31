@@ -40,7 +40,6 @@
 //}
 
 int main(int argc, char** argv) {
-  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -242,6 +241,11 @@ int main(int argc, char** argv) {
   clear_files(&FontChunk, &FileChunk);
   clear_dirs(&FontChunk, &FileChunk);
   destroy_threads(&ThrdWrap);
+
+  free_ptr(ThrdWrap.log_thread_contexts);
+  free_ptr(ThrdWrap.hann_thread_contexts);
+  free_ptr(ThrdWrap.hann);
+  free_ptr(ThrdWrap.log);
 
   TTF_Quit();
   SDL_Quit();

@@ -43,7 +43,7 @@ void create_hann_thread(pthread_t* context, HannThread* Hann) {
   Hann->cycle_complete   = FALSE;
   Hann->termination_flag = FALSE;
   memset(Hann->tmp, 0, sizeof(f32) * DOUBLE_N);
-  memset(Hann->tmp, 0, sizeof(f32) * N);
+  memset(Hann->win, 0, sizeof(f32) * N);
   pthread_create(context, NULL, hann_window_worker, Hann);
 }
 
@@ -94,14 +94,14 @@ void* hann_window_worker(void* arg) {
     }
     pthread_mutex_unlock(&hann_t->mutex);
 
-    f32 Nf     = (float)N;
+    f32 Nf     = (float)hann_t->end;
     f32 TWO_PI = 2.0f * M_PI;
 
     pthread_mutex_lock(&hann_t->mutex);
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
       // Summing left and right channels
-      f32 sum        = hann_t->tmp[i * 2] + hann_t->tmp[i * 2 + 1];
+      f32 sum        = hann_t->tmp[i] + hann_t->tmp[i * 2 + 1];
       hann_t->win[i] = sum / 2;
 
       float t    = (float)i / (Nf - 1);
@@ -167,4 +167,82 @@ void* log_worker(void* arg) {
   }
 
   return NULL;
+}
+
+void create_hann_window_th(FourierTransform* FT, ThreadWrapper* TW) {
+
+  f32*        fft_in = FT->fft_buffers->fft_in;
+  int         cores  = TW->cores;
+  HannThread* hann   = TW->hann;
+  int         chunk  = N / cores;
+
+  for (int i = 0; i < cores; ++i) {
+    hann[i].start = (i * chunk);
+    hann[i].end   = (i == cores - 1) ? N : (i + 1) * chunk;
+    memset(hann[i].win, 0, sizeof(f32) * N);
+    memcpy(hann[i].tmp, fft_in, sizeof(f32) * DOUBLE_N);
+    resume_thread(&TW->hann[i].cond, &TW->hann[i].mutex, &TW->hann[i].paused);
+  }
+
+  f32* combined_window = FT->fft_buffers->combined_window;
+  int  m               = 0;
+  int  m_increm        = 0;
+
+  for (int i = 0; i < cores; ++i) {
+    while (TRUE) {
+      if (hann[i].cycle_complete) {
+        break;
+      }
+    }
+    m = hann[i].end;
+    memcpy(combined_window + m_increm, hann[i].win, sizeof(f32) * m);
+    m_increm += m;
+
+    hann[i].cycle_complete = FALSE;
+  }
+}
+
+void apply_amp_th(int size, FourierTransform* FT, ThreadWrapper* TW) {
+
+  FTransformBuffers* ftbuf = FT->fft_buffers;
+  int                cores = TW->cores;
+  LogThread*         log   = TW->log;
+  int                chunk = size / cores;
+
+  for (int i = 0; i < cores; i++) {
+    log[i].start = (i == 0) ? (i * chunk) + 1.0f : (i * chunk);
+    log[i].end   = (i == cores - 1) ? size : (i + 1) * chunk;
+    log[i].m     = 0;
+    memset(log[i].tmp_proc, 0, sizeof(f32) * (N / 2));
+    memcpy(log[i].tmp, ftbuf->out_raw, sizeof(f32c) * N);
+    resume_thread(&TW->log[i].cond, &TW->log[i].mutex, &TW->log[i].paused);
+  }
+
+  f32*   processed = ftbuf->processed;
+  f32*   smoothed  = ftbuf->smoothed;
+  size_t m         = 0;
+  int    m_increm  = 0;
+  f32    max_ampl  = 1.0f;
+
+  for (int i = 0; i < cores; i++) {
+    // Wait until the worker is finished
+    while (TRUE) {
+      if (log[i].cycle_complete) {
+        break;
+      }
+    }
+
+    m = log[i].m;
+    for (int f = 0; f < m; f++) {
+      processed[f + m_increm] = log[i].tmp_proc[f];
+    }
+    m_increm += m;
+
+    if (log[i].max_ampl > max_ampl)
+      max_ampl = log[i].max_ampl;
+
+    log[i].cycle_complete = FALSE;
+  }
+
+  m = m_increm;
 }

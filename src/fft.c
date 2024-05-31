@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "macro.h"
 #include "threads.h"
 #include <assert.h>
 #include <complex.h>
@@ -39,8 +40,7 @@ void fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   }
 } /*fft_push*/
 
-void generate_visual(FourierTransform* FT, ThreadWrapper* TW) {
-  float*          out_log         = FT->fft_buffers->out_log;
+void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
   float*          smoothed        = FT->fft_buffers->smoothed;
   float*          combined_window = FT->fft_buffers->combined_window;
   float _Complex* out_raw         = FT->fft_buffers->out_raw;
@@ -51,34 +51,19 @@ void generate_visual(FourierTransform* FT, ThreadWrapper* TW) {
 } /*generate_visual*/
 
 void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
-  f32*        fft_in = FT->fft_buffers->fft_in;
-  int         cores  = TW->cores;
-  HannThread* hann   = TW->hann;
-  int         chunk  = N / cores;
+  float* combined_window = FT->fft_buffers->combined_window;
 
-  for (int i = 0; i < cores; i++) {
-    hann[i].start = (i * chunk);
-    hann[i].end   = (i == cores - 1) ? N : (i + 1) * chunk;
-    memset(hann[i].win, 0, sizeof(f32) * N);
-    memcpy(hann[i].tmp, fft_in, sizeof(f32) * DOUBLE_N);
-    resume_thread(&TW->hann[i].cond, &TW->hann[i].mutex, &TW->hann[i].paused);
-  }
+  f32* fft_in = FT->fft_buffers->fft_in;
 
-  f32* combined_window = FT->fft_buffers->combined_window;
-  int  m               = 0;
-  int  m_increm        = 0;
+  for (int i = 0; i < N; ++i) {
+    f32 sum            = fft_in[i * 2] + fft_in[i * 2 + 1];
+    combined_window[i] = sum / 2;
+    // hann window to reduce spectral leakage before passing it to FFT
+    float Nf   = (float)N;
+    float t    = (float)i / (Nf - 1);
+    float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 
-  for (int i = 0; i < cores; i++) {
-    while (TRUE) {
-      if (hann[i].cycle_complete) {
-        break;
-      }
-    }
-    m = hann[i].end;
-    memcpy(combined_window + m_increm, hann[i].win, sizeof(f32) * m);
-    m_increm += m;
-
-    hann[i].cycle_complete = FALSE;
+    combined_window[i] *= hann;
   }
 }
 
@@ -87,7 +72,7 @@ void low_pass(float* input, int size, float cutoff, int SR) {
   float nyquist    = (float)SR / 2.0f;
   int   cutoff_bin = (int)((cutoff / nyquist) * size);
   for (int i = 0; i < cutoff_bin; ++i) {
-    input[i] *= 0.75;
+    input[i] *= 0.5;
   }
 } /*low_pass*/
 
@@ -95,48 +80,32 @@ void apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW) {
 
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;
-  int                cores  = TW->cores;
-  LogThread*         log    = TW->log;
-  int                chunk  = size / cores;
 
-  for (int i = 0; i < cores; i++) {
-    log[i].start = (i == 0) ? (i * chunk) + 1.0f : (i * chunk);
-    log[i].end   = (i == cores - 1) ? size : (i + 1) * chunk;
-    log[i].m     = 0;
-    memset(log[i].tmp_proc, 0, sizeof(f32) * (N / 2));
-    memcpy(log[i].tmp, ftbuf->out_raw, sizeof(f32c) * N);
-    resume_thread(&TW->log[i].cond, &TW->log[i].mutex, &TW->log[i].paused);
-  }
+  float  step     = 1.06f;
+  float  lowf     = 1.0f;
+  size_t m        = 0;
+  float  max_ampl = 1.0f;
 
-  f32*   processed = ftbuf->processed;
-  f32*   smoothed  = ftbuf->smoothed;
-  size_t m         = 0;
-  int    m_increm  = 0;
-  f32    max_ampl  = 1.0f;
-
-  for (int i = 0; i < cores; i++) {
-    // Wait until the worker is finished
-    while (TRUE) {
-      if (log[i].cycle_complete) {
-        break;
-      }
+  for (float f = lowf; (size_t)f < size; f = ceilf(f * step)) {
+    float fs = ceilf(f * step);
+    float a  = 0.0f;
+    for (size_t q = (size_t)f; q < size && q < (size_t)fs; ++q) {
+      float b = amp(ftbuf->out_raw[q]);
+      if (b > a)
+        a = b;
     }
-
-    m = log[i].m;
-    memcpy(processed + m_increm, log[i].tmp_proc, sizeof(f32) * m);
-    m_increm += m;
-
-    if (log[i].max_ampl > max_ampl)
-      max_ampl = log[i].max_ampl;
-
-    log[i].cycle_complete = FALSE;
+    if (max_ampl < a) {
+      max_ampl = a;
+    }
+    ftbuf->processed[m++] = a;
   }
 
-  m = m_increm;
+  f32* processed = ftbuf->processed;
+  f32* smoothed  = ftbuf->smoothed;
 
   for (size_t i = 0; i < m; ++i) {
     processed[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
+    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 8 * (1.0 / FPS);
   }
 
   FT->fft_data->output_len = m;
