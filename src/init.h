@@ -4,7 +4,7 @@
 #include "types.h"
 #include <SDL2/SDL.h>
 
-int music_player(int argc, char** argv);
+int music_player();
 int start_daemon(int argc, char** argv);
 int initialize_SDL();
 int create_renderer(SDL_Window** w, SDL_Renderer** r);

@@ -4,42 +4,55 @@
 #include "music_visualizer.h"
 #include "threads.h"
 
-// int main(int argc, char* argv[]) {
-// pid_t pid;
-// int   result;
-// pid = fork();
-//
-// if (pid < 0) {
-// PRINT_STR_ERR(stderr, "Failed to fork process", strerror(errno));
-// exit(EXIT_FAILURE);
-//} else if (pid == 0) {
-//
-// umask(0);
-// if (setsid() < 0) {
-// PRINT_STR_ERR(stderr, "Failed to create session ID", strerror(errno));
-// exit(EXIT_FAILURE);
-//}
-//
-// char* home = getenv("HOME");
-// if (home == NULL) {
-// PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
-//}
-//
-// if (chdir(home) < 0) {
-// PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
-// exit(EXIT_FAILURE);
-//}
-//
-// result = music_player(argc, argv);
-// exit(result);
-//} else if (pid > 0) {
-// exit(EXIT_SUCCESS);
-//}
-//
-// return result;
-//}
-
 int main(int argc, char** argv) {
+
+  if (argc >= 2) {
+    if (strcmp(argv[1], "--daemonize=yes") == 0) {
+      pid_t pid;
+      int   result;
+      pid = fork();
+
+      if (pid < 0) {
+        PRINT_STR_ERR(stderr, "Failed to fork process", strerror(errno));
+        exit(EXIT_FAILURE);
+      } else if (pid == 0) {
+
+        umask(0);
+        if (setsid() < 0) {
+          PRINT_STR_ERR(stderr, "Failed to create session ID", strerror(errno));
+          exit(EXIT_FAILURE);
+        }
+
+        char* home = getenv("HOME");
+        if (home == NULL) {
+          PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
+        }
+
+        if (chdir(home) < 0) {
+          PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
+          exit(EXIT_FAILURE);
+        }
+
+        result = music_player();
+        exit(result);
+      } else if (pid > 0) {
+        exit(EXIT_SUCCESS);
+      }
+
+      return result;
+    }
+  }
+
+  if (argc < 2) {
+    int result = music_player();
+    return result;
+  }
+
+  return 0;
+}
+
+int music_player() {
+  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
