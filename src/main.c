@@ -169,32 +169,32 @@ int main(int argc, char** argv) {
   printf("Cores : %d\n", cores);
 
   ThreadWrapper ThrdWrap;
-  ThrdWrap.cores                = cores;
-  ThrdWrap.hann                 = NULL;
-  ThrdWrap.log                  = NULL;
-  ThrdWrap.log_thread_contexts  = NULL;
-  ThrdWrap.hann_thread_contexts = NULL;
+  ThrdWrap.cores        = cores;
+  ThrdWrap.ren          = NULL;
+  ThrdWrap.dir          = NULL;
+  ThrdWrap.rend_context = NULL;
+  ThrdWrap.dir_context  = NULL;
 
-  ThrdWrap.log = malloc(sizeof(LogThread) * cores);
-  if (ThrdWrap.log == NULL) {
+  ThrdWrap.ren = malloc(sizeof(BufRenderThread) * cores);
+  if (ThrdWrap.ren == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
     return 1;
   }
 
-  ThrdWrap.hann = malloc(sizeof(HannThread) * cores);
-  if (ThrdWrap.hann == NULL) {
+  ThrdWrap.dir = malloc(sizeof(DirFontThread) * cores);
+  if (ThrdWrap.dir == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
     return 1;
   }
 
-  ThrdWrap.log_thread_contexts = malloc(sizeof(pthread_t) * cores);
-  if (ThrdWrap.log_thread_contexts == NULL) {
+  ThrdWrap.rend_context = malloc(sizeof(pthread_t) * cores);
+  if (ThrdWrap.rend_context == NULL) {
     PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
     return 1;
   }
 
-  ThrdWrap.hann_thread_contexts = malloc(sizeof(pthread_t) * cores);
-  if (ThrdWrap.hann_thread_contexts == NULL) {
+  ThrdWrap.dir_context = malloc(sizeof(pthread_t) * cores);
+  if (ThrdWrap.dir_context == NULL) {
     PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
     return 1;
   }
@@ -242,10 +242,10 @@ int main(int argc, char** argv) {
   clear_dirs(&FontChunk, &FileChunk);
   destroy_threads(&ThrdWrap);
 
-  free_ptr(ThrdWrap.log_thread_contexts);
-  free_ptr(ThrdWrap.hann_thread_contexts);
-  free_ptr(ThrdWrap.hann);
-  free_ptr(ThrdWrap.log);
+  free_ptr(ThrdWrap.dir_context);
+  free_ptr(ThrdWrap.rend_context);
+  free_ptr(ThrdWrap.dir);
+  free_ptr(ThrdWrap.ren);
 
   TTF_Quit();
   SDL_Quit();

@@ -15,8 +15,8 @@ typedef double   f64;
 typedef float _Complex f32c;
 
 typedef struct ThreadWrapper     ThreadWrapper;
-typedef struct LogThread         LogThread;
-typedef struct HannThread        HannThread;
+typedef struct BufRenderThread   BufRenderThread;
+typedef struct DirFontThread     DirFontThread;
 typedef struct SDLMouse          SDLMouse;
 typedef struct SDLContainer      SDLContainer;
 typedef struct SDLContext        SDLContext;
