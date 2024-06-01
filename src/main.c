@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
 }
 
 int music_player() {
-  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;

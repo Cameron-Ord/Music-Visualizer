@@ -100,6 +100,6 @@ void              create_hann_window(FourierTransform* FT, ThreadWrapper* TW);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
-int               render_await(i8 render_ready);
+int               render_await(i8 render_ready, i8 buffers_ready);
 
 #endif

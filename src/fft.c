@@ -45,7 +45,6 @@ void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
   create_hann_window(FT, TW);
   fft_func(combined_window, 1, out_raw, N);
   squash_to_log(N / 2, FT, TW);
-  FT->fft_data->buffers_ready = TRUE;
 } /*generate_visual*/
 
 void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
@@ -55,7 +54,7 @@ void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
 
   for (int i = 0; i < N; ++i) {
     f32 sum            = fft_in[i * 2] + fft_in[i * 2 + 1];
-    combined_window[i] = sum / 2;
+    combined_window[i] = sum;
     // hann window to reduce spectral leakage before passing it to FFT
     float Nf   = (float)N;
     float t    = (float)i / (Nf - 1);

@@ -14,6 +14,7 @@ void callback(void* data, Uint8* stream, int len) {
   u32* audio_pos = &Aud->audio_pos;
   f32* buf       = Aud->buffer;
   i8   rdrrdy    = FTPtr->fft_data->render_ready;
+  i8   bufrdy    = FTPtr->fft_data->buffers_ready;
 
   int remaining = (wav_len - audio_pos);
 
@@ -23,14 +24,13 @@ void callback(void* data, Uint8* stream, int len) {
 
   memcpy(f32_stream, buf + *audio_pos, samples_to_copy * sizeof(float));
 
-  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy)) {
+  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy, bufrdy)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
 
   *audio_pos += samples_to_copy;
 
   if (*audio_pos >= *wav_len) {
-    fprintf(stdout, "\n AUDIO POS: %d, WAV_LEN: %d\n", Aud->audio_pos, Aud->wav_len);
     fprintf(stdout, "End reached.. Starting next song.\n");
     SSPtr->pb_state->song_ended = TRUE;
   }
@@ -43,8 +43,8 @@ int check_pos(u32 audio_pos, u32 len) {
   return 0;
 }
 
-int render_await(i8 render_ready) {
-  if (!render_ready) {
+int render_await(i8 render_ready, i8 buffers_ready) {
+  if (!render_ready && buffers_ready) {
     return 1;
   }
   return 0;
@@ -143,6 +143,7 @@ void print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
 }
 
 void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
+  memset(FTBuf->fft_in, 0, DOUBLE_N * sizeof(f32));
   memset(FTBuf->combined_window, 0, N * sizeof(float));
   memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
   memset(FTBuf->processed, 0, (N / 2) * sizeof(float));
@@ -170,10 +171,11 @@ void load_song(SDLContext* SDLC) {
   i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
   i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;
 
-  *song_ended    = TRUE;
+  *song_ended    = FALSE;
   *render_ready  = FALSE;
   *buffers_ready = FALSE;
 
+  zero_buffers(FT->fft_data, FT->fft_buffers);
   if (playing_song) {
     stop_playback(SDLC);
 
@@ -190,9 +192,6 @@ void load_song(SDLContext* SDLC) {
 
   set_spec_data(SDLC);
 
-  zero_buffers(FT->fft_data, FT->fft_buffers);
-  *buffers_ready = TRUE;
-
   create_active_song_font(SDLC->FntPtr, SDLC->FCPtr->file_state, SDLC->r);
 
   SDLC->audio_dev = create_audio_device(&SDLC->spec);
@@ -201,10 +200,10 @@ void load_song(SDLContext* SDLC) {
     return;
   }
 
-  *song_ended = FALSE;
   print_spec_data(SDLC->spec, SDLC->audio_dev);
   start_song(&SS->pb_state->playing_song);
   play_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+  *buffers_ready = TRUE;
 }
 
 void start_song(i8* playing_song) { *playing_song = TRUE; }
