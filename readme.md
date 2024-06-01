@@ -51,7 +51,7 @@ The program relies on directories located in the **~/Music dir located in the ho
 - ```git clone https://github.com/Cameron-Ord/fft_music_visualizer``` 
 
 - run ```make``` to compile a binary to the build folder.
-- run sudo make install to place binaries and required fonts in /usr/local/bin and /usr/share/fonts/truetype/quicksand/
+- run ```sudo make install``` to place binaries and required fonts in /usr/local/bin and /usr/share/fonts/truetype/quicksand/
 
 ## Uninstallation
 
