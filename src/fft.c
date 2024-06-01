@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "macro.h"
+#include "threads.h"
 #include <assert.h>
 #include <complex.h>
 #include <math.h>
@@ -40,17 +41,18 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 } /*fft_push*/
 
 void
-generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
+generate_visual(FourierTransform* FT, int SR) {
   float*          in_cpy  = FT->fft_buffers->in_cpy;
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
-  create_hann_window(FT, TW);
+  calc_hann_window_threads(FT);
+  // create_hann_window(FT);
   fft_func(in_cpy, 1, out_raw, N * 2);
-  squash_to_log(DOUBLE_N / 2, FT, TW);
+  squash_to_log(DOUBLE_N / 2, FT);
 } /*generate_visual*/
 
 void
-create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
+create_hann_window(FourierTransform* FT) {
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* in_cpy = FT->fft_buffers->in_cpy;
 
@@ -68,7 +70,7 @@ create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
 }
 
 void
-squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
+squash_to_log(int size, FourierTransform* FT) {
 
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;

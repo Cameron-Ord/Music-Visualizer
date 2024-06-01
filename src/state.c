@@ -62,7 +62,7 @@ song_is_playing(SDLContext* SDLC) {
   i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
 
   if (*buffers_ready && !*ready_for_render) {
-    generate_visual(SDLC->FTPtr, SDLC->THPtr, SDLC->spec.freq);
+    generate_visual(SDLC->FTPtr, SDLC->spec.freq);
     *ready_for_render = TRUE;
   }
 

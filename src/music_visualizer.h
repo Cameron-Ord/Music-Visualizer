@@ -44,7 +44,6 @@ struct SDLContext {
   struct FileContext*      FCPtr;
   struct FontContext*      FntPtr;
   struct SongState*        SSPtr;
-  struct ThreadWrapper*    THPtr;
   SDL_Rect                 vis_rect;
 };
 
