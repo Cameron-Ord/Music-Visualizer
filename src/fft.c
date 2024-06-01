@@ -46,9 +46,10 @@ generate_visual(FourierTransform* FT, int SR) {
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
   calc_hann_window_threads(FT);
+  low_pass(in_cpy, N, 5000.0f, SR);
   // create_hann_window(FT);
-  fft_func(in_cpy, 1, out_raw, N * 2);
-  squash_to_log(DOUBLE_N / 2, FT);
+  fft_func(in_cpy, 1, out_raw, N);
+  squash_to_log(N / 2, FT);
 } /*generate_visual*/
 
 void
@@ -119,6 +120,6 @@ low_pass(float* input, int size, float cutoff, int SR) {
   float nyquist    = (float)SR / 2.0f;
   int   cutoff_bin = (int)((cutoff / nyquist) * size);
   for (int i = 0; i < cutoff_bin; ++i) {
-    input[i] *= 0.5;
+    input[i] *= 0.75;
   }
 } /*low_pass*/

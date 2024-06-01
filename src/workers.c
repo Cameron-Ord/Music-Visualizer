@@ -32,10 +32,10 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->paused           = TRUE;
   winwkr->cycle_complete   = FALSE;
   winwkr->termination_flag = FALSE;
-  memset(winwkr->out_buff, 0, sizeof(f32) * DOUBLE_N);
+  memset(winwkr->out_buff, 0, sizeof(f32) * N);
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_N);
   pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
-  pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused);
+  pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused, &winwkr->cycle_complete);
   return 0;
 }
 
@@ -61,9 +61,10 @@ join_thread(pthread_t* context) {
 }
 
 void
-pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
+pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete) {
   pthread_mutex_lock(mutex);
-  *thread_state = TRUE;
+  *thread_state   = TRUE;
+  *cycle_complete = TRUE;
   pthread_mutex_unlock(mutex);
 }
 
@@ -75,7 +76,8 @@ resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, i
   pthread_cond_signal(cond);
   pthread_mutex_unlock(mutex);
 }
-
+/*I know it's called hann window and im actually using the Hamming window right now, im just too lazy to
+ * rename it okay?*/
 void*
 hann_window_worker(void* arg) {
   WindowWorker* hann_t = (WindowWorker*)arg;
@@ -99,17 +101,19 @@ hann_window_worker(void* arg) {
       // hann window to reduce spectral leakage before passing it to FFT
       float Nf   = (float)hann_t->end;
       float t    = (float)i / (Nf - 1);
-      float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
+      float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
-      hann_t->in_buff[i * 2] *= hann;
-      hann_t->in_buff[i * 2 + 1] *= hann;
+      /*Accessing interleaved stereo audio*/
+      hann_t->in_buff[i * 2] *= hamm;
+      hann_t->in_buff[i * 2 + 1] *= hamm;
+
+      /*After both channels are windowed, we sum them and divide the addition by 2*/
+      f32 sum             = hann_t->in_buff[i * 2] + hann_t->in_buff[i * 2 + 1];
+      hann_t->out_buff[i] = sum / 2;
     }
 
-    memcpy(hann_t->out_buff + hann_t->start, hann_t->in_buff + hann_t->start, sizeof(f32) * hann_t->end);
-
     if (!hann_t->termination_flag && !hann_t->paused) {
-      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused);
-      hann_t->cycle_complete = TRUE;
+      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused, &hann_t->cycle_complete);
     }
   }
 

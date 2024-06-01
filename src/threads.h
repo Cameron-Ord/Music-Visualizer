@@ -9,7 +9,7 @@ struct WindowWorker {
   pthread_t*      thread;
   int             cores;
   f32             in_buff[DOUBLE_N];
-  f32             out_buff[DOUBLE_N];
+  f32             out_buff[N];
   int             start;
   int             end;
   int             paused;
@@ -21,7 +21,7 @@ struct WindowWorker {
 
 void  calc_hann_window_threads(FourierTransform* FT);
 void* hann_window_worker(void* arg);
-void  pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state);
+void  pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete);
 void  resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete);
 void  join_thread(pthread_t* context);
 void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag);
