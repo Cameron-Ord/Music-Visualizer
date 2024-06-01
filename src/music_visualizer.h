@@ -49,18 +49,20 @@ struct SDLContext {
 };
 
 struct DirState {
-  char** directories;
-  int    dir_count;
-  int    dir_index;
-  i8     dirs_exist;
+  char**            directories;
+  int               dir_count;
+  int               dir_index;
+  i8                dirs_exist;
+  struct FileState* FSPtr;
 };
 
 struct FileState {
-  char*  selected_dir;
-  i8     files_exist;
-  char** files;
-  int    file_count;
-  int    file_index;
+  char*            selected_dir;
+  i8               files_exist;
+  char**           files;
+  int              file_count;
+  int              file_index;
+  struct DirState* DSPtr;
 };
 
 struct FileContext {
@@ -74,7 +76,7 @@ void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);
 void      zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf);
 void      reset_playback_variables(AudioData* AD, PlaybackState* PBste);
 void*     free_ptr(void* ptr);
-void      update_viewports(SDLContext* SDLC);
+void      update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w);
 void      get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt);
 void      render_dir_list(SDLContext* SDLC);
 void      render_song_list(SDLContext* SDLC);
@@ -85,7 +87,7 @@ void      render_bars(SDLContext* SDLC);
 void*     destroy_texture(SDL_Texture* tex);
 void*     destroy_surface(SDL_Surface* surf);
 void      draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr);
-void      set_seek_bar(SDLContext* SDLC);
+void      set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud);
 void      handle_mouse_motion(SDLContext* SDLC);
 void      index_up(FileState* FS);
 void      handle_mouse_click(SDLContext* SDLC);

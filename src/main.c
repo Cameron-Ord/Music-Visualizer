@@ -220,7 +220,8 @@ int music_player() {
   SDLChunk.FCPtr  = &FileChunk;
   SDLChunk.THPtr  = &ThrdWrap;
 
-  update_viewports(&SDLChunk);
+  update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
+  resize_fonts(&SDLChunk);
 
   float prev_time = SDL_GetTicks64();
   float current_time, delta_time;
@@ -345,7 +346,8 @@ void poll_events(SDLContext* SDLC) {
     case SDL_WINDOWEVENT: {
       switch (e.window.event) {
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
-        update_viewports(SDLC);
+        update_viewports(SDLC->container, SDLC->mouse, SDLC->w);
+        resize_fonts(SDLC);
         break;
       }
       default: {

@@ -40,9 +40,11 @@ struct SeekBar {
 };
 
 struct SongState {
-  struct PlaybackState* pb_state;
-  struct SeekBar*       seek_bar;
-  struct AudioData*     audio_data;
+  struct PlaybackState*    pb_state;
+  struct SeekBar*          seek_bar;
+  struct AudioData*        audio_data;
+  struct FileContext*      FCPtr;
+  struct FourierTransform* FTPtr;
 };
 
 struct FTransformBuffers {
@@ -66,7 +68,6 @@ struct FTransformData {
 struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
-  int                       cpu_cores;
 };
 
 void              audio_switch(SDL_AudioDeviceID dev, int status);
@@ -89,7 +90,7 @@ void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
 void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
 void              baseline_pb_state(PlaybackState* pbste);
-void              apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW);
+void              squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR);
 void              low_pass(float* log_values, int size, float cutoff, int SR);

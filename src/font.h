@@ -74,7 +74,7 @@ void         clear_files(FontContext* FntPtr, FileContext* FCPtr);
 void         clear_dirs(FontContext* FntPtr, FileContext* FCPtr);
 SDL_Texture* create_font_texture(SDL_Renderer* r, SDL_Surface* surface);
 SDL_Surface* create_font_surface(TTF_Font** font, SDL_Color color, char* text);
-void         set_active_song_title(SDLContext* SDLC);
+void         set_active_song_title(FontContext* FntPtr, int win_width, int win_height);
 void         draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve);
 void         update_font_rect(SDL_Rect* rect_ptr, SDL_Rect* offset_rect, int max);
 void         update_font_surface(SDL_Rect* font_rect, int c_width, int c_height);

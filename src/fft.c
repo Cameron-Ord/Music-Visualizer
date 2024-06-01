@@ -1,11 +1,8 @@
 #include "audio.h"
 #include "macro.h"
-#include "threads.h"
 #include <assert.h>
 #include <complex.h>
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265359
@@ -47,7 +44,7 @@ void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
 
   create_hann_window(FT, TW);
   fft_func(combined_window, 1, out_raw, N);
-  apply_amp(N / 2, FT, TW);
+  squash_to_log(N / 2, FT, TW);
   FT->fft_data->buffers_ready = TRUE;
 } /*generate_visual*/
 
@@ -77,7 +74,7 @@ void low_pass(float* input, int size, float cutoff, int SR) {
   }
 } /*low_pass*/
 
-void apply_amp(int size, FourierTransform* FT, ThreadWrapper* TW) {
+void squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
 
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;

@@ -110,11 +110,11 @@ void render_song_list(SDLContext* SDLC) {
 
 void present_render(SDL_Renderer* r) { SDL_RenderPresent(r); }
 
-void update_viewports(SDLContext* SDLC) {
-  int* win_width  = &SDLC->container->win_width;
-  int* win_height = &SDLC->container->win_height;
+void update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
+  int* win_width  = &Cont->win_width;
+  int* win_height = &Cont->win_height;
 
-  SDL_GetWindowSize(SDLC->w, win_width, win_height);
+  SDL_GetWindowSize(w, win_width, win_height);
 
   int one_half = (int)(*win_height * 0.5);
   int one_20th = (int)(*win_height * 0.05);
@@ -122,47 +122,40 @@ void update_viewports(SDLContext* SDLC) {
   SDL_Rect LEFT  = {0, one_20th, *win_width, one_half};
   SDL_Rect RIGHT = {0, one_half + one_20th, *win_width, one_half};
 
-  SDLC->container->dir_viewport  = LEFT;
-  SDLC->container->song_viewport = RIGHT;
+  Cont->dir_viewport  = LEFT;
+  Cont->song_viewport = RIGHT;
 
-  SDLC->mouse->mouse_offset_y = one_half + one_20th;
-  SDLC->mouse->mouse_offset_x = 0;
-
-  resize_fonts(SDLC);
+  Mouse->mouse_offset_y = one_half + one_20th;
+  Mouse->mouse_offset_x = 0;
 }
 
-void set_seek_bar(SDLContext* SDLC) {
-  SeekBar* SKPtr            = SDLC->SSPtr->seek_bar;
-  int      win_width        = SDLC->container->win_width;
-  int      win_height       = SDLC->container->win_height;
-  int      ttl_length       = SDLC->SSPtr->audio_data->wav_len;
-  int      current_position = SDLC->SSPtr->audio_data->audio_pos;
+void set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud) {
+  int win_width        = Cont->win_width;
+  int win_height       = Cont->win_height;
+  int ttl_length       = Aud->wav_len;
+  int current_position = Aud->audio_pos;
 
   int one_quarter = (int)(win_height * 0.25);
   int half        = (int)(win_width * 0.50);
   int offset_diff = win_width - half;
 
   SDL_Rect viewport = {offset_diff * 0.5, 0, half, one_quarter};
-  SKPtr->vp         = viewport;
+  SkBar->vp         = viewport;
 
-  SKPtr->normalized_pos = ((float)current_position / (float)ttl_length);
-  SKPtr->current_pos    = SKPtr->normalized_pos * viewport.w;
+  SkBar->normalized_pos = ((float)current_position / (float)ttl_length);
+  SkBar->current_pos    = SkBar->normalized_pos * viewport.w;
 
-  int x = SKPtr->current_pos - SCROLLBAR_OFFSET;
+  int x = SkBar->current_pos - SCROLLBAR_OFFSET;
   int y = viewport.h * 0.75;
 
   SDL_Rect sk_box  = {x, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT};
   SDL_Rect sk_line = {0, y + SCROLLBAR_HEIGHT_OFFSET, viewport.w, 1};
 
-  SKPtr->seek_box  = sk_box;
-  SKPtr->seek_line = sk_line;
+  SkBar->seek_box  = sk_box;
+  SkBar->seek_line = sk_line;
 }
 
-void set_active_song_title(SDLContext* SDLC) {
-  FontContext* FntPtr     = SDLC->FntPtr;
-  int          win_width  = SDLC->container->win_width;
-  int          win_height = SDLC->container->win_height;
-
+void set_active_song_title(FontContext* FntPtr, int win_width, int win_height) {
   int one_quarter = (int)(win_height * 0.25);
   int half        = (int)(win_width * 0.5);
   int offset_diff = win_width - half;
@@ -208,8 +201,11 @@ void draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr) {
 
 void resize_fonts(SDLContext* SDLC) {
 
-  FontContext* FntPtr = SDLC->FntPtr;
+  FontContext*  FntPtr = SDLC->FntPtr;
+  FileContext*  FCPtr  = SDLC->FCPtr;
+  SDLContainer* Cont   = SDLC->container;
 
+  i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
   i8* song_fonts_created = &SDLC->FntPtr->state->song_fonts_created;
   i8* dir_fonts_created  = &SDLC->FntPtr->state->dir_fonts_created;
   int song_vp_w          = SDLC->container->song_viewport.w;
@@ -231,8 +227,6 @@ void resize_fonts(SDLContext* SDLC) {
     TTF_SetFontSize(*font, XXLRG);
   }
 
-  FileContext* FCPtr = SDLC->FCPtr;
-
   int file_count = FCPtr->file_state->file_count;
   if (*song_fonts_created) {
     *song_fonts_created = FALSE;
@@ -253,7 +247,7 @@ void resize_fonts(SDLContext* SDLC) {
     create_dir_fonts(FntPtr, FCPtr->dir_state, SDLC->r);
   }
 
-  if (SDLC->SSPtr->pb_state->playing_song) {
+  if (playing_song) {
     create_active_song_font(FntPtr, FCPtr->file_state, SDLC->r);
   }
 }
