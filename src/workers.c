@@ -1,18 +1,21 @@
-#include "audio.h"
-#include "threads.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "audio.h"
+#include "threads.h"
+
 /*
- * Well I learned something pretty cool here. However, it's pretty much useless and adds too much
- * overhead for a real time audio visualizer/since it is out of sync most of the time with the main
- * thread. I'll leave it here anyway as I may implement it for the render pipeline and keep the
- * audio processing on a single thread.
+ * Well I learned something pretty cool here. However, it's pretty much useless
+ * and adds too much overhead for a real time audio visualizer/since it is out
+ * of sync most of the time with the main thread. I'll leave it here anyway as
+ * I may implement it for the render pipeline and keep the audio processing on
+ * a single thread.
  */
 
-void create_threads(ThreadWrapper* t_wrapper) {
+void
+create_threads(ThreadWrapper* t_wrapper) {
   int cores = t_wrapper->cores;
   for (int i = 0; i < cores; i++) {
     create_visualization_renderer(&t_wrapper->rend_context[i], &t_wrapper->ren[i]);
@@ -20,7 +23,8 @@ void create_threads(ThreadWrapper* t_wrapper) {
   }
 }
 
-void destroy_threads(ThreadWrapper* t_wrapper) {
+void
+destroy_threads(ThreadWrapper* t_wrapper) {
   int cores = t_wrapper->cores;
   for (int i = 0; i < cores; i++) {
     mark_for_termination(&t_wrapper->ren[i].cond, &t_wrapper->ren[i].mutex,
@@ -32,16 +36,21 @@ void destroy_threads(ThreadWrapper* t_wrapper) {
   }
 }
 
-void mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag) {
+void
+mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag) {
   pthread_mutex_lock(mutex);
   *flag = TRUE;
   pthread_cond_broadcast(cond);
   pthread_mutex_unlock(mutex);
 }
 
-void join_thread(pthread_t* context) { pthread_join(*context, NULL); }
+void
+join_thread(pthread_t* context) {
+  pthread_join(*context, NULL);
+}
 
-void create_visualization_renderer(pthread_t* context, BufRenderThread* Ren) {
+void
+create_visualization_renderer(pthread_t* context, BufRenderThread* Ren) {
   Ren->paused           = TRUE;
   Ren->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
   Ren->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
@@ -52,7 +61,8 @@ void create_visualization_renderer(pthread_t* context, BufRenderThread* Ren) {
   pthread_create(context, NULL, buf_render_worker, Ren);
 }
 
-void create_dir_renderer(pthread_t* context, DirFontThread* Dir) {
+void
+create_dir_renderer(pthread_t* context, DirFontThread* Dir) {
   Dir->paused           = TRUE;
   Dir->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
   Dir->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
@@ -63,30 +73,31 @@ void create_dir_renderer(pthread_t* context, DirFontThread* Dir) {
   pthread_create(context, NULL, text_render_worker, Dir);
 }
 
-void pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
+void
+pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
   pthread_mutex_lock(mutex);
   *thread_state = TRUE;
   pthread_mutex_unlock(mutex);
 }
 
-void resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
+void
+resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
   pthread_mutex_lock(mutex);
   *thread_state = FALSE;
   pthread_cond_signal(cond);
   pthread_mutex_unlock(mutex);
 }
 
-void* buf_render_worker(void* arg) {
+void*
+buf_render_worker(void* arg) {
   BufRenderThread* hann_t = (BufRenderThread*)arg;
   for (;;) {
-
     if (hann_t->termination_flag) {
       break;
     }
 
     pthread_mutex_lock(&hann_t->mutex);
     while (hann_t->paused) {
-
       if (hann_t->termination_flag) {
         break;
       }
@@ -106,17 +117,16 @@ void* buf_render_worker(void* arg) {
   return NULL;
 }
 
-void* text_render_worker(void* arg) {
+void*
+text_render_worker(void* arg) {
   DirFontThread* log = (DirFontThread*)arg;
   for (;;) {
-
     if (log->termination_flag) {
       break;
     }
 
     pthread_mutex_lock(&log->mutex);
     while (log->paused) {
-
       if (log->termination_flag) {
         break;
       }

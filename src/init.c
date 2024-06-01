@@ -3,7 +3,8 @@
 #include "font.h"
 #include "music_visualizer.h"
 
-int initialize_SDL() {
+int
+initialize_SDL() {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return -1;
@@ -11,9 +12,10 @@ int initialize_SDL() {
   return 0;
 }
 
-int create_window(SDL_Window** w) {
-  *w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, BWIDTH,
-                        BHEIGHT, 0);
+int
+create_window(SDL_Window** w) {
+  *w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, BWIDTH, BHEIGHT,
+                        0);
   if (!*w) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return -1;
@@ -22,7 +24,8 @@ int create_window(SDL_Window** w) {
   return 0;
 }
 
-int create_renderer(SDL_Window** w, SDL_Renderer** r) {
+int
+create_renderer(SDL_Window** w, SDL_Renderer** r) {
   if (*w) {
     *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!*r) {
@@ -35,7 +38,8 @@ int create_renderer(SDL_Window** w, SDL_Renderer** r) {
   return -1;
 }
 
-SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec) {
+SDL_AudioDeviceID
+create_audio_device(SDL_AudioSpec* spec) {
   SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, 0);
   if (!dev) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
@@ -44,7 +48,8 @@ SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec) {
   return dev;
 }
 
-int initialize_TTF(TTFData* cntxtdata) {
+int
+initialize_TTF(TTFData* cntxtdata) {
   if (TTF_Init() < 0) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return -1;
@@ -52,7 +57,8 @@ int initialize_TTF(TTFData* cntxtdata) {
   return 0;
 }
 
-int open_font(TTFData* cntxtdata) {
+int
+open_font(TTFData* cntxtdata) {
   cntxtdata->font = TTF_OpenFont(FONT_PATH, LRG);
   if (cntxtdata->font == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
@@ -61,23 +67,27 @@ int open_font(TTFData* cntxtdata) {
   return 0;
 }
 
-void get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
+void
+get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
   SDL_GetWindowSize(w, &SDLCnt->win_width, &SDLCnt->win_height);
 }
 
-void baseline_context_data(TTFData* cntxt) {
+void
+baseline_context_data(TTFData* cntxt) {
   memset(&cntxt->color, 0, sizeof(SDL_Color));
   cntxt->font      = NULL;
   cntxt->font_path = FONT_PATH;
 }
 
-void baseline_font_state(FontState* state) {
+void
+baseline_font_state(FontState* state) {
   state->dir_fonts_created  = FALSE;
   state->song_fonts_created = FALSE;
   state->initialized        = FALSE;
 }
 
-void baseline_pos(Positions* pos) {
+void
+baseline_pos(Positions* pos) {
   pos->dir_list_pos    = 0;
   pos->dir_list_height = 0;
   pos->dir_list_offset = 0;
@@ -87,14 +97,16 @@ void baseline_pos(Positions* pos) {
   pos->song_list_offset = 0;
 }
 
-void baseline_dir_state(DirState* dir) {
+void
+baseline_dir_state(DirState* dir) {
   dir->dir_count   = 0;
   dir->dir_index   = 0;
   dir->dirs_exist  = FALSE;
   dir->directories = NULL;
 }
 
-void baseline_file_state(FileState* file) {
+void
+baseline_file_state(FileState* file) {
   file->file_count   = 0;
   file->file_index   = 0;
   file->files_exist  = FALSE;
@@ -102,11 +114,18 @@ void baseline_file_state(FileState* file) {
   file->files        = NULL;
 }
 
-void baseline_audio_data(AudioData* data) { data->buffer = NULL; }
+void
+baseline_audio_data(AudioData* data) {
+  data->buffer = NULL;
+}
 
-void baseline_seek_bar(SeekBar* skbar) { skbar->latched = FALSE; }
+void
+baseline_seek_bar(SeekBar* skbar) {
+  skbar->latched = FALSE;
+}
 
-void baseline_pb_state(PlaybackState* pbste) {
+void
+baseline_pb_state(PlaybackState* pbste) {
   pbste->hard_stop         = FALSE;
   pbste->is_paused         = FALSE;
   pbste->playing_song      = FALSE;
@@ -115,7 +134,8 @@ void baseline_pb_state(PlaybackState* pbste) {
   pbste->currently_playing = FALSE;
 }
 
-void baseline_fft_values(FTransformData* data) {
+void
+baseline_fft_values(FTransformData* data) {
   data->DS_AMOUNT     = DEFAULT_DS;
   data->buffers_ready = FALSE;
   data->freq_step     = 0.0f;
@@ -124,14 +144,16 @@ void baseline_fft_values(FTransformData* data) {
   data->render_ready  = FALSE;
 }
 
-void instantiate_buffers(FTransformBuffers* bufs) {
+void
+instantiate_buffers(FTransformBuffers* bufs) {
   memset(bufs->combined_window, 0, sizeof(f32) * N);
   memset(bufs->out_raw, 0, sizeof(f32c) * N);
   memset(bufs->smoothed, 0, sizeof(f32) * (N / 2));
   memset(bufs->processed, 0, sizeof(f32) * (N / 2));
 }
 
-void set_spec_data(SDLContext* SDLC) {
+void
+set_spec_data(SDLContext* SDLC) {
   SDL_AudioSpec* spec = &SDLC->spec;
   AudioData*     ad   = SDLC->SSPtr->audio_data;
 

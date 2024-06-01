@@ -4,7 +4,8 @@
 #include "music_visualizer.h"
 #include <sndfile.h>
 
-void callback(void* data, Uint8* stream, int len) {
+void
+callback(void* data, Uint8* stream, int len) {
   SDLContext*       SDLCPtr = (struct SDLContext*)data;
   SongState*        SSPtr   = SDLCPtr->SSPtr;
   FourierTransform* FTPtr   = SDLCPtr->FTPtr;
@@ -37,21 +38,24 @@ void callback(void* data, Uint8* stream, int len) {
   }
 }
 
-int check_pos(u32 audio_pos, u32 len) {
+int
+check_pos(u32 audio_pos, u32 len) {
   if (audio_pos > 0 && audio_pos < len) {
     return 1;
   }
   return 0;
 }
 
-int render_await(i8 render_ready, i8 buffers_ready) {
+int
+render_await(i8 render_ready, i8 buffers_ready) {
   if (!render_ready && buffers_ready) {
     return 1;
   }
   return 0;
 }
 
-int read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
+int
+read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 #ifdef __LINUX__
 
   char* home = getenv("HOME");
@@ -124,7 +128,8 @@ int read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
   return -1;
 }
 
-void update_audio_position(AudioData* ADta, SeekBar* SKBar) {
+void
+update_audio_position(AudioData* ADta, SeekBar* SKBar) {
   int ttl_length       = SKBar->vp.w;
   int current_position = SKBar->seek_box.x + SCROLLBAR_OFFSET;
   if (current_position < 0.0 || current_position > SKBar->vp.w) {
@@ -135,15 +140,16 @@ void update_audio_position(AudioData* ADta, SeekBar* SKBar) {
   ADta->audio_pos = scaled_pos;
 }
 
-void print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
-  printf(
-      "\nFORMAT : %d\n CHANNELS: %d\n FREQ: %d\n USERDATA: %p\n CALLBACK %p\n SAMPLES: %d\n SIZE "
-      ": %d\n",
-      spec.format, spec.channels, spec.freq, spec.userdata, spec.callback, spec.samples, spec.size);
+void
+print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
+  printf("\nFORMAT : %d\n CHANNELS: %d\n FREQ: %d\n USERDATA: %p\n CALLBACK %p\n SAMPLES: %d\n SIZE "
+         ": %d\n",
+         spec.format, spec.channels, spec.freq, spec.userdata, spec.callback, spec.samples, spec.size);
   printf("\nDEVICE ID : %d\n", dev);
 }
 
-void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
+void
+zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
   memset(FTBuf->fft_in, 0, DOUBLE_N * sizeof(f32));
   memset(FTBuf->combined_window, 0, N * sizeof(float));
   memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
@@ -151,16 +157,21 @@ void zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
   memset(FTBuf->smoothed, 0, (N / 2) * sizeof(float));
 }
 
-void reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
+void
+reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
   Aud->audio_pos  = 0;
   PBste->is_ready = FALSE;
   Aud->wav_len    = 0;
   Aud->buffer     = free_ptr(Aud->buffer);
 }
 
-void audio_switch(SDL_AudioDeviceID dev, int status) { SDL_PauseAudioDevice(dev, status); }
+void
+audio_switch(SDL_AudioDeviceID dev, int status) {
+  SDL_PauseAudioDevice(dev, status);
+}
 
-void load_song(SDLContext* SDLC) {
+void
+load_song(SDLContext* SDLC) {
 
   FourierTransform* FT    = SDLC->FTPtr;
   FileState*        FSPtr = SDLC->FCPtr->file_state;
@@ -207,11 +218,18 @@ void load_song(SDLContext* SDLC) {
   *buffers_ready = TRUE;
 }
 
-void start_song(i8* playing_song) { *playing_song = TRUE; }
+void
+start_song(i8* playing_song) {
+  *playing_song = TRUE;
+}
 
-void stop_song(i8* playing_song) { *playing_song = FALSE; }
+void
+stop_song(i8* playing_song) {
+  *playing_song = FALSE;
+}
 
-void stop_playback(SDLContext* SDLC) {
+void
+stop_playback(SDLContext* SDLC) {
   FileState* FSPtr = SDLC->FCPtr->file_state;
   printf("\nSTOPPING: %s\n", FSPtr->files[FSPtr->file_index]);
 
@@ -221,14 +239,16 @@ void stop_playback(SDLContext* SDLC) {
   reset_playback_variables(SDLC->SSPtr->audio_data, SDLC->SSPtr->pb_state);
 }
 
-void play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
+void
+play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
   printf("\nNOW PLAYING: %d : %s\n", FS->file_index, FS->files[FS->file_index]);
 
   audio_switch(*dev, 0);
   *is_paused = FALSE;
 }
 
-void pause_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
+void
+pause_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
   printf("\nPAUSING: %s\n", FS->files[FS->file_index]);
 
   audio_switch(*dev, 1);

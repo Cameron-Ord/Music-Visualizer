@@ -4,11 +4,7 @@
 #include "types.h"
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_render.h>
-typedef enum {
-  MAX_BUFFER_DS = (1 << 5),
-  MIN_BUFFER_DS = (1 << 2),
-  DEFAULT_DS    = (1 << 2)
-} DOWNSAMPLING_BINDS;
+typedef enum { MAX_BUFFER_DS = (1 << 5), MIN_BUFFER_DS = (1 << 2), DEFAULT_DS = (1 << 2) } DOWNSAMPLING_BINDS;
 
 struct AudioData {
   f32* buffer;

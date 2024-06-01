@@ -8,7 +8,8 @@
 #define M_PI 3.14159265359
 #endif
 
-void fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
+void
+fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
   // 0 1 2 3 4 5 6
   // n should be greater than 0
   assert(n > 0);
@@ -31,13 +32,15 @@ void fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
   }
 } /*fft_func*/
 
-void fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
+void
+fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
     memcpy(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
   }
 } /*fft_push*/
 
-void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
+void
+generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
   float*          smoothed        = FT->fft_buffers->smoothed;
   float*          combined_window = FT->fft_buffers->combined_window;
   float _Complex* out_raw         = FT->fft_buffers->out_raw;
@@ -47,7 +50,8 @@ void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
   squash_to_log(N / 2, FT, TW);
 } /*generate_visual*/
 
-void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
+void
+create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
   float* combined_window = FT->fft_buffers->combined_window;
 
   f32* fft_in = FT->fft_buffers->fft_in;
@@ -64,16 +68,8 @@ void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
   }
 }
 
-void low_pass(float* input, int size, float cutoff, int SR) {
-  /*Just a simple attenuation, don't feel like complicating this*/
-  float nyquist    = (float)SR / 2.0f;
-  int   cutoff_bin = (int)((cutoff / nyquist) * size);
-  for (int i = 0; i < cutoff_bin; ++i) {
-    input[i] *= 0.5;
-  }
-} /*low_pass*/
-
-void squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
+void
+squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
 
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;
@@ -88,8 +84,9 @@ void squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
     float a  = 0.0f;
     for (size_t q = (size_t)f; q < size && q < (size_t)fs; ++q) {
       float b = amp(ftbuf->out_raw[q]);
-      if (b > a)
+      if (b > a) {
         a = b;
+      }
     }
     if (max_ampl < a) {
       max_ampl = a;
@@ -106,11 +103,21 @@ void squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
   }
 
   FT->fft_data->output_len = m;
+}
 
-} /*apply_amp*/
-
-float amp(float _Complex z) {
+float
+amp(float _Complex z) {
   float a = fabsf(crealf(z));
   float b = fabsf(cimagf(z));
   return logf(a * a + b * b);
 } /*amp*/
+
+void
+low_pass(float* input, int size, float cutoff, int SR) {
+  /*Just a simple attenuation, don't feel like complicating this*/
+  float nyquist    = (float)SR / 2.0f;
+  int   cutoff_bin = (int)((cutoff / nyquist) * size);
+  for (int i = 0; i < cutoff_bin; ++i) {
+    input[i] *= 0.5;
+  }
+} /*low_pass*/

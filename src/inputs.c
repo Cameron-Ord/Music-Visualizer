@@ -1,13 +1,18 @@
 #include "audio.h"
 #include "font.h"
 #include "music_visualizer.h"
-void index_up(FileState* FS) { FS->file_index = (FS->file_index + 1) % FS->file_count; }
+void
+index_up(FileState* FS) {
+  FS->file_index = (FS->file_index + 1) % FS->file_count;
+}
 
-void index_down(FileState* FS) {
+void
+index_down(FileState* FS) {
   FS->file_index = (FS->file_index - 1 + FS->file_count) % FS->file_count;
 }
 
-void handle_mouse_motion(SDLContext* SDLC) {
+void
+handle_mouse_motion(SDLContext* SDLC) {
   int          mouse_x, mouse_y;
   FontContext* FS = SDLC->FntPtr;
   FileContext* FC = SDLC->FCPtr;
@@ -29,7 +34,8 @@ void handle_mouse_motion(SDLContext* SDLC) {
   }
 }
 
-void toggle_pause(SDLContext* SDLC) {
+void
+toggle_pause(SDLContext* SDLC) {
   i8* playing_song = &SDLC->SSPtr->pb_state->playing_song;
   i8* is_paused    = &SDLC->SSPtr->pb_state->is_paused;
 
@@ -47,7 +53,8 @@ void toggle_pause(SDLContext* SDLC) {
   }
 }
 
-void handle_space_key(SDLContext* SDLC) {
+void
+handle_space_key(SDLContext* SDLC) {
   i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
@@ -60,7 +67,8 @@ void handle_space_key(SDLContext* SDLC) {
   }
 }
 
-void next_song(SDLContext* SDLC) {
+void
+next_song(SDLContext* SDLC) {
   i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
@@ -72,7 +80,8 @@ void next_song(SDLContext* SDLC) {
   }
 }
 
-void prev_song(SDLContext* SDLC) {
+void
+prev_song(SDLContext* SDLC) {
   i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
@@ -84,14 +93,14 @@ void prev_song(SDLContext* SDLC) {
   }
 }
 
-void random_song(SDLContext* SDLC) {
+void
+random_song(SDLContext* SDLC) {
   int  file_count  = SDLC->FCPtr->file_state->file_count;
   int* file_index  = &SDLC->FCPtr->file_state->file_index;
   i8   files_exist = SDLC->FCPtr->file_state->files_exist;
   i8*  hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
-  if (file_count <= 0)
-    return;
+  if (file_count <= 0) return;
 
   *file_index = rand() % file_count;
   if (files_exist) {
@@ -100,20 +109,23 @@ void random_song(SDLContext* SDLC) {
   }
 }
 
-void handle_mouse_click(SDLContext* SDLC) {
+void
+handle_mouse_click(SDLContext* SDLC) {
   int mouse_x, mouse_y, err;
   SDL_GetMouseState(&mouse_x, &mouse_y);
   clicked_in_rect(SDLC, mouse_x, mouse_y);
 }
 
-void handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC) {
+void
+handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC) {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
-  const int mouse_arr[] = {mouse_x, mouse_y};
+  const int mouse_arr[] = { mouse_x, mouse_y };
   scroll_in_rect(mouse_arr, SDLC, wheel_y);
 }
 
-void handle_mouse_release(SDLContext* SDLC) {
+void
+handle_mouse_release(SDLContext* SDLC) {
   PlaybackState*    PBSte     = SDLC->SSPtr->pb_state;
   SeekBar*          SKBar     = SDLC->SSPtr->seek_bar;
   FourierTransform* FTPtr     = SDLC->FTPtr;

@@ -1,9 +1,10 @@
 #ifndef THREADS_H
 #define THREADS_H
-#include "macro.h"
-#include "types.h"
 #include <pthread.h>
 #include <stdio.h>
+
+#include "macro.h"
+#include "types.h"
 
 struct BufRenderThread {
   int             start;

@@ -9,7 +9,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void setup_dirs() {
+void
+setup_dirs() {
 
 #ifdef __LINUX__
   char* home = getenv("HOME");
@@ -72,7 +73,8 @@ void setup_dirs() {
 #endif
 } /*setup_dirs*/
 
-int fetch_dirs(DirState* DS) {
+int
+fetch_dirs(DirState* DS) {
 #ifdef __LINUX__
 
   char***        sub_dirs = &DS->directories;
@@ -146,7 +148,8 @@ int fetch_dirs(DirState* DS) {
   return -1;
 } /*read_music_dir*/
 
-int fetch_files(FileState* FS) {
+int
+fetch_files(FileState* FS) {
 #ifdef __LINUX__
 
   char***        files        = &FS->files;
@@ -196,10 +199,8 @@ int fetch_files(FileState* FS) {
       if (has_ws) {
         char input_path[PATH_MAX];
         char output_path[PATH_MAX];
-        snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir,
-                 entry->d_name);
-        snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir,
-                 duped_name);
+        snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, entry->d_name);
+        snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, duped_name);
         rename(input_path, output_path);
       }
 
@@ -221,7 +222,8 @@ int fetch_files(FileState* FS) {
   return -1;
 } /*load_dir_songlist*/
 
-void clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
+void
+clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
   i8  dirs_exist = FCPtr->dir_state->dirs_exist;
   int dir_count  = FCPtr->dir_state->dir_count;
 
@@ -236,7 +238,8 @@ void clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
   }
 }
 
-void clear_files(FontContext* FntPtr, FileContext* FCPtr) {
+void
+clear_files(FontContext* FntPtr, FileContext* FCPtr) {
 
   i8  files_exist = FCPtr->file_state->files_exist;
   int file_count  = FCPtr->file_state->file_count;

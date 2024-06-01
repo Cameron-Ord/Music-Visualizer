@@ -3,11 +3,21 @@
 #include "init.h"
 #include "music_visualizer.h"
 
-int point_in_rect(int x, int y, SDL_Rect rect) {
+int
+within_bounds_x(int x, int width) {
+  if (x > (width - width) && x < width) {
+    return 1;
+  }
+  return 0;
+}
+
+int
+point_in_rect(int x, int y, SDL_Rect rect) {
   return (x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h);
 } /*point_in_rect*/
 
-int find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[]) {
+int
+find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[]) {
   for (int i = 0; i < file_count; i++) {
     SDL_Rect sf_rect = (*sf_arr)[i].font_rect;
     if (point_in_rect(mouse_arr[0], mouse_arr[1], sf_rect)) {
@@ -17,7 +27,8 @@ int find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[])
   return -1;
 } /*find_clicked_song*/
 
-char* find_clicked_dir(FontData* df_arr[], int dir_count, const int mouse_arr[]) {
+char*
+find_clicked_dir(FontData* df_arr[], int dir_count, const int mouse_arr[]) {
   /*
    * Getting the selection text via rect coordinates. Unrelated to the displayed text.
    */
@@ -29,9 +40,13 @@ char* find_clicked_dir(FontData* df_arr[], int dir_count, const int mouse_arr[])
   return "NO_SELECTION";
 } /*find_clicked_dir*/
 
-void reset_songlist_pos(Positions* pos) { pos->song_list_pos = 0; } /*reset_songlist_pos*/
+void
+reset_songlist_pos(Positions* pos) {
+  pos->song_list_pos = 0;
+} /*reset_songlist_pos*/
 
-void clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+void
+clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SDL_Rect dir_rect     = SDLC->container->dir_viewport;
   SDL_Rect song_rect    = SDLC->container->song_viewport;
   i8       playing_song = SDLC->SSPtr->pb_state->playing_song;
@@ -51,7 +66,8 @@ void clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   }
 } /*clicked_in_rect*/
 
-void clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+void
+clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SeekBar*   SKBar = SDLC->SSPtr->seek_bar;
   AudioData* ADta  = SDLC->SSPtr->audio_data;
 
@@ -60,7 +76,8 @@ void clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y
   }
 }
 
-void grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+void
+grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
   SongState* SSPtr = SDLC->SSPtr;
   SeekBar*   SKBar = SSPtr->seek_bar;
@@ -72,33 +89,37 @@ void grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   int half        = (int)(win_width * 0.50);
   int offset_diff = win_width - half;
 
-  SDL_Rect hitbox = {SKBar->seek_box.x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h};
+  SDL_Rect hitbox = { SKBar->seek_box.x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 
   if (point_in_rect(mouse_x - (offset_diff / 2), mouse_y, hitbox)) {
     switch_latch_on(SKBar, TRUE);
-    printf("latched\n");
     if (SKBar->latched) {
       pause_song(SDLC->FCPtr->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
     }
   }
 }
 
-void switch_latch_on(SeekBar* SKBar, int switch_value) { SKBar->latched = switch_value; }
+void
+switch_latch_on(SeekBar* SKBar, int switch_value) {
+  SKBar->latched = switch_value;
+}
 
-void move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar) {
+void
+move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar) {
   int half           = (int)(SDLCntr->win_width * 0.50);
   int offset_diff    = SDLCntr->win_width - half;
   int offset_mouse_x = (mouse_x - (offset_diff / 2));
 
-  SDL_Rect tmp = {offset_mouse_x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h};
+  SDL_Rect tmp = { offset_mouse_x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 
-  if (tmp.x > 0 && tmp.x < SKBar->vp.w) {
+  if (within_bounds_x(tmp.x, SKBar->vp.w)) {
     SKBar->seek_box.x = offset_mouse_x - SCROLLBAR_OFFSET;
     update_audio_position(ADta, SKBar);
   }
 }
 
-void start_song_from_menu(SDLContext* SDLC) {
+void
+start_song_from_menu(SDLContext* SDLC) {
   FileContext* FCPtr = SDLC->FCPtr;
   SongState*   SSPtr = SDLC->SSPtr;
 
@@ -114,7 +135,8 @@ void start_song_from_menu(SDLContext* SDLC) {
   }
 } /*start_song_from_menu*/
 
-void clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+void
+clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   i8         song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
   FileState* FSPtr              = SDLC->FCPtr->file_state;
   int*       file_index         = &FSPtr->file_index;
@@ -122,7 +144,7 @@ void clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y
   if (song_fonts_created) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[]     = {(mouse_x), (mouse_y - offset_y)};
+    const int  mouse_arr[]     = { (mouse_x), (mouse_y - offset_y) };
     int        file_count      = FSPtr->file_count;
     FontData** sf_arr          = &SDLC->FntPtr->sf_arr;
     int        selection_index = find_clicked_song(sf_arr, file_count, mouse_arr);
@@ -136,7 +158,8 @@ void clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y
   }
 } /*clicked_in_song_rect*/
 
-void clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+void
+clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   i8 song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
   i8 dir_fonts_created  = SDLC->FntPtr->state->dir_fonts_created;
 
@@ -148,7 +171,7 @@ void clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y)
   int one_tenth  = (int)(win_height * 0.05);
 
   if (dir_fonts_created) {
-    const int  mouse_arr[] = {mouse_x, mouse_y - one_tenth};
+    const int  mouse_arr[] = { mouse_x, mouse_y - one_tenth };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &SDLC->FntPtr->df_arr;
     char*      selection   = find_clicked_dir(df_arr, dir_count, mouse_arr);
@@ -176,29 +199,8 @@ void clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y)
   }
 } /*clicked_in_dir_rect*/
 
-void clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr,
-                         char* selection) {
-  FSPtr->selected_dir = selection;
-  if (FSPtr->files_exist && FSPtr->file_count > 0) {
-    for (int i = 0; i < FSPtr->file_count; i++) {
-      FSPtr->files[i] = free_ptr(FSPtr->files[i]);
-    }
-
-    FSPtr->file_count = 0;
-  }
-
-  if (FSPtr->files_exist) {
-    FSPtr->files = free_ptr(FSPtr->files);
-  }
-
-  if (song_fonts_created) {
-    for (int i = 0; i < FSPtr->file_count; i++) {
-      (*sf_arr)[i].font_texture = destroy_texture((*sf_arr)[i].font_texture);
-    }
-  }
-} /*clear_existing_list*/
-
-FontData* get_struct(FontData* arr[], const int mouse_arr[], int len) {
+FontData*
+get_struct(FontData* arr[], const int mouse_arr[], int len) {
   for (int i = 0; i < len; i++) {
     SDL_Rect rect = (*arr)[i].font_rect;
     if (point_in_rect(mouse_arr[0], mouse_arr[1], rect)) {
@@ -210,7 +212,8 @@ FontData* get_struct(FontData* arr[], const int mouse_arr[], int len) {
   return NULL;
 } /*get_*/
 
-void scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
+void
+scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
 
   Positions* Pos = SDLC->FntPtr->pos;
 

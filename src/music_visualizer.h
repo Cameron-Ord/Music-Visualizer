@@ -103,6 +103,8 @@ void      handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC);
 void      handle_mouse_release(SDLContext* SDLC);
 int       point_in_rect(int x, int y, SDL_Rect rect);
 void      scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y);
+int       within_bounds_x(int x, int width);
+void      swap(int* offset_x, int* x);
 void      clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y);
 void      clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y);
 void      clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y);

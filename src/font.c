@@ -1,7 +1,8 @@
 #include "font.h"
 #include "music_visualizer.h"
 
-SDL_Surface* create_font_surface(TTF_Font** font, SDL_Color color, char* text) {
+SDL_Surface*
+create_font_surface(TTF_Font** font, SDL_Color color, char* text) {
   SDL_Surface* text_surface = TTF_RenderText_Blended((*font), text, color);
   if (text_surface == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
@@ -10,7 +11,8 @@ SDL_Surface* create_font_surface(TTF_Font** font, SDL_Color color, char* text) {
   return text_surface;
 }
 
-SDL_Texture* create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
+SDL_Texture*
+create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
   SDL_Texture* font_texture = SDL_CreateTextureFromSurface(r, surface);
   if (font_texture == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
@@ -20,7 +22,8 @@ SDL_Texture* create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
   return font_texture;
 }
 
-int create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
+int
+create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
   Fnt->active->tex  = destroy_texture(Fnt->active->tex);
   Fnt->active->text = free_ptr(Fnt->active->text);
@@ -49,7 +52,7 @@ int create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   }
 
   SDL_Surface** font_surf_ptr = &Fnt->active->surf;
-  SDL_Rect      font_rect     = {0, 0, (*font_surf_ptr)->w, (*font_surf_ptr)->h};
+  SDL_Rect      font_rect     = { 0, 0, (*font_surf_ptr)->w, (*font_surf_ptr)->h };
 
   Fnt->active->rect        = font_rect;
   Fnt->active->offset_rect = font_rect;
@@ -61,7 +64,8 @@ int create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   return 0;
 }
 
-int create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
+int
+create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   Fnt->sf_arr = malloc(FS->file_count * sizeof(FontData));
   if (Fnt->sf_arr == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate font surface array", strerror(errno));
@@ -79,8 +83,8 @@ int create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
     clean_text(text);
 
     Fnt->sf_arr[s].has_bg = FALSE;
-    Fnt->sf_arr[s].font_surface =
-        create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, text);
+    Fnt->sf_arr[s].font_surface
+        = create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, text);
     if (Fnt->sf_arr[s].font_surface == NULL) {
       Fnt->state->song_fonts_created = FALSE;
       return -1;
@@ -93,7 +97,7 @@ int create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
     }
 
     SDL_Surface** file_surf = &Fnt->sf_arr[s].font_surface;
-    SDL_Rect      sdl_rect  = {50, y_pos, (*file_surf)->w, (*file_surf)->h};
+    SDL_Rect      sdl_rect  = { 50, y_pos, (*file_surf)->w, (*file_surf)->h };
 
     Fnt->sf_arr[s].id        = s;
     Fnt->sf_arr[s].text      = FS->files[s];
@@ -108,7 +112,8 @@ int create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   return 0;
 }
 
-int create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
+int
+create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
 
   Fnt->df_arr = malloc(DS->dir_count * sizeof(FontData));
   if (Fnt->df_arr == NULL) {
@@ -127,8 +132,8 @@ int create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
     clean_text(text);
 
     Fnt->df_arr[s].has_bg = FALSE;
-    Fnt->df_arr[s].font_surface =
-        create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, text);
+    Fnt->df_arr[s].font_surface
+        = create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, text);
     if (Fnt->df_arr[s].font_surface == NULL) {
       Fnt->state->dir_fonts_created = FALSE;
       return -1;
@@ -141,7 +146,7 @@ int create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
     }
 
     SDL_Surface** dir_surf = &Fnt->df_arr[s].font_surface;
-    SDL_Rect      sdl_rect = {50, y_pos, (*dir_surf)->w, (*dir_surf)->h};
+    SDL_Rect      sdl_rect = { 50, y_pos, (*dir_surf)->w, (*dir_surf)->h };
 
     Fnt->df_arr[s].id        = s;
     Fnt->df_arr[s].text      = DS->directories[s];
@@ -156,13 +161,15 @@ int create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
   return 0;
 }
 
-void clear_font_bgs(FontData* arr[], int len) {
+void
+clear_font_bgs(FontData* arr[], int len) {
   for (int i = 0; i < len; i++) {
     (*arr)[i].has_bg = 0;
   }
 }
 
-void create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
+void
+create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
 
   FontContext*  FntPtr     = SDLC->FntPtr;
   SDLContainer* SDLCntrPtr = SDLC->container;
@@ -171,7 +178,7 @@ void create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) 
   int one_tenth = (int)(SDLCntrPtr->win_height * 0.05);
 
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->dir_viewport)) {
-    const int  mouse_arr[] = {mouse_x, mouse_y - one_tenth};
+    const int  mouse_arr[] = { mouse_x, mouse_y - one_tenth };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &FntPtr->df_arr;
     FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);
@@ -180,14 +187,15 @@ void create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) 
     }
     df->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
-    SDL_Rect bg = {df->font_rect.x - 5, 0, df->font_rect.w + 10, df->font_rect.h + 10};
+    SDL_Rect bg = { df->font_rect.x - 5, 0, df->font_rect.w + 10, df->font_rect.h + 10 };
     df->font_bg = bg;
   } else {
     clear_font_bgs(&FntPtr->df_arr, DSPtr->dir_count);
   }
 } /*create_dir_text_bg*/
 
-void create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
+void
+create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
 
   FontContext*  FntPtr     = SDLC->FntPtr;
   SDLContainer* SDLCntrPtr = SDLC->container;
@@ -196,7 +204,7 @@ void create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC)
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->song_viewport)) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[] = {(mouse_x), (mouse_y - offset_y)};
+    const int  mouse_arr[] = { (mouse_x), (mouse_y - offset_y) };
     int        file_count  = FSPtr->file_count;
     FontData** sf_arr      = &FntPtr->sf_arr;
     FontData*  sf          = get_struct(sf_arr, mouse_arr, file_count);
@@ -205,14 +213,15 @@ void create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC)
     }
     sf->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
-    SDL_Rect bg = {sf->font_rect.x - 5, 0, sf->font_rect.w + 10, sf->font_rect.h + 10};
+    SDL_Rect bg = { sf->font_rect.x - 5, 0, sf->font_rect.w + 10, sf->font_rect.h + 10 };
     sf->font_bg = bg;
   } else {
     clear_font_bgs(&FntPtr->sf_arr, FSPtr->file_count);
   }
 } /*create_song_text_bg*/
 
-void clean_text(char text[]) {
+void
+clean_text(char text[]) {
   int j, k;
   for (j = 0, k = 0; text[j] != '\0'; j++) {
     if (text[j] == '_') {
@@ -226,7 +235,8 @@ void clean_text(char text[]) {
   text[k] = '\0';
 }
 
-void clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
+void
+clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
 
   i8 files_exist        = FCPtr->file_state->files_exist;
   i8 song_fonts_created = FntPtr->state->song_fonts_created;
@@ -251,3 +261,25 @@ void clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
   FntPtr->active->tex  = destroy_texture(FntPtr->active->tex);
   FntPtr->active->text = free_ptr(FntPtr->active->text);
 }
+
+void
+clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr, char* selection) {
+  FSPtr->selected_dir = selection;
+  if (FSPtr->files_exist && FSPtr->file_count > 0) {
+    for (int i = 0; i < FSPtr->file_count; i++) {
+      FSPtr->files[i] = free_ptr(FSPtr->files[i]);
+    }
+
+    FSPtr->file_count = 0;
+  }
+
+  if (FSPtr->files_exist) {
+    FSPtr->files = free_ptr(FSPtr->files);
+  }
+
+  if (song_fonts_created) {
+    for (int i = 0; i < FSPtr->file_count; i++) {
+      (*sf_arr)[i].font_texture = destroy_texture((*sf_arr)[i].font_texture);
+    }
+  }
+} /*clear_existing_list*/

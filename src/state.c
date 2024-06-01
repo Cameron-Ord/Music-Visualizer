@@ -1,7 +1,8 @@
 #include "audio.h"
 #include "font.h"
 #include "music_visualizer.h"
-int song_is_over(SDLContext* SDLC) {
+int
+song_is_over(SDLContext* SDLC) {
   i8  files_exist = SDLC->FCPtr->file_state->files_exist;
   i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
@@ -13,7 +14,8 @@ int song_is_over(SDLContext* SDLC) {
   return 0;
 }
 
-void song_is_paused(SDLContext* SDLC) {
+void
+song_is_paused(SDLContext* SDLC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
@@ -43,7 +45,8 @@ void song_is_paused(SDLContext* SDLC) {
   present_render(SDLC->r);
 }
 
-void song_is_playing(SDLContext* SDLC) {
+void
+song_is_playing(SDLContext* SDLC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
@@ -80,7 +83,8 @@ void song_is_playing(SDLContext* SDLC) {
   present_render(SDLC->r);
 }
 
-void song_is_stopped(SDLContext* SDLC) {
+void
+song_is_stopped(SDLContext* SDLC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
@@ -98,7 +102,8 @@ void song_is_stopped(SDLContext* SDLC) {
   present_render(SDLC->r);
 }
 
-void handle_state(SDLContext* SDLC) {
+void
+handle_state(SDLContext* SDLC) {
   i8 playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8 song_ended   = SDLC->SSPtr->pb_state->song_ended;
   i8 is_paused    = SDLC->SSPtr->pb_state->is_paused;

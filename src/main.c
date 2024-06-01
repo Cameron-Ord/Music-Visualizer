@@ -4,7 +4,8 @@
 #include "music_visualizer.h"
 #include "threads.h"
 
-int main(int argc, char** argv) {
+int
+main(int argc, char** argv) {
 
   if (argc >= 2) {
     if (strcmp(argv[1], "--daemonize=yes") == 0) {
@@ -51,7 +52,8 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-int music_player() {
+int
+music_player() {
   setup_dirs();
   SDLContext SDLChunk;
 
@@ -115,7 +117,7 @@ int music_player() {
   FontChunk.df_arr = NULL;
   FontChunk.sf_arr = NULL;
 
-  SDL_Color font_color = {189, 147, 249, 0};
+  SDL_Color font_color = { 189, 147, 249, 0 };
   ContextData.color    = font_color;
   FntSte.initialized   = TRUE;
 
@@ -239,17 +241,13 @@ int music_player() {
     poll_events(&SDLChunk);
   }
 
-  if (SDLChunk.w)
-    SDL_DestroyRenderer(SDLChunk.r);
+  if (SDLChunk.w) SDL_DestroyRenderer(SDLChunk.r);
 
-  if (SDLChunk.w)
-    SDL_DestroyWindow(SDLChunk.w);
+  if (SDLChunk.w) SDL_DestroyWindow(SDLChunk.w);
 
-  if (PBSte.playing_song)
-    stop_song(&AudioChunk.pb_state->playing_song);
+  if (PBSte.playing_song) stop_song(&AudioChunk.pb_state->playing_song);
 
-  if (SDLChunk.audio_dev)
-    SDL_CloseAudioDevice(SDLChunk.audio_dev);
+  if (SDLChunk.audio_dev) SDL_CloseAudioDevice(SDLChunk.audio_dev);
 
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FontChunk, &FileChunk);
@@ -267,7 +265,8 @@ int music_player() {
   return 0;
 }
 
-void poll_events(SDLContext* SDLC) {
+void
+poll_events(SDLContext* SDLC) {
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -298,8 +297,7 @@ void poll_events(SDLContext* SDLC) {
     }
 
     case SDL_MOUSEWHEEL: {
-      if (!SDLC->SSPtr->pb_state->playing_song)
-        handle_mouse_wheel(e.wheel.y, SDLC);
+      if (!SDLC->SSPtr->pb_state->playing_song) handle_mouse_wheel(e.wheel.y, SDLC);
       break;
     }
 
@@ -360,7 +358,8 @@ void poll_events(SDLContext* SDLC) {
   }
 }
 
-void* free_ptr(void* ptr) {
+void*
+free_ptr(void* ptr) {
   if (ptr != NULL) {
     free(ptr);
   }
