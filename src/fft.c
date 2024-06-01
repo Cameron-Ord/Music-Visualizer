@@ -41,30 +41,29 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
-  float*          smoothed        = FT->fft_buffers->smoothed;
-  float*          combined_window = FT->fft_buffers->combined_window;
-  float _Complex* out_raw         = FT->fft_buffers->out_raw;
+  float*          in_cpy  = FT->fft_buffers->in_cpy;
+  float _Complex* out_raw = FT->fft_buffers->out_raw;
 
   create_hann_window(FT, TW);
-  fft_func(combined_window, 1, out_raw, N);
-  squash_to_log(N / 2, FT, TW);
+  fft_func(in_cpy, 1, out_raw, N * 2);
+  squash_to_log(DOUBLE_N / 2, FT, TW);
 } /*generate_visual*/
 
 void
 create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
-  float* combined_window = FT->fft_buffers->combined_window;
-
   f32* fft_in = FT->fft_buffers->fft_in;
+  f32* in_cpy = FT->fft_buffers->in_cpy;
+
+  memcpy(in_cpy, fft_in, sizeof(f32) * DOUBLE_N);
 
   for (int i = 0; i < N; ++i) {
-    f32 sum            = fft_in[i * 2] + fft_in[i * 2 + 1];
-    combined_window[i] = sum;
     // hann window to reduce spectral leakage before passing it to FFT
     float Nf   = (float)N;
     float t    = (float)i / (Nf - 1);
     float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 
-    combined_window[i] *= hann;
+    in_cpy[i * 2] *= hann;
+    in_cpy[i * 2 + 1] *= hann;
   }
 }
 
@@ -99,7 +98,7 @@ squash_to_log(int size, FourierTransform* FT, ThreadWrapper* TW) {
 
   for (size_t i = 0; i < m; ++i) {
     processed[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 8 * (1.0 / FPS);
+    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
   }
 
   FT->fft_data->output_len = m;
