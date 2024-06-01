@@ -35,7 +35,7 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
 void
 fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
-    memcpy(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
+    memmove(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
   }
 } /*fft_push*/
 

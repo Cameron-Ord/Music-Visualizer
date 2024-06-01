@@ -2,6 +2,7 @@
 #include "font.h"
 #include "macro.h"
 #include "music_visualizer.h"
+#include <SDL2/SDL_audio.h>
 #include <sndfile.h>
 
 void
@@ -17,13 +18,13 @@ callback(void* data, Uint8* stream, int len) {
   i8   rdrrdy    = FTPtr->fft_data->render_ready;
   i8   bufrdy    = FTPtr->fft_data->buffers_ready;
 
-  int remaining = (wav_len - audio_pos);
+  int remaining = (*wav_len - *audio_pos);
 
   int samples_to_copy = (len / sizeof(float) < remaining) ? len / sizeof(float) : remaining;
 
   float* f32_stream = (float*)stream;
 
-  memcpy(f32_stream, buf + *audio_pos, samples_to_copy * sizeof(float));
+  memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
 
   if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy, bufrdy)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
@@ -33,7 +34,6 @@ callback(void* data, Uint8* stream, int len) {
 
   if (*audio_pos >= *wav_len) {
     fprintf(stdout, "End reached.. Starting next song.\n");
-    memset(stream, 0, len);
     SSPtr->pb_state->song_ended = TRUE;
   }
 }
@@ -66,6 +66,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
   FileState* FS  = FC->file_state;
   AudioData* Aud = SS->audio_data;
+  reset_playback_variables(Aud, SS->pb_state, FT->fft_data);
 
   char combined_path[PATH_MAX];
   char path[PATH_MAX];
@@ -98,7 +99,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
   printf("--FRAMES :  %ld\n", sfinfo.frames);
 
   Aud->samples = sfinfo.frames * sfinfo.channels;
-  Aud->buffer  = malloc(Aud->samples * sizeof(float));
+  Aud->buffer  = realloc(Aud->buffer, Aud->samples * sizeof(float));
   if (Aud->buffer == NULL) {
     return -1;
   }
@@ -158,11 +159,13 @@ zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
 }
 
 void
-reset_playback_variables(AudioData* Aud, PlaybackState* PBste) {
-  Aud->audio_pos  = 0;
-  PBste->is_ready = FALSE;
-  Aud->wav_len    = 0;
-  Aud->buffer     = free_ptr(Aud->buffer);
+reset_playback_variables(AudioData* Aud, PlaybackState* PBste, FTransformData* FTData) {
+  Aud->audio_pos           = 0;
+  Aud->wav_len             = 0;
+  PBste->currently_playing = FALSE;
+  PBste->playing_song      = FALSE;
+  FTData->buffers_ready    = FALSE;
+  FTData->render_ready     = FALSE;
 }
 
 void
@@ -172,7 +175,6 @@ audio_switch(SDL_AudioDeviceID dev, int status) {
 
 void
 load_song(SDLContext* SDLC) {
-
   FourierTransform* FT    = SDLC->FTPtr;
   FileState*        FSPtr = SDLC->FCPtr->file_state;
   SongState*        SS    = SDLC->SSPtr;
@@ -187,7 +189,6 @@ load_song(SDLContext* SDLC) {
   *render_ready  = FALSE;
   *buffers_ready = FALSE;
 
-  zero_buffers(FT->fft_data, FT->fft_buffers);
   if (playing_song) {
     stop_playback(SDLC);
 
@@ -208,13 +209,14 @@ load_song(SDLContext* SDLC) {
 
   SDLC->audio_dev = create_audio_device(&SDLC->spec);
   if (SDLC->audio_dev < 0) {
-    reset_playback_variables(SS->audio_data, SS->pb_state);
+    reset_playback_variables(SS->audio_data, SS->pb_state, FT->fft_data);
     return;
   }
 
   print_spec_data(SDLC->spec, SDLC->audio_dev);
-  start_song(&SS->pb_state->playing_song);
   play_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+  start_song(&SS->pb_state->playing_song);
+  zero_buffers(FT->fft_data, FT->fft_buffers);
   *buffers_ready = TRUE;
 }
 
@@ -233,10 +235,9 @@ stop_playback(SDLContext* SDLC) {
   FileState* FSPtr = SDLC->FCPtr->file_state;
   printf("\nSTOPPING: %s\n", FSPtr->files[FSPtr->file_index]);
 
-  pause_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
   stop_song(&SDLC->SSPtr->pb_state->playing_song);
+  pause_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
   SDL_CloseAudioDevice(SDLC->audio_dev);
-  reset_playback_variables(SDLC->SSPtr->audio_data, SDLC->SSPtr->pb_state);
 }
 
 void

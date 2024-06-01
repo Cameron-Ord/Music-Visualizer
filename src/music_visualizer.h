@@ -74,7 +74,7 @@ struct FileContext {
 
 void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);
 void      zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf);
-void      reset_playback_variables(AudioData* AD, PlaybackState* PBste);
+void      reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
 void*     free_ptr(void* ptr);
 void      update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w);
 void      get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt);

@@ -3,10 +3,11 @@
 #include "music_visualizer.h"
 int
 song_is_over(SDLContext* SDLC) {
-  i8  files_exist = SDLC->FCPtr->file_state->files_exist;
-  i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
+  i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
+  i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
+  i8* playing_song = &SDLC->SSPtr->pb_state->playing_song;
 
-  if (files_exist) {
+  if (files_exist && playing_song) {
     *hard_stop = FALSE;
     index_up(SDLC->FCPtr->file_state);
     load_song(SDLC);
@@ -24,8 +25,10 @@ song_is_paused(SDLContext* SDLC) {
   FTransformData* FTData = SDLC->FTPtr->fft_data;
   SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
 
-  i8 buffers_ready = FTData->buffers_ready;
-  if (buffers_ready) {
+  i8* buffers_ready    = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
+
+  if (*buffers_ready) {
     render_bars(SDLC);
   }
 
@@ -63,7 +66,7 @@ song_is_playing(SDLContext* SDLC) {
     *ready_for_render = TRUE;
   }
 
-  if (*ready_for_render) {
+  if (*buffers_ready && *ready_for_render) {
     render_bars(SDLC);
     *ready_for_render = FALSE;
   }
