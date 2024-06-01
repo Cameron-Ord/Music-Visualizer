@@ -6,13 +6,8 @@
 #include "audio.h"
 #include "threads.h"
 
-/*
- * Well I learned something pretty cool here. However, it's pretty much useless
- * and adds too much overhead for a real time audio visualizer/since it is out
- * of sync most of the time with the main thread. I'll leave it here anyway as
- * I may implement it for the render pipeline and keep the audio processing on
- * a single thread.
- */
+/*Gonna see if I can get multithreading working on the audio processing for the visuals, with good state
+ * management I should be able to make it work without information loss, but we'll see*/
 
 void
 create_threads(ThreadWrapper* t_wrapper) {
