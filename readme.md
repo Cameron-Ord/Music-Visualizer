@@ -50,9 +50,13 @@ The program relies on directories located in the **~/Music dir located in the ho
 ## Building
 - ```git clone https://github.com/Cameron-Ord/fft_music_visualizer``` 
 
-> Keep in mind that you will need to create a folder in /usr/share/fonts called fftplayer_fonts and move NotoSansMono-SemiBold.ttf into it from your system fonts, or edit the source code in the main.c to go to your own font path.
+- run ```make``` to compile a binary to the build folder.
+- run sudo make install to place binaries and required fonts in /usr/local/bin and /usr/share/fonts/truetype/quicksand/
 
-- run ```make``` inside the working dir. Executable will be in the build folder that gets generated.
+## Uninstallation
+
+- Simply run make uninstall to remove the binary from your /usr/local/bin/ path.
+
 
 
 

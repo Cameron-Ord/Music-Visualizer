@@ -2,7 +2,7 @@
 #define MACRO_H
 #define PRINT_SDL_ERR(stream, msg) fprintf(stream, "%s\n", msg)
 #define PRINT_STR_ERR(stream, context, msg) fprintf(stream, "%s : %s\n", context, msg)
-#define FONT_PATH "/usr/share/fonts/fftplayer_fonts/NotoSansMono-SemiBold.ttf"
+#define FONT_PATH "/usr/share/fonts/truetype/quicksand/Quicksand-Regular.ttf"
 #define SCROLLBAR_WIDTH 20
 #define SCROLLBAR_HEIGHT 10
 #define SCROLLBAR_HEIGHT_OFFSET (SCROLLBAR_HEIGHT / 2)

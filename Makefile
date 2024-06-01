@@ -9,6 +9,12 @@ EXEC_PATH := build/fftplayer
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 
+FONTSHARE=/usr/share/fonts/truetype
+FONTTYPEDIR=$(FONTSHARE)/quicksand
+FONTPATH := fonts
+FONTFILE := Quicksand-Regular.ttf
+FONTFILEPATH= $(FONTPATH)/$(FONTFILE)
+
 CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2
 LDFLAGS += -pg -fprofile-instr-generate
 
@@ -44,7 +50,10 @@ uninstall:
 
 install:
 	install -d $(BINDIR)
+	install -d $(FONTTYPEDIR)
 	install -m 755 $(EXEC_PATH) $(BINDIR)/$(TARGET_EXEC)
+	install -m 644 $(FONTFILEPATH) $(FONTTYPEDIR)/$(FONTFILE)
+
 
 clean:
 	rm -r $(BUILD_DIR)
