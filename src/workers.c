@@ -68,9 +68,10 @@ pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
 }
 
 void
-resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
+resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete) {
   pthread_mutex_lock(mutex);
-  *thread_state = FALSE;
+  *thread_state   = FALSE;
+  *cycle_complete = FALSE;
   pthread_cond_signal(cond);
   pthread_mutex_unlock(mutex);
 }
@@ -127,7 +128,7 @@ calc_hann_window_threads(FourierTransform* FT) {
     winwkr[i].start = (i * chunk);
     winwkr[i].end   = (i == cores - 1) ? N : (i + 1) * chunk;
     memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_N);
-    resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
+    resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused, &winwkr[i].cycle_complete);
   }
 
   for (int c = 0; c < cores; c++) {
