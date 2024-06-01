@@ -32,6 +32,7 @@ void callback(void* data, Uint8* stream, int len) {
 
   if (*audio_pos >= *wav_len) {
     fprintf(stdout, "End reached.. Starting next song.\n");
+    memset(stream, 0, len);
     SSPtr->pb_state->song_ended = TRUE;
   }
 }
