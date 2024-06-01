@@ -164,7 +164,7 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud) {
   int y = viewport.h * 0.75;
 
   SDL_Rect sk_box  = { x, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line = { 0, y + SCROLLBAR_HEIGHT_OFFSET, viewport.w, 1 };
+  SDL_Rect sk_line = { 0, y + (SCROLLBAR_HEIGHT_OFFSET), viewport.w, 2 };
 
   SkBar->seek_box  = sk_box;
   SkBar->seek_line = sk_line;

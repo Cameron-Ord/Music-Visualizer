@@ -3,9 +3,9 @@
 #define PRINT_SDL_ERR(stream, msg) fprintf(stream, "%s\n", msg)
 #define PRINT_STR_ERR(stream, context, msg) fprintf(stream, "%s : %s\n", context, msg)
 #define FONT_PATH "/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf"
-#define SCROLLBAR_WIDTH 20
+#define SCROLLBAR_WIDTH 24
 #define SCROLLBAR_HEIGHT 10
-#define SCROLLBAR_HEIGHT_OFFSET (SCROLLBAR_HEIGHT / 2)
+#define SCROLLBAR_HEIGHT_OFFSET (SCROLLBAR_HEIGHT / 2) - 1
 #define SCROLLBAR_OFFSET (SCROLLBAR_WIDTH / 2)
 #define N (1 << 12)
 #define DOUBLE_N (N * 2)
