@@ -245,7 +245,9 @@ music_player() {
     winwkr[i].thread = free_ptr(winwkr[i].thread);
   }
 
-  winwkr = free_ptr(winwkr);
+  winwkr      = free_ptr(winwkr);
+  ADta.buffer = free_ptr(ADta.buffer);
+
   TTF_Quit();
   SDL_Quit();
 

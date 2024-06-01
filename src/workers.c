@@ -93,6 +93,7 @@ hann_window_worker(void* arg) {
     }
     pthread_mutex_unlock(&hann_t->mutex);
 
+    /*All variables are local so mutual exclusions are not necessary*/
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
       float Nf   = (float)hann_t->end;
@@ -107,9 +108,7 @@ hann_window_worker(void* arg) {
 
     if (!hann_t->termination_flag && !hann_t->paused) {
       pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused);
-      pthread_mutex_lock(&hann_t->mutex);
       hann_t->cycle_complete = TRUE;
-      pthread_mutex_unlock(&hann_t->mutex);
     }
   }
 
