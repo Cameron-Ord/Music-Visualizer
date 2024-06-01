@@ -181,44 +181,44 @@ int music_player() {
   int cores = sysconf(_SC_NPROCESSORS_ONLN);
   printf("Cores : %d\n", cores);
 
-  ThreadWrapper ThrdWrap;
-  ThrdWrap.cores        = cores;
-  ThrdWrap.ren          = NULL;
-  ThrdWrap.dir          = NULL;
-  ThrdWrap.rend_context = NULL;
-  ThrdWrap.dir_context  = NULL;
-
-  ThrdWrap.ren = malloc(sizeof(BufRenderThread) * cores);
-  if (ThrdWrap.ren == NULL) {
-    PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
-    return 1;
-  }
-
-  ThrdWrap.dir = malloc(sizeof(DirFontThread) * cores);
-  if (ThrdWrap.dir == NULL) {
-    PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
-    return 1;
-  }
-
-  ThrdWrap.rend_context = malloc(sizeof(pthread_t) * cores);
-  if (ThrdWrap.rend_context == NULL) {
-    PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
-    return 1;
-  }
-
-  ThrdWrap.dir_context = malloc(sizeof(pthread_t) * cores);
-  if (ThrdWrap.dir_context == NULL) {
-    PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
-    return 1;
-  }
-
-  create_threads(&ThrdWrap);
+  // ThreadWrapper ThrdWrap;
+  // ThrdWrap.cores        = cores;
+  // ThrdWrap.ren          = NULL;
+  // ThrdWrap.dir          = NULL;
+  // ThrdWrap.rend_context = NULL;
+  // ThrdWrap.dir_context  = NULL;
+  //
+  // ThrdWrap.ren = malloc(sizeof(BufRenderThread) * cores);
+  // if (ThrdWrap.ren == NULL) {
+  // PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
+  // return 1;
+  //}
+  //
+  // ThrdWrap.dir = malloc(sizeof(DirFontThread) * cores);
+  // if (ThrdWrap.dir == NULL) {
+  // PRINT_STR_ERR(stderr, "Could not allocate threads", strerror(errno));
+  // return 1;
+  //}
+  //
+  // ThrdWrap.rend_context = malloc(sizeof(pthread_t) * cores);
+  // if (ThrdWrap.rend_context == NULL) {
+  // PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
+  // return 1;
+  //}
+  //
+  // ThrdWrap.dir_context = malloc(sizeof(pthread_t) * cores);
+  // if (ThrdWrap.dir_context == NULL) {
+  // PRINT_STR_ERR(stderr, "Could not create thread structure", strerror(errno));
+  // return 1;
+  //}
+  //
+  // create_threads(&ThrdWrap);
 
   SDLChunk.FntPtr = &FontChunk;
   SDLChunk.SSPtr  = &AudioChunk;
   SDLChunk.FTPtr  = &FTransform;
   SDLChunk.FCPtr  = &FileChunk;
-  SDLChunk.THPtr  = &ThrdWrap;
+  SDLChunk.THPtr  = NULL;
 
   update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk);
@@ -254,12 +254,12 @@ int music_player() {
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FontChunk, &FileChunk);
   clear_dirs(&FontChunk, &FileChunk);
-  destroy_threads(&ThrdWrap);
-
-  free_ptr(ThrdWrap.dir_context);
-  free_ptr(ThrdWrap.rend_context);
-  free_ptr(ThrdWrap.dir);
-  free_ptr(ThrdWrap.ren);
+  // destroy_threads(&ThrdWrap);
+  //
+  // free_ptr(ThrdWrap.dir_context);
+  // free_ptr(ThrdWrap.rend_context);
+  // free_ptr(ThrdWrap.dir);
+  // free_ptr(ThrdWrap.ren);
 
   TTF_Quit();
   SDL_Quit();
