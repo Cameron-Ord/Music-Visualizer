@@ -220,3 +220,34 @@ int fetch_files(FileState* FS) {
 
   return -1;
 } /*load_dir_songlist*/
+
+void clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
+  i8  dirs_exist = FCPtr->dir_state->dirs_exist;
+  int dir_count  = FCPtr->dir_state->dir_count;
+
+  if (dir_count > 0 && dirs_exist) {
+    for (int i = 0; i < dir_count; i++) {
+      FCPtr->dir_state->directories[i] = free_ptr(FCPtr->dir_state->directories[i]);
+    }
+  }
+
+  if (dirs_exist) {
+    FCPtr->dir_state->directories = free_ptr(FCPtr->dir_state->directories);
+  }
+}
+
+void clear_files(FontContext* FntPtr, FileContext* FCPtr) {
+
+  i8  files_exist = FCPtr->file_state->files_exist;
+  int file_count  = FCPtr->file_state->file_count;
+
+  if (file_count > 0 && files_exist) {
+    for (int i = 0; i < file_count; i++) {
+      FCPtr->file_state->files[i] = free_ptr(FCPtr->file_state->files[i]);
+    }
+  }
+
+  if (files_exist) {
+    FCPtr->file_state->files = free_ptr(FCPtr->file_state->files);
+  }
+}

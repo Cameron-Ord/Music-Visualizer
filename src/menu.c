@@ -78,7 +78,7 @@ void grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
     switch_latch_on(SKBar, TRUE);
     printf("latched\n");
     if (SKBar->latched) {
-      pause_song(SDLC);
+      pause_song(SDLC->FCPtr->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
     }
   }
 }

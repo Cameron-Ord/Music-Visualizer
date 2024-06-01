@@ -59,6 +59,7 @@ struct FTransformData {
   int       cell_width;
   int       output_len;
   i8        buffers_ready;
+  i8        render_ready;
   SDL_Rect* rect_buff;
 };
 
@@ -69,10 +70,10 @@ struct FourierTransform {
 };
 
 void              audio_switch(SDL_AudioDeviceID dev, int status);
-void              start_song(SongState* SS);
-void              stop_song(SongState* SS);
-void              pause_song(SDLContext* SDLC);
-void              play_song(SDLContext* SDLC);
+void              start_song(i8* playing_song);
+void              stop_song(i8* playing_song);
+void              pause_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev);
+void              play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev);
 void              stop_playback(SDLContext* SDLC);
 void              song_is_stopped(SDLContext* SDLC);
 void              song_is_playing(SDLContext* SDLC);
@@ -80,7 +81,7 @@ void              song_is_paused(SDLContext* SDLC);
 int               song_is_over(SDLContext* SDLC);
 void              handle_state(SDLContext* SDLC);
 void              load_song(SDLContext* SDLC);
-int               read_to_buffer(SDLContext* SDLC);
+int               read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT);
 void              set_spec_data(SDLContext* SDLC);
 void              callback(void* data, Uint8* stream, int len);
 SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec);
@@ -97,5 +98,7 @@ void              fft_push(FourierTransform* FT, SongState* SS, int channels, in
 void              create_hann_window(FourierTransform* FT, ThreadWrapper* TW);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
+int               check_pos(u32 audio_pos, u32 len);
+int               render_await(i8 render_ready);
 
 #endif

@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "font.h"
+#include "macro.h"
 #include "music_visualizer.h"
 #include <sndfile.h>
 
@@ -7,31 +8,49 @@ void callback(void* data, Uint8* stream, int len) {
   SDLContext*       SDLCPtr = (struct SDLContext*)data;
   SongState*        SSPtr   = SDLCPtr->SSPtr;
   FourierTransform* FTPtr   = SDLCPtr->FTPtr;
+  AudioData*        Aud     = SSPtr->audio_data;
 
-  AudioData* Aud = SSPtr->audio_data;
+  u32* wav_len   = &Aud->wav_len;
+  u32* audio_pos = &Aud->audio_pos;
+  f32* buf       = Aud->buffer;
+  i8   rdrrdy    = FTPtr->fft_data->render_ready;
 
-  int remaining_samples = (Aud->wav_len - Aud->audio_pos);
+  int remaining = (wav_len - audio_pos);
 
-  int samples_to_copy =
-      (len / sizeof(float) < remaining_samples) ? len / sizeof(float) : remaining_samples;
+  int samples_to_copy = (len / sizeof(float) < remaining) ? len / sizeof(float) : remaining;
 
   float* f32_stream = (float*)stream;
 
-  memcpy(f32_stream, Aud->buffer + Aud->audio_pos, samples_to_copy * sizeof(float));
-  if (Aud->audio_pos > 0 && Aud->audio_pos < Aud->wav_len) {
+  memcpy(f32_stream, buf + *audio_pos, samples_to_copy * sizeof(float));
+
+  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
 
-  Aud->audio_pos += samples_to_copy;
+  *audio_pos += samples_to_copy;
 
-  if (Aud->audio_pos >= Aud->wav_len) {
+  if (*audio_pos >= *wav_len) {
     fprintf(stdout, "\n AUDIO POS: %d, WAV_LEN: %d\n", Aud->audio_pos, Aud->wav_len);
     fprintf(stdout, "End reached.. Starting next song.\n");
     SSPtr->pb_state->song_ended = TRUE;
   }
 }
 
-int read_to_buffer(SDLContext* SDLC) {
+int check_pos(u32 audio_pos, u32 len) {
+  if (audio_pos > 0 && audio_pos < len) {
+    return 1;
+  }
+  return 0;
+}
+
+int render_await(i8 render_ready) {
+  if (!render_ready) {
+    return 1;
+  }
+  return 0;
+}
+
+int read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 #ifdef __LINUX__
 
   char* home = getenv("HOME");
@@ -40,11 +59,8 @@ int read_to_buffer(SDLContext* SDLC) {
     return -1;
   }
 
-  SongState*   SSPtr = SDLC->SSPtr;
-  FileContext* FCPtr = SDLC->FCPtr;
-
-  FileState* FS  = FCPtr->file_state;
-  AudioData* Aud = SSPtr->audio_data;
+  FileState* FS  = FC->file_state;
+  AudioData* Aud = SS->audio_data;
 
   char combined_path[PATH_MAX];
   char path[PATH_MAX];
@@ -95,10 +111,8 @@ int read_to_buffer(SDLContext* SDLC) {
 
   Aud->wav_len = Aud->samples;
 
-  FourierTransform* FTPtr = SDLC->FTPtr;
-
-  float DSf                  = (float)N / FTPtr->fft_data->DS_AMOUNT;
-  FTPtr->fft_data->freq_step = (float)Aud->sr / DSf;
+  float DSf               = (float)N / FT->fft_data->DS_AMOUNT;
+  FT->fft_data->freq_step = (float)Aud->sr / DSf;
   printf("\n..Done reading. Closing file\n\n");
 
   sf_close(sndfile);
@@ -146,73 +160,77 @@ void audio_switch(SDL_AudioDeviceID dev, int status) { SDL_PauseAudioDevice(dev,
 
 void load_song(SDLContext* SDLC) {
 
-  i8  hard_stop    = SDLC->SSPtr->pb_state->hard_stop;
-  i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
-  i8* song_ended   = &SDLC->SSPtr->pb_state->song_ended;
+  FourierTransform* FT    = SDLC->FTPtr;
+  FileState*        FSPtr = SDLC->FCPtr->file_state;
+  SongState*        SS    = SDLC->SSPtr;
 
-  *song_ended = TRUE;
+  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8* render_ready  = &SDLC->FTPtr->fft_data->render_ready;
+  i8  hard_stop     = SDLC->SSPtr->pb_state->hard_stop;
+  i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
+  i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;
 
-  FourierTransform* FT = SDLC->FTPtr;
+  *song_ended    = TRUE;
+  *render_ready  = FALSE;
+  *buffers_ready = FALSE;
 
   if (playing_song) {
     stop_playback(SDLC);
 
     if (hard_stop == TRUE) {
-      fprintf(stdout, "Hard stop\n");
       return;
     }
   }
 
   int err;
-  err = read_to_buffer(SDLC);
+  err = read_to_buffer(SDLC->FCPtr, SDLC->SSPtr, SDLC->FTPtr);
   if (err < 0) {
     return;
   }
 
   set_spec_data(SDLC);
 
-  FT->fft_data->buffers_ready = FALSE;
   zero_buffers(FT->fft_data, FT->fft_buffers);
-  FT->fft_data->buffers_ready = TRUE;
+  *buffers_ready = TRUE;
 
   create_active_song_font(SDLC->FntPtr, SDLC->FCPtr->file_state, SDLC->r);
 
   SDLC->audio_dev = create_audio_device(&SDLC->spec);
   if (SDLC->audio_dev < 0) {
+    reset_playback_variables(SS->audio_data, SS->pb_state);
     return;
   }
 
   *song_ended = FALSE;
   print_spec_data(SDLC->spec, SDLC->audio_dev);
-  start_song(SDLC->SSPtr);
-  play_song(SDLC);
+  start_song(&SS->pb_state->playing_song);
+  play_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
 }
 
-void start_song(SongState* SS) { SS->pb_state->playing_song = 1; }
+void start_song(i8* playing_song) { *playing_song = TRUE; }
 
-void stop_song(SongState* SS) { SS->pb_state->playing_song = 0; }
+void stop_song(i8* playing_song) { *playing_song = FALSE; }
 
 void stop_playback(SDLContext* SDLC) {
   FileState* FSPtr = SDLC->FCPtr->file_state;
   printf("\nSTOPPING: %s\n", FSPtr->files[FSPtr->file_index]);
-  pause_song(SDLC);
-  stop_song(SDLC->SSPtr);
+
+  pause_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+  stop_song(&SDLC->SSPtr->pb_state->playing_song);
   SDL_CloseAudioDevice(SDLC->audio_dev);
   reset_playback_variables(SDLC->SSPtr->audio_data, SDLC->SSPtr->pb_state);
 }
 
-void play_song(SDLContext* SDLC) {
-  FileState* FSPtr     = SDLC->FCPtr->file_state;
-  i8*        is_paused = &SDLC->SSPtr->pb_state->is_paused;
-  printf("\nNOW PLAYING: %d : %s\n", FSPtr->file_index, FSPtr->files[FSPtr->file_index]);
-  audio_switch(SDLC->audio_dev, 0);
+void play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
+  printf("\nNOW PLAYING: %d : %s\n", FS->file_index, FS->files[FS->file_index]);
+
+  audio_switch(*dev, 0);
   *is_paused = FALSE;
 }
 
-void pause_song(SDLContext* SDLC) {
-  FileState* FSPtr     = SDLC->FCPtr->file_state;
-  i8*        is_paused = &SDLC->SSPtr->pb_state->is_paused;
-  printf("\nPAUSING: %s\n", FSPtr->files[FSPtr->file_index]);
-  audio_switch(SDLC->audio_dev, 1);
+void pause_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
+  printf("\nPAUSING: %s\n", FS->files[FS->file_index]);
+
+  audio_switch(*dev, 1);
   *is_paused = TRUE;
 }

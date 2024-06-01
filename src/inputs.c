@@ -7,32 +7,6 @@ void index_down(FileState* FS) {
   FS->file_index = (FS->file_index - 1 + FS->file_count) % FS->file_count;
 }
 
-int increase_ds(FourierTransform* FT) {
-  FT->fft_data->buffers_ready = FALSE;
-
-  int ds = FT->fft_data->DS_AMOUNT << 1;
-  if (ds < MAX_BUFFER_DS) {
-    FT->fft_data->DS_AMOUNT = ds;
-  }
-
-  zero_buffers(FT->fft_data, FT->fft_buffers);
-  FT->fft_data->buffers_ready = TRUE;
-  return 0;
-}
-
-int decrease_ds(FourierTransform* FT) {
-  FT->fft_data->buffers_ready = FALSE;
-
-  int ds = (FT->fft_data->DS_AMOUNT >> 1);
-  if (ds > MIN_BUFFER_DS) {
-    FT->fft_data->DS_AMOUNT = ds;
-  }
-
-  zero_buffers(FT->fft_data, FT->fft_buffers);
-  FT->fft_data->buffers_ready = TRUE;
-  return 0;
-}
-
 void handle_mouse_motion(SDLContext* SDLC) {
   int          mouse_x, mouse_y;
   FontContext* FS = SDLC->FntPtr;
@@ -56,17 +30,17 @@ void handle_mouse_motion(SDLContext* SDLC) {
 }
 
 void toggle_pause(SDLContext* SDLC) {
-  i8 playing_song = SDLC->SSPtr->pb_state->playing_song;
-  i8 is_paused    = SDLC->SSPtr->pb_state->is_paused;
+  i8* playing_song = &SDLC->SSPtr->pb_state->playing_song;
+  i8* is_paused    = &SDLC->SSPtr->pb_state->is_paused;
 
-  if (playing_song) {
-    switch (is_paused) {
+  if (*playing_song) {
+    switch (*is_paused) {
     case 0: {
-      pause_song(SDLC);
+      pause_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
       break;
     }
     case 1: {
-      play_song(SDLC);
+      play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
       break;
     }
     }
@@ -123,7 +97,6 @@ void random_song(SDLContext* SDLC) {
   if (files_exist) {
     *hard_stop = FALSE;
     load_song(SDLC);
-    zero_buffers(SDLC->FTPtr->fft_data, SDLC->FTPtr->fft_buffers);
   }
 }
 
@@ -141,13 +114,14 @@ void handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC) {
 }
 
 void handle_mouse_release(SDLContext* SDLC) {
-  PlaybackState*    PBSte = SDLC->SSPtr->pb_state;
-  SeekBar*          SKBar = SDLC->SSPtr->seek_bar;
-  FourierTransform* FTPtr = SDLC->FTPtr;
+  PlaybackState*    PBSte     = SDLC->SSPtr->pb_state;
+  SeekBar*          SKBar     = SDLC->SSPtr->seek_bar;
+  FourierTransform* FTPtr     = SDLC->FTPtr;
+  i8*               is_paused = &SDLC->SSPtr->pb_state->is_paused;
 
   if (PBSte->playing_song && SKBar->latched) {
     SKBar->latched = FALSE;
-    play_song(SDLC);
+    play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
     zero_buffers(FTPtr->fft_data, FTPtr->fft_buffers);
   }
 }

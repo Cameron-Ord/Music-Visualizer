@@ -245,7 +245,7 @@ int music_player() {
     SDL_DestroyWindow(SDLChunk.w);
 
   if (PBSte.playing_song)
-    stop_song(&AudioChunk);
+    stop_song(&AudioChunk.pb_state->playing_song);
 
   if (SDLChunk.audio_dev)
     SDL_CloseAudioDevice(SDLChunk.audio_dev);

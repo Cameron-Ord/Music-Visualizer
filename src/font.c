@@ -225,3 +225,29 @@ void clean_text(char text[]) {
   }
   text[k] = '\0';
 }
+
+void clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
+
+  i8 files_exist        = FCPtr->file_state->files_exist;
+  i8 song_fonts_created = FntPtr->state->song_fonts_created;
+
+  if (song_fonts_created && files_exist) {
+    int file_count = FCPtr->file_state->file_count;
+    for (int i = 0; i < file_count; i++) {
+      destroy_texture(FntPtr->sf_arr[i].font_texture);
+    }
+  }
+
+  i8 dirs_exist        = FCPtr->dir_state->dirs_exist;
+  i8 dir_fonts_created = FntPtr->state->dir_fonts_created;
+
+  if (dir_fonts_created && dirs_exist) {
+    int dir_count = FCPtr->dir_state->dir_count;
+    for (int i = 0; i < dir_count; i++) {
+      destroy_texture(FntPtr->df_arr[i].font_texture);
+    }
+  }
+
+  FntPtr->active->tex  = destroy_texture(FntPtr->active->tex);
+  FntPtr->active->text = free_ptr(FntPtr->active->text);
+}

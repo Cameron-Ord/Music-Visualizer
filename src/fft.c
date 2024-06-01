@@ -48,6 +48,7 @@ void generate_visual(FourierTransform* FT, ThreadWrapper* TW, int SR) {
   create_hann_window(FT, TW);
   fft_func(combined_window, 1, out_raw, N);
   apply_amp(N / 2, FT, TW);
+  FT->fft_data->buffers_ready = TRUE;
 } /*generate_visual*/
 
 void create_hann_window(FourierTransform* FT, ThreadWrapper* TW) {
