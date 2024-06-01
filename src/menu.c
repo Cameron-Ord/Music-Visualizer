@@ -54,15 +54,26 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
   int device_status = SDL_GetAudioDeviceStatus(SDLC->audio_dev);
 
-  if (!playing_song) {
+  switch (playing_song) {
+  default: {
+    break;
+  }
+
+  case TRUE: {
+    if (device_status) {
+      clicked_while_active(SDLC, mouse_x, mouse_y);
+    }
+    break;
+  }
+
+  case FALSE: {
     if (point_in_rect(mouse_x, mouse_y, dir_rect)) {
       clicked_in_dir_rect(SDLC, mouse_x, mouse_y);
-
     } else if (point_in_rect(mouse_x, mouse_y, song_rect)) {
       clicked_in_song_rect(SDLC, mouse_x, mouse_y);
     }
-  } else if (playing_song && device_status) {
-    clicked_while_active(SDLC, mouse_x, mouse_y);
+    break;
+  }
   }
 } /*clicked_in_rect*/
 

@@ -4,6 +4,11 @@ BUILD_DIR := ./build
 SRC_DIRS := ./src
 LDFLAGS := -lSDL2 -lsndfile -lSDL2_ttf -lm -g -Wall -Wextra 
 
+EXEC_PATH := build/fftplayer
+
+PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+
 CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2
 LDFLAGS += -pg -fprofile-instr-generate
 
@@ -30,8 +35,17 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 
+.PHONY: all clean install uninstall
 
-.PHONY: clean
+all: $(BUILD_DIR)/$(TARGET_EXEC)
+
+uninstall:
+	rm -f $(BINDIR)/$(TARGET_EXEC)
+
+install:
+	install -d $(BINDIR)
+	install -m 755 $(EXEC_PATH) $(BINDIR)/$(TARGET_EXEC)
+
 clean:
 	rm -r $(BUILD_DIR)
 	rm -f *.profdata

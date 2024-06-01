@@ -36,7 +36,6 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
     PRINT_STR_ERR(stderr, "Could not allocate active song char buffer\n", strerror(errno));
     return -1;
   }
-  memset(Fnt->active->text, '0', sizeof(char*) * size);
   strcpy(Fnt->active->text, FS->files[file_index]);
   clean_text(Fnt->active->text);
   char* text = Fnt->active->text;
