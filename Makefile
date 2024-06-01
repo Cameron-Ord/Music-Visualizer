@@ -10,9 +10,9 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 
 FONTSHARE=/usr/share/fonts/truetype
-FONTTYPEDIR=$(FONTSHARE)/quicksand
+FONTTYPEDIR=$(FONTSHARE)/roboto
 FONTPATH := fonts
-FONTFILE := Quicksand-Regular.ttf
+FONTFILE := Roboto-Regular.ttf
 FONTFILEPATH= $(FONTPATH)/$(FONTFILE)
 
 CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2
