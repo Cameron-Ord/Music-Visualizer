@@ -6,9 +6,15 @@
 ## Music Visualizer
 ![Image](readme_gif/example.gif)
 
-**A music visualizer for Linux systems written in C. This is unfinished software, so keep your expectations low.**
+**A music visualizer for Linux systems written in C. This is unfinished software, and the program is mostly written with only my personal use in mind. So please be considerate of this.**
 
 I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
+
+## Todo
+> Remove the libsndfile dependency by reading the files manually myself.
+> Add multithreading or single threading options for visual audio processing
+> Styling
+> Maybe consider using OpenGL?
 
 ## Releases
 I am working on creating a release for this program at the moment.

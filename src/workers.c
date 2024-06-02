@@ -97,7 +97,7 @@ hann_window_worker(void* arg) {
       // hann window to reduce spectral leakage before passing it to FFT
       float Nf   = (float)N;
       float t    = (float)i / (Nf - 1);
-      float hamm = 0.5 - 0.5 * cosf(2 * M_PI * t);
+      float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
       /*Accessing interleaved stereo audio*/
       hann_t->in_buff[i * 2] *= hamm;
