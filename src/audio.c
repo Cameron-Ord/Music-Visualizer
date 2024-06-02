@@ -16,7 +16,6 @@ callback(void* data, Uint8* stream, int len) {
   u32* audio_pos = &Aud->audio_pos;
   f32* buf       = Aud->buffer;
   i8   rdrrdy    = FTPtr->fft_data->render_ready;
-  i8   working   = FTPtr->fft_data->working;
 
   int remaining = (*wav_len - *audio_pos);
 
@@ -26,7 +25,7 @@ callback(void* data, Uint8* stream, int len) {
 
   memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
 
-  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy, working)) {
+  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
 
@@ -47,8 +46,8 @@ check_pos(u32 audio_pos, u32 len) {
 }
 
 int
-render_await(i8 render_ready, i8 working) {
-  if (!render_ready && !working) {
+render_await(i8 render_ready) {
+  if (!render_ready) {
     return 1;
   }
   return 0;

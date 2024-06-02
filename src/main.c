@@ -54,6 +54,7 @@ main(int argc, char** argv) {
 
 int
 music_player() {
+  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -159,8 +160,7 @@ music_player() {
 
   FTransformData    FTransData;
   FTransformBuffers FTransBufs;
-  FTransData.working = FALSE;
-  FTransform.winwkr  = NULL;
+  FTransform.winwkr = NULL;
 
   baseline_fft_values(&FTransData);
   instantiate_buffers(&FTransBufs);

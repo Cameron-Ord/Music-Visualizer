@@ -58,7 +58,6 @@ struct FTransformData {
   int       output_len;
   i8        buffers_ready;
   i8        render_ready;
-  i8        working;
   SDL_Rect* rect_buff;
 };
 
@@ -98,6 +97,6 @@ void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
-int               render_await(i8 render_ready, i8 buffers_ready);
+int               render_await(i8 render_ready);
 
 #endif

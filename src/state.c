@@ -60,9 +60,7 @@ song_is_playing(SDLContext* SDLC) {
 
   i8* buffers_ready    = &SDLC->FTPtr->fft_data->buffers_ready;
   i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
-  i8* working          = &SDLC->FTPtr->fft_data->working;
 
-  *working = TRUE;
   if (*buffers_ready && !*ready_for_render) {
     generate_visual(SDLC->FTPtr, SDLC->spec.freq);
     *ready_for_render = TRUE;
@@ -72,7 +70,6 @@ song_is_playing(SDLContext* SDLC) {
     render_bars(SDLC);
     *ready_for_render = FALSE;
   }
-  *working = FALSE;
 
   i8 latched = SkBar->latched;
   if (!latched) {
