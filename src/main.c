@@ -256,6 +256,8 @@ music_player() {
 void
 poll_events(SDLContext* SDLC) {
 
+  AudioData* AD = SDLC->SSPtr->audio_data;
+
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     switch (e.type) {
@@ -324,6 +326,16 @@ poll_events(SDLContext* SDLC) {
 
       case SDLK_LEFT: {
         prev_song(SDLC);
+        break;
+      }
+
+      case SDLK_UP: {
+        change_volume(&AD->volume, 0.1);
+        break;
+      }
+
+      case SDLK_DOWN: {
+        change_volume(&AD->volume, -0.1);
         break;
       }
       }

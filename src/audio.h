@@ -15,6 +15,7 @@ struct AudioData {
   int  format;
   int  samples;
   int  total_bytes;
+  f32  volume;
 };
 
 struct PlaybackState {
@@ -86,6 +87,8 @@ SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec);
 void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
 void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
+void              change_volume(f32* vol, f32 amount);
+f32               clamp(f32 vol, f32 amount, f32 min, f32 max);
 void              baseline_pb_state(PlaybackState* pbste);
 void              squash_to_log(int size, FourierTransform* FT);
 float             amp(float _Complex z);

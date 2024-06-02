@@ -110,6 +110,23 @@ random_song(SDLContext* SDLC) {
 }
 
 void
+change_volume(f32* vol, f32 amount) {
+  *vol = clamp(*vol, amount, 0.0f, 1.0f);
+}
+
+f32
+clamp(f32 vol, f32 amount, f32 min, f32 max) {
+  f32 sum = vol += amount;
+  if (sum < min) {
+    return min;
+  }
+  if (sum > max) {
+    return max;
+  }
+  return sum;
+}
+
+void
 handle_mouse_click(SDLContext* SDLC) {
   int mouse_x, mouse_y, err;
   SDL_GetMouseState(&mouse_x, &mouse_y);

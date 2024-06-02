@@ -117,6 +117,7 @@ baseline_file_state(FileState* file) {
 void
 baseline_audio_data(AudioData* data) {
   data->buffer = NULL;
+  data->volume = 1.0f;
 }
 
 void
@@ -164,7 +165,4 @@ set_spec_data(SDLContext* SDLC) {
   spec->freq     = ad->sr;
   spec->format   = AUDIO_F32;
   spec->samples  = N;
-  spec->size     = 0;
-  spec->padding  = 0;
-  spec->silence  = 0;
 }
