@@ -7,9 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*Gonna see if I can get multithreading working on the audio processing for the visuals, with good state
- * management I should be able to make it work without information loss, but we'll see*/
-
 int
 create_window_workers(WindowWorker* winwkr, int cores) {
   for (int i = 0; i < cores; i++) {
