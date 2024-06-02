@@ -46,8 +46,7 @@ generate_visual(FourierTransform* FT, int SR) {
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
   calc_hann_window_threads(FT);
-  low_pass(in_cpy, N, 5000.0f, SR);
-  // create_hann_window(FT);
+  //  create_hann_window(FT);
   fft_func(in_cpy, 1, out_raw, N);
   squash_to_log(N / 2, FT);
 } /*generate_visual*/
@@ -57,8 +56,6 @@ create_hann_window(FourierTransform* FT) {
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* in_cpy = FT->fft_buffers->in_cpy;
 
-  memcpy(in_cpy, fft_in, sizeof(f32) * DOUBLE_N);
-
   for (int i = 0; i < N; ++i) {
     // hann window to reduce spectral leakage before passing it to FFT
     float Nf   = (float)N;
@@ -67,6 +64,9 @@ create_hann_window(FourierTransform* FT) {
 
     in_cpy[i * 2] *= hann;
     in_cpy[i * 2 + 1] *= hann;
+
+    f32 sumf  = fft_in[i * 2] + fft_in[i * 2 + 1];
+    in_cpy[i] = sumf / 2;
   }
 }
 
