@@ -11,10 +11,10 @@
 I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
 
 ## Todo
-> Remove the libsndfile dependency by reading the files manually myself.
-> Add multithreading or single threading options for visual audio processing
-> Styling
-> Maybe consider using OpenGL?
+> - Remove the libsndfile dependency by reading the files manually myself.
+> - Add multithreading or single threading options for visual audio processing
+> - Styling
+> - Maybe consider using OpenGL?
 
 ## Releases
 I am working on creating a release for this program at the moment.
