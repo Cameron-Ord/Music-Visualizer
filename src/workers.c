@@ -9,6 +9,42 @@
 #include <string.h>
 
 int
+create_fft_workers(FFTWorker* fftwkr, int cores) {
+  for (int i = 0; i < cores; i++) {
+    int err = instantiate_fft_worker(&fftwkr[i], cores);
+    if (err < 0) {
+      return -1;
+    }
+  }
+  return 0;
+}
+
+int
+instantiate_fft_worker(FFTWorker* fftwkr, int cores) {
+  fftwkr->thread           = NULL;
+  fftwkr->thread           = malloc(sizeof(pthread_t));
+  fftwkr->cores            = cores;
+  fftwkr->start            = 0;
+  fftwkr->end              = 0;
+  fftwkr->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+  fftwkr->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+  fftwkr->paused           = TRUE;
+  fftwkr->termination_flag = FALSE;
+  memset(fftwkr->in_buff, 0, sizeof(f32) * N);
+  pthread_create(fftwkr->thread, NULL, fft_worker, fftwkr);
+  pause_thread(&fftwkr->cond, &fftwkr->mutex, &fftwkr->paused);
+  return 0;
+}
+
+void
+destroy_fft_workers(FFTWorker* fftwkr, int cores) {
+  for (int i = 0; i < cores; i++) {
+    mark_for_termination(&fftwkr[i].cond, &fftwkr[i].mutex, &fftwkr[i].termination_flag);
+    join_thread(fftwkr[i].thread);
+  }
+}
+
+int
 create_window_workers(WindowWorker* winwkr, int cores) {
   for (int i = 0; i < cores; i++) {
     int err = instantiate_win_worker(&winwkr[i], cores);
@@ -158,5 +194,32 @@ calc_hann_window_threads(FourierTransform* FT) {
     /*Direct memcpy the exact portions we want to stitch the buffer together*/
     memcpy(cpy + start, buff + start, sizeof(f32) * end);
   }
+}
+
+void
+resume_fft_workers() {}
+
+void*
+fft_worker(void* arg) {
+  FFTWorker* hann_t = (FFTWorker*)arg;
+  for (;;) {
+    if (hann_t->termination_flag) {
+      break;
+    }
+
+    while (hann_t->paused) {
+      if (hann_t->termination_flag) {
+        break;
+      }
+
+      thread_await(&hann_t->mutex, &hann_t->cond);
+    }
+
+    if (!hann_t->termination_flag && !hann_t->paused) {
+      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused);
+    }
+  }
+
+  return NULL;
 }
 #endif

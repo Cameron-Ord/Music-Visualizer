@@ -20,7 +20,7 @@ typedef double   f64;
 typedef float _Complex f32c;
 
 typedef struct VolBar            VolBar;
-typedef struct LogWorker         LogWorker;
+typedef struct FFTWorker         FFTWorker;
 typedef struct WindowWorker      WindowWorker;
 typedef struct SDLMouse          SDLMouse;
 typedef struct SDLContainer      SDLContainer;

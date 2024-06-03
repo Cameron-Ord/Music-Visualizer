@@ -14,7 +14,7 @@
 #endif
 
 void
-fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
+fft_func(float in[], size_t stride, float _Complex out[], size_t n, FFTWorker* fftwkr) {
   // 0 1 2 3 4 5 6
   // n should be greater than 0
   assert(n > 0);
@@ -23,11 +23,11 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
     return;
   }
 
-  fft_func(in, stride * 2, out, n / 2);
-  fft_func(in + stride, stride * 2, out + n / 2, n / 2);
+  fft_func(in, stride * 2, out, n / 2, fftwkr);
+  fft_func(in + stride, stride * 2, out + n / 2, n / 2, fftwkr);
   // v = o*x
   // out = e - o*x e + o*x e e| e + o*x o - o*x o o
-
+  /*Maybe multi thread this loop?*/
   for (size_t k = 0; k < n / 2; ++k) {
     float t          = (float)k / n;
     float _Complex v = cexpf(-2 * I * M_PI * t) * out[k + n / 2];
@@ -57,7 +57,7 @@ generate_visual(FourierTransform* FT, int SR) {
   create_hann_window(FT);
 #endif
 
-  fft_func(in_cpy, 1, out_raw, N);
+  fft_func(in_cpy, 1, out_raw, N, FT->fftwkr);
   squash_to_log(N / 2, FT);
   apply_smoothing(N / 2, FT);
 } /*generate_visual*/

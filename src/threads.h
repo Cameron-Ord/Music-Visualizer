@@ -20,16 +20,12 @@ struct WindowWorker {
   pthread_cond_t  cond;
 };
 
-struct LogWorker {
+struct FFTWorker {
   pthread_t*      thread;
   int             cores;
-  f32c            in_buff[N];
-  f32             out_buff[N / 2];
-  f32             start;
-  f32             chunk;
+  f32             in_buff[N];
+  int             start;
   int             end;
-  int             m;
-  f32             max_ampl;
   int             paused;
   int             termination_flag;
   pthread_mutex_t mutex;
@@ -45,6 +41,9 @@ void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* fl
 int   create_window_workers(WindowWorker* winwkr, int cores);
 void  destroy_window_workers(WindowWorker* winwkr, int cores);
 int   instantiate_win_worker(WindowWorker* winwkr, int cores);
-
+int   create_fft_workers(FFTWorker* fftwkr, int cores);
+int   instantiate_fft_worker(FFTWorker* fftwkr, int cores);
+void  destroy_fft_workers(FFTWorker* fftwkr, int cores);
+void* fft_worker(void* arg);
 #endif
 #endif

@@ -77,7 +77,7 @@ struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
   struct WindowWorker*      winwkr;
-  struct LogWorker*         logwkr;
+  struct FFTWorker*         fftwkr;
 };
 
 void              audio_switch(SDL_AudioDeviceID dev, int status);
@@ -107,7 +107,7 @@ void              squash_to_log(int size, FourierTransform* FT);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT, int SR);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
-void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
+void              fft_func(float in[], size_t stride, float _Complex out[], size_t n, FFTWorker* fftwkr);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
 void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
