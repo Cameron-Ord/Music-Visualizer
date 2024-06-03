@@ -33,6 +33,10 @@ render_bars(SDLContext* SDLC) {
   int win_height = SDLC->container->win_height;
   int out_len    = SDLC->FTPtr->fft_data->output_len;
 
+  if (out_len == 0) {
+    return;
+  }
+
   int three_quarters = (int)(win_height * 0.75);
   int nine_tenths    = (int)(win_width * 1.0);
   int offset_diff    = win_width - nine_tenths;

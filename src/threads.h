@@ -19,6 +19,23 @@ struct WindowWorker {
   pthread_cond_t  cond;
 };
 
+struct LogWorker {
+  pthread_t*      thread;
+  int             cores;
+  f32c            in_buff[N];
+  f32             out_buff[N / 2];
+  f32             start;
+  f32             chunk;
+  int             end;
+  int             m;
+  f32             max_ampl;
+  int             paused;
+  int             termination_flag;
+  int             cycle_complete;
+  pthread_mutex_t mutex;
+  pthread_cond_t  cond;
+};
+
 void  calc_hann_window_threads(FourierTransform* FT);
 void* hann_window_worker(void* arg);
 void  pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete);

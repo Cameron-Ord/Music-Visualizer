@@ -57,6 +57,7 @@ struct FTransformData {
   int       DS_AMOUNT;
   int       cell_width;
   int       output_len;
+  f32       max_ampl;
   i8        buffers_ready;
   i8        render_ready;
   SDL_Rect* rect_buff;
@@ -66,6 +67,7 @@ struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
   struct WindowWorker*      winwkr;
+  struct LogWorker*         logwkr;
 };
 
 void              audio_switch(SDL_AudioDeviceID dev, int status);
@@ -101,5 +103,6 @@ void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 int               render_await(i8 render_ready);
+void              apply_smoothing(int size, FourierTransform* FT);
 
 #endif

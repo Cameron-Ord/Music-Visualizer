@@ -14,6 +14,7 @@ typedef float    f32;
 typedef double   f64;
 typedef float _Complex f32c;
 
+typedef struct LogWorker         LogWorker;
 typedef struct WindowWorker      WindowWorker;
 typedef struct SDLMouse          SDLMouse;
 typedef struct SDLContainer      SDLContainer;

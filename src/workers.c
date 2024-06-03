@@ -28,7 +28,7 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
   winwkr->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
   winwkr->paused           = TRUE;
-  winwkr->cycle_complete   = FALSE;
+  winwkr->cycle_complete   = TRUE;
   winwkr->termination_flag = FALSE;
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_N);
   memset(winwkr->out_buff, 0, sizeof(f32) * N);
@@ -92,7 +92,7 @@ hann_window_worker(void* arg) {
       pthread_mutex_unlock(&hann_t->mutex);
     }
 
-    /*All variables are local so mutual exclusions are not necessary*/
+    /*All buffer variables are local so mutual exclusions are not necessary for this purpose*/
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
       float Nf   = (float)N;
@@ -128,7 +128,7 @@ calc_hann_window_threads(FourierTransform* FT) {
   for (int i = 0; i < cores; ++i) {
     if (winwkr[i].cycle_complete) {
       winwkr[i].start = (i * chunk);
-      winwkr[i].end   = (i == cores - 1) ? N : (i + 1) * chunk;
+      winwkr[i].end   = (i + 1) * chunk;
 
       int start = winwkr[i].start;
       int end   = winwkr[i].end;
@@ -139,6 +139,7 @@ calc_hann_window_threads(FourierTransform* FT) {
   }
 
   for (int i = 0; i < cores; ++i) {
+    /*Wait for threads to finish*/
     while (TRUE) {
       if (winwkr[i].cycle_complete) {
         break;
@@ -149,6 +150,7 @@ calc_hann_window_threads(FourierTransform* FT) {
     int  start = winwkr[i].start;
     int  end   = winwkr[i].end;
 
+    /*Direct memcpy the exact portions we want to stitch the buffer together*/
     memcpy(cpy + start, buff + start, sizeof(f32) * end);
   }
 }

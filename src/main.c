@@ -54,6 +54,7 @@ main(int argc, char** argv) {
 
 int
 music_player() {
+  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -185,6 +186,7 @@ music_player() {
 
   WindowWorker* winwkr = NULL;
 
+  /*I will write a fallback later, first priority is just getting this to work*/
   winwkr = malloc(sizeof(WindowWorker) * cores);
   if (winwkr == NULL) {
     PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
@@ -196,6 +198,15 @@ music_player() {
 
   err = create_window_workers(winwkr, cores);
   if (err < 0) {
+    PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
+                  strerror(errno));
+    return 1;
+  }
+
+  LogWorker* logwkr = NULL;
+
+  logwkr = malloc(sizeof(LogWorker) * cores);
+  if (logwkr == NULL) {
     PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
                   strerror(errno));
     return 1;
@@ -227,13 +238,21 @@ music_player() {
     poll_events(&SDLChunk);
   }
 
-  if (SDLChunk.w) SDL_DestroyRenderer(SDLChunk.r);
+  if (SDLChunk.w) {
+    SDL_DestroyRenderer(SDLChunk.r);
+  }
 
-  if (SDLChunk.w) SDL_DestroyWindow(SDLChunk.w);
+  if (SDLChunk.w) {
+    SDL_DestroyWindow(SDLChunk.w);
+  }
 
-  if (PBSte.playing_song) stop_song(&AudioChunk.pb_state->playing_song);
+  if (PBSte.playing_song) {
+    stop_song(&AudioChunk.pb_state->playing_song);
+  }
 
-  if (SDLChunk.audio_dev) SDL_CloseAudioDevice(SDLChunk.audio_dev);
+  if (SDLChunk.audio_dev) {
+    SDL_CloseAudioDevice(SDLChunk.audio_dev);
+  }
 
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FontChunk, &FileChunk);

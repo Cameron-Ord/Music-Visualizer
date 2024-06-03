@@ -36,7 +36,7 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
 void
 fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
-    memmove(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
+    memcpy(FT->fft_buffers->fft_in, SS->audio_data->buffer + SS->audio_data->audio_pos, bytes);
   }
 } /*fft_push*/
 
@@ -49,6 +49,7 @@ generate_visual(FourierTransform* FT, int SR) {
   //  create_hann_window(FT);
   fft_func(in_cpy, 1, out_raw, N);
   squash_to_log(N / 2, FT);
+  apply_smoothing(N / 2, FT);
 } /*generate_visual*/
 
 void
@@ -96,14 +97,7 @@ squash_to_log(int size, FourierTransform* FT) {
     ftbuf->processed[m++] = a;
   }
 
-  f32* processed = ftbuf->processed;
-  f32* smoothed  = ftbuf->smoothed;
-
-  for (size_t i = 0; i < m; ++i) {
-    processed[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
-  }
-
+  FT->fft_data->max_ampl   = max_ampl;
   FT->fft_data->output_len = m;
 }
 
@@ -123,3 +117,17 @@ low_pass(float* input, int size, float cutoff, int SR) {
     input[i] *= 0.75;
   }
 } /*low_pass*/
+
+void
+apply_smoothing(int size, FourierTransform* FT) {
+  FTransformBuffers* ftbuf  = FT->fft_buffers;
+  FTransformData*    ftdata = FT->fft_data;
+
+  f32* processed = ftbuf->processed;
+  f32* smoothed  = ftbuf->smoothed;
+
+  for (size_t i = 0; i < ftdata->output_len; ++i) {
+    processed[i] /= ftdata->max_ampl;
+    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
+  }
+}
