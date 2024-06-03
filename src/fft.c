@@ -1,8 +1,12 @@
 #include "audio.h"
 #include "macro.h"
+
+#ifdef __linux__
 #include "threads.h"
-#include <assert.h>
 #include <complex.h>
+#endif
+
+#include <assert.h>
 #include <math.h>
 
 #ifndef M_PI
@@ -45,8 +49,14 @@ generate_visual(FourierTransform* FT, int SR) {
   float*          in_cpy  = FT->fft_buffers->in_cpy;
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
+#ifdef __linux__
   calc_hann_window_threads(FT);
-  //  create_hann_window(FT);
+#endif
+
+#ifdef _WIN32
+  create_hann_window(FT);
+#endif
+
   fft_func(in_cpy, 1, out_raw, N);
   squash_to_log(N / 2, FT);
   apply_smoothing(N / 2, FT);

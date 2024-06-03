@@ -2,11 +2,18 @@
 #include "font.h"
 #include "init.h"
 #include "music_visualizer.h"
+
+#ifdef __linux__
 #include "threads.h"
+#endif
+
+#ifdef _WIN32
+#include <mingw-64/windows.h>
+#endif
 
 int
 main(int argc, char** argv) {
-
+#ifdef __linux__
   if (argc >= 2) {
     if (strcmp(argv[1], "--daemonize=yes") == 0) {
       pid_t pid;
@@ -48,6 +55,13 @@ main(int argc, char** argv) {
     int result = music_player();
     return result;
   }
+
+#elif _WIN32
+
+  int result = music_player();
+  return result;
+
+#endif
 
   return 0;
 }
@@ -181,10 +195,12 @@ music_player() {
   AudioChunk.seek_bar   = &SKBar;
   AudioChunk.audio_data = &ADta;
 
+  WindowWorker* winwkr = NULL;
+
+#ifdef __linux__
+
   int cores = sysconf(_SC_NPROCESSORS_ONLN);
   printf("Cores : %d\n", cores);
-
-  WindowWorker* winwkr = NULL;
 
   /*I will write a fallback later, first priority is just getting this to work*/
   winwkr = malloc(sizeof(WindowWorker) * cores);
@@ -212,6 +228,7 @@ music_player() {
     return 1;
   }
 
+#endif
   FTransform.winwkr = winwkr;
 
   SDLChunk.FntPtr = &FontChunk;
@@ -257,13 +274,17 @@ music_player() {
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FontChunk, &FileChunk);
   clear_dirs(&FontChunk, &FileChunk);
+
+#ifdef __linux__
   destroy_window_workers(winwkr, cores);
 
   for (int i = 0; i < cores; i++) {
     winwkr[i].thread = free_ptr(winwkr[i].thread);
   }
 
-  winwkr      = free_ptr(winwkr);
+  winwkr = free_ptr(winwkr);
+#endif
+
   ADta.buffer = free_ptr(ADta.buffer);
 
   TTF_Quit();

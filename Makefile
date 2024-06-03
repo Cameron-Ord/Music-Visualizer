@@ -1,3 +1,5 @@
+
+UNAME_S := $(shell uname -s)
 TARGET_EXEC := fftplayer
 CC := clang
 BUILD_DIR := ./build
@@ -30,6 +32,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # Preprocessor flags
 CPPFLAGS := $(INC_FLAGS) -MMD -MP
+
 
 # The final build step.
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)

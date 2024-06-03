@@ -6,19 +6,22 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <assert.h>
-#include <complex.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <linux/limits.h>
 #include <math.h>
-#include <pthread.h>
 #include <sndfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <time.h>
+
+#ifdef __linux__
+#include <complex.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/limits.h>
+#include <pthread.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 struct SDLContainer {
   int      win_height;

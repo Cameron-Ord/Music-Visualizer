@@ -1,3 +1,4 @@
+#ifdef __linux__
 #include "audio.h"
 #include "macro.h"
 #include "threads.h"
@@ -154,3 +155,4 @@ calc_hann_window_threads(FourierTransform* FT) {
     memcpy(cpy + start, buff + start, sizeof(f32) * end);
   }
 }
+#endif

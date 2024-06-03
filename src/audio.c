@@ -2,7 +2,6 @@
 #include "font.h"
 #include "macro.h"
 #include "music_visualizer.h"
-#include <SDL2/SDL_audio.h>
 #include <sndfile.h>
 
 void

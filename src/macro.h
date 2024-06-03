@@ -2,7 +2,9 @@
 #define MACRO_H
 #define PRINT_SDL_ERR(stream, msg) fprintf(stream, "%s\n", msg)
 #define PRINT_STR_ERR(stream, context, msg) fprintf(stream, "%s : %s\n", context, msg)
+#ifdef __linux__
 #define FONT_PATH "/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf"
+#endif
 #define SCROLLBAR_WIDTH 24
 #define SCROLLBAR_HEIGHT 10
 #define SCROLLBAR_HEIGHT_OFFSET (SCROLLBAR_HEIGHT / 2) - 1

@@ -1,18 +1,22 @@
 #include "music_visualizer.h"
-#include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+
+#ifdef __linux__
+#include <dirent.h>
+#include <errno.h>
 #include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 void
 setup_dirs() {
 
-#ifdef __LINUX__
+#ifdef __linux__
   char* home = getenv("HOME");
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
@@ -75,7 +79,7 @@ setup_dirs() {
 
 int
 fetch_dirs(DirState* DS) {
-#ifdef __LINUX__
+#ifdef __linux__
 
   char***        sub_dirs = &DS->directories;
   DIR*           directory;
@@ -150,7 +154,7 @@ fetch_dirs(DirState* DS) {
 
 int
 fetch_files(FileState* FS) {
-#ifdef __LINUX__
+#ifdef __linux__
 
   char***        files        = &FS->files;
   char*          selected_dir = FS->selected_dir;
