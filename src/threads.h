@@ -1,5 +1,8 @@
+
 #ifndef THREADS_H
 #define THREADS_H
+#ifdef __linux__
+
 #include "macro.h"
 #include "types.h"
 #include <pthread.h>
@@ -45,4 +48,6 @@ void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* fl
 int   create_window_workers(WindowWorker* winwkr, int cores);
 void  destroy_window_workers(WindowWorker* winwkr, int cores);
 int   instantiate_win_worker(WindowWorker* winwkr, int cores);
+
+#endif
 #endif

@@ -9,9 +9,8 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
+
 
 void
 setup_dirs() {
@@ -79,14 +78,17 @@ setup_dirs() {
 
 int
 fetch_dirs(DirState* DS) {
-#ifdef __linux__
 
-  char***        sub_dirs = &DS->directories;
+  char*** sub_dirs = &DS->directories;
+#ifdef __linux__
   DIR*           directory;
   struct dirent* entry;
-  int            dir_count = 0;
-
+#endif
+  int dir_count = 0;
+#ifdef __linux__
   char* home = getenv("HOME");
+#endif
+
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
     return -1;
@@ -148,7 +150,6 @@ fetch_dirs(DirState* DS) {
 
   closedir(directory);
   return dir_count;
-#endif
   return -1;
 } /*read_music_dir*/
 

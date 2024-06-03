@@ -3,6 +3,7 @@
 #ifdef __linux__
 #include <inttypes.h>
 #elif _WIN32
+#include <math.h>
 #include <stdint.h>
 #include <windows.h>
 #endif
