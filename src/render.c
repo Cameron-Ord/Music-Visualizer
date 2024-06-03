@@ -155,10 +155,10 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud) {
   int current_position = Aud->audio_pos;
 
   int one_quarter = (int)(win_height * 0.25);
-  int half        = (int)(win_width * 0.50);
+  int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
 
-  SDL_Rect viewport = { offset_diff * 0.5, 0, half, one_quarter };
+  SDL_Rect viewport = { offset_diff * 0.25, 0, half, one_quarter };
   SkBar->vp         = viewport;
 
   SkBar->normalized_pos = ((float)current_position / (float)ttl_length);
@@ -172,6 +172,29 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud) {
 
   SkBar->seek_box  = sk_box;
   SkBar->seek_line = sk_line;
+}
+
+void
+set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud) {
+  int win_width  = Cont->win_width;
+  int win_height = Cont->win_height;
+
+  int one_quarter = (int)(win_height * 0.25);
+  int three_quart = (int)(win_width * 0.25);
+  int offset_diff = win_width - three_quart;
+
+  SDL_Rect viewport = { offset_diff * 0.75, 0, three_quart, one_quarter };
+  VBar->vp          = viewport;
+  VBar->current_pos = Aud->volume * viewport.w;
+
+  int x = VBar->current_pos - SCROLLBAR_OFFSET;
+  int y = viewport.h * 0.75;
+
+  SDL_Rect sk_box  = { x, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+  SDL_Rect sk_line = { 0, y + (SCROLLBAR_HEIGHT_OFFSET), viewport.w, 2 };
+
+  VBar->seek_box  = sk_box;
+  VBar->seek_line = sk_line;
 }
 
 void
@@ -226,6 +249,14 @@ draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr) {
   SDL_SetRenderDrawColor(r, 189, 147, 249, 0);
   SDL_RenderFillRect(r, &SKPtr->seek_box);
   SDL_RenderFillRect(r, &SKPtr->seek_line);
+}
+
+void
+draw_vol_bar(SDL_Renderer* r, VolBar* VBar) {
+  SDL_RenderSetViewport(r, &VBar->vp);
+  SDL_SetRenderDrawColor(r, 189, 147, 249, 0);
+  SDL_RenderFillRect(r, &VBar->seek_box);
+  SDL_RenderFillRect(r, &VBar->seek_line);
 }
 
 void

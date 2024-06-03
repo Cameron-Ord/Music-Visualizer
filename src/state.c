@@ -33,6 +33,9 @@ song_is_paused(SDLContext* SDLC) {
     render_bars(SDLC);
   }
 
+  set_vol_bar(Cont, SDLC->SSPtr->vol_bar, SDLC->SSPtr->audio_data);
+  draw_vol_bar(SDLC->r, SDLC->SSPtr->vol_bar);
+
   i8 latched = SkBar->latched;
   if (!latched) {
     set_seek_bar(Cont, SkBar, SDLC->SSPtr->audio_data);
@@ -71,6 +74,9 @@ song_is_playing(SDLContext* SDLC) {
     render_bars(SDLC);
     *ready_for_render = FALSE;
   }
+
+  set_vol_bar(Cont, SDLC->SSPtr->vol_bar, SDLC->SSPtr->audio_data);
+  draw_vol_bar(SDLC->r, SDLC->SSPtr->vol_bar);
 
   i8 latched = SkBar->latched;
   if (!latched) {

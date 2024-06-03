@@ -90,6 +90,8 @@ void*     destroy_texture(SDL_Texture* tex);
 void*     destroy_surface(SDL_Surface* surf);
 void      draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr);
 void      set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud);
+void      set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud);
+void      draw_vol_bar(SDL_Renderer* r, VolBar* VBar);
 void      handle_mouse_motion(SDLContext* SDLC);
 void      index_up(FileState* FS);
 void      handle_mouse_click(SDLContext* SDLC);

@@ -36,9 +36,19 @@ struct SeekBar {
   int      latched;
 };
 
+struct VolBar {
+  f32      normalized_pos;
+  int      current_pos;
+  SDL_Rect seek_box;
+  SDL_Rect seek_line;
+  SDL_Rect vp;
+  int      latched;
+};
+
 struct SongState {
   struct PlaybackState*    pb_state;
   struct SeekBar*          seek_bar;
+  struct VolBar*           vol_bar;
   struct AudioData*        audio_data;
   struct FileContext*      FCPtr;
   struct FourierTransform* FTPtr;
@@ -104,5 +114,6 @@ void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 int               render_await(i8 render_ready);
 void              apply_smoothing(int size, FourierTransform* FT);
+void              baseline_vol_bar(VolBar* vlbar);
 
 #endif

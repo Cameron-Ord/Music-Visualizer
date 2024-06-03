@@ -184,15 +184,18 @@ music_player() {
 
   AudioData     ADta;
   SeekBar       SKBar;
+  VolBar        VLBar;
   PlaybackState PBSte;
 
   baseline_audio_data(&ADta);
   baseline_seek_bar(&SKBar);
+  baseline_vol_bar(&VLBar);
   baseline_pb_state(&PBSte);
 
   AudioChunk.pb_state   = &PBSte;
   AudioChunk.seek_bar   = &SKBar;
   AudioChunk.audio_data = &ADta;
+  AudioChunk.vol_bar    = &VLBar;
 
   WindowWorker* winwkr = NULL;
 

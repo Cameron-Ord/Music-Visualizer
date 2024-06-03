@@ -97,12 +97,12 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   int win_width  = SDLC->container->win_width;
 
   int one_quarter = (int)(win_height * 0.25);
-  int half        = (int)(win_width * 0.50);
+  int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
 
   SDL_Rect hitbox = { SKBar->seek_box.x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 
-  if (point_in_rect(mouse_x - (offset_diff / 2), mouse_y, hitbox)) {
+  if (point_in_rect(mouse_x - (offset_diff * 0.25), mouse_y, hitbox)) {
     switch_latch_on(SKBar, TRUE);
     if (SKBar->latched) {
       pause_song(SDLC->FCPtr->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
@@ -117,9 +117,9 @@ switch_latch_on(SeekBar* SKBar, int switch_value) {
 
 void
 move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar) {
-  int half           = (int)(SDLCntr->win_width * 0.50);
+  int half           = (int)(SDLCntr->win_width * 0.25);
   int offset_diff    = SDLCntr->win_width - half;
-  int offset_mouse_x = (mouse_x - (offset_diff / 2));
+  int offset_mouse_x = (mouse_x - (offset_diff * 0.25));
 
   SDL_Rect tmp = { offset_mouse_x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 

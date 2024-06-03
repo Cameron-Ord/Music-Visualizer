@@ -126,6 +126,11 @@ baseline_seek_bar(SeekBar* skbar) {
 }
 
 void
+baseline_vol_bar(VolBar* vlbar) {
+  vlbar->latched = FALSE;
+}
+
+void
 baseline_pb_state(PlaybackState* pbste) {
   pbste->hard_stop         = FALSE;
   pbste->is_paused         = FALSE;
