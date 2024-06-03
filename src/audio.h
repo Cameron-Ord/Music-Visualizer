@@ -33,7 +33,7 @@ struct SeekBar {
   SDL_Rect seek_box;
   SDL_Rect seek_line;
   SDL_Rect vp;
-  int      latched;
+  i8       latched;
 };
 
 struct VolBar {
@@ -42,7 +42,7 @@ struct VolBar {
   SDL_Rect seek_box;
   SDL_Rect seek_line;
   SDL_Rect vp;
-  int      latched;
+  i8       latched;
 };
 
 struct SongState {
@@ -99,6 +99,7 @@ SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec);
 void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
 void              baseline_audio_data(AudioData* data);
 void              baseline_seek_bar(SeekBar* skbar);
+void              update_vol_pos(AudioData* ADta, VolBar* VBar);
 void              change_volume(f32* vol, f32 amount);
 f32               clamp(f32 vol, f32 amount, f32 min, f32 max);
 void              baseline_pb_state(PlaybackState* pbste);

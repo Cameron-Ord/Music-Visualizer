@@ -144,6 +144,26 @@ update_audio_position(AudioData* ADta, SeekBar* SKBar) {
 }
 
 void
+update_vol_pos(AudioData* ADta, VolBar* VBar) {
+  int ttl_length       = VBar->vp.w;
+  int current_position = VBar->seek_box.x + SCROLLBAR_OFFSET;
+  f32 normalized       = ((float)current_position / (float)ttl_length);
+
+  f32 min = 0.0f;
+  f32 max = 1.0f;
+
+  if (normalized < min) {
+    normalized = min;
+  }
+
+  if (normalized > max) {
+    normalized = max;
+  }
+
+  ADta->volume = normalized;
+}
+
+void
 print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
   printf("\nFORMAT : %d\n CHANNELS: %d\n FREQ: %d\n USERDATA: %p\n CALLBACK %p\n SAMPLES: %d\n SIZE "
          ": %d\n",

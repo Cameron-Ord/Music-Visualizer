@@ -80,10 +80,13 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 void
 clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SeekBar*   SKBar = SDLC->SSPtr->seek_bar;
+  VolBar*    VBar  = SDLC->SSPtr->vol_bar;
   AudioData* ADta  = SDLC->SSPtr->audio_data;
 
   if (point_in_rect(mouse_x, mouse_y, SKBar->vp)) {
     grab_seek_bar(SDLC, mouse_x, mouse_y);
+  } else if (point_in_rect(mouse_x, mouse_y, VBar->vp)) {
+    grab_vol_bar(SDLC, mouse_x, mouse_y);
   }
 }
 
@@ -103,7 +106,7 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SDL_Rect hitbox = { SKBar->seek_box.x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 
   if (point_in_rect(mouse_x - (offset_diff * 0.25), mouse_y, hitbox)) {
-    switch_latch_on(SKBar, TRUE);
+    seek_latch_on(SKBar, TRUE);
     if (SKBar->latched) {
       pause_song(SDLC->FCPtr->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
     }
@@ -111,8 +114,31 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 }
 
 void
-switch_latch_on(SeekBar* SKBar, int switch_value) {
+seek_latch_on(SeekBar* SKBar, int switch_value) {
   SKBar->latched = switch_value;
+}
+
+void
+vol_latch_on(VolBar* VBar, int switch_value) {
+  VBar->latched = switch_value;
+}
+
+void
+grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+  SongState* SSPtr = SDLC->SSPtr;
+  VolBar*    VBar  = SSPtr->vol_bar;
+
+  int win_height = SDLC->container->win_height;
+  int win_width  = SDLC->container->win_width;
+
+  int one_quarter = (int)(win_height * 0.25);
+  int half        = (int)(win_width * 0.25);
+  int offset_diff = win_width - half;
+
+  SDL_Rect hitbox = { VBar->seek_box.x, VBar->seek_box.y, VBar->seek_box.w, VBar->seek_box.h };
+  if (point_in_rect(mouse_x - (offset_diff * 0.75), mouse_y, hitbox)) {
+    vol_latch_on(VBar, TRUE);
+  }
 }
 
 void
@@ -126,6 +152,20 @@ move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar*
   if (within_bounds_x(tmp.x, SKBar->vp.w)) {
     SKBar->seek_box.x = offset_mouse_x - SCROLLBAR_OFFSET;
     update_audio_position(ADta, SKBar);
+  }
+}
+
+void
+move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBar* VBar) {
+  int half           = (int)(SDLCntr->win_width * 0.25);
+  int offset_diff    = SDLCntr->win_width - half;
+  int offset_mouse_x = (mouse_x - (offset_diff * 0.75));
+
+  SDL_Rect tmp = { offset_mouse_x, VBar->seek_box.y, VBar->seek_box.w, VBar->seek_box.h };
+
+  if (within_bounds_x(tmp.x, VBar->vp.w)) {
+    VBar->seek_box.x = offset_mouse_x - SCROLLBAR_OFFSET;
+    update_vol_pos(ADta, VBar);
   }
 }
 

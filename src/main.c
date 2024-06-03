@@ -67,7 +67,6 @@ main(int argc, char** argv) {
 
 int
 music_player() {
-  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -266,7 +265,7 @@ music_player() {
   }
 
   if (PBSte.playing_song) {
-    stop_song(&AudioChunk.pb_state->playing_song);
+    stop_playback(&SDLChunk);
   }
 
   if (SDLChunk.audio_dev) {

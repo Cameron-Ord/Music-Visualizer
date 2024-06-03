@@ -25,6 +25,7 @@ song_is_paused(SDLContext* SDLC) {
   FontContext*    FntPtr = SDLC->FntPtr;
   FTransformData* FTData = SDLC->FTPtr->fft_data;
   SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
+  VolBar*         VBar   = SDLC->SSPtr->vol_bar;
 
   i8* buffers_ready    = &SDLC->FTPtr->fft_data->buffers_ready;
   i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
@@ -33,7 +34,11 @@ song_is_paused(SDLContext* SDLC) {
     render_bars(SDLC);
   }
 
-  set_vol_bar(Cont, SDLC->SSPtr->vol_bar, SDLC->SSPtr->audio_data);
+  i8 vol_latched = VBar->latched;
+  if (!vol_latched) {
+    set_vol_bar(Cont, SDLC->SSPtr->vol_bar, SDLC->SSPtr->audio_data);
+  }
+
   draw_vol_bar(SDLC->r, SDLC->SSPtr->vol_bar);
 
   i8 latched = SkBar->latched;

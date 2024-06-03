@@ -119,7 +119,9 @@ int       find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_
 FontData* get_struct(FontData* arr[], const int mouse_arr[], int len);
 void      clicked_while_active(SDLContext* SDLC, int mouse_x, int mouse_y);
 void      grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y);
-void      switch_latch_on(SeekBar* SKBar, int switch_value);
+void      grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y);
+void      seek_latch_on(SeekBar* SKBar, int switch_value);
+void      vol_latch_on(VolBar* VBar, int switch_value);
 void      move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar);
-
+void      move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBar* VBar);
 #endif

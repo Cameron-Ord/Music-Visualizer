@@ -17,8 +17,9 @@ handle_mouse_motion(SDLContext* SDLC) {
   FontContext* FS = SDLC->FntPtr;
   FileContext* FC = SDLC->FCPtr;
 
-  int playing_song    = SDLC->SSPtr->pb_state->playing_song;
-  int seekbar_latched = SDLC->SSPtr->seek_bar->latched;
+  int playing_song      = SDLC->SSPtr->pb_state->playing_song;
+  i8  scrollbar_latched = SDLC->SSPtr->seek_bar->latched;
+  i8  volbar_latched    = SDLC->SSPtr->vol_bar->latched;
 
   SDL_GetMouseState(&mouse_x, &mouse_y);
   if (!playing_song) {
@@ -29,8 +30,16 @@ handle_mouse_motion(SDLContext* SDLC) {
     if (FS->state->song_fonts_created && FC->file_state != NULL) {
       create_song_text_bg(mouse_x, mouse_y, SDLC);
     }
-  } else if (playing_song && seekbar_latched) {
-    move_seekbar(mouse_x, SDLC->container, SDLC->SSPtr->audio_data, SDLC->SSPtr->seek_bar);
+  }
+
+  if (playing_song) {
+    if (volbar_latched) {
+      move_volume_bar(mouse_x, SDLC->container, SDLC->SSPtr->audio_data, SDLC->SSPtr->vol_bar);
+    }
+
+    if (scrollbar_latched) {
+      move_seekbar(mouse_x, SDLC->container, SDLC->SSPtr->audio_data, SDLC->SSPtr->seek_bar);
+    }
   }
 }
 
@@ -145,6 +154,7 @@ void
 handle_mouse_release(SDLContext* SDLC) {
   PlaybackState*    PBSte     = SDLC->SSPtr->pb_state;
   SeekBar*          SKBar     = SDLC->SSPtr->seek_bar;
+  VolBar*           VBar      = SDLC->SSPtr->vol_bar;
   FourierTransform* FTPtr     = SDLC->FTPtr;
   i8*               is_paused = &SDLC->SSPtr->pb_state->is_paused;
 
@@ -152,5 +162,9 @@ handle_mouse_release(SDLContext* SDLC) {
     SKBar->latched = FALSE;
     play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
     zero_buffers(FTPtr->fft_data, FTPtr->fft_buffers);
+  }
+
+  if (PBSte->playing_song && VBar->latched) {
+    VBar->latched = FALSE;
   }
 }
