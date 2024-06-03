@@ -4,6 +4,10 @@
 #include "music_visualizer.h"
 #include <sndfile.h>
 
+#ifdef __linux__
+#include "threads.h"
+#endif
+
 void
 callback(void* data, Uint8* stream, int len) {
   SDLContext*       SDLCPtr = (struct SDLContext*)data;
@@ -58,7 +62,6 @@ render_await(i8 render_ready) {
 
 int
 read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
-#ifdef __LINUX__
 
   char* home = getenv("HOME");
   if (home == NULL) {
@@ -126,9 +129,6 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
   sf_close(sndfile);
 
   return 0;
-#endif
-
-  return -1;
 }
 
 void

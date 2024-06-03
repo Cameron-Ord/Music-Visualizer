@@ -1,21 +1,17 @@
+
+#ifdef __linux__
 #include "music_visualizer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __linux__
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
-#endif
-
-
-
 
 void
 setup_dirs() {
 
-#ifdef __linux__
   char* home = getenv("HOME");
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
@@ -73,21 +69,16 @@ setup_dirs() {
     dup2(fd, STDERR_FILENO);
     close(fd);
   }
-#endif
 } /*setup_dirs*/
 
 int
 fetch_dirs(DirState* DS) {
 
-  char*** sub_dirs = &DS->directories;
-#ifdef __linux__
+  char***        sub_dirs = &DS->directories;
   DIR*           directory;
   struct dirent* entry;
-#endif
-  int dir_count = 0;
-#ifdef __linux__
-  char* home = getenv("HOME");
-#endif
+  int            dir_count = 0;
+  char*          home      = getenv("HOME");
 
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
@@ -150,12 +141,10 @@ fetch_dirs(DirState* DS) {
 
   closedir(directory);
   return dir_count;
-  return -1;
 } /*read_music_dir*/
 
 int
 fetch_files(FileState* FS) {
-#ifdef __linux__
 
   char***        files        = &FS->files;
   char*          selected_dir = FS->selected_dir;
@@ -222,9 +211,7 @@ fetch_files(FileState* FS) {
 
   closedir(directory);
   return file_count;
-#endif
 
-  return -1;
 } /*load_dir_songlist*/
 
 void
@@ -259,3 +246,5 @@ clear_files(FontContext* FntPtr, FileContext* FCPtr) {
     FCPtr->file_state->files = free_ptr(FCPtr->file_state->files);
   }
 }
+
+#endif

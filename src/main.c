@@ -8,7 +8,6 @@
 #endif
 
 #ifdef _WIN32
-#include <mingw-64/windows.h>
 #endif
 
 int

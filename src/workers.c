@@ -29,12 +29,11 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
   winwkr->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
   winwkr->paused           = TRUE;
-  winwkr->cycle_complete   = TRUE;
   winwkr->termination_flag = FALSE;
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_N);
   memset(winwkr->out_buff, 0, sizeof(f32) * N);
   pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
-  pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused, &winwkr->cycle_complete);
+  pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused);
   return 0;
 }
 
@@ -60,21 +59,28 @@ join_thread(pthread_t* context) {
 }
 
 void
-pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete) {
+pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
   pthread_mutex_lock(mutex);
-  *thread_state   = TRUE;
-  *cycle_complete = TRUE;
+  *thread_state = TRUE;
+  pthread_cond_broadcast(cond);
   pthread_mutex_unlock(mutex);
 }
 
 void
-resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state, int* cycle_complete) {
+resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
   pthread_mutex_lock(mutex);
-  *thread_state   = FALSE;
-  *cycle_complete = FALSE;
-  pthread_cond_signal(cond);
+  *thread_state = FALSE;
+  pthread_cond_broadcast(cond);
   pthread_mutex_unlock(mutex);
 }
+
+void
+thread_await(pthread_mutex_t* mutex, pthread_cond_t* cond) {
+  pthread_mutex_lock(mutex);
+  pthread_cond_wait(cond, mutex);
+  pthread_mutex_unlock(mutex);
+}
+
 void*
 hann_window_worker(void* arg) {
   WindowWorker* hann_t = (WindowWorker*)arg;
@@ -88,9 +94,7 @@ hann_window_worker(void* arg) {
         break;
       }
 
-      pthread_mutex_lock(&hann_t->mutex);
-      pthread_cond_wait(&hann_t->cond, &hann_t->mutex);
-      pthread_mutex_unlock(&hann_t->mutex);
+      thread_await(&hann_t->mutex, &hann_t->cond);
     }
 
     /*All buffer variables are local so mutual exclusions are not necessary for this purpose*/
@@ -110,7 +114,7 @@ hann_window_worker(void* arg) {
     }
 
     if (!hann_t->termination_flag && !hann_t->paused) {
-      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused, &hann_t->cycle_complete);
+      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused);
     }
   }
 
@@ -127,7 +131,7 @@ calc_hann_window_threads(FourierTransform* FT) {
   f32* cpy    = FT->fft_buffers->in_cpy;
 
   for (int i = 0; i < cores; ++i) {
-    if (winwkr[i].cycle_complete) {
+    if (winwkr[i].paused) {
       winwkr[i].start = (i * chunk);
       winwkr[i].end   = (i + 1) * chunk;
 
@@ -135,14 +139,14 @@ calc_hann_window_threads(FourierTransform* FT) {
       int end   = winwkr[i].end;
 
       memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_N);
-      resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused, &winwkr[i].cycle_complete);
+      resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
     }
   }
 
   for (int i = 0; i < cores; ++i) {
     /*Wait for threads to finish*/
     while (TRUE) {
-      if (winwkr[i].cycle_complete) {
+      if (winwkr[i].paused) {
         break;
       }
     }
