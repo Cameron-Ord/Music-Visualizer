@@ -187,7 +187,6 @@ reset_playback_variables(AudioData* Aud, PlaybackState* PBste, FTransformData* F
   PBste->currently_playing = FALSE;
   PBste->playing_song      = FALSE;
   FTData->buffers_ready    = FALSE;
-  FTData->render_ready     = FALSE;
 }
 
 void
@@ -202,7 +201,6 @@ load_song(SDLContext* SDLC) {
   SongState*        SS    = SDLC->SSPtr;
 
   i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8* render_ready  = &SDLC->FTPtr->fft_data->render_ready;
   i8  hard_stop     = SDLC->SSPtr->pb_state->hard_stop;
   i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
   i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;

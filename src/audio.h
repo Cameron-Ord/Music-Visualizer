@@ -69,7 +69,7 @@ struct FTransformData {
   int       output_len;
   f32       max_ampl;
   i8        buffers_ready;
-  i8        render_ready;
+  i8        currently_renderering;
   i8        fft_ready;
   SDL_Rect* rect_buff;
 };

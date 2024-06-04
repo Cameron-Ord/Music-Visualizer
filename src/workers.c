@@ -31,6 +31,7 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->mutex            = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
   winwkr->paused           = TRUE;
   winwkr->termination_flag = FALSE;
+  winwkr->cycle_complete   = FALSE;
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_N);
   memset(winwkr->out_buff, 0, sizeof(f32) * N);
   pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
@@ -63,6 +64,7 @@ void
 pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state) {
   pthread_mutex_lock(mutex);
   *thread_state = TRUE;
+  pthread_cond_broadcast(cond);
   pthread_mutex_unlock(mutex);
 }
 
@@ -85,20 +87,17 @@ void*
 hann_window_worker(void* arg) {
   WindowWorker* hann_t = (WindowWorker*)arg;
   for (;;) {
+
+    if (hann_t->paused) {
+      thread_await(&hann_t->mutex, &hann_t->cond);
+    }
+
     if (hann_t->termination_flag) {
       break;
     }
 
-    while (hann_t->paused) {
-      if (hann_t->termination_flag) {
-        break;
-      }
-
-      thread_await(&hann_t->mutex, &hann_t->cond);
-    }
-
     pthread_mutex_lock(&hann_t->mutex);
-    /*All buffer variables are local so mutual exclusions are not necessary for this purpose*/
+    hann_t->cycle_complete = FALSE;
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
       float Nf   = (float)N;
@@ -113,10 +112,15 @@ hann_window_worker(void* arg) {
       f32 sum             = hann_t->in_buff[i * 2] + hann_t->in_buff[i * 2 + 1];
       hann_t->out_buff[i] = sum / 2;
     }
+    hann_t->cycle_complete = TRUE;
     pthread_mutex_unlock(&hann_t->mutex);
 
-    if (!hann_t->termination_flag && !hann_t->paused) {
-      pause_thread(&hann_t->cond, &hann_t->mutex, &hann_t->paused);
+    if (!hann_t->paused) {
+      thread_await(&hann_t->mutex, &hann_t->cond);
+    }
+
+    if (hann_t->termination_flag) {
+      break;
     }
   }
 
@@ -133,22 +137,18 @@ calc_hann_window_threads(FourierTransform* FT) {
   f32* cpy    = FT->fft_buffers->in_cpy;
 
   for (int i = 0; i < cores; ++i) {
-    if (winwkr[i].paused) {
-      winwkr[i].start = (i * chunk);
-      winwkr[i].end   = (i + 1) * chunk;
+    winwkr[i].start = (i * chunk);
+    winwkr[i].end   = (i + 1) * chunk;
 
-      int start = winwkr[i].start;
-      int end   = winwkr[i].end;
+    int start = winwkr[i].start;
+    int end   = winwkr[i].end;
 
-      memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_N);
-      resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
-    }
+    memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_N);
+    resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
   }
 
   for (int i = 0; i < cores; ++i) {
-    /*Wait for threads to finish*/
-    while (!winwkr[i].paused) {
-    }
+    pause_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
 
     f32* buff  = winwkr[i].out_buff;
     int  start = winwkr[i].start;

@@ -27,8 +27,7 @@ song_is_paused(SDLContext* SDLC) {
   SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
   VolBar*         VBar   = SDLC->SSPtr->vol_bar;
 
-  i8* buffers_ready    = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
+  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
 
   if (*buffers_ready) {
     render_bars(SDLC);
@@ -67,8 +66,9 @@ song_is_playing(SDLContext* SDLC) {
   FTransformData* FTData = SDLC->FTPtr->fft_data;
   SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
 
-  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8* fft_ready     = &SDLC->FTPtr->fft_data->fft_ready;
+  i8* buffers_ready         = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8* fft_ready             = &SDLC->FTPtr->fft_data->fft_ready;
+  i8* currently_renderering = &SDLC->FTPtr->fft_data->currently_renderering;
 
   if (*buffers_ready && *fft_ready) {
     generate_visual(SDLC->FTPtr, SDLC->spec.freq);

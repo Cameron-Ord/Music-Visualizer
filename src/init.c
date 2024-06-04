@@ -149,7 +149,6 @@ baseline_fft_values(FTransformData* data) {
   data->cell_width    = 0;
   data->output_len    = 0;
   data->max_ampl      = 1.0f;
-  data->render_ready  = FALSE;
 }
 
 void

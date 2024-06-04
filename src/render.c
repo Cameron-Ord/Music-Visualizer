@@ -29,6 +29,7 @@ render_background(SDL_Renderer* r) {
 
 void
 render_bars(SDLContext* SDLC) {
+
   int win_width  = SDLC->container->win_width;
   int win_height = SDLC->container->win_height;
   int out_len    = SDLC->FTPtr->fft_data->output_len;

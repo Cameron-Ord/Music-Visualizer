@@ -16,6 +16,7 @@ struct WindowWorker {
   int             end;
   int             paused;
   int             termination_flag;
+  int             cycle_complete;
   pthread_mutex_t mutex;
   pthread_cond_t  cond;
 };
