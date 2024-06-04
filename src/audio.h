@@ -70,6 +70,7 @@ struct FTransformData {
   f32       max_ampl;
   i8        buffers_ready;
   i8        render_ready;
+  i8        fft_ready;
   SDL_Rect* rect_buff;
 };
 
@@ -107,13 +108,13 @@ void              squash_to_log(int size, FourierTransform* FT);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT, int SR);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
-void              fft_func(float in[], size_t stride, float _Complex out[], size_t n, FFTWorker* fftwkr);
+void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
 void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
-int               render_await(i8 render_ready);
+int               render_await(i8 fft_ready);
 void              apply_smoothing(int size, FourierTransform* FT);
 void              baseline_vol_bar(VolBar* vlbar);
 

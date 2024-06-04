@@ -144,6 +144,7 @@ void
 baseline_fft_values(FTransformData* data) {
   data->DS_AMOUNT     = DEFAULT_DS;
   data->buffers_ready = FALSE;
+  data->fft_ready     = FALSE;
   data->freq_step     = 0.0f;
   data->cell_width    = 0;
   data->output_len    = 0;

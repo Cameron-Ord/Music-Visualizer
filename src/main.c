@@ -197,7 +197,6 @@ music_player() {
   AudioChunk.vol_bar    = &VLBar;
 
   WindowWorker* winwkr = NULL;
-  FFTWorker*    fftwkr = NULL;
 
 #ifdef __linux__
 
@@ -221,24 +220,7 @@ music_player() {
     return 1;
   }
 
-  fftwkr = malloc(sizeof(FFTWorker) * cores);
-  if (fftwkr == NULL) {
-    PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
-                  strerror(errno));
-    return 1;
-  }
-
-  fftwkr->thread = NULL;
-
-  err = create_fft_workers(fftwkr, cores);
-  if (err < 0) {
-    PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
-                  strerror(errno));
-    return 1;
-  }
-
   FTransform.winwkr = winwkr;
-  FTransform.fftwkr = fftwkr;
 #endif
 
   SDLChunk.FntPtr = &FontChunk;
@@ -287,15 +269,12 @@ music_player() {
 
 #ifdef __linux__
   destroy_window_workers(winwkr, cores);
-  destroy_fft_workers(fftwkr, cores);
 
   for (int i = 0; i < cores; i++) {
     winwkr[i].thread = free_ptr(winwkr[i].thread);
-    fftwkr[i].thread = free_ptr(fftwkr[i].thread);
   }
 
   winwkr = free_ptr(winwkr);
-  fftwkr = free_ptr(fftwkr);
 #endif
 
   ADta.buffer = free_ptr(ADta.buffer);

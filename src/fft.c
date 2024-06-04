@@ -14,27 +14,40 @@
 #endif
 
 void
-fft_func(float in[], size_t stride, float _Complex out[], size_t n, FFTWorker* fftwkr) {
+fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
   // 0 1 2 3 4 5 6
   // n should be greater than 0
+  // This is the base
   assert(n > 0);
   if (n == 1) {
     out[0] = in[0];
     return;
   }
 
-  fft_func(in, stride * 2, out, n / 2, fftwkr);
-  fft_func(in + stride, stride * 2, out + n / 2, n / 2, fftwkr);
-  // v = o*x
-  // out = e - o*x e + o*x e e| e + o*x o - o*x o o
-  /*Maybe multi thread this loop?*/
-  for (size_t k = 0; k < n / 2; ++k) {
-    float t          = (float)k / n;
-    float _Complex v = cexpf(-2 * I * M_PI * t) * out[k + n / 2];
-    float _Complex e = out[k];
-    out[k]           = e + v;
-    out[k + n / 2]   = e - v;
+  // fft_func(in, stride * 2, out, n / 2);
+  // fft_func(in + stride, stride * 2, out + n / 2, n / 2);
+  //  v = o*x
+  //  out = e - o*x e + o*x e e| e + o*x o - o*x o o
+
+  /*Getting half the passed size argument*/
+  int half_n = n / 2;
+
+  /*Local buffers that get passed back recursively*/
+  f32c even_out[half_n];
+  f32c odd_out[half_n];
+
+  // recursively call the function passing the modified values
+  fft_func(in, stride * 2, even_out, half_n);
+  fft_func(in + stride, stride * 2, odd_out, half_n);
+
+  // Combine the results into the out buffer
+  for (size_t k = 0; k < half_n; ++k) {
+    float t         = (float)k / n;
+    f32c  twiddle   = cexpf(-2 * I * M_PI * t) * odd_out[k];
+    out[k]          = even_out[k] + twiddle;
+    out[k + half_n] = even_out[k] - twiddle;
   }
+
 } /*fft_func*/
 
 void
@@ -57,7 +70,7 @@ generate_visual(FourierTransform* FT, int SR) {
   create_hann_window(FT);
 #endif
 
-  fft_func(in_cpy, 1, out_raw, N, FT->fftwkr);
+  fft_func(in_cpy, 1, out_raw, N);
   squash_to_log(N / 2, FT);
   apply_smoothing(N / 2, FT);
 } /*generate_visual*/

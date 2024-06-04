@@ -18,7 +18,7 @@ callback(void* data, Uint8* stream, int len) {
   u32* wav_len   = &Aud->wav_len;
   u32* audio_pos = &Aud->audio_pos;
   f32* buf       = Aud->buffer;
-  i8   rdrrdy    = FTPtr->fft_data->render_ready;
+  i8   fftrdy    = FTPtr->fft_data->fft_ready;
 
   int remaining = (*wav_len - *audio_pos);
 
@@ -32,7 +32,7 @@ callback(void* data, Uint8* stream, int len) {
 
   // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
 
-  if (check_pos(*audio_pos, *wav_len) && render_await(rdrrdy)) {
+  if (check_pos(*audio_pos, *wav_len) && render_await(fftrdy)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
 
@@ -53,8 +53,8 @@ check_pos(u32 audio_pos, u32 len) {
 }
 
 int
-render_await(i8 render_ready) {
-  if (!render_ready) {
+render_await(i8 fftrdy) {
+  if (fftrdy) {
     return 1;
   }
   return 0;
@@ -206,9 +206,10 @@ load_song(SDLContext* SDLC) {
   i8  hard_stop     = SDLC->SSPtr->pb_state->hard_stop;
   i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
   i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;
+  i8* fft_ready     = &SDLC->FTPtr->fft_data->fft_ready;
 
+  *fft_ready     = FALSE;
   *song_ended    = FALSE;
-  *render_ready  = FALSE;
   *buffers_ready = FALSE;
 
   if (playing_song) {
@@ -240,6 +241,7 @@ load_song(SDLContext* SDLC) {
   start_song(&SS->pb_state->playing_song);
   zero_buffers(FT->fft_data, FT->fft_buffers);
   *buffers_ready = TRUE;
+  *fft_ready     = TRUE;
 }
 
 void

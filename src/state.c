@@ -67,17 +67,17 @@ song_is_playing(SDLContext* SDLC) {
   FTransformData* FTData = SDLC->FTPtr->fft_data;
   SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
 
-  i8* buffers_ready    = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8* ready_for_render = &SDLC->FTPtr->fft_data->render_ready;
+  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8* fft_ready     = &SDLC->FTPtr->fft_data->fft_ready;
 
-  if (*buffers_ready && !*ready_for_render) {
+  if (*buffers_ready && *fft_ready) {
     generate_visual(SDLC->FTPtr, SDLC->spec.freq);
-    *ready_for_render = TRUE;
+    *fft_ready = FALSE;
   }
 
-  if (*buffers_ready && *ready_for_render) {
+  if (*buffers_ready && !*fft_ready) {
     render_bars(SDLC);
-    *ready_for_render = FALSE;
+    *fft_ready = TRUE;
   }
 
   set_vol_bar(Cont, SDLC->SSPtr->vol_bar, SDLC->SSPtr->audio_data);
