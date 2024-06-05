@@ -1,8 +1,11 @@
 #ifndef FONT_H
 #define FONT_H
+
 #include "types.h"
 #include <SDL2/SDL_render.h>
+#include "macro.h"
 #include <SDL2/SDL_ttf.h>
+
 
 typedef enum {
   ExTiny = 6,

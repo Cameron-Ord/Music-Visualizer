@@ -1,7 +1,7 @@
-#include "audio.h"
-#include "font.h"
-#include "init.h"
-#include "music_visualizer.h"
+#include "../inc/audio.h"
+#include "../inc/font.h"
+#include "../inc/init.h"
+#include "../inc/music_visualizer.h"
 
 int
 within_bounds_x(int x, int width) {

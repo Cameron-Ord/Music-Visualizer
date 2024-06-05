@@ -1,13 +1,10 @@
-#include "audio.h"
-#include "macro.h"
-#include <SDL2/SDL_timer.h>
-#ifdef __linux__
-#include "threads.h"
+#include "../inc/audio.h"
+#include "../inc/macro.h"
+#include "../inc/threads.h"
 #include <complex.h>
-#endif
-
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265359
@@ -23,7 +20,7 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
     out[0] = in[0];
     return;
   }
-
+  
   // fft_func(in, stride * 2, out, n / 2);
   // fft_func(in + stride, stride * 2, out + n / 2, n / 2);
   //  v = o*x
@@ -62,13 +59,16 @@ generate_visual(FourierTransform* FT, int SR) {
   float*          in_cpy  = FT->fft_buffers->in_cpy;
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
+#ifdef __linux__
   calc_hann_window_threads(FT);
+#endif
 
-  //  create_hann_window(FT);
-
-  fft_func(in_cpy, 1, out_raw, N);
-  squash_to_log(N / 2, FT);
-  apply_smoothing(N / 2, FT);
+#ifdef _WIN32
+  create_hann_window(FT);
+#endif
+  fft_func(in_cpy, 1, out_raw, BUFF_SIZE);
+  squash_to_log(BUFF_SIZE / 2, FT);
+  apply_smoothing(BUFF_SIZE / 2, FT);
 
 } /*generate_visual*/
 
@@ -77,9 +77,9 @@ create_hann_window(FourierTransform* FT) {
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* in_cpy = FT->fft_buffers->in_cpy;
 
-  for (int i = 0; i < N; ++i) {
+  for (int i = 0; i < BUFF_SIZE; ++i) {
     // hann window to reduce spectral leakage before passing it to FFT
-    float Nf   = (float)N;
+    float Nf   = (float)BUFF_SIZE;
     float t    = (float)i / (Nf - 1);
     float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 

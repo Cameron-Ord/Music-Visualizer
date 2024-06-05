@@ -1,6 +1,4 @@
-
-#ifdef __linux__
-#include "music_visualizer.h"
+#include "../inc/music_visualizer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -247,4 +245,3 @@ clear_files(FontContext* FntPtr, FileContext* FCPtr) {
   }
 }
 
-#endif

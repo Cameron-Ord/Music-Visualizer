@@ -1,6 +1,6 @@
 #include "audio.h"
-#include "font.h"
-#include "music_visualizer.h"
+#include "../inc/font.h"
+#include "../inc/music_visualizer.h"
 void
 index_up(FileState* FS) {
   FS->file_index = (FS->file_index + 1) % FS->file_count;

@@ -1,12 +1,9 @@
-#include "audio.h"
-#include "font.h"
-#include "macro.h"
-#include "music_visualizer.h"
-#include <sndfile.h>
+#include "../inc/audio.h"
+#include "../inc/font.h"
+#include "../inc/macro.h"
+#include "../inc/music_visualizer.h"
+#include "../inc/threads.h"
 
-#ifdef __linux__
-#include "threads.h"
-#endif
 
 void
 callback(void* data, Uint8* stream, int len) {
@@ -122,7 +119,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
   Aud->wav_len = Aud->samples;
 
-  float DSf               = (float)N / FT->fft_data->DS_AMOUNT;
+  float DSf               = (float)BUFF_SIZE / FT->fft_data->DS_AMOUNT;
   FT->fft_data->freq_step = (float)Aud->sr / DSf;
   printf("\n..Done reading. Closing file\n\n");
 
@@ -173,11 +170,11 @@ print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
 
 void
 zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
-  memset(FTBuf->fft_in, 0, DOUBLE_N * sizeof(f32));
-  memset(FTBuf->in_cpy, 0, N * sizeof(float _Complex));
-  memset(FTBuf->out_raw, 0, N * sizeof(float _Complex));
-  memset(FTBuf->processed, 0, (N / 2) * sizeof(float));
-  memset(FTBuf->smoothed, 0, (N / 2) * sizeof(float));
+  memset(FTBuf->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
+  memset(FTBuf->in_cpy, 0, BUFF_SIZE * sizeof(float _Complex));
+  memset(FTBuf->out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
+  memset(FTBuf->processed, 0, (BUFF_SIZE / 2) * sizeof(float));
+  memset(FTBuf->smoothed, 0, (BUFF_SIZE / 2) * sizeof(float));
 }
 
 void

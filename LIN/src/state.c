@@ -1,6 +1,6 @@
-#include "audio.h"
-#include "font.h"
-#include "music_visualizer.h"
+#include "../inc/audio.h"
+#include "../inc/font.h"
+#include "../inc/music_visualizer.h"
 
 int
 song_is_over(SDLContext* SDLC) {

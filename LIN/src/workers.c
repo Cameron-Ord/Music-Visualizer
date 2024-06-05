@@ -1,8 +1,7 @@
-#ifdef __linux__
-#include "audio.h"
-#include "macro.h"
-#include "threads.h"
-#include "types.h"
+#include "../inc/audio.h"
+#include "../inc/macro.h"
+#include "../inc/threads.h"
+#include "../inc/types.h"
 #include <complex.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -159,4 +158,3 @@ calc_hann_window_threads(FourierTransform* FT) {
   }
 }
 
-#endif

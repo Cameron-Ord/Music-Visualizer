@@ -1,6 +1,6 @@
-#include "audio.h"
-#include "font.h"
-#include "music_visualizer.h"
+#include "../inc/audio.h"
+#include "../inc/font.h"
+#include "../inc/music_visualizer.h"
 
 void*
 destroy_surface(SDL_Surface* surf) {

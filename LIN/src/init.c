@@ -1,7 +1,7 @@
 #include "init.h"
 #include "audio.h"
-#include "font.h"
-#include "music_visualizer.h"
+#include "../inc/font.h"
+#include "../inc/music_visualizer.h"
 
 int
 initialize_SDL() {
@@ -153,11 +153,11 @@ baseline_fft_values(FTransformData* data) {
 
 void
 instantiate_buffers(FTransformBuffers* bufs) {
-  memset(bufs->fft_in, 0, DOUBLE_N * sizeof(f32));
-  memset(bufs->in_cpy, 0, N * sizeof(float _Complex));
-  memset(bufs->out_raw, 0, N * sizeof(float _Complex));
-  memset(bufs->processed, 0, (N / 2) * sizeof(float));
-  memset(bufs->smoothed, 0, (N / 2) * sizeof(float));
+  memset(bufs->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
+  memset(bufs->in_cpy, 0, BUFF_SIZE * sizeof(float _Complex));
+  memset(bufs->out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
+  memset(bufs->processed, 0, (BUFF_SIZE / 2) * sizeof(float));
+  memset(bufs->smoothed, 0, (BUFF_SIZE / 2) * sizeof(float));
 }
 
 void
@@ -170,5 +170,5 @@ set_spec_data(SDLContext* SDLC) {
   spec->channels = ad->channels;
   spec->freq     = ad->sr;
   spec->format   = AUDIO_F32;
-  spec->samples  = N;
+  spec->samples  = BUFF_SIZE;
 }

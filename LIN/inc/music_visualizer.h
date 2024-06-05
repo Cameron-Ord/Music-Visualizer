@@ -1,10 +1,15 @@
 #ifndef MUSIC_VISUALIZER_H
 #define MUSIC_VISUALIZER_H
+
 #include "macro.h"
 #include "types.h"
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/limits.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-
 #include <assert.h>
 #include <math.h>
 #include <sndfile.h>
@@ -12,16 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#ifdef __linux__
-#include <complex.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <linux/limits.h>
-#include <pthread.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 struct SDLContainer {
   int      win_height;
@@ -97,7 +92,6 @@ void      index_up(FileState* FS);
 void      handle_mouse_click(SDLContext* SDLC);
 void      index_down(FileState* FS);
 void      poll_events(SDLContext* SDLC);
-void      quit(SDLContext* SDLC);
 void      toggle_pause(SDLContext* SDLC);
 void      handle_space_key(SDLContext* SDLC);
 void      next_song(SDLContext* SDLC);

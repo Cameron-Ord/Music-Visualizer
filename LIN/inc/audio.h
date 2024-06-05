@@ -1,9 +1,12 @@
 #ifndef AUDIO_H
 #define AUDIO_H
+#include <sndfile.h>
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_render.h>
+
+
 typedef enum { MAX_BUFFER_DS = (1 << 5), MIN_BUFFER_DS = (1 << 2), DEFAULT_DS = (1 << 2) } DOWNSAMPLING_BINDS;
 
 struct AudioData {
@@ -55,11 +58,11 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32  fft_in[DOUBLE_N];
-  f32  in_cpy[N];
-  f32c out_raw[N];
-  f32  processed[N / 2];
-  f32  smoothed[N / 2];
+  f32  fft_in[DOUBLE_BUFF];
+  f32  in_cpy[BUFF_SIZE];
+  f32c out_raw[BUFF_SIZE];
+  f32  processed[HALF_BUFF];
+  f32  smoothed[HALF_BUFF];
 };
 
 struct FTransformData {

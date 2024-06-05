@@ -1,12 +1,9 @@
 #ifndef TYPES_H
 #define TYPES_H
-#ifdef __linux__
 #include <inttypes.h>
-#elif _WIN32
-#include <math.h>
-#include <stdint.h>
-#include <windows.h>
-#endif
+#include "macro.h"
+#include <complex.h>
+
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;

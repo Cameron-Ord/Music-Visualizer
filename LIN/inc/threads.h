@@ -1,6 +1,5 @@
 #ifndef THREADS_H
 #define THREADS_H
-#ifdef __linux__
 
 #include "macro.h"
 #include "types.h"
@@ -10,8 +9,8 @@
 struct WindowWorker {
   pthread_t*      thread;
   int             cores;
-  f32             in_buff[DOUBLE_N];
-  f32             out_buff[N];
+  f32             in_buff[DOUBLE_BUFF];
+  f32             out_buff[BUFF_SIZE];
   int             start;
   int             end;
   int             paused;
@@ -30,5 +29,6 @@ void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* fl
 int   create_window_workers(WindowWorker* winwkr, int cores);
 void  destroy_window_workers(WindowWorker* winwkr, int cores);
 int   instantiate_win_worker(WindowWorker* winwkr, int cores);
+
 #endif
-#endif
+

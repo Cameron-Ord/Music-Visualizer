@@ -1,5 +1,5 @@
-#include "font.h"
-#include "music_visualizer.h"
+#include "../inc/font.h"
+#include "../inc/music_visualizer.h"
 
 SDL_Surface*
 create_font_surface(TTF_Font** font, SDL_Color color, char* text) {
