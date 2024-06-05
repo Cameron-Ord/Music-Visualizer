@@ -2,6 +2,7 @@
 build/
 dist/
 libs/
+WIN/resources/
 *.out
 *.profraw
 *.profdata
