@@ -30,8 +30,8 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
   size_t half_n = n / 2;
 
   /*Local buffers that get passed back recursively*/
-  f32c even_out[half_n];
-  f32c odd_out[half_n];
+  f32c even_out[BUFF_SIZE];
+  f32c odd_out[BUFF_SIZE];
 
   // recursively call the function passing the modified values
   fft_func(in, stride * 2, even_out, half_n);
