@@ -58,7 +58,7 @@ render_await(i8 fftrdy) {
 int
 read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
-  char* home = getenv("HOME");
+  char* home = getenv("USERPROFILE");
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Err getting home DIR", strerror(errno));
     return -1;
@@ -71,7 +71,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
   char combined_path[PATH_MAX];
   char path[PATH_MAX];
 
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/%s/", home, FS->selected_dir);
+  snprintf(path, PATH_MAX, "%s\\Music\\fftmplayer\\%s\\", home, FS->selected_dir);
   sprintf(combined_path, "%s%s", path, FS->files[FS->file_index]);
   printf("\nREADING FILE : %s\n\n", FS->files[FS->file_index]);
 

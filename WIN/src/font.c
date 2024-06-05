@@ -65,6 +65,11 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
 int
 create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
+
+  if (FS->file_count <= 0) {
+    return -1;
+  }
+
   Fnt->sf_arr = malloc(FS->file_count * sizeof(FontData));
   if (Fnt->sf_arr == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate font surface array", strerror(errno));
@@ -113,6 +118,10 @@ create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
 int
 create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
+
+  if (DS->dir_count <= 0) {
+    return -1;
+  }
 
   Fnt->df_arr = malloc(DS->dir_count * sizeof(FontData));
   if (Fnt->df_arr == NULL) {

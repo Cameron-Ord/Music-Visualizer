@@ -143,17 +143,19 @@ music_player() {
   int res = fetch_dirs(&DState);
   if (res < 0) {
     fprintf(stderr, "Error getting directoies : %s\n", strerror(errno));
-    return 1;
   } else if (res == 0) {
     fprintf(stdout, "No dirs found\n");
   }
   DState.dir_count = res;
 
-  fprintf(stdout, "Creating fonts for dirs..\n");
+  if (res > 0) {
+    fprintf(stdout, "Creating fonts for dirs..\n");
+    DState.dirs_exist = TRUE;
 
-  err = create_dir_fonts(&FontChunk, &DState, SDLChunk.r);
-  if (err < 0) {
-    return 1;
+    err = create_dir_fonts(&FontChunk, &DState, SDLChunk.r);
+    if (err < 0) {
+      return 1;
+    }
   }
 
   FileChunk.dir_state  = &DState;

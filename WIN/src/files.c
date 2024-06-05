@@ -19,16 +19,16 @@
 void
 setup_dirs() {
 
-  char* home = getenv("HOME");
+  char* home = getenv("USERPROFILE");
   if (home == NULL) {
-    PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
+    PRINT_STR_ERR(stderr, "Error getting USERPROFILE", strerror(errno));
     return;
   } else {
     char   path[PATH_MAX];
     mode_t mode = S_IRWXU;
 
 #ifdef __linux__
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/", home);
+    snprintf(path, PATH_MAX, "%s\\/Music\\fftmlogs\\", home);
     if (mkdir(path, mode) == 0) {
       printf("Log DIR created\n");
       if (chmod(path, mode) != 0) {
@@ -51,7 +51,7 @@ setup_dirs() {
       }
     }
 
-    snprintf(path, PATH_MAX, "%s/Music/fftmplayer/", home);
+    snprintf(path, PATH_MAX, "%s\\Music\\fftmplayer\\", home);
 
 #ifdef __linux__
     if (mkdir(path, mode) == 0) {
@@ -77,7 +77,7 @@ setup_dirs() {
     }
 
     int fd;
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/%s", home, "log.txt");
+    snprintf(path, PATH_MAX, "%s\\Music\\fftmlogs\\%s", home, "log.txt");
     fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
     if (fd < 0) {
       PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
@@ -86,7 +86,7 @@ setup_dirs() {
     dup2(fd, STDOUT_FILENO);
     close(fd);
 
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/%s", home, "errlog.txt");
+    snprintf(path, PATH_MAX, "%s\\Music\\fftmlogs\\%s", home, "errlog.txt");
     fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
     if (fd < 0) {
       PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
@@ -104,7 +104,7 @@ fetch_dirs(DirState* DS) {
   DIR*           directory;
   struct dirent* entry;
   int            dir_count = 0;
-  char*          home      = getenv("HOME");
+  char*          home      = getenv("USERPROFILE");
 
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
@@ -112,7 +112,7 @@ fetch_dirs(DirState* DS) {
   }
 
   char path[PATH_MAX];
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/", home);
+  snprintf(path, PATH_MAX, "%s\\Music\\fftmplayer\\", home);
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -159,8 +159,8 @@ fetch_dirs(DirState* DS) {
         if (has_ws) {
           char input_path[PATH_MAX];
           char output_path[PATH_MAX];
-          snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s", home, entry->d_name);
-          snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s", home, duped_name);
+          snprintf(input_path, PATH_MAX, "%s\\Music\\fftmplayer\\%s", home, entry->d_name);
+          snprintf(output_path, PATH_MAX, "%s\\Music\\fftmplayer\\%s", home, duped_name);
           rename(input_path, output_path);
         }
 
@@ -189,13 +189,13 @@ fetch_files(FileState* FS) {
   struct dirent* entry;
   int            file_count = 0;
 
-  char* home = getenv("HOME");
+  char* home = getenv("USERPROFILE");
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
     return -1;
   }
   char path[PATH_MAX];
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/%s/", home, selected_dir);
+  snprintf(path, PATH_MAX, "%s\\Music\\fftmplayer\\%s\\", home, selected_dir);
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -242,8 +242,8 @@ fetch_files(FileState* FS) {
       if (has_ws) {
         char input_path[PATH_MAX];
         char output_path[PATH_MAX];
-        snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, entry->d_name);
-        snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, duped_name);
+        snprintf(input_path, PATH_MAX, "%s\\Music\\fftmplayer\\%s\\%s", home, selected_dir, entry->d_name);
+        snprintf(output_path, PATH_MAX, "%s\\Music\\fftmplayer\\%s\\%s", home, selected_dir, duped_name);
         rename(input_path, output_path);
       }
 

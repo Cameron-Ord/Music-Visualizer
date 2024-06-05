@@ -1,6 +1,6 @@
 #ifndef MACRO_H
 #define MACRO_H
-#define BUFF_SIZE (1<<12)
+#define BUFF_SIZE (1 << 12)
 #define DOUBLE_BUFF (BUFF_SIZE * 2)
 #define HALF_BUFF (BUFF_SIZE / 2)
 #define HALF_DOUBLE (DOUBLE_BUFF / 2)

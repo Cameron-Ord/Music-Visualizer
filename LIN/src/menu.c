@@ -233,14 +233,15 @@ clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
     int res = fetch_files(FSPtr);
     if (res < 0) {
       fprintf(stderr, "Error getting files : %s\n", strerror(errno));
-      return;
     } else if (res == 0) {
       fprintf(stdout, "No files found.\n");
     }
-    FSPtr->file_count  = res;
-    FSPtr->files_exist = TRUE;
+    FSPtr->file_count = res;
 
-    create_song_fonts(SDLC->FntPtr, FSPtr, SDLC->r);
+    if (res > 0) {
+      FSPtr->files_exist = TRUE;
+      create_song_fonts(SDLC->FntPtr, FSPtr, SDLC->r);
+    }
   }
 } /*clicked_in_dir_rect*/
 

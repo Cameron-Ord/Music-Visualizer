@@ -1,6 +1,6 @@
 #ifndef MACRO_H
 #define MACRO_H
-#define BUFF_SIZE (1<<12)
+#define BUFF_SIZE (1 << 12)
 #define DOUBLE_BUFF (BUFF_SIZE * 2)
 #define HALF_BUFF (BUFF_SIZE / 2)
 #define HALF_DOUBLE (DOUBLE_BUFF / 2)
@@ -24,7 +24,6 @@
 #define M_PI 3.14159265358979323846
 #define CONST_YPOS 50
 
-
-#define FONT_PATH "/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf"
+#define FONT_PATH "Roboto-Regular.ttf"
 
 #endif
