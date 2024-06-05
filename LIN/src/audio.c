@@ -73,7 +73,8 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
   snprintf(path, PATH_MAX, "%s/Music/fftmplayer/%s/", home, FS->selected_dir);
   sprintf(combined_path, "%s%s", path, FS->files[FS->file_index]);
-  printf("\nREADING FILE : %s\n\n", FS->files[FS->file_index]);
+  printf("WHOLE PATH : %s\n", combined_path);
+  printf("\nREADING FILE : %s OF PATH : %s\n\n", FS->files[FS->file_index], path);
 
   SNDFILE* sndfile;
   SF_INFO  sfinfo;
