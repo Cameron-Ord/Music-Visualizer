@@ -59,13 +59,7 @@ generate_visual(FourierTransform* FT) {
   float*          in_cpy  = FT->fft_buffers->in_cpy;
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
-#ifdef __linux__
   calc_hann_window_threads(FT);
-#endif
-
-#ifdef _WIN32
-  create_hann_window(FT);
-#endif
   fft_func(in_cpy, 1, out_raw, BUFF_SIZE);
   squash_to_log((size_t)(BUFF_SIZE / 2), FT);
   apply_smoothing(FT);
