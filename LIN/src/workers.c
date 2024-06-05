@@ -139,9 +139,6 @@ calc_hann_window_threads(FourierTransform* FT) {
     winwkr[i].start = (i * chunk);
     winwkr[i].end   = (i + 1) * chunk;
 
-    int start = winwkr[i].start;
-    int end   = winwkr[i].end;
-
     memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_BUFF);
     resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
   }

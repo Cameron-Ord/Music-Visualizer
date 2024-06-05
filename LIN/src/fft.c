@@ -1,8 +1,8 @@
 #include "../inc/audio.h"
 #include "../inc/macro.h"
 #include "../inc/threads.h"
-#include <complex.h>
 #include <assert.h>
+#include <complex.h>
 #include <math.h>
 #include <string.h>
 
@@ -20,14 +20,14 @@ fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
     out[0] = in[0];
     return;
   }
-  
+
   // fft_func(in, stride * 2, out, n / 2);
   // fft_func(in + stride, stride * 2, out + n / 2, n / 2);
   //  v = o*x
   //  out = e - o*x e + o*x e e| e + o*x o - o*x o o
 
   /*Getting half the passed size argument*/
-  int half_n = n / 2;
+  size_t half_n = n / 2;
 
   /*Local buffers that get passed back recursively*/
   f32c even_out[half_n];
@@ -55,7 +55,7 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 } /*fft_push*/
 
 void
-generate_visual(FourierTransform* FT, int SR) {
+generate_visual(FourierTransform* FT) {
   float*          in_cpy  = FT->fft_buffers->in_cpy;
   float _Complex* out_raw = FT->fft_buffers->out_raw;
 
@@ -67,8 +67,8 @@ generate_visual(FourierTransform* FT, int SR) {
   create_hann_window(FT);
 #endif
   fft_func(in_cpy, 1, out_raw, BUFF_SIZE);
-  squash_to_log(BUFF_SIZE / 2, FT);
-  apply_smoothing(BUFF_SIZE / 2, FT);
+  squash_to_log((size_t)(BUFF_SIZE / 2), FT);
+  apply_smoothing(FT);
 
 } /*generate_visual*/
 
@@ -92,10 +92,9 @@ create_hann_window(FourierTransform* FT) {
 }
 
 void
-squash_to_log(int size, FourierTransform* FT) {
+squash_to_log(size_t size, FourierTransform* FT) {
 
-  FTransformBuffers* ftbuf  = FT->fft_buffers;
-  FTransformData*    ftdata = FT->fft_data;
+  FTransformBuffers* ftbuf = FT->fft_buffers;
 
   float  step     = 1.06f;
   float  lowf     = 1.0f;
@@ -139,16 +138,14 @@ low_pass(float* input, int size, float cutoff, int SR) {
 } /*low_pass*/
 
 void
-apply_smoothing(int size, FourierTransform* FT) {
+apply_smoothing(FourierTransform* FT) {
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;
 
   f32* processed = ftbuf->processed;
   f32* smoothed  = ftbuf->smoothed;
 
-  i8 currently_renderering = FT->fft_data->currently_renderering;
-
-  for (size_t i = 0; i < ftdata->output_len; ++i) {
+  for (int i = 0; i < ftdata->output_len; ++i) {
     processed[i] /= ftdata->max_ampl;
     smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
   }

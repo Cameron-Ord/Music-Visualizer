@@ -49,7 +49,7 @@ create_audio_device(SDL_AudioSpec* spec) {
 }
 
 int
-initialize_TTF(TTFData* cntxtdata) {
+initialize_TTF() {
   if (TTF_Init() < 0) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return -1;

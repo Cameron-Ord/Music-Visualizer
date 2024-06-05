@@ -51,7 +51,6 @@ render_bars(SDLContext* SDLC) {
   i16  cell_width = viewport.w / out_len;
 
   int h = viewport.h;
-  int w = viewport.w;
 
   for (int i = 0; i < out_len; ++i) {
     float t          = out[i];
@@ -103,7 +102,6 @@ render_song_list(SDLContext* SDLC) {
 
   if (FCPtr->file_state != NULL) {
     int file_count = FCPtr->file_state->file_count;
-    int dir_count  = FCPtr->dir_state->dir_count;
 
     int y_pos = 0;
 
@@ -262,9 +260,8 @@ draw_vol_bar(SDL_Renderer* r, VolBar* VBar) {
 
 void
 resize_fonts(SDLContext* SDLC) {
-  FontContext*  FntPtr = SDLC->FntPtr;
-  FileContext*  FCPtr  = SDLC->FCPtr;
-  SDLContainer* Cont   = SDLC->container;
+  FontContext* FntPtr = SDLC->FntPtr;
+  FileContext* FCPtr  = SDLC->FCPtr;
 
   i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
   i8* song_fonts_created = &SDLC->FntPtr->state->song_fonts_created;

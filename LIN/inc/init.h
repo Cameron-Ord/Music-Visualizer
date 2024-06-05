@@ -5,7 +5,6 @@
 #include "types.h"
 #include <SDL2/SDL.h>
 
-
 int music_player();
 int start_daemon(int argc, char** argv);
 int initialize_SDL();

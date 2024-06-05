@@ -2,8 +2,6 @@
 #include "../inc/font.h"
 #include "../inc/macro.h"
 #include "../inc/music_visualizer.h"
-#include "../inc/threads.h"
-
 
 void
 callback(void* data, Uint8* stream, int len) {
@@ -17,14 +15,14 @@ callback(void* data, Uint8* stream, int len) {
   f32* buf       = Aud->buffer;
   i8   fftrdy    = FTPtr->fft_data->fft_ready;
 
-  int remaining = (*wav_len - *audio_pos);
+  u32 remaining = (*wav_len - *audio_pos);
 
-  int samples_to_copy = (len / sizeof(float) < remaining) ? len / sizeof(float) : remaining;
+  int samples_to_copy = ((u32)len / sizeof(float) < remaining) ? len / sizeof(float) : remaining;
 
   float* f32_stream = (float*)stream;
 
   for (int i = 0; i < samples_to_copy; i++) {
-    f32_stream[i] = Aud->buffer[i + Aud->audio_pos] * Aud->volume;
+    f32_stream[i] = buf[i + *audio_pos] * Aud->volume;
   }
 
   // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
@@ -169,7 +167,7 @@ print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
 }
 
 void
-zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf) {
+zero_buffers(FTransformBuffers* FTBuf) {
   memset(FTBuf->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
   memset(FTBuf->in_cpy, 0, BUFF_SIZE * sizeof(float _Complex));
   memset(FTBuf->out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
@@ -234,7 +232,7 @@ load_song(SDLContext* SDLC) {
   print_spec_data(SDLC->spec, SDLC->audio_dev);
   play_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
   start_song(&SS->pb_state->playing_song);
-  zero_buffers(FT->fft_data, FT->fft_buffers);
+  zero_buffers(FT->fft_buffers);
   *buffers_ready = TRUE;
   *fft_ready     = TRUE;
 }

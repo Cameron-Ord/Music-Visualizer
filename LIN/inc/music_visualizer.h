@@ -3,20 +3,20 @@
 
 #include "macro.h"
 #include "types.h"
-#include <errno.h>
-#include <fcntl.h>
-#include <linux/limits.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/limits.h>
 #include <math.h>
 #include <sndfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
 struct SDLContainer {
   int      win_height;
@@ -67,10 +67,10 @@ struct FileContext {
   struct FileState* file_state;
 };
 
-// Not using these
-
+void      clear_files(FileContext* FCPtr);
+void      clear_dirs(FileContext* FCPtr);
 void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);
-void      zero_buffers(FTransformData* FTData, FTransformBuffers* FTBuf);
+void      zero_buffers(FTransformBuffers* FTBuf);
 void      reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
 void*     free_ptr(void* ptr);
 void      update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w);

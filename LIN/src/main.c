@@ -5,13 +5,13 @@
 #include "../inc/threads.h"
 #include <errno.h>
 
-
 int
 main(int argc, char* argv[]) {
+
+  int result = 0;
   if (argc >= 2) {
     if (strcmp(argv[1], "--daemonize=yes") == 0) {
       pid_t pid;
-      int   result;
       pid = fork();
 
       if (pid < 0) {
@@ -103,7 +103,7 @@ music_player() {
 
   fprintf(stdout, "Initialzing TTF..\n");
 
-  err = initialize_TTF(&ContextData);
+  err = initialize_TTF();
   if (err < 0) {
     return 1;
   }
@@ -248,8 +248,8 @@ music_player() {
   }
 
   clear_fonts(&FontChunk, &FileChunk);
-  clear_files(&FontChunk, &FileChunk);
-  clear_dirs(&FontChunk, &FileChunk);
+  clear_files(&FileChunk);
+  clear_dirs(&FileChunk);
 
   destroy_window_workers(winwkr, cores);
 

@@ -1,11 +1,10 @@
 #ifndef AUDIO_H
 #define AUDIO_H
-#include <sndfile.h>
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_render.h>
-
+#include <sndfile.h>
 
 typedef enum { MAX_BUFFER_DS = (1 << 5), MIN_BUFFER_DS = (1 << 2), DEFAULT_DS = (1 << 2) } DOWNSAMPLING_BINDS;
 
@@ -107,9 +106,9 @@ void              update_vol_pos(AudioData* ADta, VolBar* VBar);
 void              change_volume(f32* vol, f32 amount);
 f32               clamp(f32 vol, f32 amount, f32 min, f32 max);
 void              baseline_pb_state(PlaybackState* pbste);
-void              squash_to_log(int size, FourierTransform* FT);
+void              squash_to_log(size_t size, FourierTransform* FT);
 float             amp(float _Complex z);
-void              generate_visual(FourierTransform* FT, int SR);
+void              generate_visual(FourierTransform* FT);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
 void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
@@ -118,7 +117,7 @@ void              baseline_fft_values(FTransformData* data);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 int               render_await(i8 fft_ready);
-void              apply_smoothing(int size, FourierTransform* FT);
+void              apply_smoothing(FourierTransform* FT);
 void              baseline_vol_bar(VolBar* vlbar);
 
 #endif

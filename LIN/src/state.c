@@ -21,11 +21,10 @@ song_is_paused(SDLContext* SDLC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
-  SDLContainer*   Cont   = SDLC->container;
-  FontContext*    FntPtr = SDLC->FntPtr;
-  FTransformData* FTData = SDLC->FTPtr->fft_data;
-  SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
-  VolBar*         VBar   = SDLC->SSPtr->vol_bar;
+  SDLContainer* Cont   = SDLC->container;
+  FontContext*  FntPtr = SDLC->FntPtr;
+  SeekBar*      SkBar  = SDLC->SSPtr->seek_bar;
+  VolBar*       VBar   = SDLC->SSPtr->vol_bar;
 
   i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
 
@@ -61,17 +60,15 @@ song_is_playing(SDLContext* SDLC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
-  SDLContainer*   Cont   = SDLC->container;
-  FontContext*    FntPtr = SDLC->FntPtr;
-  FTransformData* FTData = SDLC->FTPtr->fft_data;
-  SeekBar*        SkBar  = SDLC->SSPtr->seek_bar;
+  SDLContainer* Cont   = SDLC->container;
+  FontContext*  FntPtr = SDLC->FntPtr;
+  SeekBar*      SkBar  = SDLC->SSPtr->seek_bar;
 
-  i8* buffers_ready         = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8* fft_ready             = &SDLC->FTPtr->fft_data->fft_ready;
-  i8* currently_renderering = &SDLC->FTPtr->fft_data->currently_renderering;
+  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8* fft_ready     = &SDLC->FTPtr->fft_data->fft_ready;
 
   if (*buffers_ready && *fft_ready) {
-    generate_visual(SDLC->FTPtr, SDLC->spec.freq);
+    generate_visual(SDLC->FTPtr);
     *fft_ready = FALSE;
   }
 

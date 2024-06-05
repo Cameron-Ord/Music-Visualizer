@@ -64,9 +64,8 @@ toggle_pause(SDLContext* SDLC) {
 
 void
 handle_space_key(SDLContext* SDLC) {
-  i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
-  i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
-  i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
+  i8  files_exist = SDLC->FCPtr->file_state->files_exist;
+  i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
   if (files_exist) {
     *hard_stop = TRUE;
@@ -137,7 +136,7 @@ clamp(f32 vol, f32 amount, f32 min, f32 max) {
 
 void
 handle_mouse_click(SDLContext* SDLC) {
-  int mouse_x, mouse_y, err;
+  int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
   clicked_in_rect(SDLC, mouse_x, mouse_y);
 }
@@ -161,7 +160,7 @@ handle_mouse_release(SDLContext* SDLC) {
   if (PBSte->playing_song && SKBar->latched) {
     SKBar->latched = FALSE;
     play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
-    zero_buffers(FTPtr->fft_data, FTPtr->fft_buffers);
+    zero_buffers(FTPtr->fft_buffers);
   }
 
   if (PBSte->playing_song && VBar->latched) {

@@ -213,7 +213,7 @@ fetch_files(FileState* FS) {
 } /*load_dir_songlist*/
 
 void
-clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
+clear_dirs(FileContext* FCPtr) {
   i8  dirs_exist = FCPtr->dir_state->dirs_exist;
   int dir_count  = FCPtr->dir_state->dir_count;
 
@@ -229,7 +229,7 @@ clear_dirs(FontContext* FntPtr, FileContext* FCPtr) {
 }
 
 void
-clear_files(FontContext* FntPtr, FileContext* FCPtr) {
+clear_files(FileContext* FCPtr) {
 
   i8  files_exist = FCPtr->file_state->files_exist;
   int file_count  = FCPtr->file_state->file_count;
@@ -244,4 +244,3 @@ clear_files(FontContext* FntPtr, FileContext* FCPtr) {
     FCPtr->file_state->files = free_ptr(FCPtr->file_state->files);
   }
 }
-
