@@ -13,15 +13,6 @@ LIBINC := -Iresources/SDL2/include -Iresources/libsndfile/include -Iresources/SD
 
 CFLAGS :=  -O2 -Wall -Wextra
 
-PREFIX=/usr/local
-BINDIR=$(PREFIX)/bin
-
-FONTSHARE=/usr/share/fonts/truetype
-FONTTYPEDIR=$(FONTSHARE)/roboto
-FONTPATH := fonts
-FONTFILE := Roboto-Regular.ttf
-FONTFILEPATH= $(FONTPATH)/$(FONTFILE)
-
 # Find all the C and C++ files we want to compile
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -or -name '*.c' -or -name '*.s')
 
@@ -51,14 +42,8 @@ $(BUILD_DIR)/%.c.o: %.c
 all: $(BUILD_DIR)/$(TARGET_EXEC)
 
 uninstall:
-	rm -f $(BINDIR)/$(TARGET_EXEC)
 
 install:
-	install -d $(BINDIR)
-	install -d $(FONTTYPEDIR)
-	install -m 755 $(EXEC_PATH) $(BINDIR)/$(TARGET_EXEC)
-	install -m 644 $(FONTFILEPATH) $(FONTTYPEDIR)/$(FONTFILE)
-
 
 clean:
 	rm -r $(BUILD_DIR)
