@@ -4,7 +4,10 @@ TARGET_EXEC := fftplayer
 CC := clang
 BUILD_DIR := ./build
 SRC_DIRS := ./src
-LDFLAGS := -lSDL2 -lsndfile -lSDL2_ttf -lm -g
+LDFLAGS := -lSDL2 -lSDL2_ttf -lsndfile -lm -g
+
+CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping
+LDFLAGS += -pg -fprofile-instr-generate
 
 EXEC_PATH := build/fftplayer
 
@@ -17,9 +20,6 @@ FONTPATH := fonts
 FONTFILE := Roboto-Regular.ttf
 FONTFILEPATH= $(FONTPATH)/$(FONTFILE)
 
-CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2 -Wall -Wextra
-LDFLAGS += -pg -fprofile-instr-generate
-
 # Find all the C and C++ files we want to compile
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -or -name '*.c' -or -name '*.s')
 
@@ -31,7 +31,7 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # Preprocessor flags
-CPPFLAGS := $(INC_FLAGS) -MMD -MP
+CPPFLAGS := $(LIBINC) $(INC_FLAGS) -MMD -MP
 
 
 # The final build step.
