@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "../inc/audio.h"
 #include "../inc/font.h"
 #include "../inc/music_visualizer.h"
 void

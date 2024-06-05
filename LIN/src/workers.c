@@ -31,8 +31,8 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->paused           = TRUE;
   winwkr->termination_flag = FALSE;
   winwkr->cycle_complete   = FALSE;
-  memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_N);
-  memset(winwkr->out_buff, 0, sizeof(f32) * N);
+  memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_BUFF);
+  memset(winwkr->out_buff, 0, sizeof(f32) * BUFF_SIZE);
   pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
   pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused);
   return 0;
@@ -99,7 +99,7 @@ hann_window_worker(void* arg) {
     hann_t->cycle_complete = FALSE;
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
-      float Nf   = (float)N;
+      float Nf   = (float)BUFF_SIZE;
       float t    = (float)i / (Nf - 1);
       float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
@@ -130,7 +130,7 @@ void
 calc_hann_window_threads(FourierTransform* FT) {
   WindowWorker* winwkr = FT->winwkr;
   int           cores  = (winwkr->cores / 2);
-  int           chunk  = N / cores;
+  int           chunk  = BUFF_SIZE / cores;
 
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* cpy    = FT->fft_buffers->in_cpy;
@@ -142,7 +142,7 @@ calc_hann_window_threads(FourierTransform* FT) {
     int start = winwkr[i].start;
     int end   = winwkr[i].end;
 
-    memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_N);
+    memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_BUFF);
     resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
   }
 
@@ -157,4 +157,3 @@ calc_hann_window_threads(FourierTransform* FT) {
     memcpy(cpy + start, buff + start, sizeof(f32) * end);
   }
 }
-

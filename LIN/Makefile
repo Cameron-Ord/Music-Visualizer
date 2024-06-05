@@ -4,7 +4,7 @@ TARGET_EXEC := fftplayer
 CC := clang
 BUILD_DIR := ./build
 SRC_DIRS := ./src
-LDFLAGS := -lSDL2 -lsndfile -lSDL2_ttf -lm -g -Wall -Wextra 
+LDFLAGS := -lSDL2 -lsndfile -lSDL2_ttf -lm -g
 
 EXEC_PATH := build/fftplayer
 
@@ -17,7 +17,7 @@ FONTPATH := fonts
 FONTFILE := Roboto-Regular.ttf
 FONTFILEPATH= $(FONTPATH)/$(FONTFILE)
 
-CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2
+CFLAGS := -pg -fprofile-instr-generate -fcoverage-mapping -O2 -Wall -Wextra
 LDFLAGS += -pg -fprofile-instr-generate
 
 # Find all the C and C++ files we want to compile

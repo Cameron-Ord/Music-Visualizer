@@ -50,7 +50,6 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SDL_Rect dir_rect     = SDLC->container->dir_viewport;
   SDL_Rect song_rect    = SDLC->container->song_viewport;
   i8       playing_song = SDLC->SSPtr->pb_state->playing_song;
-  i8       ready        = SDLC->FTPtr->fft_data->buffers_ready;
 
   int device_status = SDL_GetAudioDeviceStatus(SDLC->audio_dev);
 
@@ -79,9 +78,8 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
 void
 clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
-  SeekBar*   SKBar = SDLC->SSPtr->seek_bar;
-  VolBar*    VBar  = SDLC->SSPtr->vol_bar;
-  AudioData* ADta  = SDLC->SSPtr->audio_data;
+  SeekBar* SKBar = SDLC->SSPtr->seek_bar;
+  VolBar*  VBar  = SDLC->SSPtr->vol_bar;
 
   if (point_in_rect(mouse_x, mouse_y, SKBar->vp)) {
     grab_seek_bar(SDLC, mouse_x, mouse_y);
@@ -96,10 +94,8 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SongState* SSPtr = SDLC->SSPtr;
   SeekBar*   SKBar = SSPtr->seek_bar;
 
-  int win_height = SDLC->container->win_height;
-  int win_width  = SDLC->container->win_width;
+  int win_width = SDLC->container->win_width;
 
-  int one_quarter = (int)(win_height * 0.25);
   int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
 
@@ -128,10 +124,8 @@ grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   SongState* SSPtr = SDLC->SSPtr;
   VolBar*    VBar  = SSPtr->vol_bar;
 
-  int win_height = SDLC->container->win_height;
-  int win_width  = SDLC->container->win_width;
+  int win_width = SDLC->container->win_width;
 
-  int one_quarter = (int)(win_height * 0.25);
   int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
 
