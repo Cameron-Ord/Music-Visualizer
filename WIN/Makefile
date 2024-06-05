@@ -1,13 +1,13 @@
 
 UNAME_S := $(shell uname -s)
-TARGET_EXEC := fftplayer
+TARGET_EXEC := fftplayer.exe
 
 CC := x86_64-w64-mingw32-gcc
 BUILD_DIR := ./build
 SRC_DIRS := ./src
 
-LDFLAGS := -Lresources/SDL2/lib  -Lresources/libsndfile/lib  -Lresources/SDL2_TTF/lib  -Lresources/x86_64-w64-mingw32/lib -lm -g -lmingw32  -mwindows -lSDL2main -lSDL2 -lpthread -lgdi32 -lSDL2_ttf -lsndfile
-EXEC_PATH := build/fftplayer
+LDFLAGS := -Lresources/SDL2/lib  -Lresources/libsndfile/lib  -Lresources/SDL2_TTF/lib  -Lresources/x86_64-w64-mingw32/lib -lm -g -lmingw32  -mwindows -lSDL2main -lSDL2 -lpthread -lgdi32 -lSDL2_ttf -lsndfile 
+EXEC_PATH := build/$(TARGET_EXEC)
 
 LIBINC := -Iresources/SDL2/include -Iresources/libsndfile/include -Iresources/SDL2_TTF/include -Iresources/x86_64-w64-mingw32/include
 
