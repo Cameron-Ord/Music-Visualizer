@@ -63,9 +63,6 @@ I'm using make for this project. I don't think mingw-make will work out of the b
 
 
 
-## Uninstallation
-
-- Simply run make uninstall to remove the binary from your /usr/local/bin/ path.
 
 
 
