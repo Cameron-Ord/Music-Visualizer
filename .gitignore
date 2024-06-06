@@ -3,7 +3,8 @@ build/
 dist/
 libs/
 resources/
-share/
+WINDOWS/
+LINUX/
 *.out
 *.profraw
 *.profdata

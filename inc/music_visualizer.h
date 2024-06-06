@@ -67,6 +67,10 @@ struct FileContext {
   struct FileState* file_state;
 };
 
+char*     get_platform_env();
+char*     get_slash();
+int       chmod_dir(char* path, mode_t mode);
+int       make_directory(char* path, mode_t mode);
 void      clear_files(FileContext* FCPtr);
 void      clear_dirs(FileContext* FCPtr);
 void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);

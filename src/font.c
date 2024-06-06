@@ -32,10 +32,12 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   int file_index     = FS->file_index;
   int size           = strlen(FS->files[file_index]);
   Fnt->active->text  = malloc(sizeof(char*) * size);
+
   if (Fnt->active->text == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate active song char buffer\n", strerror(errno));
     return -1;
   }
+
   strcpy(Fnt->active->text, FS->files[file_index]);
   clean_text(Fnt->active->text);
   char* text = Fnt->active->text;
@@ -102,7 +104,7 @@ create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
     Fnt->sf_arr[s].text      = FS->files[s];
     Fnt->sf_arr[s].font_rect = sdl_rect;
 
-    y_pos += CONST_YPOS;
+    y_pos += Y_OFFSET(Fnt->context_data->font_size / 2);
     *file_surf = destroy_surface(*file_surf);
   }
 
@@ -151,7 +153,7 @@ create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
     Fnt->df_arr[s].text      = DS->directories[s];
     Fnt->df_arr[s].font_rect = sdl_rect;
 
-    y_pos += CONST_YPOS;
+    y_pos += Y_OFFSET(Fnt->context_data->font_size / 2);
     *dir_surf = destroy_surface(*dir_surf);
   }
 
@@ -174,10 +176,10 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
   SDLContainer* SDLCntrPtr = SDLC->container;
   DirState*     DSPtr      = SDLC->FCPtr->dir_state;
 
-  int one_tenth = (int)(SDLCntrPtr->win_height * 0.05);
-
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->dir_viewport)) {
-    const int  mouse_arr[] = { mouse_x, mouse_y - one_tenth };
+    int offset_y = SDLC->mouse->mouse_offset_y;
+
+    const int  mouse_arr[] = { mouse_x, (mouse_y - offset_y) };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &FntPtr->df_arr;
     FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);
@@ -201,9 +203,20 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
   FileState*    FSPtr      = SDLC->FCPtr->file_state;
 
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->song_viewport)) {
+    int offset_x = SDLC->mouse->mouse_offset_x;
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[] = { (mouse_x), (mouse_y - offset_y) };
+    /*This works for the time being, but maybe create a positions struct to manage this better*/
+    if (SDLCntrPtr->win_width < 800) {
+
+      int fourty_percent = (int)(SDLCntrPtr->win_height * 0.4);
+
+      int offset_h = SDLCntrPtr->win_height - fourty_percent;
+
+      offset_y = fourty_percent + (offset_h * 0.2);
+    }
+
+    const int  mouse_arr[] = { (mouse_x - offset_x), (mouse_y - offset_y) };
     int        file_count  = FSPtr->file_count;
     FontData** sf_arr      = &FntPtr->sf_arr;
     FontData*  sf          = get_struct(sf_arr, mouse_arr, file_count);

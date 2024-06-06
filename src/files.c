@@ -8,93 +8,127 @@
 #include <errno.h>
 #include <unistd.h>
 
-#ifdef _WIN32
-#include <direct.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#else
-#include <sys/stat.h>
+
+#ifdef __linux__
+#include <linux/limits.h>
 #endif
+
+#ifdef _WIN32
+#include <direct.h>
+#include <limits.h>
+#endif
+
+char*
+get_slash() {
+#ifdef __linux__
+  return "/";
+#endif
+
+#ifdef _WIN32
+  return "\\";
+#endif
+  return "";
+}
+
+char*
+get_platform_env() {
+#ifdef __linux__
+  return "HOME";
+#endif
+
+#ifdef _WIN32
+  return "USERPROFILE";
+#endif
+
+  return "";
+}
+
+int
+make_directory(char* path, mode_t mode) {
+#ifdef __linux__
+  if (mkdir(path, mode) == 0) {
+    return 0;
+  }
+  return -1;
+#endif
+
+#ifdef _WIN32
+  if (mkdir(path) == 0) {
+    return 0;
+  }
+#endif
+  return -1;
+}
+
+int
+chmod_dir(char* path, mode_t mode) {
+  if (chmod(path, mode) == 0) {
+    return 0;
+  };
+  return -1;
+}
 
 void
 setup_dirs() {
 
-  char* home = getenv("HOME");
+  char* home = getenv(get_platform_env());
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
     return;
-  } else {
-    char   path[PATH_MAX];
-    mode_t mode = S_IRWXU;
-
-#ifdef __linux__
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/", home);
-    if (mkdir(path, mode) == 0) {
-      printf("Log DIR created\n");
-      if (chmod(path, mode) != 0) {
-        perror("chmod");
-        return;
-      }
-#elif _WIN32
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/", home);
-    if (mkdir(path) == 0) {
-      printf("Log DIR created\n");
-      if (chmod(path, mode) != 0) {
-        perror("chmod");
-        return;
-      }
-#endif
-    } else {
-      if (errno != EEXIST) {
-        PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
-        return;
-      }
-    }
-
-    snprintf(path, PATH_MAX, "%s/Music/fftmplayer/", home);
-
-#ifdef __linux__
-    if (mkdir(path, mode) == 0) {
-      printf("Song DIR created\n");
-      if (chmod(path, mode) != 0) {
-        perror("chmod");
-        return;
-      }
-#elif _WIN32
-    if (mkdir(path) == 0) {
-      printf("Song DIR created\n");
-      if (chmod(path, mode) != 0) {
-        perror("chmod");
-        return;
-      }
-#endif
-    } else {
-      if (errno != EEXIST) {
-        PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
-        perror("mkdir");
-        return;
-      }
-    }
-
-    int fd;
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/%s", home, "log.txt");
-    fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
-    if (fd < 0) {
-      PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
-      return;
-    }
-    dup2(fd, STDOUT_FILENO);
-    close(fd);
-
-    snprintf(path, PATH_MAX, "%s/Music/fftmlogs/%s", home, "errlog.txt");
-    fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
-    if (fd < 0) {
-      PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
-      return;
-    }
-    dup2(fd, STDERR_FILENO);
-    close(fd);
   }
+
+  char   path[PATH_MAX];
+  mode_t mode = S_IRWXU;
+
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s", home, get_slash(), get_slash(), get_slash());
+  if (make_directory(path, mode) == 0) {
+    if (chmod_dir(path, mode) != 0) {
+      perror("chmod");
+      return;
+    }
+  } else {
+    if (errno != EEXIST) {
+      PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
+      return;
+    }
+  }
+
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(), get_slash());
+  if (make_directory(path, mode) == 0) {
+    if (chmod_dir(path, mode) != 0) {
+      perror("chmod");
+      return;
+    }
+  } else {
+    if (errno != EEXIST) {
+      PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
+      perror("mkdir");
+      return;
+    }
+  }
+
+  int fd;
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(), "log.txt");
+  fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
+  if (fd < 0) {
+    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+    return;
+  }
+
+  dup2(fd, STDOUT_FILENO);
+  close(fd);
+
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(),
+           "errlog.txt");
+  fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
+  if (fd < 0) {
+    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+    return;
+  }
+  dup2(fd, STDERR_FILENO);
+  close(fd);
 } /*setup_dirs*/
 
 int
@@ -104,7 +138,7 @@ fetch_dirs(DirState* DS) {
   DIR*           directory;
   struct dirent* entry;
   int            dir_count = 0;
-  char*          home      = getenv("HOME");
+  char*          home      = getenv(get_platform_env());
 
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
@@ -112,7 +146,7 @@ fetch_dirs(DirState* DS) {
   }
 
   char path[PATH_MAX];
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/", home);
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(), get_slash());
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -159,8 +193,14 @@ fetch_dirs(DirState* DS) {
         if (has_ws) {
           char input_path[PATH_MAX];
           char output_path[PATH_MAX];
-          snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s", home, entry->d_name);
-          snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s", home, duped_name);
+
+          /*It really do be the easiest way*/
+
+          snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(), get_slash(),
+                   get_slash(), entry->d_name);
+          snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(), get_slash(),
+                   get_slash(), duped_name);
+
           rename(input_path, output_path);
         }
 
@@ -189,13 +229,17 @@ fetch_files(FileState* FS) {
   struct dirent* entry;
   int            file_count = 0;
 
-  char* home = getenv("HOME");
+  char* home = getenv(get_platform_env());
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
     return -1;
   }
   char path[PATH_MAX];
-  snprintf(path, PATH_MAX, "%s/Music/fftmplayer/%s/", home, selected_dir);
+
+  /*I hate it*/
+
+  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s", home, get_slash(), get_slash(), get_slash(),
+           selected_dir, get_slash());
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -242,8 +286,14 @@ fetch_files(FileState* FS) {
       if (has_ws) {
         char input_path[PATH_MAX];
         char output_path[PATH_MAX];
-        snprintf(input_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, entry->d_name);
-        snprintf(output_path, PATH_MAX, "%s/Music/fftmplayer/%s/%s", home, selected_dir, duped_name);
+
+        /*My eyes bleed*/
+
+        snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(), get_slash(),
+                 get_slash(), selected_dir, get_slash(), entry->d_name);
+        snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(), get_slash(),
+                 get_slash(), selected_dir, get_slash(), duped_name);
+
         rename(input_path, output_path);
       }
 

@@ -60,6 +60,7 @@ struct TTFData {
   TTF_Font* font;
   char*     font_path;
   SDL_Color color;
+  int       font_size;
 };
 
 struct FontContext {

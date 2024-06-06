@@ -10,7 +10,11 @@ within_bounds_x(int x, int width) {
   }
   return 0;
 }
-
+/*
+ ^^^^^^
+ Bounds checks
+ ^^^^^^
+*/
 int
 point_in_rect(int x, int y, SDL_Rect rect) {
   return (x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h);
@@ -18,6 +22,8 @@ point_in_rect(int x, int y, SDL_Rect rect) {
 
 int
 find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[]) {
+  /*If the pointer is within the rectangle of any of these song titles, return the id(The id is determined by
+   * the index inside the loop where the fonts are created, so it's essentially an index as well)*/
   for (int i = 0; i < file_count; i++) {
     SDL_Rect sf_rect = (*sf_arr)[i].font_rect;
     if (point_in_rect(mouse_arr[0], mouse_arr[1], sf_rect)) {
@@ -52,7 +58,7 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   i8       playing_song = SDLC->SSPtr->pb_state->playing_song;
 
   int device_status = SDL_GetAudioDeviceStatus(SDLC->audio_dev);
-
+  /*Determining the outcome based off pointer location and application state*/
   switch (playing_song) {
   default: {
     break;
@@ -98,9 +104,9 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
   int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
-
+  /*If pointer is within bounds, "latch" onto the bar so that it follows the pointer on mouse motion
+   * events*/
   SDL_Rect hitbox = { SKBar->seek_box.x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
-
   if (point_in_rect(mouse_x - (offset_diff * 0.25), mouse_y, hitbox)) {
     seek_latch_on(SKBar, TRUE);
     if (SKBar->latched) {
@@ -109,6 +115,7 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   }
 }
 
+/*Setting the latch bools*/
 void
 seek_latch_on(SeekBar* SKBar, int switch_value) {
   SKBar->latched = switch_value;
@@ -128,7 +135,8 @@ grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
   int half        = (int)(win_width * 0.25);
   int offset_diff = win_width - half;
-
+  /*If pointer is within bounds, "latch" onto the bar so that it follows the pointer on mouse motion
+   * events*/
   SDL_Rect hitbox = { VBar->seek_box.x, VBar->seek_box.y, VBar->seek_box.w, VBar->seek_box.h };
   if (point_in_rect(mouse_x - (offset_diff * 0.75), mouse_y, hitbox)) {
     vol_latch_on(VBar, TRUE);
@@ -141,10 +149,14 @@ move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar*
   int offset_diff    = SDLCntr->win_width - half;
   int offset_mouse_x = (mouse_x - (offset_diff * 0.25));
 
+  /*Checking if the mouse pointer is inside the bounds of the viewport containing the bar*/
   SDL_Rect tmp = { offset_mouse_x, SKBar->seek_box.y, SKBar->seek_box.w, SKBar->seek_box.h };
 
   if (within_bounds_x(tmp.x, SKBar->vp.w)) {
+    /*Implementing a slight offset here so that it looks a bit nicer, this is compensated for in terms of
+     * audio positioning*/
     SKBar->seek_box.x = offset_mouse_x - SCROLLBAR_OFFSET;
+    /*Set the audio pos based off where the mouse is*/
     update_audio_position(ADta, SKBar);
   }
 }
@@ -155,10 +167,14 @@ move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBa
   int offset_diff    = SDLCntr->win_width - half;
   int offset_mouse_x = (mouse_x - (offset_diff * 0.75));
 
+  /*Checking if the mouse pointer is inside the bounds of the viewport containing the bar*/
   SDL_Rect tmp = { offset_mouse_x, VBar->seek_box.y, VBar->seek_box.w, VBar->seek_box.h };
 
   if (within_bounds_x(tmp.x, VBar->vp.w)) {
+    /*Implementing a slight offset here so that it looks a bit nicer, this is compensated for.*/
     VBar->seek_box.x = offset_mouse_x - SCROLLBAR_OFFSET;
+
+    /*Set the volume off where the mouse is*/
     update_vol_pos(ADta, VBar);
   }
 }
@@ -171,6 +187,8 @@ start_song_from_menu(SDLContext* SDLC) {
   i8 files_exist  = FCPtr->file_state->files_exist;
   i8 playing_song = SSPtr->pb_state->playing_song;
 
+  /*Determine the outcome based off the state of the application*/
+
   if (!playing_song && files_exist) {
     load_song(SDLC);
   } else if (playing_song && files_exist) {
@@ -182,14 +200,27 @@ start_song_from_menu(SDLContext* SDLC) {
 
 void
 clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
-  i8         song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
-  FileState* FSPtr              = SDLC->FCPtr->file_state;
-  int*       file_index         = &FSPtr->file_index;
+  i8            song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
+  FileState*    FSPtr              = SDLC->FCPtr->file_state;
+  int*          file_index         = &FSPtr->file_index;
+  SDLContainer* SDLCntrPtr         = SDLC->container;
 
   if (song_fonts_created) {
+    int offset_x = SDLC->mouse->mouse_offset_x;
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[]     = { (mouse_x), (mouse_y - offset_y) };
+    /*This works for the time being, but maybe create a positions struct to manage this better*/
+    if (SDLCntrPtr->win_width < 800) {
+
+      int fourty_percent = (int)(SDLCntrPtr->win_height * 0.4);
+
+      int offset_h = SDLCntrPtr->win_height - fourty_percent;
+
+      offset_y = fourty_percent + (offset_h * 0.2);
+    }
+
+    /*Finding the index associated with the title clicked*/
+    const int  mouse_arr[]     = { (mouse_x - offset_x), (mouse_y - offset_y) };
     int        file_count      = FSPtr->file_count;
     FontData** sf_arr          = &SDLC->FntPtr->sf_arr;
     int        selection_index = find_clicked_song(sf_arr, file_count, mouse_arr);
@@ -198,6 +229,7 @@ clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
       return;
     }
 
+    /*Assigning the index, and starting the song*/
     *file_index = selection_index;
     start_song_from_menu(SDLC);
   }
@@ -212,22 +244,26 @@ clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   FileState* FSPtr = SDLC->FCPtr->file_state;
   Positions* Pos   = SDLC->FntPtr->pos;
 
-  int win_height = SDLC->container->win_height;
-  int one_tenth  = (int)(win_height * 0.05);
-
   if (dir_fonts_created) {
-    const int  mouse_arr[] = { mouse_x, mouse_y - one_tenth };
+    int offset_y = SDLC->mouse->mouse_offset_y;
+
+    const int  mouse_arr[] = { (mouse_x), (mouse_y - offset_y) };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &SDLC->FntPtr->df_arr;
-    char*      selection   = find_clicked_dir(df_arr, dir_count, mouse_arr);
+    /*Searching for a the directory title clicked(if any)*/
+    char* selection = find_clicked_dir(df_arr, dir_count, mouse_arr);
 
+    /*Just early return if none are found*/
     if (strcmp(selection, "NO_SELECTION") == 0) {
       return;
     }
 
+    /*Clear any existing fonts for the song title section (if any) and reset the position variable*/
+
     clear_existing_list(df_arr, song_fonts_created, FSPtr, selection);
     reset_songlist_pos(Pos);
 
+    /*Getting the regular file names inside the selected directory*/
     FSPtr->files_exist = FALSE;
 
     int res = fetch_files(FSPtr);
@@ -238,6 +274,7 @@ clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
     }
     FSPtr->file_count = res;
 
+    /*Creating the fonts if everything went well*/
     if (res > 0) {
       FSPtr->files_exist = TRUE;
       create_song_fonts(SDLC->FntPtr, FSPtr, SDLC->r);
@@ -247,6 +284,8 @@ clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
 FontData*
 get_struct(FontData* arr[], const int mouse_arr[], int len) {
+  /*If the pointer is within the rectangle of any of these titles, return a pointer to the pointer of the
+   * FontData struct array, otherwise clear the background)*/
   for (int i = 0; i < len; i++) {
     SDL_Rect rect = (*arr)[i].font_rect;
     if (point_in_rect(mouse_arr[0], mouse_arr[1], rect)) {
@@ -256,7 +295,7 @@ get_struct(FontData* arr[], const int mouse_arr[], int len) {
     }
   }
   return NULL;
-} /*get_*/
+} /*get_struct*/
 
 void
 scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
@@ -274,13 +313,15 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
 
   /*POSITIVE IS NEGATIVE, NEGATIVE IS POSITIVE*/
 
+  /*Pretty basic scroll function, I want to redo this*/
+
   if (point_in_rect(mouse_arr[0], mouse_arr[1], song_rect)) {
     int max_scroll = song_height - song_rect.h;
     if (max_scroll <= 0) {
       max_scroll = 0;
     }
 
-    int scroll_amount = CONST_YPOS * wheel_y;
+    int scroll_amount = 75 * wheel_y;
     *sl_pos += scroll_amount;
 
     if (*sl_pos > 0) {
@@ -296,7 +337,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
       max_scroll = 0;
     }
 
-    int scroll_amount = CONST_YPOS * wheel_y;
+    int scroll_amount = 75 * wheel_y;
     *dir_pos += scroll_amount;
 
     if (*dir_pos > 0) {

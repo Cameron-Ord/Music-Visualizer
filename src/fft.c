@@ -12,17 +12,12 @@
 
 void
 fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
-  // 0 1 2 3 4 5 6
-  // n should be greater than 0
-  // This is the base
-  assert(n > 0);
+  // assert(n > 0);
   if (n == 1) {
     out[0] = in[0];
     return;
   }
 
-  // fft_func(in, stride * 2, out, n / 2);
-  // fft_func(in + stride, stride * 2, out + n / 2, n / 2);
   //  v = o*x
   //  out = e - o*x e + o*x e e| e + o*x o - o*x o o
 
@@ -66,20 +61,25 @@ generate_visual(FourierTransform* FT) {
 
 } /*generate_visual*/
 
+/*This function is used when there is no multithreading. Currently it is not set up to fallback to this if
+ * there is an issue with the multithreading, so I have to implement that*/
 void
 create_hann_window(FourierTransform* FT) {
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* in_cpy = FT->fft_buffers->in_cpy;
 
+  /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
-    // hann window to reduce spectral leakage before passing it to FFT
-    float Nf   = (float)BUFF_SIZE;
-    float t    = (float)i / (Nf - 1);
+    float Nf = (float)BUFF_SIZE;
+    float t  = (float)i / (Nf - 1);
+    /*Calculate the hann window*/
     float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
 
+    /*Apply the hann window to the interleaved stereo audio channels*/
     fft_in[i * 2] *= hann;
     fft_in[i * 2 + 1] *= hann;
 
+    /*Sum the channels and divide by 2*/
     f32 sumf  = fft_in[i * 2] + fft_in[i * 2 + 1];
     in_cpy[i] = sumf / 2;
   }
@@ -123,7 +123,7 @@ amp(float _Complex z) {
 
 void
 low_pass(float* input, int size, float cutoff, int SR) {
-  /*Just a simple attenuation, don't feel like complicating this*/
+  /*Just a simple attenuation, don't feel like complicating this. Not currently in use*/
   float nyquist    = (float)SR / 2.0f;
   int   cutoff_bin = (int)((cutoff / nyquist) * size);
   for (int i = 0; i < cutoff_bin; ++i) {
@@ -138,7 +138,7 @@ apply_smoothing(FourierTransform* FT) {
 
   f32* processed = ftbuf->processed;
   f32* smoothed  = ftbuf->smoothed;
-
+  /*Linear smoothing*/
   for (int i = 0; i < ftdata->output_len; ++i) {
     processed[i] /= ftdata->max_ampl;
     smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);

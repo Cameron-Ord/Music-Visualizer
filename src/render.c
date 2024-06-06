@@ -1,6 +1,7 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
 #include "../inc/music_visualizer.h"
+#include <complex.h>
 
 void*
 destroy_surface(SDL_Surface* surf) {
@@ -34,8 +35,12 @@ render_bars(SDLContext* SDLC) {
   int win_height = SDLC->container->win_height;
   int out_len    = SDLC->FTPtr->fft_data->output_len;
 
+  /*If the out_len is 0 early return, this is extremely unlikely to happen, but if it does : something has
+   * gone very wrong. I'm just leaving it here to avoid the division by 0 and have a message for debugging so
+   * I know what happened*/
   if (out_len == 0) {
-    return;
+    fprintf(stdout, "OUTPUT LENGTH 0\n");
+    exit(EXIT_FAILURE);
   }
 
   int three_quarters = (int)(win_height * 0.75);
@@ -87,7 +92,7 @@ render_dir_list(SDLContext* SDLC) {
       SDL_RenderFillRect(SDLC->r, &FntPtr->df_arr[i].font_bg);
     }
 
-    y_pos += CONST_YPOS;
+    y_pos += Y_OFFSET(FntPtr->context_data->font_size / 2);
     SDL_RenderCopy(SDLC->r, FntPtr->df_arr[i].font_texture, NULL, &FntPtr->df_arr[i].font_rect);
   }
 }
@@ -115,7 +120,7 @@ render_song_list(SDLContext* SDLC) {
         SDL_RenderFillRect(SDLC->r, &FntPtr->sf_arr[i].font_bg);
       }
 
-      y_pos += CONST_YPOS;
+      y_pos += Y_OFFSET(FntPtr->context_data->font_size / 2);
       SDL_RenderCopy(SDLC->r, FntPtr->sf_arr[i].font_texture, NULL, &FntPtr->sf_arr[i].font_rect);
     }
   }
@@ -133,17 +138,38 @@ update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
 
   SDL_GetWindowSize(w, win_width, win_height);
 
-  int one_half = (int)(*win_height * 0.5);
-  int one_20th = (int)(*win_height * 0.05);
+  /*My eyes*/
 
-  SDL_Rect LEFT  = { 0, one_20th, *win_width, one_half };
-  SDL_Rect RIGHT = { 0, one_half + one_20th, *win_width, one_half };
+  if (*win_width > 800) {
+    int eighty_percent = (int)(*win_height * 0.8);
+    int half           = (int)(*win_width * 0.5);
 
-  Cont->dir_viewport  = LEFT;
-  Cont->song_viewport = RIGHT;
+    int offset_h = *win_height - eighty_percent;
+    int offset_w = *win_width - half;
 
-  Mouse->mouse_offset_y = one_half + one_20th;
-  Mouse->mouse_offset_x = 0;
+    SDL_Rect LEFT  = { 0, offset_h / 2, offset_w * 0.66, eighty_percent };
+    SDL_Rect RIGHT = { offset_w * 0.66, offset_h / 2, half + (half * 0.33), eighty_percent };
+
+    Cont->dir_viewport  = LEFT;
+    Cont->song_viewport = RIGHT;
+
+    Mouse->mouse_offset_y = offset_h / 2;
+    Mouse->mouse_offset_x = offset_w * 0.66;
+  } else if (*win_width < 800) {
+    int fourty_percent = (int)(*win_height * 0.4);
+    int three_quarters = (int)(*win_width * 0.75);
+
+    int offset_h = *win_height - fourty_percent;
+
+    SDL_Rect LEFT  = { 0, offset_h * 0.1, three_quarters, fourty_percent };
+    SDL_Rect RIGHT = { 0, fourty_percent + (offset_h * 0.2), three_quarters, fourty_percent };
+
+    Cont->dir_viewport  = LEFT;
+    Cont->song_viewport = RIGHT;
+
+    Mouse->mouse_offset_y = offset_h * 0.1;
+    Mouse->mouse_offset_x = 0;
+  }
 }
 
 void
@@ -271,19 +297,26 @@ resize_fonts(SDLContext* SDLC) {
   int win_width          = (dir_vp_w < song_vp_w) ? song_vp_w : dir_vp_w;
 
   TTF_Font** font = &FntPtr->context_data->font;
-  if (win_width < 580) {
-    TTF_SetFontSize(*font, ExSM);
-  } else if (win_width < 780 && win_width > 480) {
-    TTF_SetFontSize(*font, SM);
-  } else if (win_width < 1280 && win_width > 780) {
-    TTF_SetFontSize(*font, MED);
-  } else if (win_width < 1600 && win_width > 1280) {
-    TTF_SetFontSize(*font, LRG);
-  } else if (win_width < 1920 && win_width > 1600) {
-    TTF_SetFontSize(*font, XLRG);
-  } else {
-    TTF_SetFontSize(*font, XXLRG);
+  assert(font != NULL);
+
+  const f32 one_thousandth = 0.016;
+
+  const int MIN_FONT_SIZE = 10;
+  const int MAX_FONT_SIZE = 24;
+
+  int new_font_size = win_width * one_thousandth;
+
+  if (new_font_size > MAX_FONT_SIZE) {
+    new_font_size = MAX_FONT_SIZE;
   }
+
+  if (new_font_size < MIN_FONT_SIZE) {
+    new_font_size = MIN_FONT_SIZE;
+  }
+
+  FntPtr->context_data->font_size = new_font_size;
+
+  TTF_SetFontSize(*font, new_font_size);
 
   int file_count = FCPtr->file_state->file_count;
   if (*song_fonts_created) {

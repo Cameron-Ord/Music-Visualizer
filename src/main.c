@@ -9,6 +9,7 @@
 int
 main(int argc, char* argv[]) {
 
+/*Optional daemonize with args. Not gonna bother implementing the win32 version using create process*/
 #ifdef __linux__
   int result = 0;
   if (argc >= 2) {
@@ -36,7 +37,7 @@ main(int argc, char* argv[]) {
           PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
           exit(EXIT_FAILURE);
         }
-
+        /*Entry point*/
         result = music_player();
         exit(result);
       } else if (pid > 0) {
@@ -49,6 +50,7 @@ main(int argc, char* argv[]) {
 #endif
 
   if (argc < 2) {
+    /*Entry point*/
     int result = music_player();
     return result;
   }
@@ -58,6 +60,9 @@ main(int argc, char* argv[]) {
 
 int
 music_player() {
+  /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
+   * logging*/
+  setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -196,8 +201,9 @@ music_player() {
   printf("Cores : %d\n", cores);
 #endif
 
+/*Dunno the win32 equivalent to sysconf so just setting 4 threads*/
 #ifdef _WIN32
-  int cores = 3;
+  int cores = 4;
 #endif
 
   /*I will write a fallback later, first priority is just getting this to work*/
@@ -224,6 +230,8 @@ music_player() {
   SDLChunk.FTPtr  = &FTransform;
   SDLChunk.FCPtr  = &FileChunk;
 
+  /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
+
   update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk);
 
@@ -242,6 +250,8 @@ music_player() {
 
     poll_events(&SDLChunk);
   }
+
+  /*Clean up*/
 
   if (SDLChunk.w) {
     SDL_DestroyRenderer(SDLChunk.r);

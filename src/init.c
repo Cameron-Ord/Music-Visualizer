@@ -59,7 +59,7 @@ initialize_TTF() {
 
 int
 open_font(TTFData* cntxtdata) {
-  cntxtdata->font = TTF_OpenFont(FONT_PATH, LRG);
+  cntxtdata->font = TTF_OpenFont(FONT_PATH, cntxtdata->font_size);
   if (cntxtdata->font == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return -1;
@@ -77,6 +77,7 @@ baseline_context_data(TTFData* cntxt) {
   memset(&cntxt->color, 0, sizeof(SDL_Color));
   cntxt->font      = NULL;
   cntxt->font_path = FONT_PATH;
+  cntxt->font_size = 16;
 }
 
 void
