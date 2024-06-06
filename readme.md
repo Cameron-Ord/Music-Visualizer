@@ -50,13 +50,18 @@ The program relies on directories located in the **~/Music dir located in the ho
 - SDL2 ```sudo apt install libsdl2-dev```
 - libsndfile ```sudo apt install libsndfile1``` 
 - SDL_ttf ```sudo apt install libsdl2-ttf-dev```                  
-- Clang ```sudo apt install clang```
 
 ## Building
 - ```git clone https://github.com/Cameron-Ord/fft_music_visualizer``` 
 
-- run ```make``` to compile a binary to the build folder.
-- run ```sudo make install``` to place binaries and required fonts in ```/usr/local/bin``` and ```/usr/share/fonts/truetype/roboto/```
+> MinGW x86_64 is required to build the windows binary
+
+> Clang or GCC is required to build the linux binary
+
+I'm using make for this project. I don't think mingw-make will work out of the box(if you're on windows). Building is as simple as running make linux or make windows. Binarys and their required files will be placed in either LINUX or WINDOWS directories.
+
+
+
 
 ## Uninstallation
 
