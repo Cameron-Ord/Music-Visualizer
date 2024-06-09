@@ -45,11 +45,13 @@ generate_visual(FourierTransform* FT) {
   f32*  in_cpy  = FT->fft_buffers->in_cpy;
   f32c* out_raw = FT->fft_buffers->out_raw;
 
+  /*in cpy gets memcpy'd so not 100% necessary, but still good practice to just ensure buffers are cleared
+   * before using them.*/
   memset(in_cpy, 0, sizeof(f32) * BUFF_SIZE);
   memset(out_raw, 0, sizeof(f32c) * BUFF_SIZE);
 
   calc_hann_window_threads(FT);
-  fft_func(in_cpy, 1, out_raw, BUFF_SIZE);
+  fft_func(in_cpy, 1, out_raw, (size_t)BUFF_SIZE);
   squash_to_log((size_t)(BUFF_SIZE / 2), FT);
   apply_smoothing(FT);
 
@@ -133,7 +135,7 @@ apply_smoothing(FourierTransform* FT) {
   f32* processed = ftbuf->processed;
   f32* smoothed  = ftbuf->smoothed;
   /*Linear smoothing*/
-  for (int i = 0; i < ftdata->output_len; ++i) {
+  for (size_t i = 0; i < ftdata->output_len; ++i) {
     processed[i] /= ftdata->max_ampl;
     smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
   }

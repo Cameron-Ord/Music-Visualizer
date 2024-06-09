@@ -129,7 +129,7 @@ hann_window_worker(void* arg) {
 void
 calc_hann_window_threads(FourierTransform* FT) {
   WindowWorker* winwkr = FT->winwkr;
-  int           cores  = (winwkr->cores / 2);
+  int           cores  = winwkr->cores;
   int           chunk  = BUFF_SIZE / cores;
 
   f32* fft_in = FT->fft_buffers->fft_in;

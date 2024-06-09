@@ -106,8 +106,10 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
   printf("--FRAMES :  %ld\n", sfinfo.frames);
 #endif
 
-  Aud->samples = sfinfo.frames * sfinfo.channels;
-  Aud->buffer  = realloc(Aud->buffer, Aud->samples * sizeof(float));
+  Aud->samples     = sfinfo.frames * sfinfo.channels;
+  Aud->total_bytes = Aud->samples * sizeof(f32);
+
+  Aud->buffer = realloc(Aud->buffer, Aud->samples * sizeof(float));
   if (Aud->buffer == NULL) {
     return -1;
   }
@@ -125,10 +127,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
   Aud->wav_len = Aud->samples;
 
-  float DSf               = (float)BUFF_SIZE / FT->fft_data->DS_AMOUNT;
-  FT->fft_data->freq_step = (float)Aud->sr / DSf;
   printf("\n..Done reading. Closing file\n\n");
-
   sf_close(sndfile);
 
   return 0;

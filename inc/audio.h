@@ -11,15 +11,15 @@
 typedef enum { MAX_BUFFER_DS = (1 << 5), MIN_BUFFER_DS = (1 << 2), DEFAULT_DS = (1 << 2) } DOWNSAMPLING_BINDS;
 
 struct AudioData {
-  f32* buffer;
-  u32  wav_len;
-  u32  audio_pos;
-  i8   channels;
-  int  sr;
-  int  format;
-  int  samples;
-  int  total_bytes;
-  f32  volume;
+  f32*   buffer;
+  u32    wav_len;
+  u32    audio_pos;
+  i8     channels;
+  int    sr;
+  int    format;
+  size_t samples;
+  size_t total_bytes;
+  f32    volume;
 };
 
 struct PlaybackState {
@@ -67,10 +67,8 @@ struct FTransformBuffers {
 };
 
 struct FTransformData {
-  f32       freq_step;
-  int       DS_AMOUNT;
   int       cell_width;
-  int       output_len;
+  size_t    output_len;
   f32       max_ampl;
   i8        buffers_ready;
   i8        currently_renderering;
