@@ -31,4 +31,3 @@ void  destroy_window_workers(WindowWorker* winwkr, int cores);
 int   instantiate_win_worker(WindowWorker* winwkr, int cores);
 
 #endif
-

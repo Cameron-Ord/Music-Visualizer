@@ -1,7 +1,6 @@
 #include "../inc/audio.h"
 #include "../inc/macro.h"
 #include "../inc/threads.h"
-#include <assert.h>
 #include <complex.h>
 #include <math.h>
 #include <string.h>
@@ -11,33 +10,25 @@
 #endif
 
 void
-fft_func(float in[], size_t stride, float _Complex out[], size_t n) {
+fft_func(f32* in, size_t stride, f32c* out, size_t n) {
   // assert(n > 0);
   if (n == 1) {
     out[0] = in[0];
     return;
   }
 
-  //  v = o*x
-  //  out = e - o*x e + o*x e e| e + o*x o - o*x o o
-
-  /*Getting half the passed size argument*/
   size_t half_n = n / 2;
 
-  /*Local buffers that get passed back recursively*/
-  f32c even_out[BUFF_SIZE];
-  f32c odd_out[BUFF_SIZE];
-
-  // recursively call the function passing the modified values
-  fft_func(in, stride * 2, even_out, half_n);
-  fft_func(in + stride, stride * 2, odd_out, half_n);
-
-  // Combine the results into the out buffer
-  for (size_t k = 0; k < half_n; ++k) {
+  fft_func(in, stride * 2, out, half_n);
+  fft_func(in + stride, stride * 2, out + half_n, half_n);
+  // v = o*x
+  // out = e - o*x e + o*x e e| e + o*x o - o*x o o
+  for (size_t k = 0; k < n / 2; ++k) {
     float t         = (float)k / n;
-    f32c  twiddle   = cexpf(-2 * I * M_PI * t) * odd_out[k];
-    out[k]          = even_out[k] + twiddle;
-    out[k + half_n] = even_out[k] - twiddle;
+    f32c  v         = cexpf(-2 * I * M_PI * t) * out[k + half_n];
+    f32c  e         = out[k];
+    out[k]          = e + v;
+    out[k + half_n] = e - v;
   }
 
 } /*fft_func*/
@@ -51,8 +42,11 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FourierTransform* FT) {
-  float*          in_cpy  = FT->fft_buffers->in_cpy;
-  float _Complex* out_raw = FT->fft_buffers->out_raw;
+  f32*  in_cpy  = FT->fft_buffers->in_cpy;
+  f32c* out_raw = FT->fft_buffers->out_raw;
+
+  memset(in_cpy, 0, sizeof(f32) * BUFF_SIZE);
+  memset(out_raw, 0, sizeof(f32c) * BUFF_SIZE);
 
   calc_hann_window_threads(FT);
   fft_func(in_cpy, 1, out_raw, BUFF_SIZE);

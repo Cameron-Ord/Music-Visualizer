@@ -112,7 +112,7 @@ void              squash_to_log(size_t size, FourierTransform* FT);
 float             amp(float _Complex z);
 void              generate_visual(FourierTransform* FT);
 void              low_pass(float* log_values, int size, float cutoff, int SR);
-void              fft_func(float in[], size_t stride, float _Complex out[], size_t n);
+void              fft_func(f32* in, size_t stride, f32c* out, size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
 void              create_hann_window(FourierTransform* FT);
 void              baseline_fft_values(FTransformData* data);
