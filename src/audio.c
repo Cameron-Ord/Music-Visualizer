@@ -13,7 +13,6 @@ callback(void* data, Uint8* stream, int len) {
   u32* wav_len   = &Aud->wav_len;
   u32* audio_pos = &Aud->audio_pos;
   f32* buf       = Aud->buffer;
-  i8   fftrdy    = FTPtr->fft_data->fft_ready;
 
   u32 remaining = (*wav_len - *audio_pos);
 
@@ -27,7 +26,7 @@ callback(void* data, Uint8* stream, int len) {
 
   // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
 
-  if (check_pos(*audio_pos, *wav_len) && render_await(fftrdy)) {
+  if (check_pos(*audio_pos, *wav_len)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
 
@@ -174,15 +173,6 @@ print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev) {
 }
 
 void
-zero_buffers(FTransformBuffers* FTBuf) {
-  memset(FTBuf->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
-  memset(FTBuf->in_cpy, 0, BUFF_SIZE * sizeof(float _Complex));
-  memset(FTBuf->out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
-  memset(FTBuf->processed, 0, (BUFF_SIZE / 2) * sizeof(float));
-  memset(FTBuf->smoothed, 0, (BUFF_SIZE / 2) * sizeof(float));
-}
-
-void
 reset_playback_variables(AudioData* Aud, PlaybackState* PBste, FTransformData* FTData) {
   Aud->audio_pos           = 0;
   Aud->wav_len             = 0;
@@ -206,9 +196,7 @@ load_song(SDLContext* SDLC) {
   i8  hard_stop     = SDLC->SSPtr->pb_state->hard_stop;
   i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
   i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;
-  i8* fft_ready     = &SDLC->FTPtr->fft_data->fft_ready;
 
-  *fft_ready     = FALSE;
   *song_ended    = FALSE;
   *buffers_ready = FALSE;
 
@@ -239,9 +227,8 @@ load_song(SDLContext* SDLC) {
   print_spec_data(SDLC->spec, SDLC->audio_dev);
   play_song(FSPtr, &SDLC->SSPtr->pb_state->is_paused, &SDLC->audio_dev);
   start_song(&SS->pb_state->playing_song);
-  zero_buffers(FT->fft_buffers);
+  instantiate_buffers(FT->fft_buffers);
   *buffers_ready = TRUE;
-  *fft_ready     = TRUE;
 }
 
 void

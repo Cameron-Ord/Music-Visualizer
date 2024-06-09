@@ -1,6 +1,7 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
 #include "../inc/music_visualizer.h"
+#include "../inc/threads.h"
 #include <complex.h>
 
 void*
@@ -54,17 +55,15 @@ render_bars(SDLContext* SDLC) {
 
   f32* out        = SDLC->FTPtr->fft_buffers->smoothed;
   i16  cell_width = viewport.w / out_len;
-
-  int h = viewport.h;
+  int  h          = viewport.h;
 
   for (int i = 0; i < out_len; ++i) {
     float t          = out[i];
-    int   bar_width  = (int)cell_width;
     int   x_pos      = (i * (int)(cell_width + cell_width / 2));
     int   y_pos      = h - ((float)h * t);
     int   bar_height = (float)h * t;
 
-    SDL_Rect sample_plus = { x_pos, y_pos, bar_width, bar_height };
+    SDL_Rect sample_plus = { x_pos, y_pos, cell_width, bar_height };
 
     SDL_SetRenderDrawColor(SDLC->r, 189, 147, 249, 0);
     SDL_RenderFillRect(SDLC->r, &sample_plus);

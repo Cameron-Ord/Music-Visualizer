@@ -32,7 +32,7 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->termination_flag = FALSE;
   winwkr->cycle_complete   = FALSE;
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_BUFF);
-  memset(winwkr->out_buff, 0, sizeof(f32) * BUFF_SIZE);
+  memset(winwkr->out_buff, 0, sizeof(f32) * DOUBLE_BUFF);
   pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
   pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused);
   return 0;
@@ -96,22 +96,14 @@ hann_window_worker(void* arg) {
     }
 
     pthread_mutex_lock(&hann_t->mutex);
-    hann_t->cycle_complete = FALSE;
     for (int i = hann_t->start; i < hann_t->end; ++i) {
       // hann window to reduce spectral leakage before passing it to FFT
-      float Nf   = (float)BUFF_SIZE;
+      float Nf   = (float)DOUBLE_BUFF;
       float t    = (float)i / (Nf - 1);
       float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
-
-      /*Accessing interleaved stereo audio*/
-      hann_t->in_buff[i * 2] *= hamm;
-      hann_t->in_buff[i * 2 + 1] *= hamm;
-
-      /*After both channels are windowed, we sum them and divide the addition by 2*/
-      f32 sum             = hann_t->in_buff[i * 2] + hann_t->in_buff[i * 2 + 1];
-      hann_t->out_buff[i] = sum / 2;
+      hann_t->in_buff[i] *= hamm;
+      hann_t->out_buff[i] = hann_t->in_buff[i];
     }
-    hann_t->cycle_complete = TRUE;
     pthread_mutex_unlock(&hann_t->mutex);
 
     if (!hann_t->paused) {
@@ -129,8 +121,8 @@ hann_window_worker(void* arg) {
 void
 calc_hann_window_threads(FourierTransform* FT) {
   WindowWorker* winwkr = FT->winwkr;
-  int           cores  = winwkr->cores;
-  int           chunk  = BUFF_SIZE / cores;
+  int           cores  = winwkr->cores / 2;
+  int           chunk  = DOUBLE_BUFF / cores;
 
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* cpy    = FT->fft_buffers->in_cpy;
@@ -150,7 +142,6 @@ calc_hann_window_threads(FourierTransform* FT) {
     int  start = winwkr[i].start;
     int  end   = winwkr[i].end;
 
-    /*Direct memcpy the exact portions we want to stitch the buffer together*/
     memcpy(cpy + start, buff + start, sizeof(f32) * end);
   }
 }

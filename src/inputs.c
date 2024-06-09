@@ -160,7 +160,7 @@ handle_mouse_release(SDLContext* SDLC) {
   if (PBSte->playing_song && SKBar->latched) {
     SKBar->latched = FALSE;
     play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
-    zero_buffers(FTPtr->fft_buffers);
+    instantiate_buffers(FTPtr->fft_buffers);
   }
 
   if (PBSte->playing_song && VBar->latched) {

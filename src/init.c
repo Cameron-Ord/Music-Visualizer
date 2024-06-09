@@ -145,6 +145,7 @@ void
 baseline_fft_values(FTransformData* data) {
   data->buffers_ready = FALSE;
   data->fft_ready     = FALSE;
+  data->prev_rendered = FALSE;
   data->cell_width    = 0;
   data->output_len    = 0;
   data->max_ampl      = 1.0f;
@@ -152,11 +153,11 @@ baseline_fft_values(FTransformData* data) {
 
 void
 instantiate_buffers(FTransformBuffers* bufs) {
-  memset(bufs->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
-  memset(bufs->in_cpy, 0, BUFF_SIZE * sizeof(float _Complex));
-  memset(bufs->out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
-  memset(bufs->processed, 0, (BUFF_SIZE / 2) * sizeof(float));
-  memset(bufs->smoothed, 0, (BUFF_SIZE / 2) * sizeof(float));
+  memset(bufs->fft_in, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->in_cpy, 0, DOUBLE_BUFF * sizeof(f32));
+  memset(bufs->out_raw, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->processed, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->smoothed, 0, (DOUBLE_BUFF) * sizeof(f32));
 }
 
 void

@@ -60,10 +60,11 @@ struct SongState {
 
 struct FTransformBuffers {
   f32  fft_in[DOUBLE_BUFF];
-  f32  in_cpy[BUFF_SIZE];
-  f32c out_raw[BUFF_SIZE];
-  f32  processed[HALF_BUFF];
-  f32  smoothed[HALF_BUFF];
+  f32  in_cpy[DOUBLE_BUFF];
+  f32c out_raw[DOUBLE_BUFF];
+  f32  processed[DOUBLE_BUFF];
+  f32  smoothed[DOUBLE_BUFF];
+  f32c out_clone[DOUBLE_BUFF];
 };
 
 struct FTransformData {
@@ -71,6 +72,7 @@ struct FTransformData {
   size_t    output_len;
   f32       max_ampl;
   i8        buffers_ready;
+  i8        prev_rendered;
   i8        currently_renderering;
   i8        fft_ready;
   SDL_Rect* rect_buff;

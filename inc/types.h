@@ -1,8 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
-#include <inttypes.h>
 #include "macro.h"
 #include <complex.h>
+#include <inttypes.h>
 
 typedef uint8_t  u8;
 typedef uint16_t u16;

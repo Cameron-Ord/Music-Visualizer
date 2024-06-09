@@ -36,13 +36,13 @@ struct SDLContext {
   SDL_AudioSpec            spec;
   SDL_AudioDeviceID        audio_dev;
   i8                       running;
+  SDL_Rect                 vis_rect;
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
   struct FourierTransform* FTPtr;
   struct FileContext*      FCPtr;
   struct FontContext*      FntPtr;
   struct SongState*        SSPtr;
-  SDL_Rect                 vis_rect;
 };
 
 struct DirState {
@@ -74,7 +74,6 @@ int       make_directory(char* path, mode_t mode);
 void      clear_files(FileContext* FCPtr);
 void      clear_dirs(FileContext* FCPtr);
 void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);
-void      zero_buffers(FTransformBuffers* FTBuf);
 void      reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
 void*     free_ptr(void* ptr);
 void      update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w);
