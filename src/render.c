@@ -58,7 +58,7 @@ render_bars(SDLContext* SDLC) {
   int  h          = viewport.h;
 
   for (int i = 0; i < out_len; ++i) {
-    float t          = out[i];
+    float t          = out[i + out_len];
     int   x_pos      = (i * (int)(cell_width + cell_width / 2));
     int   y_pos      = h - ((float)h * t);
     int   bar_height = (float)h * t;

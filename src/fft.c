@@ -53,6 +53,12 @@ generate_visual(FourierTransform* FT) {
   // create_hann_window(FT);
   fft_func(in_cpy, 1, out_raw, (size_t)DOUBLE_BUFF);
   squash_to_log((size_t)(DOUBLE_BUFF / 2), FT);
+
+  f32*   smoothed = FT->fft_buffers->smoothed;
+  size_t len      = FT->fft_data->output_len;
+
+  memmove(smoothed + len, smoothed, sizeof(f32) * len);
+
   apply_smoothing(FT);
 
 } /*generate_visual*/
@@ -136,6 +142,6 @@ apply_smoothing(FourierTransform* FT) {
   /*Linear smoothing*/
   for (size_t i = 0; i < ftdata->output_len; ++i) {
     processed[i] /= ftdata->max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 6 * (1.0 / FPS);
+    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
   }
 }

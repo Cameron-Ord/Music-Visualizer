@@ -158,6 +158,8 @@ instantiate_buffers(FTransformBuffers* bufs) {
   memset(bufs->out_raw, 0, DOUBLE_BUFF * sizeof(f32c));
   memset(bufs->processed, 0, (DOUBLE_BUFF) * sizeof(f32));
   memset(bufs->smoothed, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->out_smoothed, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->out_prev, 0, (DOUBLE_BUFF) * sizeof(f32));
 }
 
 void
