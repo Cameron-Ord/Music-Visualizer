@@ -9,9 +9,9 @@
 #include <string.h>
 
 int
-create_window_workers(WindowWorker* winwkr, int cores) {
-  for (int i = 0; i < cores; i++) {
-    int err = instantiate_win_worker(&winwkr[i], cores);
+create_window_workers(WindowWorker* winwkr) {
+  for (int i = 0; i < WIN_THREAD_COUNT; i++) {
+    int err = instantiate_win_worker(&winwkr[i]);
     if (err < 0) {
       return -1;
     }
@@ -20,10 +20,7 @@ create_window_workers(WindowWorker* winwkr, int cores) {
 }
 
 int
-instantiate_win_worker(WindowWorker* winwkr, int cores) {
-  winwkr->thread           = NULL;
-  winwkr->thread           = malloc(sizeof(pthread_t));
-  winwkr->cores            = cores;
+instantiate_win_worker(WindowWorker* winwkr) {
   winwkr->start            = 0;
   winwkr->end              = 0;
   winwkr->cond             = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
@@ -33,16 +30,16 @@ instantiate_win_worker(WindowWorker* winwkr, int cores) {
   winwkr->cycle_complete   = FALSE;
   memset(winwkr->in_buff, 0, sizeof(f32) * DOUBLE_BUFF);
   memset(winwkr->out_buff, 0, sizeof(f32) * DOUBLE_BUFF);
-  pthread_create(winwkr->thread, NULL, hann_window_worker, winwkr);
+  pthread_create(&winwkr->thread, NULL, hann_window_worker, winwkr);
   pause_thread(&winwkr->cond, &winwkr->mutex, &winwkr->paused);
   return 0;
 }
 
 void
-destroy_window_workers(WindowWorker* winwkr, int cores) {
-  for (int i = 0; i < cores; i++) {
+destroy_window_workers(WindowWorker* winwkr) {
+  for (int i = 0; i < WIN_THREAD_COUNT; i++) {
     mark_for_termination(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].termination_flag);
-    join_thread(winwkr[i].thread);
+    join_thread(&winwkr[i].thread);
   }
 }
 
@@ -120,28 +117,29 @@ hann_window_worker(void* arg) {
 
 void
 calc_hann_window_threads(FourierTransform* FT) {
-  WindowWorker* winwkr = FT->winwkr;
-  int           cores  = winwkr->cores / 2;
-  int           chunk  = DOUBLE_BUFF / cores;
+  int chunk = DOUBLE_BUFF / WIN_THREAD_COUNT;
 
   f32* fft_in = FT->fft_buffers->fft_in;
   f32* cpy    = FT->fft_buffers->in_cpy;
 
-  for (int i = 0; i < cores; ++i) {
-    winwkr[i].start = (i * chunk);
-    winwkr[i].end   = (i + 1) * chunk;
+  for (int i = 0; i < WIN_THREAD_COUNT; ++i) {
+    FT->window_worker[i].start = (i * chunk);
+    FT->window_worker[i].end   = (i + 1) * chunk;
 
-    memcpy(winwkr[i].in_buff, fft_in, sizeof(f32) * DOUBLE_BUFF);
-    resume_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
+    int start = FT->window_worker[i].start;
+    int end   = FT->window_worker[i].end;
+
+    memcpy(FT->window_worker[i].in_buff + start, fft_in + start, sizeof(f32) * chunk);
+    resume_thread(&FT->window_worker[i].cond, &FT->window_worker[i].mutex, &FT->window_worker[i].paused);
   }
 
-  for (int i = 0; i < cores; ++i) {
-    pause_thread(&winwkr[i].cond, &winwkr[i].mutex, &winwkr[i].paused);
+  for (int i = 0; i < WIN_THREAD_COUNT; ++i) {
+    pause_thread(&FT->window_worker[i].cond, &FT->window_worker[i].mutex, &FT->window_worker[i].paused);
 
-    f32* buff  = winwkr[i].out_buff;
-    int  start = winwkr[i].start;
-    int  end   = winwkr[i].end;
+    f32* buf   = FT->window_worker[i].out_buff;
+    int  start = FT->window_worker[i].start;
+    int  end   = FT->window_worker[i].end;
 
-    memcpy(cpy + start, buff + start, sizeof(f32) * end);
+    memcpy(cpy + start, buf + start, sizeof(f32) * chunk);
   }
 }

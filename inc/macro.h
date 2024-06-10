@@ -4,7 +4,7 @@
 #define DOUBLE_BUFF (BUFF_SIZE * 2)
 #define HALF_BUFF (BUFF_SIZE / 2)
 #define HALF_DOUBLE (DOUBLE_BUFF / 2)
-
+#define WIN_THREAD_COUNT 4
 #define PRINT_SDL_ERR(stream, msg) fprintf(stream, "%s\n", msg)
 #define PRINT_STR_ERR(stream, context, msg) fprintf(stream, "%s : %s\n", context, msg)
 #define SCROLLBAR_WIDTH 24

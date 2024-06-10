@@ -51,7 +51,10 @@ generate_visual(FourierTransform* FT) {
 
   calc_hann_window_threads(FT);
   // create_hann_window(FT);
-  fft_func(in_cpy, 1, out_raw, (size_t)DOUBLE_BUFF);
+
+  fft_func(in_cpy, 2, out_raw, (size_t)BUFF_SIZE);
+  fft_func(in_cpy + BUFF_SIZE, 2, out_raw + BUFF_SIZE, (size_t)BUFF_SIZE);
+
   squash_to_log((size_t)(DOUBLE_BUFF / 2), FT);
 
   f32*   smoothed = FT->fft_buffers->smoothed;
@@ -60,7 +63,6 @@ generate_visual(FourierTransform* FT) {
   memmove(smoothed + len, smoothed, sizeof(f32) * len);
 
   apply_smoothing(FT);
-
 } /*generate_visual*/
 
 /*This function is used when there is no multithreading. Currently it is not set up to fallback to this if
@@ -75,11 +77,10 @@ create_hann_window(FourierTransform* FT) {
     float Nf = (float)DOUBLE_BUFF;
     float t  = (float)i / (Nf - 1);
     /*Calculate the hann window*/
-    float hann = 0.5 - 0.5 * cosf(2 * M_PI * t);
+    float hann = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
     in[i] *= hann;
 
-    /*Sum the channels and divide by 2*/
     in_cpy[i] = in[i];
   }
 }
@@ -115,7 +116,7 @@ squash_to_log(size_t size, FourierTransform* FT) {
 }
 
 float
-amp(float _Complex z) {
+amp(f32c z) {
   float a = fabsf(crealf(z));
   float b = fabsf(cimagf(z));
   return logf(a * a + b * b);

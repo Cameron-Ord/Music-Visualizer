@@ -1,6 +1,7 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 #include "macro.h"
+#include "threads.h"
 #include "types.h"
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_render.h>
@@ -82,8 +83,7 @@ struct FTransformData {
 struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
-  struct WindowWorker*      winwkr;
-  struct FFTWorker*         fftwkr;
+  struct WindowWorker*      window_worker;
 };
 
 void              audio_switch(SDL_AudioDeviceID dev, int status);

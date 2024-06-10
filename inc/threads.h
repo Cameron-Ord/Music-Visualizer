@@ -8,8 +8,7 @@
 #include <stdio.h>
 
 struct WindowWorker {
-  pthread_t*      thread;
-  int             cores;
+  pthread_t       thread;
   f32             in_buff[DOUBLE_BUFF];
   f32             out_buff[DOUBLE_BUFF];
   int             start;
@@ -27,7 +26,7 @@ void  pause_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_sta
 void  resume_thread(pthread_cond_t* cond, pthread_mutex_t* mutex, int* thread_state);
 void  join_thread(pthread_t* context);
 void  mark_for_termination(pthread_cond_t* cond, pthread_mutex_t* mutex, int* flag);
-int   create_window_workers(WindowWorker* winwkr, int cores);
-void  destroy_window_workers(WindowWorker* winwkr, int cores);
-int   instantiate_win_worker(WindowWorker* winwkr, int cores);
+int   create_window_workers(WindowWorker* winwkr);
+void  destroy_window_workers(WindowWorker* winwkr);
+int   instantiate_win_worker(WindowWorker* winwkr);
 #endif

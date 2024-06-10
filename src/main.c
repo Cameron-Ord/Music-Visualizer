@@ -62,7 +62,7 @@ int
 music_player() {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
-  setup_dirs();
+  // setup_dirs();
   SDLContext SDLChunk;
 
   SDLContainer SDLContainer;
@@ -170,7 +170,6 @@ music_player() {
 
   FTransformData    FTransData;
   FTransformBuffers FTransBufs;
-  FTransform.winwkr = NULL;
 
   baseline_fft_values(&FTransData);
   instantiate_buffers(&FTransBufs);
@@ -194,36 +193,16 @@ music_player() {
   AudioChunk.audio_data = &ADta;
   AudioChunk.vol_bar    = &VLBar;
 
-  WindowWorker* winwkr = NULL;
+  WindowWorker window_worker[WIN_THREAD_COUNT];
 
-#ifdef __linux__
-  int cores = sysconf(_SC_NPROCESSORS_ONLN);
-  printf("Cores : %d\n", cores);
-#endif
-
-/*Dunno the win32 equivalent to sysconf so just setting 4 threads*/
-#ifdef _WIN32
-  int cores = 4;
-#endif
-
-  /*I will write a fallback later, first priority is just getting this to work*/
-  winwkr = malloc(sizeof(WindowWorker) * cores);
-  if (winwkr == NULL) {
-    PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
-                  strerror(errno));
-    return 1;
-  }
-
-  winwkr->thread = NULL;
-
-  err = create_window_workers(winwkr, cores);
+  err = create_window_workers(window_worker);
   if (err < 0) {
     PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
                   strerror(errno));
     return 1;
   }
 
-  FTransform.winwkr = winwkr;
+  FTransform.window_worker = window_worker;
 
   SDLChunk.FntPtr = &FontChunk;
   SDLChunk.SSPtr  = &AudioChunk;
@@ -272,14 +251,7 @@ music_player() {
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FileChunk);
   clear_dirs(&FileChunk);
-
-  destroy_window_workers(winwkr, cores);
-
-  for (int i = 0; i < cores; i++) {
-    winwkr[i].thread = free_ptr(winwkr[i].thread);
-  }
-
-  winwkr = free_ptr(winwkr);
+  destroy_window_workers(window_worker);
 
   ADta.buffer = free_ptr(ADta.buffer);
 
