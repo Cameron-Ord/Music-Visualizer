@@ -61,12 +61,9 @@ struct SongState {
 
 struct FTransformBuffers {
   f32  fft_in[DOUBLE_BUFF];
-  f32  in_cpy[DOUBLE_BUFF];
   f32c out_raw[DOUBLE_BUFF];
   f32  processed[DOUBLE_BUFF];
   f32  smoothed[DOUBLE_BUFF];
-  f32  out_smoothed[DOUBLE_BUFF];
-  f32  out_prev[DOUBLE_BUFF];
 };
 
 struct FTransformData {

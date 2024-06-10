@@ -46,14 +46,16 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FourierTransform* FT) {
-  f32*  in_cpy  = FT->fft_buffers->in_cpy;
   f32c* out_raw = FT->fft_buffers->out_raw;
+  f32*  fft_in  = FT->fft_buffers->fft_in;
 
   calc_hann_window_threads(FT);
   // create_hann_window(FT);
 
-  fft_func(in_cpy, 2, out_raw, (size_t)BUFF_SIZE);
-  fft_func(in_cpy + BUFF_SIZE, 2, out_raw + BUFF_SIZE, (size_t)BUFF_SIZE);
+  fft_func(fft_in, 4, out_raw, (size_t)BUFF_SIZE / 2);
+  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
+  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
+  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
 
   squash_to_log((size_t)(DOUBLE_BUFF / 2), FT);
 
@@ -69,8 +71,7 @@ generate_visual(FourierTransform* FT) {
  * there is an issue with the multithreading, so I have to implement that*/
 void
 create_hann_window(FourierTransform* FT) {
-  f32* in_cpy = FT->fft_buffers->in_cpy;
-  f32* in     = FT->fft_buffers->fft_in;
+  f32* in = FT->fft_buffers->fft_in;
 
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < DOUBLE_BUFF; ++i) {
@@ -80,8 +81,6 @@ create_hann_window(FourierTransform* FT) {
     float hann = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
     in[i] *= hann;
-
-    in_cpy[i] = in[i];
   }
 }
 

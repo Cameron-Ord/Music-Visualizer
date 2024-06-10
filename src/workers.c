@@ -120,14 +120,12 @@ calc_hann_window_threads(FourierTransform* FT) {
   int chunk = DOUBLE_BUFF / WIN_THREAD_COUNT;
 
   f32* fft_in = FT->fft_buffers->fft_in;
-  f32* cpy    = FT->fft_buffers->in_cpy;
 
   for (int i = 0; i < WIN_THREAD_COUNT; ++i) {
     FT->window_worker[i].start = (i * chunk);
     FT->window_worker[i].end   = (i + 1) * chunk;
 
     int start = FT->window_worker[i].start;
-    int end   = FT->window_worker[i].end;
 
     memcpy(FT->window_worker[i].in_buff + start, fft_in + start, sizeof(f32) * chunk);
     resume_thread(&FT->window_worker[i].cond, &FT->window_worker[i].mutex, &FT->window_worker[i].paused);
@@ -138,8 +136,7 @@ calc_hann_window_threads(FourierTransform* FT) {
 
     f32* buf   = FT->window_worker[i].out_buff;
     int  start = FT->window_worker[i].start;
-    int  end   = FT->window_worker[i].end;
 
-    memcpy(cpy + start, buf + start, sizeof(f32) * chunk);
+    memcpy(fft_in + start, buf + start, sizeof(f32) * chunk);
   }
 }
