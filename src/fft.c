@@ -1,6 +1,5 @@
 #include "../inc/audio.h"
 #include "../inc/macro.h"
-#include "../inc/threads.h"
 #include <complex.h>
 #include <math.h>
 #include <string.h>
@@ -45,22 +44,19 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 } /*fft_push*/
 
 void
-generate_visual(FourierTransform* FT) {
-  f32c* out_raw = FT->fft_buffers->out_raw_prim;
-  f32*  in_cpy  = FT->fft_buffers->in_cpy_prim;
-  create_hann_window(FT);
-  fft_func(in_cpy, 1, out_raw, (size_t)BUFF_SIZE);
-  squash_to_log((size_t)(BUFF_SIZE / 2), FT);
-  apply_smoothing(FT);
+generate_visual(FTransformData* data, FTransformBuffers* bufs) {
+  const size_t half_size = (size_t)BUFF_SIZE / 2;
+  create_hann_window(bufs->fft_in_prim, bufs->in_cpy_prim);
+  fft_func(bufs->in_cpy_prim, 1, bufs->out_raw_prim, (size_t)BUFF_SIZE);
+  squash_to_log(half_size, bufs->out_raw_prim, bufs->processed_prim, &data->max_ampl, &data->output_len);
+  apply_smoothing(data->output_len, data->max_ampl, bufs->processed_prim, bufs->smoothed_prim);
 } /*generate_visual*/
 
 /*This function is used when there is no multithreading. Currently it is not set up to fallback to this if
  * there is an issue with the multithreading, so I have to implement that*/
 void
-create_hann_window(FourierTransform* FT) {
-  f32* in  = FT->fft_buffers->fft_in_prim;
-  f32* cpy = FT->fft_buffers->in_cpy_prim;
-  memcpy(cpy, in, sizeof(f32) * DOUBLE_BUFF);
+create_hann_window(f32* fft_in, f32* in_cpy) {
+  memcpy(in_cpy, fft_in, sizeof(f32) * DOUBLE_BUFF);
 
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
@@ -69,41 +65,37 @@ create_hann_window(FourierTransform* FT) {
     /*Calculate the hann window*/
     float hann = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
-    cpy[i * 2] *= hann;
-    cpy[i * 2 + 1] *= hann;
+    f32 left  = in_cpy[i * 2] *= hann;
+    f32 right = in_cpy[i * 2 + 1] *= hann;
 
-    cpy[i] = (cpy[i * 2] + cpy[i * 2 + 1]) / 2;
+    in_cpy[i] = (left + right) / 2;
   }
 }
 
 void
-squash_to_log(size_t size, FourierTransform* FT) {
+squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len) {
 
-  f32c* out_raw   = FT->fft_buffers->out_raw_prim;
-  f32*  processed = FT->fft_buffers->processed_prim;
-
-  float  step     = 1.06f;
-  float  lowf     = 1.0f;
-  size_t m        = 0;
-  float  max_ampl = 1.0f;
+  float  step = 1.06f;
+  float  lowf = 1.0f;
+  size_t m    = 0;
+  *max_ampl   = 1.0f;
 
   for (float f = lowf; (size_t)f < size; f = ceilf(f * step)) {
     float fs = ceilf(f * step);
     float a  = 0.0f;
     for (size_t q = (size_t)f; q < size && q < (size_t)fs; ++q) {
-      float b = amp(out_raw[q]);
+      float b = amp(raw[q]);
       if (b > a) {
         a = b;
       }
     }
-    if (max_ampl < a) {
-      max_ampl = a;
+    if (*max_ampl < a) {
+      *max_ampl = a;
     }
-    processed[m++] = a;
+    proc[m++] = a;
   }
 
-  FT->fft_data->max_ampl   = max_ampl;
-  FT->fft_data->output_len = m;
+  *len = m;
 }
 
 float
@@ -124,16 +116,10 @@ low_pass(float* input, int size, float cutoff, int SR) {
 } /*low_pass*/
 
 void
-apply_smoothing(FourierTransform* FT) {
-  FTransformBuffers* ftbuf  = FT->fft_buffers;
-  FTransformData*    ftdata = FT->fft_data;
-
-  f32* processed = ftbuf->processed_prim;
-  f32* smoothed  = ftbuf->smoothed_prim;
-
+apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed) {
   /*Linear smoothing*/
-  for (size_t i = 0; i < ftdata->output_len; ++i) {
-    processed[i] /= ftdata->max_ampl;
+  for (size_t i = 0; i < len; ++i) {
+    processed[i] /= max_ampl;
     smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
   }
 }

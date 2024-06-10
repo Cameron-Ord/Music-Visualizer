@@ -170,18 +170,18 @@ clear_font_bgs(FontData* arr[], int len) {
 }
 
 void
-create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
+create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
+                   FileContext* FC) {
 
-  FontContext*  FntPtr     = SDLC->FntPtr;
   SDLContainer* SDLCntrPtr = SDLC->container;
-  DirState*     DSPtr      = SDLC->FCPtr->dir_state;
+  DirState*     DSPtr      = FC->dir_state;
 
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->dir_viewport)) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
     const int  mouse_arr[] = { mouse_x, (mouse_y - offset_y) };
     int        dir_count   = DSPtr->dir_count;
-    FontData** df_arr      = &FntPtr->df_arr;
+    FontData** df_arr      = &FNT->df_arr;
     FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);
     if (df == NULL) {
       return;
@@ -191,16 +191,16 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
     SDL_Rect bg = { df->font_rect.x - 5, 0, df->font_rect.w + 10, df->font_rect.h + 10 };
     df->font_bg = bg;
   } else {
-    clear_font_bgs(&FntPtr->df_arr, DSPtr->dir_count);
+    clear_font_bgs(&FNT->df_arr, DSPtr->dir_count);
   }
 } /*create_dir_text_bg*/
 
 void
-create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
+create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
+                    FileContext* FC) {
 
-  FontContext*  FntPtr     = SDLC->FntPtr;
   SDLContainer* SDLCntrPtr = SDLC->container;
-  FileState*    FSPtr      = SDLC->FCPtr->file_state;
+  FileState*    FSPtr      = FC->file_state;
 
   if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->song_viewport)) {
     int offset_x = SDLC->mouse->mouse_offset_x;
@@ -218,7 +218,7 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
 
     const int  mouse_arr[] = { (mouse_x - offset_x), (mouse_y - offset_y) };
     int        file_count  = FSPtr->file_count;
-    FontData** sf_arr      = &FntPtr->sf_arr;
+    FontData** sf_arr      = &FNT->sf_arr;
     FontData*  sf          = get_struct(sf_arr, mouse_arr, file_count);
     if (sf == NULL) {
       return;
@@ -228,7 +228,7 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC) {
     SDL_Rect bg = { sf->font_rect.x - 5, 0, sf->font_rect.w + 10, sf->font_rect.h + 10 };
     sf->font_bg = bg;
   } else {
-    clear_font_bgs(&FntPtr->sf_arr, FSPtr->file_count);
+    clear_font_bgs(&FNT->sf_arr, FSPtr->file_count);
   }
 } /*create_song_text_bg*/
 

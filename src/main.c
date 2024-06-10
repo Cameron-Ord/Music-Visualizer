@@ -62,8 +62,10 @@ music_player() {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
   // setup_dirs();
-  SDLContext SDLChunk;
 
+  AppContext Application;
+
+  SDLContext   SDLChunk;
   SDLContainer SDLContainer;
   SDLMouse     SDLMouse;
 
@@ -193,15 +195,25 @@ music_player() {
   AudioChunk.audio_data = &ADta;
   AudioChunk.vol_bar    = &VLBar;
 
-  SDLChunk.FntPtr = &FontChunk;
-  SDLChunk.SSPtr  = &AudioChunk;
-  SDLChunk.FTPtr  = &FTransform;
-  SDLChunk.FCPtr  = &FileChunk;
+  SDLChunk.FTPtr = &FTransform;
+  SDLChunk.SSPtr = &AudioChunk;
+
+  FTransform.SSPtr = &AudioChunk;
+  FTransform.SDLC  = &SDLChunk;
+
+  AudioChunk.FTPtr = &FTransform;
+  AudioChunk.SDLC  = &SDLChunk;
+
+  Application.SDLC   = &SDLChunk;
+  Application.FTPtr  = &FTransform;
+  Application.FCPtr  = &FileChunk;
+  Application.FntPtr = &FontChunk;
+  Application.SSPtr  = &AudioChunk;
 
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
 
   update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
-  resize_fonts(&SDLChunk);
+  resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
   float prev_time = SDL_GetTicks64();
   float current_time, delta_time;
@@ -210,14 +222,13 @@ music_player() {
     current_time = SDL_GetTicks64();
     delta_time   = current_time - prev_time;
 
-    handle_state(&SDLChunk);
-
+    handle_state(&Application);
     if (delta_time >= TICKS_PER_FRAME) {
       SDL_Delay(TICKS_PER_FRAME);
       prev_time = SDL_GetTicks64();
     }
 
-    poll_events(&SDLChunk);
+    poll_events(&Application);
   }
 
   /*Clean up*/
@@ -231,7 +242,7 @@ music_player() {
   }
 
   if (PBSte.playing_song) {
-    stop_playback(&SDLChunk);
+    stop_playback(&FState, &PBSte, &SDLChunk.audio_dev);
   }
 
   if (SDLChunk.audio_dev) {
@@ -251,9 +262,10 @@ music_player() {
 }
 
 void
-poll_events(SDLContext* SDLC) {
+poll_events(AppContext* app) {
 
-  AudioData* AD = SDLC->SSPtr->audio_data;
+  SDLContext* SDLC = app->SDLC;
+  AudioData*  AD   = app->SSPtr->audio_data;
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -269,22 +281,22 @@ poll_events(SDLContext* SDLC) {
     }
 
     case SDL_MOUSEBUTTONDOWN: {
-      handle_mouse_click(SDLC);
+      handle_mouse_click(SDLC, app->FntPtr, app->FCPtr);
       break;
     }
 
     case SDL_MOUSEBUTTONUP: {
-      handle_mouse_release(SDLC);
+      handle_mouse_release(SDLC, app->FCPtr->file_state);
       break;
     }
 
     case SDL_MOUSEMOTION: {
-      handle_mouse_motion(SDLC);
+      handle_mouse_motion(SDLC, app->FntPtr, app->FCPtr);
       break;
     }
 
     case SDL_MOUSEWHEEL: {
-      if (!SDLC->SSPtr->pb_state->playing_song) handle_mouse_wheel(e.wheel.y, SDLC);
+      if (!SDLC->SSPtr->pb_state->playing_song) handle_mouse_wheel(e.wheel.y, SDLC, app->FntPtr);
       break;
     }
 
@@ -297,7 +309,7 @@ poll_events(SDLContext* SDLC) {
       }
 
       case SDLK_r: {
-        random_song(SDLC);
+        random_song(SDLC, app->FCPtr, app->FntPtr);
         break;
       }
 
@@ -307,22 +319,22 @@ poll_events(SDLContext* SDLC) {
       }
 
       case SDLK_p: {
-        toggle_pause(SDLC);
+        toggle_pause(SDLC, app->FCPtr->file_state);
         break;
       }
 
       case SDLK_SPACE: {
-        handle_space_key(SDLC);
+        handle_space_key(SDLC, app->FntPtr, app->FCPtr);
         break;
       }
 
       case SDLK_RIGHT: {
-        next_song(SDLC);
+        next_song(SDLC, app->FntPtr, app->FCPtr);
         break;
       }
 
       case SDLK_LEFT: {
-        prev_song(SDLC);
+        prev_song(SDLC, app->FCPtr, app->FntPtr);
         break;
       }
 
@@ -343,7 +355,7 @@ poll_events(SDLContext* SDLC) {
       switch (e.window.event) {
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
         update_viewports(SDLC->container, SDLC->mouse, SDLC->w);
-        resize_fonts(SDLC);
+        resize_fonts(SDLC, app->FCPtr, app->FntPtr);
         break;
       }
       default: {

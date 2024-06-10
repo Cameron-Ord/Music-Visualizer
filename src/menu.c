@@ -52,7 +52,7 @@ reset_songlist_pos(Positions* pos) {
 } /*reset_songlist_pos*/
 
 void
-clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x, const int mouse_y) {
   SDL_Rect dir_rect     = SDLC->container->dir_viewport;
   SDL_Rect song_rect    = SDLC->container->song_viewport;
   i8       playing_song = SDLC->SSPtr->pb_state->playing_song;
@@ -66,16 +66,16 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
   case TRUE: {
     if (device_status) {
-      clicked_while_active(SDLC, mouse_x, mouse_y);
+      clicked_while_active(SDLC, FC->file_state, mouse_x, mouse_y);
     }
     break;
   }
 
   case FALSE: {
     if (point_in_rect(mouse_x, mouse_y, dir_rect)) {
-      clicked_in_dir_rect(SDLC, mouse_x, mouse_y);
+      clicked_in_dir_rect(SDLC, FNT, FC, mouse_x, mouse_y);
     } else if (point_in_rect(mouse_x, mouse_y, song_rect)) {
-      clicked_in_song_rect(SDLC, mouse_x, mouse_y);
+      clicked_in_song_rect(SDLC, FNT, FC, mouse_x, mouse_y);
     }
     break;
   }
@@ -83,19 +83,19 @@ clicked_in_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 } /*clicked_in_rect*/
 
 void
-clicked_while_active(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+clicked_while_active(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y) {
   SeekBar* SKBar = SDLC->SSPtr->seek_bar;
   VolBar*  VBar  = SDLC->SSPtr->vol_bar;
 
   if (point_in_rect(mouse_x, mouse_y, SKBar->vp)) {
-    grab_seek_bar(SDLC, mouse_x, mouse_y);
+    grab_seek_bar(SDLC, FS, mouse_x, mouse_y);
   } else if (point_in_rect(mouse_x, mouse_y, VBar->vp)) {
     grab_vol_bar(SDLC, mouse_x, mouse_y);
   }
 }
 
 void
-grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
+grab_seek_bar(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y) {
 
   SongState* SSPtr = SDLC->SSPtr;
   SeekBar*   SKBar = SSPtr->seek_bar;
@@ -110,7 +110,7 @@ grab_seek_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
   if (point_in_rect(mouse_x - (offset_diff * 0.25), mouse_y, hitbox)) {
     seek_latch_on(SKBar, TRUE);
     if (SKBar->latched) {
-      pause_song(SDLC->FCPtr->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+      pause_song(FS, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
     }
   }
 }
@@ -180,29 +180,28 @@ move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBa
 }
 
 void
-start_song_from_menu(SDLContext* SDLC) {
-  FileContext* FCPtr = SDLC->FCPtr;
-  SongState*   SSPtr = SDLC->SSPtr;
+start_song_from_menu(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
+  SongState* SSPtr = SDLC->SSPtr;
 
-  i8 files_exist  = FCPtr->file_state->files_exist;
+  i8 files_exist  = FC->file_state->files_exist;
   i8 playing_song = SSPtr->pb_state->playing_song;
 
   /*Determine the outcome based off the state of the application*/
 
   if (!playing_song && files_exist) {
-    load_song(SDLC);
+    load_song(SDLC, FC, FNT);
   } else if (playing_song && files_exist) {
-    stop_playback(SDLC);
+    stop_playback(FC->file_state, SSPtr->pb_state, &SDLC->audio_dev);
   } else {
     printf("Cannot play music: No files were found.\n");
   }
 } /*start_song_from_menu*/
 
 void
-clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
-  i8            song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
-  FileState*    FSPtr              = SDLC->FCPtr->file_state;
-  int*          file_index         = &FSPtr->file_index;
+clicked_in_song_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,
+                     const int mouse_y) {
+  i8            song_fonts_created = FNT->state->song_fonts_created;
+  int*          file_index         = &FC->file_state->file_index;
   SDLContainer* SDLCntrPtr         = SDLC->container;
 
   if (song_fonts_created) {
@@ -221,8 +220,8 @@ clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
     /*Finding the index associated with the title clicked*/
     const int  mouse_arr[]     = { (mouse_x - offset_x), (mouse_y - offset_y) };
-    int        file_count      = FSPtr->file_count;
-    FontData** sf_arr          = &SDLC->FntPtr->sf_arr;
+    int        file_count      = FC->file_state->file_count;
+    FontData** sf_arr          = &FNT->sf_arr;
     int        selection_index = find_clicked_song(sf_arr, file_count, mouse_arr);
 
     if (selection_index < 0) {
@@ -231,25 +230,24 @@ clicked_in_song_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
     /*Assigning the index, and starting the song*/
     *file_index = selection_index;
-    start_song_from_menu(SDLC);
+    start_song_from_menu(SDLC, FC, FNT);
   }
 } /*clicked_in_song_rect*/
 
 void
-clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
-  i8 song_fonts_created = SDLC->FntPtr->state->song_fonts_created;
-  i8 dir_fonts_created  = SDLC->FntPtr->state->dir_fonts_created;
+clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,
+                    const int mouse_y) {
+  i8 song_fonts_created = FNT->state->song_fonts_created;
+  i8 dir_fonts_created  = FNT->state->dir_fonts_created;
 
-  DirState*  DSPtr = SDLC->FCPtr->dir_state;
-  FileState* FSPtr = SDLC->FCPtr->file_state;
-  Positions* Pos   = SDLC->FntPtr->pos;
+  Positions* Pos = FNT->pos;
 
   if (dir_fonts_created) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
     const int  mouse_arr[] = { (mouse_x), (mouse_y - offset_y) };
-    int        dir_count   = DSPtr->dir_count;
-    FontData** df_arr      = &SDLC->FntPtr->df_arr;
+    int        dir_count   = FC->dir_state->dir_count;
+    FontData** df_arr      = &FNT->df_arr;
     /*Searching for a the directory title clicked(if any)*/
     char* selection = find_clicked_dir(df_arr, dir_count, mouse_arr);
 
@@ -260,24 +258,24 @@ clicked_in_dir_rect(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
     /*Clear any existing fonts for the song title section (if any) and reset the position variable*/
 
-    clear_existing_list(df_arr, song_fonts_created, FSPtr, selection);
+    clear_existing_list(df_arr, song_fonts_created, FC->file_state, selection);
     reset_songlist_pos(Pos);
 
     /*Getting the regular file names inside the selected directory*/
-    FSPtr->files_exist = FALSE;
+    FC->file_state->files_exist = FALSE;
 
-    int res = fetch_files(FSPtr);
+    int res = fetch_files(FC->file_state);
     if (res < 0) {
       fprintf(stderr, "Error getting files : %s\n", strerror(errno));
     } else if (res == 0) {
       fprintf(stdout, "No files found.\n");
     }
-    FSPtr->file_count = res;
+    FC->file_state->file_count = res;
 
     /*Creating the fonts if everything went well*/
     if (res > 0) {
-      FSPtr->files_exist = TRUE;
-      create_song_fonts(SDLC->FntPtr, FSPtr, SDLC->r);
+      FC->file_state->files_exist = TRUE;
+      create_song_fonts(FNT, FC->file_state, SDLC->r);
     }
   }
 } /*clicked_in_dir_rect*/
@@ -298,9 +296,9 @@ get_struct(FontData* arr[], const int mouse_arr[], int len) {
 } /*get_struct*/
 
 void
-scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, Sint32 wheel_y) {
+scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FontContext* FNT, Sint32 wheel_y) {
 
-  Positions* Pos = SDLC->FntPtr->pos;
+  Positions* Pos = FNT->pos;
 
   int* sl_pos  = &Pos->song_list_pos;
   int* dir_pos = &Pos->dir_list_pos;

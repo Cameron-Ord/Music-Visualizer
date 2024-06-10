@@ -1,7 +1,6 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
 #include "../inc/music_visualizer.h"
-#include "../inc/threads.h"
 #include <complex.h>
 
 void*
@@ -71,57 +70,47 @@ render_bars(SDLContext* SDLC) {
 }
 
 void
-render_dir_list(SDLContext* SDLC) {
+render_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count) {
   SDL_RenderSetViewport(SDLC->r, &SDLC->container->dir_viewport);
 
-  FontContext* FntPtr = SDLC->FntPtr;
-  FileContext* FCPtr  = SDLC->FCPtr;
-  Positions*   Pos    = FntPtr->pos;
-
-  int dir_count = FCPtr->dir_state->dir_count;
+  Positions* Pos = FNT->pos;
 
   int y_pos = 0;
 
   for (int i = 0; i < dir_count; i++) {
-    FntPtr->df_arr[i].font_rect.y = Pos->dir_list_pos + y_pos;
-    if (FntPtr->df_arr[i].has_bg == TRUE) {
+    FNT->df_arr[i].font_rect.y = Pos->dir_list_pos + y_pos;
+    if (FNT->df_arr[i].has_bg == TRUE) {
       /*offset the y position of the font BG to make it appear centered*/
-      FntPtr->df_arr[i].font_bg.y = (Pos->dir_list_pos - 5) + y_pos;
+      FNT->df_arr[i].font_bg.y = (Pos->dir_list_pos - 5) + y_pos;
       SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 0);
-      SDL_RenderFillRect(SDLC->r, &FntPtr->df_arr[i].font_bg);
+      SDL_RenderFillRect(SDLC->r, &FNT->df_arr[i].font_bg);
     }
 
-    y_pos += Y_OFFSET(FntPtr->context_data->font_size / 2);
-    SDL_RenderCopy(SDLC->r, FntPtr->df_arr[i].font_texture, NULL, &FntPtr->df_arr[i].font_rect);
+    y_pos += Y_OFFSET(FNT->context_data->font_size / 2);
+    SDL_RenderCopy(SDLC->r, FNT->df_arr[i].font_texture, NULL, &FNT->df_arr[i].font_rect);
   }
 }
 
 void
-render_song_list(SDLContext* SDLC) {
+render_song_list(SDLContext* SDLC, FontContext* FNT, int file_count) {
   SDL_RenderSetViewport(SDLC->r, &SDLC->container->song_viewport);
 
-  FontContext* FntPtr = SDLC->FntPtr;
-  FileContext* FCPtr  = SDLC->FCPtr;
-  Positions*   Pos    = FntPtr->pos;
+  Positions* Pos = FNT->pos;
 
-  if (FCPtr->file_state != NULL) {
-    int file_count = FCPtr->file_state->file_count;
+  int y_pos = 0;
 
-    int y_pos = 0;
-
-    for (int i = 0; i < file_count; i++) {
-      FntPtr->sf_arr[i].font_rect.y = Pos->song_list_pos + y_pos;
-      if (FntPtr->sf_arr[i].has_bg == TRUE) {
-        /*offset the y position of the font BG to make it appear
-         * centered*/
-        FntPtr->sf_arr[i].font_bg.y = (Pos->song_list_pos - 5) + y_pos;
-        SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 0);
-        SDL_RenderFillRect(SDLC->r, &FntPtr->sf_arr[i].font_bg);
-      }
-
-      y_pos += Y_OFFSET(FntPtr->context_data->font_size / 2);
-      SDL_RenderCopy(SDLC->r, FntPtr->sf_arr[i].font_texture, NULL, &FntPtr->sf_arr[i].font_rect);
+  for (int i = 0; i < file_count; i++) {
+    FNT->sf_arr[i].font_rect.y = Pos->song_list_pos + y_pos;
+    if (FNT->sf_arr[i].has_bg == TRUE) {
+      /*offset the y position of the font BG to make it appear
+       * centered*/
+      FNT->sf_arr[i].font_bg.y = (Pos->song_list_pos - 5) + y_pos;
+      SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 0);
+      SDL_RenderFillRect(SDLC->r, &FNT->sf_arr[i].font_bg);
     }
+
+    y_pos += Y_OFFSET(FNT->context_data->font_size / 2);
+    SDL_RenderCopy(SDLC->r, FNT->sf_arr[i].font_texture, NULL, &FNT->sf_arr[i].font_rect);
   }
 }
 
@@ -284,18 +273,16 @@ draw_vol_bar(SDL_Renderer* r, VolBar* VBar) {
 }
 
 void
-resize_fonts(SDLContext* SDLC) {
-  FontContext* FntPtr = SDLC->FntPtr;
-  FileContext* FCPtr  = SDLC->FCPtr;
+resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 
   i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
-  i8* song_fonts_created = &SDLC->FntPtr->state->song_fonts_created;
-  i8* dir_fonts_created  = &SDLC->FntPtr->state->dir_fonts_created;
+  i8* song_fonts_created = &FNT->state->song_fonts_created;
+  i8* dir_fonts_created  = &FNT->state->dir_fonts_created;
   int song_vp_w          = SDLC->container->song_viewport.w;
   int dir_vp_w           = SDLC->container->dir_viewport.w;
   int win_width          = (dir_vp_w < song_vp_w) ? song_vp_w : dir_vp_w;
 
-  TTF_Font** font = &FntPtr->context_data->font;
+  TTF_Font** font = &FNT->context_data->font;
   assert(font != NULL);
 
   const f32 one_thousandth = 0.016;
@@ -313,31 +300,31 @@ resize_fonts(SDLContext* SDLC) {
     new_font_size = MIN_FONT_SIZE;
   }
 
-  FntPtr->context_data->font_size = new_font_size;
+  FNT->context_data->font_size = new_font_size;
 
   TTF_SetFontSize(*font, new_font_size);
 
-  int file_count = FCPtr->file_state->file_count;
+  int file_count = FC->file_state->file_count;
   if (*song_fonts_created) {
     *song_fonts_created = FALSE;
     for (int i = 0; i < file_count; i++) {
-      FntPtr->sf_arr[i].font_texture = destroy_texture(FntPtr->sf_arr[i].font_texture);
+      FNT->sf_arr[i].font_texture = destroy_texture(FNT->sf_arr[i].font_texture);
     }
-    FntPtr->sf_arr = free_ptr(FntPtr->sf_arr);
-    create_song_fonts(FntPtr, FCPtr->file_state, SDLC->r);
+    FNT->sf_arr = free_ptr(FNT->sf_arr);
+    create_song_fonts(FNT, FC->file_state, SDLC->r);
   }
 
-  int dir_count = FCPtr->dir_state->dir_count;
+  int dir_count = FC->dir_state->dir_count;
   if (*dir_fonts_created) {
     *dir_fonts_created = FALSE;
     for (int i = 0; i < dir_count; i++) {
-      FntPtr->df_arr[i].font_texture = destroy_texture(FntPtr->df_arr[i].font_texture);
+      FNT->df_arr[i].font_texture = destroy_texture(FNT->df_arr[i].font_texture);
     }
-    FntPtr->df_arr = free_ptr(FntPtr->df_arr);
-    create_dir_fonts(FntPtr, FCPtr->dir_state, SDLC->r);
+    FNT->df_arr = free_ptr(FNT->df_arr);
+    create_dir_fonts(FNT, FC->dir_state, SDLC->r);
   }
 
   if (playing_song) {
-    create_active_song_font(FntPtr, FCPtr->file_state, SDLC->r);
+    create_active_song_font(FNT, FC->file_state, SDLC->r);
   }
 }

@@ -12,10 +12,8 @@ index_down(FileState* FS) {
 }
 
 void
-handle_mouse_motion(SDLContext* SDLC) {
-  int          mouse_x, mouse_y;
-  FontContext* FS = SDLC->FntPtr;
-  FileContext* FC = SDLC->FCPtr;
+handle_mouse_motion(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
+  int mouse_x, mouse_y;
 
   int playing_song      = SDLC->SSPtr->pb_state->playing_song;
   i8  scrollbar_latched = SDLC->SSPtr->seek_bar->latched;
@@ -23,12 +21,12 @@ handle_mouse_motion(SDLContext* SDLC) {
 
   SDL_GetMouseState(&mouse_x, &mouse_y);
   if (!playing_song) {
-    if (FS->state->dir_fonts_created) {
-      create_dir_text_bg(mouse_x, mouse_y, SDLC);
+    if (FNT->state->dir_fonts_created) {
+      create_dir_text_bg(mouse_x, mouse_y, SDLC, FNT, FC);
     }
 
-    if (FS->state->song_fonts_created && FC->file_state != NULL) {
-      create_song_text_bg(mouse_x, mouse_y, SDLC);
+    if (FNT->state->song_fonts_created && FC->file_state != NULL) {
+      create_song_text_bg(mouse_x, mouse_y, SDLC, FNT, FC);
     }
   }
 
@@ -44,18 +42,18 @@ handle_mouse_motion(SDLContext* SDLC) {
 }
 
 void
-toggle_pause(SDLContext* SDLC) {
+toggle_pause(SDLContext* SDLC, FileState* FS) {
   i8* playing_song = &SDLC->SSPtr->pb_state->playing_song;
   i8* is_paused    = &SDLC->SSPtr->pb_state->is_paused;
 
   if (*playing_song) {
     switch (*is_paused) {
     case 0: {
-      pause_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
+      pause_song(FS, is_paused, &SDLC->audio_dev);
       break;
     }
     case 1: {
-      play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
+      play_song(FS, is_paused, &SDLC->audio_dev);
       break;
     }
     }
@@ -63,49 +61,49 @@ toggle_pause(SDLContext* SDLC) {
 }
 
 void
-handle_space_key(SDLContext* SDLC) {
-  i8  files_exist = SDLC->FCPtr->file_state->files_exist;
+handle_space_key(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
+  i8  files_exist = FC->file_state->files_exist;
   i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
   if (files_exist) {
     *hard_stop = TRUE;
-    load_song(SDLC);
+    load_song(SDLC, FC, FNT);
   } else {
     printf("Cannot play music: No files were found.\n");
   }
 }
 
 void
-next_song(SDLContext* SDLC) {
-  i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
+next_song(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
+  i8  files_exist  = FC->file_state->files_exist;
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
 
   if (playing_song && files_exist) {
     *hard_stop = FALSE;
-    index_up(SDLC->FCPtr->file_state);
-    load_song(SDLC);
+    index_up(FC->file_state);
+    load_song(SDLC, FC, FNT);
   }
 }
 
 void
-prev_song(SDLContext* SDLC) {
-  i8  files_exist  = SDLC->FCPtr->file_state->files_exist;
+prev_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
+  i8  files_exist  = FC->file_state->files_exist;
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
 
   if (playing_song && files_exist) {
     *hard_stop = FALSE;
-    index_down(SDLC->FCPtr->file_state);
-    load_song(SDLC);
+    index_down(FC->file_state);
+    load_song(SDLC, FC, FNT);
   }
 }
 
 void
-random_song(SDLContext* SDLC) {
-  int  file_count  = SDLC->FCPtr->file_state->file_count;
-  int* file_index  = &SDLC->FCPtr->file_state->file_index;
-  i8   files_exist = SDLC->FCPtr->file_state->files_exist;
+random_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
+  int  file_count  = FC->file_state->file_count;
+  int* file_index  = &FC->file_state->file_index;
+  i8   files_exist = FC->file_state->files_exist;
   i8*  hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
   if (file_count <= 0) return;
@@ -113,7 +111,7 @@ random_song(SDLContext* SDLC) {
   *file_index = rand() % file_count;
   if (files_exist) {
     *hard_stop = FALSE;
-    load_song(SDLC);
+    load_song(SDLC, FC, FNT);
   }
 }
 
@@ -135,31 +133,31 @@ clamp(f32 vol, f32 amount, f32 min, f32 max) {
 }
 
 void
-handle_mouse_click(SDLContext* SDLC) {
+handle_mouse_click(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
-  clicked_in_rect(SDLC, mouse_x, mouse_y);
+  clicked_in_rect(SDLC, FNT, FC, mouse_x, mouse_y);
 }
 
 void
-handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC) {
+handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FontContext* FNT) {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
   const int mouse_arr[] = { mouse_x, mouse_y };
-  scroll_in_rect(mouse_arr, SDLC, wheel_y);
+  scroll_in_rect(mouse_arr, SDLC, FNT, wheel_y);
 }
 
 void
-handle_mouse_release(SDLContext* SDLC) {
+handle_mouse_release(SDLContext* SDLC, FileState* FS) {
   PlaybackState*    PBSte     = SDLC->SSPtr->pb_state;
   SeekBar*          SKBar     = SDLC->SSPtr->seek_bar;
   VolBar*           VBar      = SDLC->SSPtr->vol_bar;
   FourierTransform* FTPtr     = SDLC->FTPtr;
-  i8*               is_paused = &SDLC->SSPtr->pb_state->is_paused;
+  i8*               is_paused = &PBSte->is_paused;
 
   if (PBSte->playing_song && SKBar->latched) {
     SKBar->latched = FALSE;
-    play_song(SDLC->FCPtr->file_state, is_paused, &SDLC->audio_dev);
+    play_song(FS, is_paused, &SDLC->audio_dev);
     instantiate_buffers(FTPtr->fft_buffers);
   }
 

@@ -80,11 +80,13 @@ void         draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve);
 void         update_font_rect(SDL_Rect* rect_ptr, SDL_Rect* offset_rect, int max);
 void         update_font_surface(SDL_Rect* font_rect, int c_width, int c_height);
 void         clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FS, char* selection);
-void         resize_fonts(SDLContext* SDLC);
+void         resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT);
 int          create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r);
 int          create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r);
-void         create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC);
-void         create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC);
+void         create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
+                                FileContext* FC);
+void         create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
+                                 FileContext* FC);
 void         clear_font_bgs(FontData* arr[], int len);
 void         baseline_context_data(TTFData* fontcntxt);
 void         baseline_font_state(FontState* state);

@@ -157,16 +157,3 @@ instantiate_buffers(FTransformBuffers* bufs) {
   memset(bufs->smoothed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
   memset(bufs->fft_in_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
 }
-
-void
-set_spec_data(SDLContext* SDLC) {
-  SDL_AudioSpec* spec = &SDLC->spec;
-  AudioData*     ad   = SDLC->SSPtr->audio_data;
-
-  spec->userdata = SDLC;
-  spec->callback = callback;
-  spec->channels = ad->channels;
-  spec->freq     = ad->sr;
-  spec->format   = AUDIO_F32;
-  spec->samples  = BUFF_SIZE;
-}
