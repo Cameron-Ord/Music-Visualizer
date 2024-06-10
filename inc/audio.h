@@ -60,10 +60,11 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32  fft_in[DOUBLE_BUFF];
-  f32c out_raw[DOUBLE_BUFF];
-  f32  processed[DOUBLE_BUFF];
-  f32  smoothed[DOUBLE_BUFF];
+  f32  fft_in_prim[DOUBLE_BUFF];
+  f32  in_cpy_prim[DOUBLE_BUFF];
+  f32c out_raw_prim[DOUBLE_BUFF];
+  f32  processed_prim[DOUBLE_BUFF];
+  f32  smoothed_prim[DOUBLE_BUFF];
 };
 
 struct FTransformData {
@@ -71,9 +72,7 @@ struct FTransformData {
   size_t    output_len;
   f32       max_ampl;
   i8        buffers_ready;
-  i8        prev_rendered;
-  i8        currently_renderering;
-  i8        fft_ready;
+  i8        is_processing;
   SDL_Rect* rect_buff;
 };
 
@@ -119,5 +118,4 @@ int               check_pos(u32 audio_pos, u32 len);
 int               render_await(i8 fft_ready);
 void              apply_smoothing(FourierTransform* FT);
 void              baseline_vol_bar(VolBar* vlbar);
-
 #endif

@@ -2,7 +2,6 @@
 #include "../inc/font.h"
 #include "../inc/init.h"
 #include "../inc/music_visualizer.h"
-#include "../inc/threads.h"
 #include <SDL2/SDL_main.h>
 #include <errno.h>
 
@@ -176,6 +175,7 @@ music_player() {
 
   FTransform.fft_data    = &FTransData;
   FTransform.fft_buffers = &FTransBufs;
+
   SongState AudioChunk;
 
   AudioData     ADta;
@@ -192,17 +192,6 @@ music_player() {
   AudioChunk.seek_bar   = &SKBar;
   AudioChunk.audio_data = &ADta;
   AudioChunk.vol_bar    = &VLBar;
-
-  WindowWorker window_worker[WIN_THREAD_COUNT];
-
-  err = create_window_workers(window_worker);
-  if (err < 0) {
-    PRINT_STR_ERR(stderr, "Thread workers could not be allocated.. Fallback to single core.",
-                  strerror(errno));
-    return 1;
-  }
-
-  FTransform.window_worker = window_worker;
 
   SDLChunk.FntPtr = &FontChunk;
   SDLChunk.SSPtr  = &AudioChunk;
@@ -222,6 +211,7 @@ music_player() {
     delta_time   = current_time - prev_time;
 
     handle_state(&SDLChunk);
+
     if (delta_time >= TICKS_PER_FRAME) {
       SDL_Delay(TICKS_PER_FRAME);
       prev_time = SDL_GetTicks64();
@@ -251,7 +241,6 @@ music_player() {
   clear_fonts(&FontChunk, &FileChunk);
   clear_files(&FileChunk);
   clear_dirs(&FileChunk);
-  destroy_window_workers(window_worker);
 
   ADta.buffer = free_ptr(ADta.buffer);
 

@@ -11,7 +11,7 @@
 
 void
 fft_func(f32* in, size_t stride, f32c* out, size_t n) {
-  // assert(n > 0);
+
   if (n == 1) {
     out[0] = in[0];
     return;
@@ -37,7 +37,7 @@ void
 fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
     u32  audio_pos = SS->audio_data->audio_pos;
-    f32* in_buf    = FT->fft_buffers->fft_in;
+    f32* in_buf    = FT->fft_buffers->fft_in_prim;
     f32* aud_buf   = SS->audio_data->buffer;
 
     memcpy(in_buf, aud_buf + audio_pos, bytes);
@@ -46,24 +46,11 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FourierTransform* FT) {
-  f32c* out_raw = FT->fft_buffers->out_raw;
-  f32*  fft_in  = FT->fft_buffers->fft_in;
-
-  calc_hann_window_threads(FT);
-  // create_hann_window(FT);
-
-  fft_func(fft_in, 4, out_raw, (size_t)BUFF_SIZE / 2);
-  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
-  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
-  fft_func(fft_in + (BUFF_SIZE / 2), 4, out_raw + (BUFF_SIZE / 2), (size_t)BUFF_SIZE / 2);
-
-  squash_to_log((size_t)(DOUBLE_BUFF / 2), FT);
-
-  f32*   smoothed = FT->fft_buffers->smoothed;
-  size_t len      = FT->fft_data->output_len;
-
-  memmove(smoothed + len, smoothed, sizeof(f32) * len);
-
+  f32c* out_raw = FT->fft_buffers->out_raw_prim;
+  f32*  in_cpy  = FT->fft_buffers->in_cpy_prim;
+  create_hann_window(FT);
+  fft_func(in_cpy, 1, out_raw, (size_t)BUFF_SIZE);
+  squash_to_log((size_t)(BUFF_SIZE / 2), FT);
   apply_smoothing(FT);
 } /*generate_visual*/
 
@@ -71,24 +58,29 @@ generate_visual(FourierTransform* FT) {
  * there is an issue with the multithreading, so I have to implement that*/
 void
 create_hann_window(FourierTransform* FT) {
-  f32* in = FT->fft_buffers->fft_in;
+  f32* in  = FT->fft_buffers->fft_in_prim;
+  f32* cpy = FT->fft_buffers->in_cpy_prim;
+  memcpy(cpy, in, sizeof(f32) * DOUBLE_BUFF);
 
   /*Iterate for the size of a single channel*/
-  for (int i = 0; i < DOUBLE_BUFF; ++i) {
-    float Nf = (float)DOUBLE_BUFF;
+  for (int i = 0; i < BUFF_SIZE; ++i) {
+    float Nf = (float)BUFF_SIZE;
     float t  = (float)i / (Nf - 1);
     /*Calculate the hann window*/
     float hann = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
-    in[i] *= hann;
+    cpy[i * 2] *= hann;
+    cpy[i * 2 + 1] *= hann;
+
+    cpy[i] = (cpy[i * 2] + cpy[i * 2 + 1]) / 2;
   }
 }
 
 void
 squash_to_log(size_t size, FourierTransform* FT) {
 
-  f32c* out_raw   = FT->fft_buffers->out_raw;
-  f32*  processed = FT->fft_buffers->processed;
+  f32c* out_raw   = FT->fft_buffers->out_raw_prim;
+  f32*  processed = FT->fft_buffers->processed_prim;
 
   float  step     = 1.06f;
   float  lowf     = 1.0f;
@@ -136,8 +128,8 @@ apply_smoothing(FourierTransform* FT) {
   FTransformBuffers* ftbuf  = FT->fft_buffers;
   FTransformData*    ftdata = FT->fft_data;
 
-  f32* processed = ftbuf->processed;
-  f32* smoothed  = ftbuf->smoothed;
+  f32* processed = ftbuf->processed_prim;
+  f32* smoothed  = ftbuf->smoothed_prim;
 
   /*Linear smoothing*/
   for (size_t i = 0; i < ftdata->output_len; ++i) {

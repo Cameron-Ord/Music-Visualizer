@@ -2,6 +2,7 @@
 #include "../inc/font.h"
 #include "../inc/macro.h"
 #include "../inc/music_visualizer.h"
+#include "../inc/threads.h"
 
 void
 callback(void* data, Uint8* stream, int len) {
@@ -26,7 +27,6 @@ callback(void* data, Uint8* stream, int len) {
 
   // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
 
-  i8* ready = &FTPtr->fft_data->fft_ready;
   if (check_pos(*audio_pos, *wav_len)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }
@@ -48,8 +48,8 @@ check_pos(u32 audio_pos, u32 len) {
 }
 
 int
-render_await(i8 fftrdy) {
-  if (fftrdy) {
+render_await(i8 is_processing) {
+  if (!is_processing) {
     return 1;
   }
   return 0;
@@ -198,8 +198,6 @@ load_song(SDLContext* SDLC) {
   i8  playing_song  = SDLC->SSPtr->pb_state->playing_song;
   i8* song_ended    = &SDLC->SSPtr->pb_state->song_ended;
 
-  i8* ready = &SDLC->FTPtr->fft_data->fft_ready;
-
   *song_ended    = FALSE;
   *buffers_ready = FALSE;
 
@@ -232,7 +230,6 @@ load_song(SDLContext* SDLC) {
   start_song(&SS->pb_state->playing_song);
   instantiate_buffers(FT->fft_buffers);
   *buffers_ready = TRUE;
-  *ready         = TRUE;
 }
 
 void

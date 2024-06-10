@@ -144,8 +144,7 @@ baseline_pb_state(PlaybackState* pbste) {
 void
 baseline_fft_values(FTransformData* data) {
   data->buffers_ready = FALSE;
-  data->fft_ready     = FALSE;
-  data->prev_rendered = FALSE;
+  data->is_processing = FALSE;
   data->cell_width    = 0;
   data->output_len    = 0;
   data->max_ampl      = 1.0f;
@@ -153,10 +152,10 @@ baseline_fft_values(FTransformData* data) {
 
 void
 instantiate_buffers(FTransformBuffers* bufs) {
-  memset(bufs->fft_in, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->out_raw, 0, DOUBLE_BUFF * sizeof(f32c));
-  memset(bufs->processed, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->smoothed, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->out_raw_prim, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->processed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->smoothed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->fft_in_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
 }
 
 void

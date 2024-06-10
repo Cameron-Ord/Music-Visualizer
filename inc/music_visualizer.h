@@ -31,12 +31,13 @@ struct SDLMouse {
 };
 
 struct SDLContext {
-  SDL_Renderer*            r;
-  SDL_Window*              w;
-  SDL_AudioSpec            spec;
-  SDL_AudioDeviceID        audio_dev;
-  i8                       running;
-  SDL_Rect                 vis_rect;
+  SDL_Renderer*     r;
+  SDL_Window*       w;
+  SDL_AudioSpec     spec;
+  SDL_AudioDeviceID audio_dev;
+  i8                running;
+  SDL_Rect          vis_rect;
+
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
   struct FourierTransform* FTPtr;

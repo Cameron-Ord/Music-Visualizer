@@ -53,12 +53,12 @@ render_bars(SDLContext* SDLC) {
 
   SDL_RenderSetViewport(SDLC->r, &SDLC->vis_rect);
 
-  f32* out        = SDLC->FTPtr->fft_buffers->smoothed;
+  f32* out        = SDLC->FTPtr->fft_buffers->smoothed_prim;
   i16  cell_width = viewport.w / out_len;
   int  h          = viewport.h;
 
   for (int i = 0; i < out_len; ++i) {
-    float t          = out[i + out_len];
+    float t          = out[i];
     int   x_pos      = (i * (int)(cell_width + cell_width / 2));
     int   y_pos      = h - ((float)h * t);
     int   bar_height = (float)h * t;
