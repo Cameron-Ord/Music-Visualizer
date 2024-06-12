@@ -60,7 +60,11 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32  fft_in_prim[DOUBLE_BUFF];
+  f32 fft_in_prim[DOUBLE_BUFF];
+  f32 fft_in_sec[DOUBLE_BUFF];
+
+  f32* in_ptr;
+
   f32  in_cpy_prim[DOUBLE_BUFF];
   f32c out_raw_prim[DOUBLE_BUFF];
   f32  processed_prim[DOUBLE_BUFF];
@@ -84,6 +88,7 @@ struct FourierTransform {
   struct SongState*         SSPtr;
 };
 
+void              swap_buffers(f32* ptr, f32* prim, f32* sec);
 void              audio_switch(SDL_AudioDeviceID dev, int status);
 void              start_song(i8* playing_song);
 void              stop_song(i8* playing_song);
@@ -101,22 +106,17 @@ void              set_spec_data(SDLContext* SDLC);
 void              callback(void* data, Uint8* stream, int len);
 SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec);
 void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
-void              baseline_audio_data(AudioData* data);
-void              baseline_seek_bar(SeekBar* skbar);
 void              update_vol_pos(AudioData* ADta, VolBar* VBar);
 void              change_volume(f32* vol, f32 amount);
 f32               clamp(f32 vol, f32 amount, f32 min, f32 max);
 void              baseline_pb_state(PlaybackState* pbste);
-void              squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len);
+void              squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len, int SR);
 float             amp(float _Complex z);
-void              generate_visual(FTransformData* data, FTransformBuffers* bufs);
-void              low_pass(float* log_values, int size, float cutoff, int SR);
+void              generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR);
 void              fft_func(f32* in, size_t stride, f32c* out, size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
-void              create_hann_window(f32* fft_in, f32* in_cpy);
-void              baseline_fft_values(FTransformData* data);
+void              hamming_window(f32* in_cpy);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
-void              baseline_vol_bar(VolBar* vlbar);
 #endif

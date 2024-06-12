@@ -68,7 +68,7 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
 
   if (*buffers_ready) {
-    generate_visual(FTPtr->fft_data, FTPtr->fft_buffers);
+    generate_visual(FTPtr->fft_data, FTPtr->fft_buffers, SDLC->spec.freq);
   }
 
   if (*buffers_ready) {

@@ -7,67 +7,16 @@
 
 int
 main(int argc, char* argv[]) {
-
-/*Optional daemonize with args. Not gonna bother implementing the win32 version using create process*/
-#ifdef __linux__
-  int result = 0;
-  if (argc >= 2) {
-    if (strcmp(argv[1], "--daemonize=yes") == 0) {
-      pid_t pid;
-      pid = fork();
-
-      if (pid < 0) {
-        PRINT_STR_ERR(stderr, "Failed to fork process", strerror(errno));
-        exit(EXIT_FAILURE);
-      } else if (pid == 0) {
-
-        umask(0);
-        if (setsid() < 0) {
-          PRINT_STR_ERR(stderr, "Failed to create session ID", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-
-        char* home = getenv("HOME");
-        if (home == NULL) {
-          PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
-        }
-
-        if (chdir(home) < 0) {
-          PRINT_STR_ERR(stderr, "Failed to chdir", strerror(errno));
-          exit(EXIT_FAILURE);
-        }
-        /*Entry point*/
-        result = music_player();
-        exit(result);
-      } else if (pid > 0) {
-        exit(EXIT_SUCCESS);
-      }
-
-      return result;
-    }
-  }
-#endif
-
-  if (argc < 2) {
-    /*Entry point*/
-    int result = music_player();
-    return result;
-  }
-
-  return 0;
-}
-
-int
-music_player() {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
+
   // setup_dirs();
 
-  AppContext Application;
+  AppContext Application = { 0 };
 
-  SDLContext   SDLChunk;
-  SDLContainer SDLContainer;
-  SDLMouse     SDLMouse;
+  SDLContext   SDLChunk     = { 0 };
+  SDLContainer SDLContainer = { 0 };
+  SDLMouse     SDLMouse     = { 0 };
 
   SDLChunk.container = &SDLContainer;
   SDLChunk.mouse     = &SDLMouse;
@@ -96,22 +45,13 @@ music_player() {
     return 1;
   }
 
-  FontContext FontChunk;
+  FontContext FontChunk = { 0 };
+  FontState   FntSte    = { 0 };
+  Positions   FntPos    = { 0 };
+  ActiveSong  Actve     = { 0 };
 
-  TTFData    ContextData;
-  FontState  FntSte;
-  Positions  FntPos;
-  ActiveSong Actve;
-
-  Actve.tex  = NULL;
-  Actve.surf = NULL;
-  Actve.text = NULL;
-
-  baseline_context_data(&ContextData);
-  baseline_font_state(&FntSte);
-  baseline_pos(&FntPos);
-
-  fprintf(stdout, "Initialzing TTF..\n");
+  SDL_Color font_color  = { 189, 147, 249, 0 };
+  TTFData   ContextData = { .font_size = 16, .font = NULL, .color = font_color };
 
   err = initialize_TTF();
   if (err < 0) {
@@ -123,29 +63,20 @@ music_player() {
     return 1;
   }
 
-  FontChunk.df_arr = NULL;
-  FontChunk.sf_arr = NULL;
-
-  SDL_Color font_color = { 189, 147, 249, 0 };
-  ContextData.color    = font_color;
-  FntSte.initialized   = TRUE;
+  FntSte.initialized = TRUE;
 
   FontChunk.context_data = &ContextData;
   FontChunk.state        = &FntSte;
   FontChunk.pos          = &FntPos;
   FontChunk.active       = &Actve;
 
-  FileContext FileChunk;
+  FileContext FileChunk = { 0 };
 
-  FileState FState;
-  DirState  DState;
-
-  baseline_dir_state(&DState);
-  baseline_file_state(&FState);
+  FileState FState = { 0 };
+  DirState  DState = { 0 };
 
   DState.dirs_exist = FALSE;
 
-  fprintf(stdout, "Fetching dirs..\n");
   int res = fetch_dirs(&DState);
   if (res < 0) {
     fprintf(stderr, "Error getting directoies : %s\n", strerror(errno));
@@ -167,28 +98,26 @@ music_player() {
   FileChunk.dir_state  = &DState;
   FileChunk.file_state = &FState;
 
-  FourierTransform FTransform;
+  FourierTransform  FTransform = { 0 };
+  FTransformData    FTransData = { 0 };
+  FTransformBuffers FTransBufs = { 0 };
 
-  FTransformData    FTransData;
-  FTransformBuffers FTransBufs;
+  FTransData.max_ampl = 1.0f;
+  FTransBufs.in_ptr   = NULL;
 
-  baseline_fft_values(&FTransData);
   instantiate_buffers(&FTransBufs);
 
   FTransform.fft_data    = &FTransData;
   FTransform.fft_buffers = &FTransBufs;
 
-  SongState AudioChunk;
+  SongState AudioChunk = { 0 };
 
-  AudioData     ADta;
-  SeekBar       SKBar;
-  VolBar        VLBar;
-  PlaybackState PBSte;
+  AudioData     ADta  = { 0 };
+  SeekBar       SKBar = { 0 };
+  VolBar        VLBar = { 0 };
+  PlaybackState PBSte = { 0 };
 
-  baseline_audio_data(&ADta);
-  baseline_seek_bar(&SKBar);
-  baseline_vol_bar(&VLBar);
-  baseline_pb_state(&PBSte);
+  ADta.volume = 1.0f;
 
   AudioChunk.pb_state   = &PBSte;
   AudioChunk.seek_bar   = &SKBar;

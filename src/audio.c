@@ -47,12 +47,22 @@ check_pos(u32 audio_pos, u32 len) {
   return 0;
 }
 
-int
-render_await(i8 is_processing) {
-  if (!is_processing) {
-    return 1;
+void
+swap_buffers(f32* ptr, f32* prim, f32* sec) {
+  if (ptr == NULL) {
+    ptr = prim;
+    return;
   }
-  return 0;
+
+  if (ptr == prim) {
+    ptr = sec;
+    return;
+  }
+
+  if (ptr == sec) {
+    ptr = prim;
+    return;
+  }
 }
 
 int
@@ -231,7 +241,9 @@ load_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   play_song(FC->file_state, &PBPtr->is_paused, &SDLC->audio_dev);
   start_song(&PBPtr->playing_song);
   instantiate_buffers(FTBufsPtr);
-  *buffers_ready = TRUE;
+
+  FTBufsPtr->in_ptr = FTBufsPtr->fft_in_prim;
+  *buffers_ready    = TRUE;
 }
 
 void

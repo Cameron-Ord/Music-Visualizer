@@ -58,7 +58,6 @@ struct FontState {
 
 struct TTFData {
   TTF_Font* font;
-  char*     font_path;
   SDL_Color color;
   int       font_size;
 };
@@ -88,9 +87,6 @@ void         create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext
 void         create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
                                  FileContext* FC);
 void         clear_font_bgs(FontData* arr[], int len);
-void         baseline_context_data(TTFData* fontcntxt);
-void         baseline_font_state(FontState* state);
-void         baseline_pos(Positions* pos);
 int          initialize_TTF();
 int          open_font(TTFData* context_data);
 int          create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r);
