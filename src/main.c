@@ -144,20 +144,20 @@ main(int argc, char* argv[]) {
   update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
-  float prev_time = SDL_GetTicks64();
-  float current_time, delta_time;
+  u32 frame_start;
+  int frame_time;
 
   while (SDLChunk.running == TRUE) {
-    current_time = SDL_GetTicks64();
-    delta_time   = current_time - prev_time;
+    frame_start = SDL_GetTicks64();
 
     handle_state(&Application);
-    if (delta_time >= TICKS_PER_FRAME) {
-      SDL_Delay(TICKS_PER_FRAME);
-      prev_time = SDL_GetTicks64();
-    }
-
     poll_events(&Application);
+
+    frame_time = SDL_GetTicks64() - frame_start;
+
+    if (TICKS_PER_FRAME > frame_time) {
+      SDL_Delay(TICKS_PER_FRAME - frame_time);
+    }
   }
 
   /*Clean up*/
