@@ -85,8 +85,9 @@ hamming_window(f32* in_cpy) {
 void
 squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len, int SR) {
 
-  f32 delta_f = (f32)SR / size;
-  f32 bin_low = (f32)(1500.0f / delta_f);
+  f32 delta_f  = (f32)SR / size;
+  f32 bin_low  = (f32)(1000.0f / delta_f);
+  f32 bin_high = (f32)(5000.0f / delta_f);
 
   float  step = 1.06f;
   float  lowf = 1.0f;
@@ -105,8 +106,12 @@ squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len, int
     }
 
     // Slightly attenuating less important frequencies
-    if (f > bin_low) {
-      a *= 0.9;
+    if (f < bin_low) {
+      a *= 0.8;
+    }
+
+    if (f > bin_high) {
+      a *= 0.8;
     }
 
     if (*max_ampl < a) {
