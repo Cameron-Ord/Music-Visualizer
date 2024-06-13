@@ -1,3 +1,4 @@
+#include "../inc/render.h"
 #include "../inc/audio.h"
 #include "../inc/font.h"
 #include "../inc/graphics.h"
@@ -24,6 +25,7 @@ void
 clear_render(SDL_Renderer* r) {
   SDL_RenderClear(r);
 }
+
 void
 render_background(SDL_Renderer* r) {
   SDL_SetRenderDrawColor(r, 40, 42, 54, 0);

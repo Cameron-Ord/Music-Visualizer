@@ -2,7 +2,9 @@
 #include "../inc/font.h"
 #include "../inc/graphics.h"
 #include "../inc/init.h"
+#include "../inc/input.h"
 #include "../inc/music_visualizer.h"
+#include "../inc/render.h"
 #include <SDL2/SDL_main.h>
 #include <errno.h>
 

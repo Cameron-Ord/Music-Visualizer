@@ -1,5 +1,5 @@
 #include "../inc/graphics.h"
-#include "../inc/music_visualizer.h"
+#include "../inc/render.h"
 
 SDL_Surface*
 load_image(char* path) {

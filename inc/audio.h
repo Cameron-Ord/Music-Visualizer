@@ -118,4 +118,5 @@ void              hamming_window(f32* in_cpy);
 void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
+void              reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
 #endif

@@ -71,6 +71,8 @@ struct FontContext {
   struct ActiveSong* active;
 };
 
+void         reset_songlist_pos(Positions* pos);
+FontData*    get_struct(FontData* arr[], const int mouse_arr[], int len);
 void         clear_fonts(FontContext* FntPtr, FileContext* FCPtr);
 SDL_Texture* create_font_texture(SDL_Renderer* r, SDL_Surface* surface);
 SDL_Surface* create_font_surface(TTF_Font** font, SDL_Color color, char* text);

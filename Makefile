@@ -80,6 +80,7 @@ dllmove:
 	cp resources/libsndfile/bin/sndfile.dll $(BINARY_BIN)
 	cp resources/SDL2/bin/SDL2.dll $(BINARY_BIN)
 	cp resources/SDL2_TTF/bin/SDL2_ttf.dll $(BINARY_BIN)
+	cp resources/SDL2_IMAGE/bin/SDL2_image.dll $(BINARY_BIN)
 
 clean:
 	rm -r $(BUILD_DIR)
