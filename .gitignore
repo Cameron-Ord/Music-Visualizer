@@ -1,7 +1,5 @@
 .vscode
 build/
-dist/
-libs/
 resources/
 WINDOWS/
 LINUX/
@@ -9,4 +7,4 @@ LINUX/
 *.profraw
 *.profdata
 *.json
-report.txt
+*.txt

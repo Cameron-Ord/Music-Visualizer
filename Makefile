@@ -13,15 +13,15 @@ TARGET :=
 
 LINUX_TARGET := fftplayer
 LINUX_CC := clang
-LINUX_LDFLAGS := -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -g -pg -fprofile-instr-generate
-LINUX_CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping
+LINUX_LDFLAGS := -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -pg -fprofile-instr-generate
+LINUX_CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping -g
 LINUX_BIN := LINUX
 
 WIN_TARGET := fftplayer.exe
 WIN_CC := x86_64-w64-mingw32-gcc
-WIN_LDFLAGS := -Lresources/SDL2/lib  -Lresources/libsndfile/lib  -Lresources/SDL2_TTF/lib  -Lresources/x86_64-w64-mingw32/lib -lm -g -lmingw32  -mwindows -lSDL2main -lSDL2 -lgdi32 -lSDL2_ttf -lsndfile 
-LIBINC := -Iresources/SDL2/include -Iresources/libsndfile/include -Iresources/SDL2_TTF/include -Iresources/x86_64-w64-mingw32/include
-WIN_CFLAGS :=  -O2 -Wall -Wextra
+WIN_LDFLAGS := -Lresources/SDL2/lib -Lresources/SDL2_TTF/lib -Lresources/SDL2_IMAGE/lib -Lresources/libsndfile/lib -Lresources/x86_64-w64-mingw32/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lgdi32 -lsndfile
+LIBINC := -Iresources/SDL2/include -Iresources/SDL2_TTF/include -Iresources/SDL2_IMAGE/include -Iresources/libsndfile/include -Iresources/x86_64-w64-mingw32/include
+WIN_CFLAGS :=  -O2 -Wall -Wextra -g
 WIN_BIN := WINDOWS
 
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -or -name '*.c' -or -name '*.s')
