@@ -1,7 +1,6 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 #include "macro.h"
-#include "threads.h"
 #include "types.h"
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_render.h>

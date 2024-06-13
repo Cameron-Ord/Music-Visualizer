@@ -38,5 +38,6 @@ typedef struct ActiveSong        ActiveSong;
 typedef struct FontData          FontData;
 typedef struct SDLContext        SDLContext;
 typedef struct Positions         Positions;
+typedef struct SettingsGear      SettingsGear;
 
 #endif

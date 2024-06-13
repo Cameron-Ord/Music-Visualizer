@@ -1,5 +1,6 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
+#include "../inc/graphics.h"
 #include "../inc/music_visualizer.h"
 #include <complex.h>
 
@@ -26,6 +27,12 @@ clear_render(SDL_Renderer* r) {
 void
 render_background(SDL_Renderer* r) {
   SDL_SetRenderDrawColor(r, 40, 42, 54, 0);
+}
+
+void
+render_draw_gear(SDL_Renderer* r, SettingsGear* gear) {
+  SDL_RenderSetViewport(r, NULL);
+  SDL_RenderCopy(r, gear->tex, NULL, &gear->rect);
 }
 
 void
@@ -283,7 +290,6 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   int win_width          = (dir_vp_w < song_vp_w) ? song_vp_w : dir_vp_w;
 
   TTF_Font** font = &FNT->context_data->font;
-  assert(font != NULL);
 
   const f32 one_thousandth = 0.016;
 
@@ -310,7 +316,7 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
     for (int i = 0; i < file_count; i++) {
       FNT->sf_arr[i].font_texture = destroy_texture(FNT->sf_arr[i].font_texture);
     }
-    FNT->sf_arr = free_ptr(FNT->sf_arr);
+    free_ptr(FNT->sf_arr);
     create_song_fonts(FNT, FC->file_state, SDLC->r);
   }
 
@@ -320,7 +326,7 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
     for (int i = 0; i < dir_count; i++) {
       FNT->df_arr[i].font_texture = destroy_texture(FNT->df_arr[i].font_texture);
     }
-    FNT->df_arr = free_ptr(FNT->df_arr);
+    free_ptr(FNT->df_arr);
     create_dir_fonts(FNT, FC->dir_state, SDLC->r);
   }
 

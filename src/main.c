@@ -1,5 +1,6 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
+#include "../inc/graphics.h"
 #include "../inc/init.h"
 #include "../inc/music_visualizer.h"
 #include <SDL2/SDL_main.h>
@@ -10,7 +11,7 @@ main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  // setup_dirs();
+  setup_dirs();
 
   AppContext Application = { 0 };
 
@@ -133,6 +134,30 @@ main(int argc, char* argv[]) {
   AudioChunk.FTPtr = &FTransform;
   AudioChunk.SDLC  = &SDLChunk;
 
+  SettingsGear Gear = { 0 };
+
+  err = initialize_sdl_image();
+  if (err < 0) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  Gear.surf = load_image(SETTINGS_ICON_PATH);
+  if (Gear.surf == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  set_rect(&Gear.rect, Gear.surf);
+
+  Gear.tex = create_image_texture(SDLChunk.r, Gear.surf);
+  if (Gear.tex == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  SDLChunk.gear_ptr = &Gear;
+
   Application.SDLC   = &SDLChunk;
   Application.FTPtr  = &FTransform;
   Application.FCPtr  = &FileChunk;
@@ -140,7 +165,6 @@ main(int argc, char* argv[]) {
   Application.SSPtr  = &AudioChunk;
 
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
-
   update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
@@ -182,8 +206,9 @@ main(int argc, char* argv[]) {
   clear_files(&FileChunk);
   clear_dirs(&FileChunk);
 
-  ADta.buffer = free_ptr(ADta.buffer);
+  free_ptr(ADta.buffer);
 
+  IMG_Quit();
   TTF_Quit();
   SDL_Quit();
 
@@ -295,12 +320,4 @@ poll_events(AppContext* app) {
     }
     }
   }
-}
-
-void*
-free_ptr(void* ptr) {
-  if (ptr != NULL) {
-    free(ptr);
-  }
-  return NULL;
 }

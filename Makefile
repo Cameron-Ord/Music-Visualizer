@@ -6,18 +6,20 @@ CFLAGS :=
 BINARY_BIN :=
 FONT_DIR := fonts
 FONT := Roboto-Regular.ttf
+GFX_DIR := assets
+GEAR_ICON := settings_icon.png
 TARGET :=
 
 
 LINUX_TARGET := fftplayer
 LINUX_CC := clang
-LINUX_LDFLAGS := -lSDL2 -lSDL2_ttf -lsndfile -lm -g -pg -fprofile-instr-generate
+LINUX_LDFLAGS := -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -g -pg -fprofile-instr-generate
 LINUX_CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping
 LINUX_BIN := LINUX
 
 WIN_TARGET := fftplayer.exe
 WIN_CC := x86_64-w64-mingw32-gcc
-WIN_LDFLAGS := -Lresources/SDL2/lib  -Lresources/libsndfile/lib  -Lresources/SDL2_TTF/lib  -Lresources/x86_64-w64-mingw32/lib -lm -g -lmingw32  -mwindows -lSDL2main -lSDL2 -lpthread -lgdi32 -lSDL2_ttf -lsndfile 
+WIN_LDFLAGS := -Lresources/SDL2/lib  -Lresources/libsndfile/lib  -Lresources/SDL2_TTF/lib  -Lresources/x86_64-w64-mingw32/lib -lm -g -lmingw32  -mwindows -lSDL2main -lSDL2 -lgdi32 -lSDL2_ttf -lsndfile 
 LIBINC := -Iresources/SDL2/include -Iresources/libsndfile/include -Iresources/SDL2_TTF/include -Iresources/x86_64-w64-mingw32/include
 WIN_CFLAGS :=  -O2 -Wall -Wextra
 WIN_BIN := WINDOWS
@@ -35,6 +37,7 @@ linux: $(BUILD_DIR)/$(LINUX_TARGET)
 linux: BINARY_BIN := $(LINUX_BIN)
 linux: TARGET := $(LINUX_TARGET)
 linux: bin
+linux: somove
 linux: clean
 
 windows: CFLAGS = $(WIN_CFLAGS)
@@ -63,12 +66,18 @@ $(BUILD_DIR)/%.c.o: %.c
 
 bin:
 	mkdir -p $(BINARY_BIN)
+
+somove:
 	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
 
+
 dllmove:
+	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
+	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
 	cp resources/libsndfile/bin/sndfile.dll $(BINARY_BIN)
-	cp resources/x86_64-w64-mingw32/lib/libwinpthread-1.dll $(BINARY_BIN)
 	cp resources/SDL2/bin/SDL2.dll $(BINARY_BIN)
 	cp resources/SDL2_TTF/bin/SDL2_ttf.dll $(BINARY_BIN)
 

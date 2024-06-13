@@ -25,8 +25,8 @@ create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
 int
 create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
-  Fnt->active->tex  = destroy_texture(Fnt->active->tex);
-  Fnt->active->text = free_ptr(Fnt->active->text);
+  Fnt->active->tex = destroy_texture(Fnt->active->tex);
+  free_ptr(Fnt->active->text);
 
   Fnt->active->ready = FALSE;
   int file_index     = FS->file_index;
@@ -270,8 +270,8 @@ clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
     }
   }
 
-  FntPtr->active->tex  = destroy_texture(FntPtr->active->tex);
-  FntPtr->active->text = free_ptr(FntPtr->active->text);
+  FntPtr->active->tex = destroy_texture(FntPtr->active->tex);
+  free_ptr(FntPtr->active->text);
 }
 
 void
@@ -279,14 +279,14 @@ clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr,
   FSPtr->selected_dir = selection;
   if (FSPtr->files_exist && FSPtr->file_count > 0) {
     for (int i = 0; i < FSPtr->file_count; i++) {
-      FSPtr->files[i] = free_ptr(FSPtr->files[i]);
+      free_ptr(FSPtr->files[i]);
     }
 
     FSPtr->file_count = 0;
   }
 
   if (FSPtr->files_exist) {
-    FSPtr->files = free_ptr(FSPtr->files);
+    free_ptr(FSPtr->files);
   }
 
   if (song_fonts_created) {

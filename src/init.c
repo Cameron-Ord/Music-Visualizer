@@ -67,6 +67,15 @@ open_font(TTFData* cntxtdata) {
   return 0;
 }
 
+int
+initialize_sdl_image() {
+  if (IMG_Init(IMG_INIT_PNG) != 2) {
+    return 1;
+  }
+
+  return 0;
+}
+
 void
 get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
   SDL_GetWindowSize(w, &SDLCnt->win_width, &SDLCnt->win_height);

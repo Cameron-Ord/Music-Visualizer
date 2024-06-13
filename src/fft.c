@@ -1,6 +1,5 @@
 #include "../inc/audio.h"
 #include "../inc/macro.h"
-#include <assert.h>
 #include <complex.h>
 #include <math.h>
 #include <string.h>

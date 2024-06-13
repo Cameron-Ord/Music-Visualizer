@@ -320,12 +320,12 @@ clear_dirs(FileContext* FCPtr) {
 
   if (dir_count > 0 && dirs_exist) {
     for (int i = 0; i < dir_count; i++) {
-      FCPtr->dir_state->directories[i] = free_ptr(FCPtr->dir_state->directories[i]);
+      free_ptr(FCPtr->dir_state->directories[i]);
     }
   }
 
   if (dirs_exist) {
-    FCPtr->dir_state->directories = free_ptr(FCPtr->dir_state->directories);
+    free_ptr(FCPtr->dir_state->directories);
   }
 }
 
@@ -337,11 +337,11 @@ clear_files(FileContext* FCPtr) {
 
   if (file_count > 0 && files_exist) {
     for (int i = 0; i < file_count; i++) {
-      FCPtr->file_state->files[i] = free_ptr(FCPtr->file_state->files[i]);
+      free_ptr(FCPtr->file_state->files[i]);
     }
   }
 
   if (files_exist) {
-    FCPtr->file_state->files = free_ptr(FCPtr->file_state->files);
+    free_ptr(FCPtr->file_state->files);
   }
 }

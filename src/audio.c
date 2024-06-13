@@ -2,7 +2,6 @@
 #include "../inc/font.h"
 #include "../inc/macro.h"
 #include "../inc/music_visualizer.h"
-#include "../inc/threads.h"
 
 void
 callback(void* data, Uint8* stream, int len) {

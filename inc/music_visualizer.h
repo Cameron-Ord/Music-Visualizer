@@ -4,6 +4,7 @@
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
 #include <errno.h>
@@ -37,6 +38,7 @@ struct SDLContext {
   SDL_AudioDeviceID        audio_dev;
   i8                       running;
   SDL_Rect                 vis_rect;
+  struct SettingsGear*     gear_ptr;
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
   struct FourierTransform* FTPtr;
@@ -81,7 +83,6 @@ void      clear_files(FileContext* FCPtr);
 void      clear_dirs(FileContext* FCPtr);
 void      print_spec_data(SDL_AudioSpec spec, SDL_AudioDeviceID dev);
 void      reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
-void*     free_ptr(void* ptr);
 void      update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w);
 void      get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt);
 void      render_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count);
@@ -100,6 +101,7 @@ void      handle_mouse_motion(SDLContext* SDLC, FontContext* FNT, FileContext* F
 void      index_up(FileState* FS);
 void      handle_mouse_click(SDLContext* SDLC, FontContext* FNT, FileContext* FC);
 void      index_down(FileState* FS);
+int       create_settings_icon();
 void      poll_events(AppContext* app);
 void      toggle_pause(SDLContext* SDLC, FileState* FS);
 void      handle_space_key(SDLContext* SDLC, FontContext* FNT, FileContext* FC);
@@ -130,4 +132,5 @@ void      seek_latch_on(SeekBar* SKBar, int switch_value);
 void      vol_latch_on(VolBar* VBar, int switch_value);
 void      move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar);
 void      move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBar* VBar);
+void      render_draw_gear(SDL_Renderer* r, SettingsGear* gear);
 #endif

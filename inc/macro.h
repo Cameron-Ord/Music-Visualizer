@@ -23,7 +23,13 @@
 #define BHEIGHT 800
 #define M_PI 3.14159265358979323846
 #define Y_OFFSET(x) (x + 50)
+#define free_ptr(ptr)                                                                                        \
+  if ((ptr) != NULL) {                                                                                       \
+    free(ptr);                                                                                               \
+    (ptr) = NULL;                                                                                            \
+  }
 
 #define FONT_PATH "Roboto-Regular.ttf"
+#define SETTINGS_ICON_PATH "settings_icon.png"
 
 #endif
