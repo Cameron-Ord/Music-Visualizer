@@ -19,8 +19,8 @@
 #define FALSE 0
 #define FPS 60
 #define TICKS_PER_FRAME (1000.0 / FPS)
-#define BWIDTH 1000
-#define BHEIGHT 800
+#define BWIDTH 600
+#define BHEIGHT 400
 #define M_PI 3.14159265358979323846
 #define Y_OFFSET(x) (x + 50)
 #define free_ptr(ptr)                                                                                        \

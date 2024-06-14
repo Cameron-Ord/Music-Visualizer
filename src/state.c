@@ -102,6 +102,9 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
   i8 song_fonts_created = Fnt->state->song_fonts_created;
 
+  render_set_gear(SDLC->container, SDLC->gear_ptr);
+  render_draw_gear(SDLC->r, SDLC->gear_ptr);
+
   if (dir_fonts_created) {
     render_dir_list(SDLC, Fnt, FC->dir_state->dir_count);
   }

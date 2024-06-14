@@ -2,6 +2,8 @@
 #define RENDER_H
 #include "types.h"
 #include <SDL2/SDL_render.h>
+
+void  render_set_gear(SDLContainer* Cont, SettingsGear* gear);
 void  render_draw_gear(SDL_Renderer* r, SettingsGear* gear);
 void* destroy_texture(SDL_Texture* tex);
 void* destroy_surface(SDL_Surface* surf);

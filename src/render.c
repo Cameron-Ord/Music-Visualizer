@@ -28,7 +28,18 @@ clear_render(SDL_Renderer* r) {
 
 void
 render_background(SDL_Renderer* r) {
-  SDL_SetRenderDrawColor(r, 40, 42, 54, 0);
+  SDL_SetRenderDrawColor(r, 40, 42, 54, 255);
+}
+
+void
+render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
+  int w        = 64;
+  int x_offset = Cont->win_width - w;
+
+  int padding_x = 10;
+  int padding_y = 10;
+
+  set_rect(&gear->rect, NULL, x_offset + (w / 2) - padding_x, 0 + padding_y);
 }
 
 void
@@ -73,7 +84,7 @@ render_bars(SDLContext* SDLC) {
 
     SDL_Rect sample_plus = { x_pos, y_pos, cell_width, bar_height };
 
-    SDL_SetRenderDrawColor(SDLC->r, 189, 147, 249, 0);
+    SDL_SetRenderDrawColor(SDLC->r, 189, 147, 249, 255);
     SDL_RenderFillRect(SDLC->r, &sample_plus);
   }
 }
@@ -91,7 +102,7 @@ render_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count) {
     if (FNT->df_arr[i].has_bg == TRUE) {
       /*offset the y position of the font BG to make it appear centered*/
       FNT->df_arr[i].font_bg.y = (Pos->dir_list_pos - 5) + y_pos;
-      SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 0);
+      SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 255);
       SDL_RenderFillRect(SDLC->r, &FNT->df_arr[i].font_bg);
     }
 
@@ -114,7 +125,7 @@ render_song_list(SDLContext* SDLC, FontContext* FNT, int file_count) {
       /*offset the y position of the font BG to make it appear
        * centered*/
       FNT->sf_arr[i].font_bg.y = (Pos->song_list_pos - 5) + y_pos;
-      SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 0);
+      SDL_SetRenderDrawColor(SDLC->r, 69, 71, 90, 255);
       SDL_RenderFillRect(SDLC->r, &FNT->sf_arr[i].font_bg);
     }
 
@@ -259,7 +270,7 @@ swap(int* offset_x, int* x) {
 void
 draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve) {
   SDL_RenderSetViewport(r, &Actve->vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 0);
+  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->rect);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->offset_rect);
   update_font_rect(&Actve->rect, &Actve->offset_rect, Actve->vp.w);
@@ -268,7 +279,7 @@ draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve) {
 void
 draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr) {
   SDL_RenderSetViewport(r, &SKPtr->vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 0);
+  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
   SDL_RenderFillRect(r, &SKPtr->seek_box);
   SDL_RenderFillRect(r, &SKPtr->seek_line);
 }
@@ -276,7 +287,7 @@ draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr) {
 void
 draw_vol_bar(SDL_Renderer* r, VolBar* VBar) {
   SDL_RenderSetViewport(r, &VBar->vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 0);
+  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
   SDL_RenderFillRect(r, &VBar->seek_box);
   SDL_RenderFillRect(r, &VBar->seek_line);
 }
@@ -293,7 +304,7 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 
   TTF_Font** font = &FNT->context_data->font;
 
-  const f32 one_thousandth = 0.016;
+  const f32 one_thousandth = 0.024;
 
   const int MIN_FONT_SIZE = 10;
   const int MAX_FONT_SIZE = 24;

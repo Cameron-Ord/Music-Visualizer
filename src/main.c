@@ -150,7 +150,8 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  set_rect(&Gear.rect, Gear.surf);
+  convert_pixel_colours(&Gear.surf);
+  set_rect(&Gear.rect, Gear.surf, 0.90 * BWIDTH, 0.10 * BHEIGHT);
 
   Gear.tex = create_image_texture(SDLChunk.r, Gear.surf);
   if (Gear.tex == NULL) {
