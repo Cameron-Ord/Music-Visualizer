@@ -139,14 +139,15 @@ present_render(SDL_Renderer* r) {
   SDL_RenderPresent(r);
 }
 
+/*I could just move this to a render_set_viewports function and maybe that'd be nicer, but I dont think it
+ * matters and this only gets called if the window resizes so it's probably better this way*/
+
 void
 update_viewports(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
   int* win_width  = &Cont->win_width;
   int* win_height = &Cont->win_height;
 
   SDL_GetWindowSize(w, win_width, win_height);
-
-  /*My eyes*/
 
   if (*win_width > 800) {
     int eighty_percent = (int)(*win_height * 0.8);
@@ -291,6 +292,9 @@ draw_vol_bar(SDL_Renderer* r, VolBar* VBar) {
   SDL_RenderFillRect(r, &VBar->seek_box);
   SDL_RenderFillRect(r, &VBar->seek_line);
 }
+
+/*If I just made my own fonts with pixel art I wouldn't have this abomination. This is my first experience
+ * using fonts and honestly I hate it so much. Plus they aren't really fitting to the style I want.*/
 
 void
 resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {

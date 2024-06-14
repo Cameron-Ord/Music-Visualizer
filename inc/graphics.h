@@ -10,6 +10,8 @@ struct SettingsGear {
   SDL_Texture* tex;
   SDL_Rect     rect;
   SDL_Rect     vp;
+  int          coord_y;
+  int          coord_x;
 };
 
 void         convert_pixel_colours(SDL_Surface** surf_ptr);

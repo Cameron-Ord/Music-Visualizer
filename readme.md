@@ -11,9 +11,8 @@
 I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
 
 ## Todo
-> - Add multithreading or single threading options for visual audio processing
-> - Styling
-> - Maybe consider using OpenGL?
+> - I want to remove the TTF dependency and have more stylized fonts - maybe take the time to make some pixel characters and map them to an enum.
+> - Setting up a settings menu for manipulation of the internal variables of the program.
 
 ## Releases
 I am working on creating a release for this program at the moment.

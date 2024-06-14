@@ -27,6 +27,9 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   SeekBar*      SkBar = SDLC->SSPtr->seek_bar;
   VolBar*       VBar  = SDLC->SSPtr->vol_bar;
 
+  render_set_gear(SDLC->container, SDLC->gear_ptr);
+  render_draw_gear(SDLC->r, SDLC->gear_ptr);
+
   i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
 
   if (*buffers_ready) {
@@ -65,6 +68,9 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   SongState*        SSPtr = SDLC->SSPtr;
   FourierTransform* FTPtr = SDLC->FTPtr;
   SeekBar*          SkBar = SDLC->SSPtr->seek_bar;
+
+  render_set_gear(SDLC->container, SDLC->gear_ptr);
+  render_draw_gear(SDLC->r, SDLC->gear_ptr);
 
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
 
