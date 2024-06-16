@@ -19,4 +19,6 @@ void  clear_render(SDL_Renderer* r);
 void  present_render(SDL_Renderer* r);
 void  render_background(SDL_Renderer* r);
 void  render_bars(SDLContext* SDLC);
+void  render_draw_rgba_sliders(SDLContext* SDLC);
+void  render_set_rgba_sliders(SDLContext* SDLC);
 #endif

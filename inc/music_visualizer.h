@@ -23,6 +23,10 @@ struct SDLColours {
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color tertiary;
+  SDL_Rect  viewports[3];
+  f32       normalized_positions[3][4];
+  int       scaled_positions[3][4];
+  SDL_Rect  scroll_bars[3][4];
 };
 
 struct SDLContainer {

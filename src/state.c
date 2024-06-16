@@ -37,6 +37,8 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_rgba_sliders(SDLC);
+    render_draw_rgba_sliders(SDLC);
     break;
   }
 
@@ -120,6 +122,8 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_rgba_sliders(SDLC);
+    render_draw_rgba_sliders(SDLC);
     break;
   }
 
@@ -144,6 +148,8 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_rgba_sliders(SDLC);
+    render_draw_rgba_sliders(SDLC);
     break;
   }
 

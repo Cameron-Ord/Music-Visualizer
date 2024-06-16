@@ -59,84 +59,80 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
   SDL_Rect dir_rect  = SDLC->container->dir_viewport;
   SDL_Rect song_rect = SDLC->container->song_viewport;
   SDL_Rect gear_rect = SDLC->gear_ptr->rect;
+  SDL_Rect seek_vp   = SDLC->SSPtr->seek_bar->vp;
+  SDL_Rect vol_vp    = SDLC->SSPtr->vol_bar->vp;
 
-  SDL_Rect rect_array[] = { dir_rect, song_rect, gear_rect };
+  SDL_Rect playing_rect_array[] = { dir_rect, song_rect, gear_rect };
+  SDL_Rect paused_rect_array[]  = { seek_vp, vol_vp, gear_rect };
 
   i8 playing_song = SDLC->SSPtr->pb_state->playing_song;
 
-  int device_status = SDL_GetAudioDeviceStatus(SDLC->audio_dev);
   /*Determining the outcome based off pointer location and application state*/
   switch (playing_song) {
+
   default: {
     break;
   }
 
   case TRUE: {
-    if (device_status) {
-      clicked_while_active(SDLC, FC->file_state, mouse_x, mouse_y);
-    }
-    break;
-  }
-
-  case FALSE: {
-    for (size_t i = 0; i < sizeof(rect_array) / sizeof(rect_array[0]); i++) {
-      if (point_in_rect(mouse_x, mouse_y, rect_array[i])) {
+    size_t len = sizeof(paused_rect_array) / sizeof(paused_rect_array[0]);
+    for (size_t i = 0; i < len; i++) {
+      if (point_in_rect(mouse_x, mouse_y, paused_rect_array[i])) {
         switch (i) {
+        case 0: {
+          grab_seek_bar(SDLC, FC->file_state, mouse_x, mouse_y);
+          break;
+        }
+
+        case 1: {
+          grab_vol_bar(SDLC, mouse_x, mouse_y);
+          break;
+        }
+
         case 2: {
           clicked_settings_gear(SDLC);
           break;
         }
-        case 1: {
-          clicked_in_song_rect(SDLC, FNT, FC, mouse_x, mouse_y);
-          break;
-        }
-        case 0: {
-          clicked_in_dir_rect(SDLC, FNT, FC, mouse_x, mouse_y);
-          break;
-        }
+
         default: {
           break;
         }
         }
       }
     }
+    break;
+  }
 
+  case FALSE: {
+    size_t len = sizeof(playing_rect_array) / sizeof(playing_rect_array[0]);
+    for (size_t i = 0; i < len; i++) {
+      if (point_in_rect(mouse_x, mouse_y, playing_rect_array[i])) {
+        switch (i) {
+        case 2: {
+          clicked_settings_gear(SDLC);
+          break;
+        }
+
+        case 1: {
+          clicked_in_song_rect(SDLC, FNT, FC, mouse_x, mouse_y);
+          break;
+        }
+
+        case 0: {
+          clicked_in_dir_rect(SDLC, FNT, FC, mouse_x, mouse_y);
+          break;
+        }
+
+        default: {
+          break;
+        }
+        }
+      }
+    }
     break;
   }
   }
 } /*clicked_in_rect*/
-
-void
-clicked_while_active(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y) {
-  SeekBar*      SKBar = SDLC->SSPtr->seek_bar;
-  VolBar*       VBar  = SDLC->SSPtr->vol_bar;
-  SettingsGear* Gptr  = SDLC->gear_ptr;
-
-  SDL_Rect rect_arr[] = { SKBar->vp, VBar->vp, Gptr->rect };
-  for (size_t i = 0; i < sizeof(rect_arr) / sizeof(rect_arr[0]); i++) {
-    if (point_in_rect(mouse_x, mouse_y, rect_arr[i])) {
-      switch (i) {
-      case 0: {
-        grab_seek_bar(SDLC, FS, mouse_x, mouse_y);
-        break;
-      }
-
-      case 1: {
-        grab_vol_bar(SDLC, mouse_x, mouse_y);
-        break;
-      }
-
-      case 2: {
-        clicked_settings_gear(SDLC);
-        break;
-      }
-      default: {
-        break;
-      }
-      }
-    }
-  }
-}
 
 void
 grab_seek_bar(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y) {

@@ -32,6 +32,62 @@ render_background(SDL_Renderer* r) {
 }
 
 void
+render_set_rgba_sliders(SDLContext* SDLC) {
+  SDLColours*   Col  = SDLC->container->theme;
+  SDLContainer* Cont = SDLC->container;
+
+  int quart_screen = Cont->win_width * 0.25;
+  int vp_height    = Cont->win_height * 0.33;
+  int x_offset     = Cont->win_width - quart_screen;
+
+  const size_t len = 3;
+
+  SDL_Rect prim_rend_vp = { x_offset * 0.25, 0, quart_screen, vp_height };
+  SDL_Rect secn_rend_vp = { x_offset * 0.25, Cont->win_height * 0.33, quart_screen, vp_height };
+  SDL_Rect tert_rend_vp = { x_offset * 0.25, Cont->win_height * 0.66, quart_screen, vp_height };
+
+  SDL_Rect temp_arr[] = { prim_rend_vp, secn_rend_vp, tert_rend_vp };
+  for (size_t i = 0; i < len; i++) {
+    Col->viewports[i] = temp_arr[i];
+  }
+
+  const u8 max = 255;
+
+  SDL_Color* colour_struct_array[] = { &Col->primary, &Col->secondary, &Col->tertiary };
+
+  for (size_t i = 0; i < len; i++) {
+    SDL_Color* rgba_field   = colour_struct_array[i];
+    u8         rgba_array[] = { rgba_field->r, rgba_field->g, rgba_field->b, rgba_field->a };
+    f32        factor       = 0.20;
+    for (size_t j = 0; j < len + 1; j++) {
+      Col->normalized_positions[i][j] = (float)rgba_array[j] / max;
+      Col->scaled_positions[i][j]     = Col->viewports[i].w * ((float)rgba_array[j] / max);
+
+      int      x   = Col->scaled_positions[i][j] - SCROLLBAR_OFFSET;
+      SDL_Rect bar = { x, Col->viewports[i].h * factor, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+
+      Col->scroll_bars[i][j] = bar;
+      factor += 0.20;
+    }
+  }
+}
+
+void
+render_draw_rgba_sliders(SDLContext* SDLC) {
+  SDLColours*  Col            = SDLC->container->theme;
+  const size_t fields_count   = 4;
+  const size_t viewport_count = sizeof(Col->viewports) / sizeof(Col->viewports[0]);
+
+  for (size_t i = 0; i < viewport_count; i++) {
+    SDL_RenderSetViewport(SDLC->r, &Col->viewports[i]);
+    SDL_SetRenderDrawColor(SDLC->r, Col->primary.r, Col->primary.g, Col->primary.b, Col->primary.a);
+    for (size_t j = 0; j < fields_count; j++) {
+      SDL_RenderFillRect(SDLC->r, &Col->scroll_bars[i][j]);
+    }
+  }
+}
+
+void
 render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
   int w        = 64;
   int x_offset = Cont->win_width - w;
