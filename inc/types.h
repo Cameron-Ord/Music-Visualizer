@@ -39,5 +39,7 @@ typedef struct FontData          FontData;
 typedef struct SDLContext        SDLContext;
 typedef struct Positions         Positions;
 typedef struct SettingsGear      SettingsGear;
+typedef struct SDLColours        SDLColours;
+typedef struct FunctionMember    FunctionMember;
 
 #endif

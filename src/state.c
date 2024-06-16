@@ -27,33 +27,48 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   SeekBar*      SkBar = SDLC->SSPtr->seek_bar;
   VolBar*       VBar  = SDLC->SSPtr->vol_bar;
 
-  render_set_gear(SDLC->container, SDLC->gear_ptr);
-  render_draw_gear(SDLC->r, SDLC->gear_ptr);
-
   i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8  vol_latched   = VBar->latched;
+  i8  seek_latched  = SkBar->latched;
+  int font_ready    = Fnt->active->ready;
 
-  if (*buffers_ready) {
-    render_bars(SDLC);
+  switch (SDLC->viewing_settings) {
+
+  case TRUE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    break;
   }
 
-  i8 vol_latched = VBar->latched;
-  if (!vol_latched) {
-    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
+  case FALSE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+
+    if (*buffers_ready) {
+      render_bars(SDLC);
+    }
+
+    if (!vol_latched) {
+      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
+    }
+
+    draw_vol_bar(SDLC->r, SSPtr->vol_bar);
+
+    if (!seek_latched) {
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+    }
+    draw_seek_bar(SDLC->r, SkBar);
+
+    if (font_ready) {
+      set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
+      draw_active_song_title(SDLC->r, Fnt->active);
+    }
+    break;
   }
 
-  draw_vol_bar(SDLC->r, SSPtr->vol_bar);
-
-  i8 latched = SkBar->latched;
-  if (!latched) {
-    set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+  default: {
+    break;
   }
-  draw_seek_bar(SDLC->r, SkBar);
-
-  int font_ready = Fnt->active->ready;
-
-  if (font_ready) {
-    set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
-    draw_active_song_title(SDLC->r, Fnt->active);
   }
 
   present_render(SDLC->r);
@@ -69,32 +84,48 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   FourierTransform* FTPtr = SDLC->FTPtr;
   SeekBar*          SkBar = SDLC->SSPtr->seek_bar;
 
-  render_set_gear(SDLC->container, SDLC->gear_ptr);
-  render_draw_gear(SDLC->r, SDLC->gear_ptr);
-
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
+  int font_ready    = Fnt->active->ready;
 
-  if (*buffers_ready) {
-    generate_visual(FTPtr->fft_data, FTPtr->fft_buffers, SDLC->spec.freq);
+  switch (SDLC->viewing_settings) {
+
+  case FALSE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+
+    if (*buffers_ready) {
+      generate_visual(FTPtr->fft_data, FTPtr->fft_buffers, SDLC->spec.freq);
+    }
+
+    if (*buffers_ready) {
+      render_bars(SDLC);
+    }
+
+    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
+    draw_vol_bar(SDLC->r, SSPtr->vol_bar);
+
+    i8 latched = SkBar->latched;
+    if (!latched) {
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+    }
+    draw_seek_bar(SDLC->r, SkBar);
+
+    if (font_ready) {
+      set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
+      draw_active_song_title(SDLC->r, Fnt->active);
+    }
+    break;
   }
 
-  if (*buffers_ready) {
-    render_bars(SDLC);
+  case TRUE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    break;
   }
 
-  set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
-  draw_vol_bar(SDLC->r, SSPtr->vol_bar);
-
-  i8 latched = SkBar->latched;
-  if (!latched) {
-    set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+  default: {
+    break;
   }
-  draw_seek_bar(SDLC->r, SkBar);
-
-  int font_ready = Fnt->active->ready;
-  if (font_ready) {
-    set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
-    draw_active_song_title(SDLC->r, Fnt->active);
   }
 
   present_render(SDLC->r);
@@ -108,15 +139,31 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
   i8 song_fonts_created = Fnt->state->song_fonts_created;
 
-  render_set_gear(SDLC->container, SDLC->gear_ptr);
-  render_draw_gear(SDLC->r, SDLC->gear_ptr);
+  switch (SDLC->viewing_settings) {
 
-  if (dir_fonts_created) {
-    render_dir_list(SDLC, Fnt, FC->dir_state->dir_count);
+  case TRUE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    break;
   }
 
-  if (song_fonts_created) {
-    render_song_list(SDLC, Fnt, FC->file_state->file_count);
+  case FALSE: {
+    render_set_gear(SDLC->container, SDLC->gear_ptr);
+    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+
+    if (dir_fonts_created) {
+      render_dir_list(SDLC, Fnt, FC->dir_state->dir_count);
+    }
+
+    if (song_fonts_created) {
+      render_song_list(SDLC, Fnt, FC->file_state->file_count);
+    }
+    break;
+  }
+
+  default: {
+    break;
+  }
   }
 
   present_render(SDLC->r);

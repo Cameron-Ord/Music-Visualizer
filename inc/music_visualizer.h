@@ -19,11 +19,18 @@
 #include <time.h>
 #include <unistd.h>
 
+struct SDLColours {
+  SDL_Color primary;
+  SDL_Color secondary;
+  SDL_Color tertiary;
+};
+
 struct SDLContainer {
-  int      win_height;
-  int      win_width;
-  SDL_Rect dir_viewport;
-  SDL_Rect song_viewport;
+  int                win_height;
+  int                win_width;
+  SDL_Rect           dir_viewport;
+  SDL_Rect           song_viewport;
+  struct SDLColours* theme;
 };
 
 struct SDLMouse {
@@ -38,6 +45,7 @@ struct SDLContext {
   SDL_AudioDeviceID        audio_dev;
   i8                       running;
   SDL_Rect                 vis_rect;
+  i8                       viewing_settings;
   struct SettingsGear*     gear_ptr;
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
@@ -76,6 +84,7 @@ struct FileContext {
 };
 
 char* get_platform_env();
+void  clicked_settings_gear(SDLContext* SDLC);
 char* get_slash();
 int   chmod_dir(char* path, mode_t mode);
 int   make_directory(char* path, mode_t mode);

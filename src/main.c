@@ -13,18 +13,26 @@ main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  setup_dirs();
+  // setup_dirs();
 
-  AppContext Application = { 0 };
+  AppContext   Application = { 0 };
+  SDLContext   SDLChunk    = { 0 };
+  SDLColours   SDLTheme    = { 0 };
+  SDLContainer SDLCont     = { 0 };
+  SDLMouse     SDLCursor   = { 0 };
 
-  SDLContext   SDLChunk     = { 0 };
-  SDLContainer SDLContainer = { 0 };
-  SDLMouse     SDLMouse     = { 0 };
+  SDL_Color prim      = { 187, 147, 249, 255 };
+  SDL_Color secondary = { 40, 42, 54, 255 };
+  SDL_Color tertiary  = { 69, 71, 90, 255 };
 
-  SDLChunk.container = &SDLContainer;
-  SDLChunk.mouse     = &SDLMouse;
+  SDLTheme.primary   = prim;
+  SDLTheme.secondary = secondary;
+  SDLTheme.tertiary  = tertiary;
 
-  SDLChunk.running = TRUE;
+  SDLChunk.container = &SDLCont;
+  SDLChunk.mouse     = &SDLCursor;
+  SDLCont.theme      = &SDLTheme;
+  SDLChunk.running   = TRUE;
 
   fprintf(stdout, "Initializing SDL..\n");
 
@@ -53,8 +61,7 @@ main(int argc, char* argv[]) {
   Positions   FntPos    = { 0 };
   ActiveSong  Actve     = { 0 };
 
-  SDL_Color font_color  = { 189, 147, 249, 0 };
-  TTFData   ContextData = { .font_size = 16, .font = NULL, .color = font_color };
+  TTFData ContextData = { .font_size = 16, .font = NULL, .color = SDLTheme.primary };
 
   err = initialize_TTF();
   if (err < 0) {
@@ -150,7 +157,9 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Gear.surf);
+  SDL_Color from_colour = { 255, 255, 255, 255 };
+
+  convert_pixel_colours(&Gear.surf, from_colour, SDLTheme.primary);
   set_rect(&Gear.rect, Gear.surf, 0.90 * BWIDTH, 0.10 * BHEIGHT);
 
   Gear.tex = create_image_texture(SDLChunk.r, Gear.surf);
@@ -189,7 +198,7 @@ main(int argc, char* argv[]) {
 
   /*Clean up*/
 
-  if (SDLChunk.w) {
+  if (SDLChunk.r) {
     SDL_DestroyRenderer(SDLChunk.r);
   }
 

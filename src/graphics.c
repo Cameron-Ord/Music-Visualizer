@@ -13,15 +13,14 @@ load_image(char* path) {
 }
 
 void
-convert_pixel_colours(SDL_Surface** dptr) {
-  if (*dptr == NULL) {
+convert_pixel_colours(SDL_Surface** dptr, SDL_Color from_color, SDL_Color to_colour) {
+  if (dptr == NULL) {
     return;
   }
 
   int bpp   = (*dptr)->format->BytesPerPixel;
   u8* pixel = (u8*)(*dptr)->pixels;
-  /*This just converts white rgb profiles to the purple I'm using. Later on I intend to make this
-   * customizeable so you're not forced to use the purple*/
+
   for (int y = 0; y < (*dptr)->h; y++) {
     for (int x = 0; x < (*dptr)->w; x++) {
       int y_offset      = y * (*dptr)->pitch;
@@ -32,16 +31,16 @@ convert_pixel_colours(SDL_Surface** dptr) {
       /*Assigning a pointer to pix colour with a type conversion*/
       SDL_Color* colour = (SDL_Color*)&pix_colour;
 
-      if (colour->r == 255) {
-        colour->r = 189;
+      if (colour->r == from_color.r) {
+        colour->r = to_colour.r;
       }
 
-      if (colour->g == 255) {
-        colour->g = 147;
+      if (colour->g == from_color.g) {
+        colour->g = to_colour.g;
       }
 
-      if (colour->b == 255) {
-        colour->b = 249;
+      if (colour->b == from_color.b) {
+        colour->b = to_colour.b;
       }
 
       *(u32*)current_pixel = pix_colour;

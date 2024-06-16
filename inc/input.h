@@ -13,7 +13,7 @@ void  prev_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT);
 void  random_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT);
 void  move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar);
 void  move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBar* VBar);
-void  clicked_while_active(SDLContext* SDLC, FileState* FS, int mouse_x, int mouse_y);
+void  clicked_while_active(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y);
 void  grab_seek_bar(SDLContext* SDLC, FileState* FS, const int mouse_x, const int mouse_y);
 void  grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y);
 void  seek_latch_on(SeekBar* SKBar, int switch_value);
