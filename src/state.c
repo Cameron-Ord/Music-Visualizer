@@ -18,9 +18,18 @@ song_is_over(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
 }
 
 void
+set_viewports(SDLContext* SDLC, SDL_Rect* controls_vp_ptr, SDL_Rect* buttons_vp_ptr, SDL_Rect* viz_vp_ptr) {}
+
+void
 song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
+
+  SDL_Rect controls_vp = { 0 };
+  SDL_Rect buttons_vp  = { 0 };
+  SDL_Rect viz_vp      = { 0 };
+
+  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
 
   SDLContainer* Cont  = SDLC->container;
   SongState*    SSPtr = SDLC->SSPtr;
@@ -81,6 +90,12 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
+  SDL_Rect controls_vp = { 0 };
+  SDL_Rect buttons_vp  = { 0 };
+  SDL_Rect viz_vp      = { 0 };
+
+  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
+
   SDLContainer*     Cont  = SDLC->container;
   SongState*        SSPtr = SDLC->SSPtr;
   FourierTransform* FTPtr = SDLC->FTPtr;
@@ -139,6 +154,12 @@ void
 song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
+
+  SDL_Rect controls_vp = { 0 };
+  SDL_Rect buttons_vp  = { 0 };
+  SDL_Rect viz_vp      = { 0 };
+
+  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
 
   i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
   i8 song_fonts_created = Fnt->state->song_fonts_created;

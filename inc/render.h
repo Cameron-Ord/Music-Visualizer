@@ -3,6 +3,8 @@
 #include "types.h"
 #include <SDL2/SDL_render.h>
 
+void  set_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* buttons_vp_ptr,
+                    SDL_Rect* viz_vp_ptr);
 void  render_set_gear(SDLContainer* Cont, SettingsGear* gear);
 void  render_draw_gear(SDL_Renderer* r, SettingsGear* gear);
 void* destroy_texture(SDL_Texture* tex);

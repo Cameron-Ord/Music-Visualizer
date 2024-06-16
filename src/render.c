@@ -111,12 +111,13 @@ render_bars(SDLContext* SDLC) {
   int win_height = SDLC->container->win_height;
   int out_len    = SDLC->FTPtr->fft_data->output_len;
 
-  /*If the out_len is 0 early return, this is extremely unlikely to happen, but if it does : something has
-   * gone very wrong. I'm just leaving it here to avoid the division by 0 and have a message for debugging so
-   * I know what happened*/
   if (out_len == 0) {
-    fprintf(stdout, "OUTPUT LENGTH 0\n");
-    exit(EXIT_FAILURE);
+    fprintf(stdout, "OUTPUT LENGTH 0 - SOMETHING HAS GONE HORRIBLY WRONG\n");
+    PlaybackState* pb = SDLC->SSPtr->pb_state;
+
+    pb->hard_stop = TRUE;
+    stop_playback(NULL, pb, &SDLC->audio_dev);
+    return;
   }
 
   int three_quarters = (int)(win_height * 0.75);

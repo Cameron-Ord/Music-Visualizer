@@ -42,7 +42,6 @@ struct ActiveSong {
   int          y;
   SDL_Rect     rect;
   SDL_Rect     offset_rect;
-  SDL_Rect     vp;
   SDL_Texture* tex;
   SDL_Surface* surf;
   char*        text;

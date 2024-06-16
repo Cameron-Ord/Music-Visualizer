@@ -36,7 +36,6 @@ struct SeekBar {
   int      current_pos;
   SDL_Rect seek_box;
   SDL_Rect seek_line;
-  SDL_Rect vp;
   i8       latched;
 };
 
@@ -45,7 +44,6 @@ struct VolBar {
   int      current_pos;
   SDL_Rect seek_box;
   SDL_Rect seek_line;
-  SDL_Rect vp;
   i8       latched;
 };
 
@@ -59,15 +57,13 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32 fft_in_prim[DOUBLE_BUFF];
-  f32 fft_in_sec[DOUBLE_BUFF];
-
-  f32* in_ptr;
-
+  f32  fft_in_prim[DOUBLE_BUFF];
+  f32  fft_in_sec[DOUBLE_BUFF];
   f32  in_cpy_prim[DOUBLE_BUFF];
   f32c out_raw_prim[DOUBLE_BUFF];
   f32  processed_prim[DOUBLE_BUFF];
   f32  smoothed_prim[DOUBLE_BUFF];
+  f32* in_ptr;
 };
 
 struct FTransformData {

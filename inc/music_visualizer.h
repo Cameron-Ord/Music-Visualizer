@@ -47,8 +47,8 @@ struct SDLContext {
   SDL_Window*              w;
   SDL_AudioSpec            spec;
   SDL_AudioDeviceID        audio_dev;
-  i8                       running;
   SDL_Rect                 vis_rect;
+  i8                       running;
   i8                       viewing_settings;
   struct SettingsGear*     gear_ptr;
   struct SDLContainer*     container;
