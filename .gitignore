@@ -8,3 +8,5 @@ LINUX/
 *.profdata
 *.json
 *.txt
+*.png~
+*.kra
