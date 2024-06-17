@@ -143,13 +143,16 @@ render_draw_rgba_sliders(SDLContext* SDLC, SDL_Rect* vp) {
 
 void
 render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
-  int w        = 64;
+  int w        = 32;
   int x_offset = Cont->win_width - w;
 
   int padding_x = 10;
   int padding_y = 10;
 
-  set_rect(&gear->rect, NULL, x_offset + (w / 2) - padding_x, 0 + padding_y);
+  gear->rect.w = 32;
+  gear->rect.h = 32;
+
+  set_rect(&gear->rect, NULL, x_offset - padding_x, 0 + padding_y);
 }
 
 void
@@ -159,19 +162,54 @@ render_draw_gear(SDL_Renderer* r, SettingsGear* gear) {
 }
 
 void
-render_set_gear_active(SDLContainer* Cont, SettingsGear* gear, SDL_Rect* vp) {
-  int w        = 64;
-  int h        = 64;
-  int y        = vp->h * 0.75;
-  int x_offset = vp->w * 0.4;
+render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
+  const int w = 16;
+  const int h = 16;
 
-  set_rect(&gear->rect, NULL, x_offset - (w / 2), y - (h / 2));
+  int y        = vp->h * 0.75;
+  int x_offset = vp->w * 0.5;
+
+  set_rect(&Play->rect, NULL, x_offset, y - (w / 2));
 }
 
 void
-render_draw_gear_active(SDL_Renderer* r, SettingsGear* gear, SDL_Rect* vp) {
+render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
+  const int w = 16;
+  const int h = 16;
+
+  int y        = vp->h * 0.75;
+  int x_offset = vp->w * 0.6;
+
+  set_rect(&Pause->rect, NULL, x_offset, y - (w / 2));
+}
+
+void
+render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
+  const int w = 16;
+  const int h = 16;
+
+  int y        = vp->h * 0.75;
+  int x_offset = vp->w * 0.4;
+
+  set_rect(&Stop->rect, NULL, x_offset, y - (w / 2));
+}
+
+void
+render_draw_play_button(SDL_Renderer* r, PlayIcon* Play, SDL_Rect* vp) {
   SDL_RenderSetViewport(r, vp);
-  SDL_RenderCopy(r, gear->tex, NULL, &gear->rect);
+  SDL_RenderCopy(r, Play->tex, NULL, &Play->rect);
+}
+
+void
+render_draw_pause_button(SDL_Renderer* r, PauseIcon* Pause, SDL_Rect* vp) {
+  SDL_RenderSetViewport(r, vp);
+  SDL_RenderCopy(r, Pause->tex, NULL, &Pause->rect);
+}
+
+void
+render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp) {
+  SDL_RenderSetViewport(r, vp);
+  SDL_RenderCopy(r, Stop->tex, NULL, &Stop->rect);
 }
 
 void
@@ -211,6 +249,7 @@ void
 render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect* vp) {
   Positions*   Pos   = FNT->pos;
   ListLimiter* LLmtr = SDLC->container->list_limiter;
+  int          width = SDLC->container->win_width;
 
   const int height_offset = 5;
 
@@ -230,8 +269,9 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
     SDL_Rect* font_rect = &df_arr[i].font_rect;
     SDL_Rect* font_bg   = &df_arr[i].font_bg;
 
+    /*GOLEM GET YET GONE*/
     font_rect->y = 0;
-    font_rect->x = 0;
+    font_rect->x = (width + width);
   }
 
   for (size_t i = LLmtr->dir_first_index; i < last_index; i++) {
@@ -346,11 +386,10 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp) {
   SkBar->current_pos    = SkBar->normalized_pos * (vp->w * 0.20);
 
   int x = SkBar->current_pos - SCROLLBAR_OFFSET;
-  int y = vp->h * 0.75;
+  int y = vp->h * 0.60;
 
-  SDL_Rect sk_box = { x + sub_amount, y - (SCROLLBAR_HEIGHT / 2), SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line
-      = { line_x - sub_amount, (y - (SCROLLBAR_HEIGHT / 2)) + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  SDL_Rect sk_box  = { x + sub_amount, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
 
   SkBar->seek_box  = sk_box;
   SkBar->seek_line = sk_line;
@@ -364,12 +403,10 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp) {
   int sub_amount = (vp->w * 0.20) / 2;
 
   int x = VBar->current_pos - SCROLLBAR_OFFSET;
-  int y = vp->h * 0.75;
+  int y = vp->h * 0.60;
 
-  SDL_Rect sk_box
-      = { x + (line_x - sub_amount), y - (SCROLLBAR_HEIGHT / 2), SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line
-      = { line_x - sub_amount, (y - (SCROLLBAR_HEIGHT / 2)) + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  SDL_Rect sk_box  = { x + (line_x - sub_amount), y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
 
   VBar->seek_box  = sk_box;
   VBar->seek_line = sk_line;
@@ -377,7 +414,7 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp) {
 
 void
 set_active_song_title(FontContext* FntPtr, int win_width, int win_height, SDL_Rect* vp) {
-  int y = vp->h * 0.25;
+  int y = vp->h * 0.10;
 
   FntPtr->active->rect.y        = y;
   FntPtr->active->offset_rect.y = y;

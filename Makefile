@@ -8,6 +8,10 @@ FONT_DIR := fonts
 FONT := Roboto-Regular.ttf
 GFX_DIR := assets
 GEAR_ICON := settings_icon.png
+PLAY_ICON := play_icon.png
+PAUSE_ICON := pause_icon.png
+STOP_ICON := stop_icon.png
+SEEK_ICON := seek_icon.png
 TARGET :=
 
 
@@ -70,6 +74,10 @@ bin:
 somove:
 	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(PLAY_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(PAUSE_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
 
 

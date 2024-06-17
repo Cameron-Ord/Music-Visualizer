@@ -56,6 +56,14 @@ struct SDLMouse {
   int mouse_offset_x;
 };
 
+struct SDLSprites {
+  struct SettingsGear* sett_gear;
+  struct PlayIcon*     play_icon;
+  struct PauseIcon*    pause_icon;
+  struct StopIcon*     stop_icon;
+  struct SeekIcon*     seek_icon;
+};
+
 struct SDLContext {
   SDL_Renderer*            r;
   SDL_Window*              w;
@@ -63,7 +71,7 @@ struct SDLContext {
   SDL_AudioDeviceID        audio_dev;
   i8                       running;
   i8                       viewing_settings;
-  struct SettingsGear*     gear_ptr;
+  struct SDLSprites*       sprites;
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
   struct FourierTransform* FTPtr;

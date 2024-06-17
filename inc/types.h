@@ -42,4 +42,10 @@ typedef struct SettingsGear      SettingsGear;
 typedef struct SDLColours        SDLColours;
 typedef struct SDLViewports      SDLViewports;
 typedef struct ListLimiter       ListLimiter;
+typedef struct SDLSprites        SDLSprites;
+typedef struct PlayIcon          PlayIcon;
+typedef struct PauseIcon         PauseIcon;
+typedef struct StopIcon          StopIcon;
+typedef struct SeekIcon          SeekIcon;
+
 #endif

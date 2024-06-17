@@ -5,7 +5,9 @@
 #include "../inc/input.h"
 #include "../inc/music_visualizer.h"
 #include "../inc/render.h"
+#include <SDL2/SDL_events.h>
 #include <SDL2/SDL_main.h>
+#include <SDL2/SDL_video.h>
 #include <errno.h>
 
 int
@@ -18,6 +20,7 @@ main(int argc, char* argv[]) {
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
   SDLColours   SDLTheme    = { 0 };
+  SDLSprites   SDLSpr      = { 0 };
   SDLViewports SDLVps      = { 0 };
   SDLContainer SDLCont     = { 0 };
   ListLimiter  LLmtr       = { 0 };
@@ -35,6 +38,7 @@ main(int argc, char* argv[]) {
   SDLCont.vps          = &SDLVps;
   SDLCont.list_limiter = &LLmtr;
 
+  SDLChunk.sprites   = &SDLSpr;
   SDLChunk.container = &SDLCont;
   SDLChunk.mouse     = &SDLCursor;
   SDLChunk.running   = TRUE;
@@ -148,21 +152,21 @@ main(int argc, char* argv[]) {
   AudioChunk.FTPtr = &FTransform;
   AudioChunk.SDLC  = &SDLChunk;
 
-  SettingsGear Gear = { 0 };
-
   err = initialize_sdl_image();
   if (err < 0) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return 1;
   }
 
+  SDL_Color from_colour = { 255, 255, 255, 255 };
+
+  SettingsGear Gear = { 0 };
+
   Gear.surf = load_image(SETTINGS_ICON_PATH);
   if (Gear.surf == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
     return 1;
   }
-
-  SDL_Color from_colour = { 255, 255, 255, 255 };
 
   convert_pixel_colours(&Gear.surf, from_colour, SDLTheme.primary);
   set_rect(&Gear.rect, Gear.surf, 0.90 * BWIDTH, 0.10 * BHEIGHT);
@@ -173,7 +177,89 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  SDLChunk.gear_ptr = &Gear;
+  PlayIcon Play = { 0 };
+
+  Play.surf = load_image(PLAY_ICON_PATH);
+  if (Play.surf == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  convert_pixel_colours(&Play.surf, from_colour, SDLTheme.primary);
+  set_rect(&Play.rect, Play.surf, 0, 0);
+
+  Play.tex = create_image_texture(SDLChunk.r, Play.surf);
+  if (Play.tex == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  PauseIcon Pause = { 0 };
+
+  Pause.surf = load_image(PAUSE_ICON_PATH);
+  if (Pause.surf == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  convert_pixel_colours(&Pause.surf, from_colour, SDLTheme.primary);
+  set_rect(&Pause.rect, Pause.surf, 0, 0);
+
+  Pause.tex = create_image_texture(SDLChunk.r, Pause.surf);
+  if (Pause.tex == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  StopIcon Stop = { 0 };
+
+  Stop.surf = load_image(STOP_ICON_PATH);
+  if (Stop.surf == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  convert_pixel_colours(&Stop.surf, from_colour, SDLTheme.primary);
+  set_rect(&Stop.rect, Stop.surf, 0, 0);
+
+  Stop.tex = create_image_texture(SDLChunk.r, Stop.surf);
+  if (Stop.tex == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  SeekIcon Seek = { 0 };
+
+  Seek.surf = load_image(SEEKER_ICON_PATH);
+  if (Seek.surf == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  convert_pixel_colours(&Seek.surf, from_colour, SDLTheme.primary);
+
+  const size_t main_seekers     = 2;
+  const size_t settings_seekers = 12;
+
+  for (size_t i = 0; i < main_seekers; i++) {
+    set_rect(&Seek.rect_main[i], Seek.surf, 0, 0);
+  }
+
+  for (size_t i = 0; i < settings_seekers; i++) {
+    set_rect(&Seek.rect_settings[i], Seek.surf, 0, 0);
+  }
+
+  Seek.tex = create_image_texture(SDLChunk.r, Seek.surf);
+  if (Seek.tex == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+    return 1;
+  }
+
+  SDLChunk.sprites->sett_gear  = &Gear;
+  SDLChunk.sprites->play_icon  = &Play;
+  SDLChunk.sprites->pause_icon = &Pause;
+  SDLChunk.sprites->stop_icon  = &Stop;
+  SDLChunk.sprites->seek_icon  = &Seek;
 
   Application.SDLC   = &SDLChunk;
   Application.FTPtr  = &FTransform;
@@ -324,6 +410,13 @@ poll_events(AppContext* app) {
 
     case SDL_WINDOWEVENT: {
       switch (e.window.event) {
+
+      case SDL_WINDOWEVENT_RESIZED: {
+        update_window_size(SDLC->container, SDLC->mouse, SDLC->w);
+        resize_fonts(SDLC, app->FCPtr, app->FntPtr);
+        break;
+      }
+
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
         update_window_size(SDLC->container, SDLC->mouse, SDLC->w);
         resize_fonts(SDLC, app->FCPtr, app->FntPtr);

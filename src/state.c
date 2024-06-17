@@ -35,6 +35,7 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   SongState*    SSPtr = SDLC->SSPtr;
   SeekBar*      SkBar = SDLC->SSPtr->seek_bar;
   VolBar*       VBar  = SDLC->SSPtr->vol_bar;
+  SDLSprites*   Spr   = SDLC->sprites;
 
   i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
   i8  vol_latched   = VBar->latched;
@@ -44,16 +45,21 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   switch (SDLC->viewing_settings) {
 
   case TRUE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear(SDLC->container, Spr->sett_gear);
+    render_draw_gear(SDLC->r, Spr->sett_gear);
     render_set_rgba_sliders(SDLC, &settings_vp);
     render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
   case FALSE: {
-    render_set_gear_active(SDLC->container, SDLC->gear_ptr, &controls_vp);
-    render_draw_gear_active(SDLC->r, SDLC->gear_ptr, &controls_vp);
+    render_set_play_button(SDLC->container, Spr->play_icon, &controls_vp);
+    render_set_pause_button(SDLC->container, Spr->pause_icon, &controls_vp);
+    render_set_stop_button(SDLC->container, Spr->stop_icon, &controls_vp);
+
+    render_draw_play_button(SDLC->r, Spr->play_icon, &controls_vp);
+    render_draw_pause_button(SDLC->r, Spr->pause_icon, &controls_vp);
+    render_draw_stop_button(SDLC->r, Spr->stop_icon, &controls_vp);
 
     if (*buffers_ready) {
       render_bars(SDLC, &viz_vp);
@@ -100,6 +106,7 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   FourierTransform* FTPtr = SDLC->FTPtr;
   SeekBar*          SkBar = SSPtr->seek_bar;
   VolBar*           VBar  = SSPtr->vol_bar;
+  SDLSprites*       Spr   = SDLC->sprites;
 
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
   int font_ready    = Fnt->active->ready;
@@ -110,8 +117,13 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   switch (SDLC->viewing_settings) {
 
   case FALSE: {
-    render_set_gear_active(SDLC->container, SDLC->gear_ptr, &controls_vp);
-    render_draw_gear_active(SDLC->r, SDLC->gear_ptr, &controls_vp);
+    render_set_play_button(SDLC->container, Spr->play_icon, &controls_vp);
+    render_set_pause_button(SDLC->container, Spr->pause_icon, &controls_vp);
+    render_set_stop_button(SDLC->container, Spr->stop_icon, &controls_vp);
+
+    render_draw_play_button(SDLC->r, Spr->play_icon, &controls_vp);
+    render_draw_pause_button(SDLC->r, Spr->pause_icon, &controls_vp);
+    render_draw_stop_button(SDLC->r, Spr->stop_icon, &controls_vp);
 
     if (*buffers_ready) {
       generate_visual(FTPtr->fft_data, FTPtr->fft_buffers, SDLC->spec.freq);
@@ -139,8 +151,8 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   }
 
   case TRUE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear(SDLC->container, Spr->sett_gear);
+    render_draw_gear(SDLC->r, Spr->sett_gear);
     render_set_rgba_sliders(SDLC, &settings_vp);
     render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
@@ -163,6 +175,8 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   SDL_Rect songs_vp    = { 0 };
   SDL_Rect settings_vp = { 0 };
 
+  SDLSprites* Spr = SDLC->sprites;
+
   set_stopped_viewports(SDLC, &dirs_vp, &songs_vp, &settings_vp);
 
   i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
@@ -171,16 +185,16 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   switch (SDLC->viewing_settings) {
 
   case TRUE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear(SDLC->container, Spr->sett_gear);
+    render_draw_gear(SDLC->r, Spr->sett_gear);
     render_set_rgba_sliders(SDLC, &settings_vp);
     render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
   case FALSE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear(SDLC->container, Spr->sett_gear);
+    render_draw_gear(SDLC->r, Spr->sett_gear);
 
     if (dir_fonts_created) {
       render_set_dir_list(SDLC, Fnt, FC->dir_state->dir_count, &songs_vp);

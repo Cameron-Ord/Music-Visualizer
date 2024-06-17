@@ -3,6 +3,12 @@
 #include "types.h"
 #include <SDL2/SDL_render.h>
 
+void  render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp);
+void  render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp);
+void  render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp);
+void  render_draw_play_button(SDL_Renderer* r, PlayIcon* Play, SDL_Rect* vp);
+void  render_draw_pause_button(SDL_Renderer* r, PauseIcon* Pause, SDL_Rect* vp);
+void  render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp);
 void  set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_ptr,
                             SDL_Rect* settings_vp_ptr);
 void  set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_vp_ptr,
@@ -30,6 +36,4 @@ void  render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL
 void  render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp);
 void  render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rect* vp);
 void  render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp);
-void  render_draw_gear_active(SDL_Renderer* r, SettingsGear* gear, SDL_Rect* vp);
-void  render_set_gear_active(SDLContainer* Cont, SettingsGear* gear, SDL_Rect* vp);
 #endif

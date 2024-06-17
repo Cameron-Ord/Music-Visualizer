@@ -21,6 +21,7 @@ create_window(SDL_Window** w) {
     return -1;
   }
   SDL_SetWindowResizable(*w, SDL_TRUE);
+  SDL_SetWindowMinimumSize(*w, BWIDTH, BHEIGHT);
   return 0;
 }
 

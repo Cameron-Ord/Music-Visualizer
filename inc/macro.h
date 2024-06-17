@@ -31,5 +31,8 @@
 
 #define FONT_PATH "Roboto-Regular.ttf"
 #define SETTINGS_ICON_PATH "settings_icon.png"
-
+#define PLAY_ICON_PATH "play_icon.png"
+#define STOP_ICON_PATH "stop_icon.png"
+#define PAUSE_ICON_PATH "pause_icon.png"
+#define SEEKER_ICON_PATH "seek_icon.png"
 #endif

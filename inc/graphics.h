@@ -9,9 +9,31 @@ struct SettingsGear {
   SDL_Surface* surf;
   SDL_Texture* tex;
   SDL_Rect     rect;
-  SDL_Rect     vp;
-  int          coord_y;
-  int          coord_x;
+};
+
+struct PlayIcon {
+  SDL_Surface* surf;
+  SDL_Texture* tex;
+  SDL_Rect     rect;
+};
+
+struct PauseIcon {
+  SDL_Surface* surf;
+  SDL_Texture* tex;
+  SDL_Rect     rect;
+};
+
+struct StopIcon {
+  SDL_Surface* surf;
+  SDL_Texture* tex;
+  SDL_Rect     rect;
+};
+
+struct SeekIcon {
+  SDL_Surface* surf;
+  SDL_Texture* tex;
+  SDL_Rect     rect_main[2];
+  SDL_Rect     rect_settings[12];
 };
 
 void         convert_pixel_colours(SDL_Surface** surf_ptr, SDL_Color from_colour, SDL_Color to_colour);

@@ -56,8 +56,9 @@ reset_songlist_pos(Positions* pos) {
 void
 clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x, const int mouse_y) {
 
+  SDLSprites*   Spr       = SDLC->sprites;
   SDLViewports* Vps       = SDLC->container->vps;
-  SDL_Rect      gear_rect = SDLC->gear_ptr->rect;
+  SDL_Rect      gear_rect = Spr->sett_gear->rect;
 
   SDL_Rect playing_rect_array[] = { Vps->dir_vp, Vps->song_vp, gear_rect };
   SDL_Rect paused_rect_array[]  = { Vps->controls_vp, Vps->controls_vp, gear_rect };
