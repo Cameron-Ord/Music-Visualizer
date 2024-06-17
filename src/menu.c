@@ -232,16 +232,6 @@ clicked_in_song_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const 
     int offset_x = SDLC->mouse->mouse_offset_x;
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    /*This works for the time being, but maybe create a positions struct to manage this better*/
-    if (SDLCntrPtr->win_width < 800) {
-
-      int fourty_percent = (int)(SDLCntrPtr->win_height * 0.4);
-
-      int offset_h = SDLCntrPtr->win_height - fourty_percent;
-
-      offset_y = fourty_percent + (offset_h * 0.2);
-    }
-
     /*Finding the index associated with the title clicked*/
     const int  mouse_arr[]     = { (mouse_x - offset_x), (mouse_y - offset_y) };
     int        file_count      = FC->file_state->file_count;

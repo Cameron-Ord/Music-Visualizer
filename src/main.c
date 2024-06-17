@@ -431,3 +431,20 @@ poll_events(AppContext* app) {
     }
   }
 }
+
+/*Kinda hard to get this right with tiling WMs so im just gonna leave it out for now*/
+
+void
+check_size(SDLContainer* Cont, SDL_Window* w) {
+  if (Cont->win_width < BWIDTH && Cont->win_height < BHEIGHT) {
+    SDL_SetWindowSize(w, BWIDTH, BHEIGHT);
+  }
+
+  if (Cont->win_width < BWIDTH && Cont->win_height > BHEIGHT) {
+    SDL_SetWindowSize(w, BWIDTH, Cont->win_height);
+  }
+
+  if (Cont->win_width > BWIDTH && Cont->win_height < BHEIGHT) {
+    SDL_SetWindowSize(w, Cont->win_width, BHEIGHT);
+  }
+}
