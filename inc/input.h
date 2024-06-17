@@ -27,9 +27,10 @@ void  clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, c
 void  clicked_in_song_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,
                            const int mouse_y);
 void  start_song_from_menu(SDLContext* SDLC, FileContext* FC, FontContext* FNT);
-void  scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FontContext* FNT, Sint32 wheel_y);
-void  handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FontContext* FNT);
+void  scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* sign);
+void  handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FileContext* FC);
 void  handle_mouse_release(SDLContext* SDLC, FileState* FS);
 int   point_in_rect(int x, int y, SDL_Rect rect);
-int   within_bounds_x(int x, int width);
+int   within_bounds_x(int x, int start, int end);
+char* check_sign(int num);
 #endif

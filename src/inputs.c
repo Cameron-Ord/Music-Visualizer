@@ -141,12 +141,28 @@ handle_mouse_click(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
   clicked_in_rect(SDLC, FNT, FC, mouse_x, mouse_y);
 }
 
+char*
+check_sign(int num) {
+  if (num > 0) {
+    return "Positive";
+  }
+
+  if (num < 0) {
+    return "Negative";
+  }
+
+  return "Zero";
+}
+
 void
-handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FontContext* FNT) {
+handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FileContext* FC) {
+  char* sign = check_sign(wheel_y);
+
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
   const int mouse_arr[] = { mouse_x, mouse_y };
-  scroll_in_rect(mouse_arr, SDLC, FNT, wheel_y);
+
+  scroll_in_rect(mouse_arr, SDLC, FC, sign);
 }
 
 void

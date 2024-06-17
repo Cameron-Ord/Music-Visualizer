@@ -100,8 +100,8 @@ int               read_to_buffer(FileContext* FC, SongState* SS, FourierTransfor
 void              set_spec_data(SDLContext* SDLC);
 void              callback(void* data, Uint8* stream, int len);
 SDL_AudioDeviceID create_audio_device(SDL_AudioSpec* spec);
-void              update_audio_position(AudioData* ADta, SeekBar* SKBar);
-void              update_vol_pos(AudioData* ADta, VolBar* VBar);
+void              update_audio_position(AudioData* ADta, SeekBar* SKBar, SDL_Rect viewport);
+void              update_vol_pos(AudioData* ADta, VolBar* VBar, SDL_Rect viewport);
 void              change_volume(f32* vol, f32 amount);
 f32               clamp(f32 vol, f32 amount, f32 min, f32 max);
 void              baseline_pb_state(PlaybackState* pbste);

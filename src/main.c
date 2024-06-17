@@ -18,7 +18,9 @@ main(int argc, char* argv[]) {
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
   SDLColours   SDLTheme    = { 0 };
+  SDLViewports SDLVps      = { 0 };
   SDLContainer SDLCont     = { 0 };
+  ListLimiter  LLmtr       = { 0 };
   SDLMouse     SDLCursor   = { 0 };
 
   SDL_Color prim      = { 187, 147, 249, 255 };
@@ -29,9 +31,12 @@ main(int argc, char* argv[]) {
   SDLTheme.secondary = secondary;
   SDLTheme.tertiary  = tertiary;
 
+  SDLCont.theme        = &SDLTheme;
+  SDLCont.vps          = &SDLVps;
+  SDLCont.list_limiter = &LLmtr;
+
   SDLChunk.container = &SDLCont;
   SDLChunk.mouse     = &SDLCursor;
-  SDLCont.theme      = &SDLTheme;
   SDLChunk.running   = TRUE;
 
   fprintf(stdout, "Initializing SDL..\n");
@@ -177,7 +182,7 @@ main(int argc, char* argv[]) {
   Application.SSPtr  = &AudioChunk;
 
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
-  update_viewports(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
+  update_window_size(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
   u32 frame_start;
@@ -262,7 +267,7 @@ poll_events(AppContext* app) {
     }
 
     case SDL_MOUSEWHEEL: {
-      if (!SDLC->SSPtr->pb_state->playing_song) handle_mouse_wheel(e.wheel.y, SDLC, app->FntPtr);
+      if (!SDLC->SSPtr->pb_state->playing_song) handle_mouse_wheel(e.wheel.y, SDLC, app->FCPtr);
       break;
     }
 
@@ -320,7 +325,7 @@ poll_events(AppContext* app) {
     case SDL_WINDOWEVENT: {
       switch (e.window.event) {
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
-        update_viewports(SDLC->container, SDLC->mouse, SDLC->w);
+        update_window_size(SDLC->container, SDLC->mouse, SDLC->w);
         resize_fonts(SDLC, app->FCPtr, app->FntPtr);
         break;
       }

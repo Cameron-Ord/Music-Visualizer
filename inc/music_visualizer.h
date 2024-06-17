@@ -23,18 +23,33 @@ struct SDLColours {
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color tertiary;
-  SDL_Rect  viewports[3];
   f32       normalized_positions[3][4];
   int       scaled_positions[3][4];
   SDL_Rect  scroll_bars[3][4];
 };
 
+struct SDLViewports {
+  SDL_Rect dir_vp;
+  SDL_Rect song_vp;
+  SDL_Rect visualization_vp;
+  SDL_Rect controls_vp;
+  SDL_Rect buttons_vp;
+  SDL_Rect settings_vp;
+};
+
+struct ListLimiter {
+  size_t song_first_index;
+  size_t dir_first_index;
+  size_t song_last_index;
+  size_t dir_last_index;
+};
+
 struct SDLContainer {
-  int                win_height;
-  int                win_width;
-  SDL_Rect           dir_viewport;
-  SDL_Rect           song_viewport;
-  struct SDLColours* theme;
+  int                  win_height;
+  int                  win_width;
+  struct SDLColours*   theme;
+  struct SDLViewports* vps;
+  struct ListLimiter*  list_limiter;
 };
 
 struct SDLMouse {
@@ -47,7 +62,6 @@ struct SDLContext {
   SDL_Window*              w;
   SDL_AudioSpec            spec;
   SDL_AudioDeviceID        audio_dev;
-  SDL_Rect                 vis_rect;
   i8                       running;
   i8                       viewing_settings;
   struct SettingsGear*     gear_ptr;

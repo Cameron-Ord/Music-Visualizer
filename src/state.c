@@ -28,8 +28,9 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   SDL_Rect controls_vp = { 0 };
   SDL_Rect buttons_vp  = { 0 };
   SDL_Rect viz_vp      = { 0 };
+  SDL_Rect settings_vp = { 0 };
 
-  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
+  set_playing_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp, &settings_vp);
 
   SDLContainer* Cont  = SDLC->container;
   SongState*    SSPtr = SDLC->SSPtr;
@@ -46,33 +47,32 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
-    render_set_rgba_sliders(SDLC);
-    render_draw_rgba_sliders(SDLC);
+    render_set_rgba_sliders(SDLC, &settings_vp);
+    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
   case FALSE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear_active(SDLC->container, SDLC->gear_ptr, &controls_vp);
+    render_draw_gear_active(SDLC->r, SDLC->gear_ptr, &controls_vp);
 
     if (*buffers_ready) {
-      render_bars(SDLC);
+      render_bars(SDLC, &viz_vp);
     }
 
     if (!vol_latched) {
-      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
+      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp);
     }
-
-    draw_vol_bar(SDLC->r, SSPtr->vol_bar);
+    draw_vol_bar(SDLC->r, SSPtr->vol_bar, &controls_vp);
 
     if (!seek_latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp);
     }
-    draw_seek_bar(SDLC->r, SkBar);
+    draw_seek_bar(SDLC->r, SkBar, &controls_vp);
 
     if (font_ready) {
-      set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
-      draw_active_song_title(SDLC->r, Fnt->active);
+      set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
+      draw_active_song_title(SDLC->r, Fnt->active, &controls_vp);
     }
     break;
   }
@@ -93,43 +93,49 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   SDL_Rect controls_vp = { 0 };
   SDL_Rect buttons_vp  = { 0 };
   SDL_Rect viz_vp      = { 0 };
+  SDL_Rect settings_vp = { 0 };
 
-  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
+  set_playing_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp, &settings_vp);
 
   SDLContainer*     Cont  = SDLC->container;
   SongState*        SSPtr = SDLC->SSPtr;
   FourierTransform* FTPtr = SDLC->FTPtr;
-  SeekBar*          SkBar = SDLC->SSPtr->seek_bar;
+  SeekBar*          SkBar = SSPtr->seek_bar;
+  VolBar*           VBar  = SSPtr->vol_bar;
 
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
   int font_ready    = Fnt->active->ready;
 
+  i8 vol_latched  = VBar->latched;
+  i8 seek_latched = SkBar->latched;
+
   switch (SDLC->viewing_settings) {
 
   case FALSE: {
-    render_set_gear(SDLC->container, SDLC->gear_ptr);
-    render_draw_gear(SDLC->r, SDLC->gear_ptr);
+    render_set_gear_active(SDLC->container, SDLC->gear_ptr, &controls_vp);
+    render_draw_gear_active(SDLC->r, SDLC->gear_ptr, &controls_vp);
 
     if (*buffers_ready) {
       generate_visual(FTPtr->fft_data, FTPtr->fft_buffers, SDLC->spec.freq);
     }
 
     if (*buffers_ready) {
-      render_bars(SDLC);
+      render_bars(SDLC, &viz_vp);
     }
 
-    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data);
-    draw_vol_bar(SDLC->r, SSPtr->vol_bar);
-
-    i8 latched = SkBar->latched;
-    if (!latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data);
+    if (!vol_latched) {
+      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp);
     }
-    draw_seek_bar(SDLC->r, SkBar);
+    draw_vol_bar(SDLC->r, SSPtr->vol_bar, &controls_vp);
+
+    if (!seek_latched) {
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp);
+    }
+    draw_seek_bar(SDLC->r, SkBar, &controls_vp);
 
     if (font_ready) {
-      set_active_song_title(Fnt, Cont->win_width, Cont->win_height);
-      draw_active_song_title(SDLC->r, Fnt->active);
+      set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
+      draw_active_song_title(SDLC->r, Fnt->active, &controls_vp);
     }
     break;
   }
@@ -137,8 +143,8 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
-    render_set_rgba_sliders(SDLC);
-    render_draw_rgba_sliders(SDLC);
+    render_set_rgba_sliders(SDLC, &settings_vp);
+    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
@@ -155,11 +161,11 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   render_background(SDLC->r);
   clear_render(SDLC->r);
 
-  SDL_Rect controls_vp = { 0 };
-  SDL_Rect buttons_vp  = { 0 };
-  SDL_Rect viz_vp      = { 0 };
+  SDL_Rect dirs_vp     = { 0 };
+  SDL_Rect songs_vp    = { 0 };
+  SDL_Rect settings_vp = { 0 };
 
-  set_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp);
+  set_stopped_viewports(SDLC, &dirs_vp, &songs_vp, &settings_vp);
 
   i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
   i8 song_fonts_created = Fnt->state->song_fonts_created;
@@ -169,8 +175,8 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   case TRUE: {
     render_set_gear(SDLC->container, SDLC->gear_ptr);
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
-    render_set_rgba_sliders(SDLC);
-    render_draw_rgba_sliders(SDLC);
+    render_set_rgba_sliders(SDLC, &settings_vp);
+    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
@@ -179,11 +185,13 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
     render_draw_gear(SDLC->r, SDLC->gear_ptr);
 
     if (dir_fonts_created) {
-      render_dir_list(SDLC, Fnt, FC->dir_state->dir_count);
+      render_set_dir_list(SDLC, Fnt, FC->dir_state->dir_count, &songs_vp);
+      render_draw_dir_list(SDLC, Fnt, &dirs_vp);
     }
 
     if (song_fonts_created) {
-      render_song_list(SDLC, Fnt, FC->file_state->file_count);
+      render_set_song_list(SDLC, Fnt, FC->file_state->file_count, &songs_vp);
+      render_draw_song_list(SDLC, Fnt, &songs_vp);
     }
     break;
   }

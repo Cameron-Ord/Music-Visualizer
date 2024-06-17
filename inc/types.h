@@ -40,6 +40,6 @@ typedef struct SDLContext        SDLContext;
 typedef struct Positions         Positions;
 typedef struct SettingsGear      SettingsGear;
 typedef struct SDLColours        SDLColours;
-typedef struct FunctionMember    FunctionMember;
-
+typedef struct SDLViewports      SDLViewports;
+typedef struct ListLimiter       ListLimiter;
 #endif

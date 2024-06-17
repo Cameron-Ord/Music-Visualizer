@@ -33,8 +33,8 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   Fnt->active->ready = FALSE;
   int file_index     = FS->file_index;
   int size           = strlen(FS->files[file_index]);
-  Fnt->active->text  = malloc(sizeof(char*) * size);
 
+  Fnt->active->text = malloc(sizeof(char*) * size);
   if (Fnt->active->text == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate active song char buffer\n", strerror(errno));
     return -1;
@@ -69,15 +69,13 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
 int
 create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
+  Fnt->state->song_fonts_created = FALSE;
+
   Fnt->sf_arr = malloc(FS->file_count * sizeof(FontData));
   if (Fnt->sf_arr == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate font surface array", strerror(errno));
-    Fnt->state->song_fonts_created = 0;
     return -1;
   }
-
-  int y_pos                  = 0;
-  Fnt->pos->song_list_height = 0;
 
   for (int s = 0; s < FS->file_count; s++) {
 
@@ -100,33 +98,27 @@ create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
     }
 
     SDL_Surface** file_surf = &Fnt->sf_arr[s].font_surface;
-    SDL_Rect      sdl_rect  = { 50, y_pos, (*file_surf)->w, (*file_surf)->h };
+    SDL_Rect      sdl_rect  = { 0, 0, (*file_surf)->w, (*file_surf)->h };
 
     Fnt->sf_arr[s].id        = s;
     Fnt->sf_arr[s].text      = FS->files[s];
     Fnt->sf_arr[s].font_rect = sdl_rect;
 
-    y_pos += Y_OFFSET(Fnt->context_data->font_size / 2);
     *file_surf = destroy_surface(*file_surf);
   }
-
   Fnt->state->song_fonts_created = TRUE;
-  Fnt->pos->song_list_height     = y_pos;
   return 0;
 }
 
 int
 create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
+  Fnt->state->dir_fonts_created = FALSE;
 
   Fnt->df_arr = malloc(DS->dir_count * sizeof(FontData));
   if (Fnt->df_arr == NULL) {
     PRINT_STR_ERR(stderr, "Could not allocate font surface array", strerror(errno));
-    Fnt->state->dir_fonts_created = FALSE;
     return -1;
   }
-
-  int y_pos                 = 0;
-  Fnt->pos->dir_list_height = 0;
 
   for (int s = 0; s < DS->dir_count; s++) {
 
@@ -149,18 +141,16 @@ create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
     }
 
     SDL_Surface** dir_surf = &Fnt->df_arr[s].font_surface;
-    SDL_Rect      sdl_rect = { 50, y_pos, (*dir_surf)->w, (*dir_surf)->h };
+    SDL_Rect      sdl_rect = { 0, 0, (*dir_surf)->w, (*dir_surf)->h };
 
     Fnt->df_arr[s].id        = s;
     Fnt->df_arr[s].text      = DS->directories[s];
     Fnt->df_arr[s].font_rect = sdl_rect;
 
-    y_pos += Y_OFFSET(Fnt->context_data->font_size / 2);
     *dir_surf = destroy_surface(*dir_surf);
   }
 
   Fnt->state->dir_fonts_created = TRUE;
-  Fnt->pos->dir_list_height     = y_pos;
   return 0;
 }
 
@@ -175,23 +165,24 @@ void
 create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
                    FileContext* FC) {
 
-  SDLContainer* SDLCntrPtr = SDLC->container;
-  DirState*     DSPtr      = FC->dir_state;
+  SDLContainer* Cont  = SDLC->container;
+  SDLViewports* Vps   = Cont->vps;
+  DirState*     DSPtr = FC->dir_state;
 
-  if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->dir_viewport)) {
+  if (point_in_rect(mouse_x, mouse_y, Vps->dir_vp)) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
     const int  mouse_arr[] = { mouse_x, (mouse_y - offset_y) };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &FNT->df_arr;
     FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);
+
     if (df == NULL) {
       return;
     }
+
     df->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
-    SDL_Rect bg = { df->font_rect.x - 5, 0, df->font_rect.w + 10, df->font_rect.h + 10 };
-    df->font_bg = bg;
   } else {
     clear_font_bgs(&FNT->df_arr, DSPtr->dir_count);
   }
@@ -201,34 +192,25 @@ void
 create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
                     FileContext* FC) {
 
-  SDLContainer* SDLCntrPtr = SDLC->container;
-  FileState*    FSPtr      = FC->file_state;
+  SDLContainer* Cont  = SDLC->container;
+  SDLViewports* Vps   = Cont->vps;
+  FileState*    FSPtr = FC->file_state;
 
-  if (point_in_rect(mouse_x, mouse_y, SDLCntrPtr->song_viewport)) {
+  if (point_in_rect(mouse_x, mouse_y, Vps->song_vp)) {
     int offset_x = SDLC->mouse->mouse_offset_x;
     int offset_y = SDLC->mouse->mouse_offset_y;
-
-    /*This works for the time being, but maybe create a positions struct to manage this better*/
-    if (SDLCntrPtr->win_width < 800) {
-
-      int fourty_percent = (int)(SDLCntrPtr->win_height * 0.4);
-
-      int offset_h = SDLCntrPtr->win_height - fourty_percent;
-
-      offset_y = fourty_percent + (offset_h * 0.2);
-    }
 
     const int  mouse_arr[] = { (mouse_x - offset_x), (mouse_y - offset_y) };
     int        file_count  = FSPtr->file_count;
     FontData** sf_arr      = &FNT->sf_arr;
-    FontData*  sf          = get_struct(sf_arr, mouse_arr, file_count);
+
+    FontData* sf = get_struct(sf_arr, mouse_arr, file_count);
     if (sf == NULL) {
       return;
     }
+
     sf->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
-    SDL_Rect bg = { sf->font_rect.x - 5, 0, sf->font_rect.w + 10, sf->font_rect.h + 10 };
-    sf->font_bg = bg;
   } else {
     clear_font_bgs(&FNT->sf_arr, FSPtr->file_count);
   }
