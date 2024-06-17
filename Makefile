@@ -84,6 +84,10 @@ somove:
 dllmove:
 	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(PLAY_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(PAUSE_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
 	cp resources/libsndfile/bin/sndfile.dll $(BINARY_BIN)
 	cp resources/SDL2/bin/SDL2.dll $(BINARY_BIN)

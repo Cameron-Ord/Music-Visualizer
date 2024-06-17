@@ -88,5 +88,5 @@ void         clear_font_bgs(FontData* arr[], int len);
 int          initialize_TTF();
 int          open_font(TTFData* context_data);
 int          create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r);
-void         clean_text(char text[]);
+void         clean_text(char text[], char elipsis[]);
 #endif

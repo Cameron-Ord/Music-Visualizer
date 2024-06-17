@@ -41,7 +41,7 @@ create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
   }
 
   strcpy(Fnt->active->text, FS->files[file_index]);
-  clean_text(Fnt->active->text);
+  clean_text(Fnt->active->text, "False");
   char* text = Fnt->active->text;
 
   Fnt->active->surf = create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, text);
@@ -81,7 +81,7 @@ create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
     char text[PATH_MAX];
     strcpy(text, FS->files[s]);
-    clean_text(text);
+    clean_text(text, "True");
 
     Fnt->sf_arr[s].has_bg = FALSE;
     Fnt->sf_arr[s].font_surface
@@ -124,7 +124,7 @@ create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
 
     char text[PATH_MAX];
     strcpy(text, DS->directories[s]);
-    clean_text(text);
+    clean_text(text, "True");
 
     Fnt->df_arr[s].has_bg = FALSE;
     Fnt->df_arr[s].font_surface
@@ -216,7 +216,7 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, Font
 } /*create_song_text_bg*/
 
 void
-clean_text(char text[]) {
+clean_text(char text[], char elipsis[]) {
   int j, k;
   for (j = 0, k = 0; text[j] != '\0'; j++) {
     if (text[j] == '_') {
@@ -227,6 +227,19 @@ clean_text(char text[]) {
       text[k++] = text[j];
     }
   }
+
+  if (strcmp(elipsis, "True") == 0) {
+    int limit = 52;
+    if (strlen(text) > limit) {
+      text[limit]     = '.';
+      text[limit + 1] = '.';
+      text[limit + 2] = '.';
+    }
+
+    text[limit + 3] = '\0';
+    return;
+  }
+
   text[k] = '\0';
 }
 

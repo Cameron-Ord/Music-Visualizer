@@ -7,6 +7,7 @@
 #include "../inc/render.h"
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_main.h>
+#include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <errno.h>
 
@@ -15,7 +16,7 @@ main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  // setup_dirs();
+  setup_dirs();
 
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
@@ -311,6 +312,26 @@ main(int argc, char* argv[]) {
 
   if (SDLChunk.audio_dev) {
     SDL_CloseAudioDevice(SDLChunk.audio_dev);
+  }
+
+  if (Stop.tex) {
+    SDL_DestroyTexture(Stop.tex);
+  }
+
+  if (Pause.tex) {
+    SDL_DestroyTexture(Pause.tex);
+  }
+
+  if (Play.tex) {
+    SDL_DestroyTexture(Play.tex);
+  }
+
+  if (Gear.tex) {
+    SDL_DestroyTexture(Gear.tex);
+  }
+
+  if (Seek.tex) {
+    SDL_DestroyTexture(Seek.tex);
   }
 
   clear_fonts(&FontChunk, &FileChunk);
