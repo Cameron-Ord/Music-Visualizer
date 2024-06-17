@@ -27,8 +27,6 @@ void  clear_render(SDL_Renderer* r);
 void  present_render(SDL_Renderer* r);
 void  render_background(SDL_Renderer* r);
 void  render_bars(SDLContext* SDLC, SDL_Rect* vp);
-void  render_draw_rgba_sliders(SDLContext* SDLC, SDL_Rect* vp);
-void  render_set_rgba_sliders(SDLContext* SDLC, SDL_Rect* vp);
 void  set_active_song_title(FontContext* FntPtr, int win_width, int win_height, SDL_Rect* vp);
 void  draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve, SDL_Rect* vp);
 void  update_font_rect(SDL_Rect* rect_ptr, SDL_Rect* offset_rect, int max);

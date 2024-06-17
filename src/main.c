@@ -26,6 +26,9 @@ main(int argc, char* argv[]) {
   ListLimiter  LLmtr       = { 0 };
   SDLMouse     SDLCursor   = { 0 };
 
+  // default to 4
+  LLmtr.amount_to_display = 4;
+
   SDL_Color prim      = { 187, 147, 249, 255 };
   SDL_Color secondary = { 40, 42, 54, 255 };
   SDL_Color tertiary  = { 69, 71, 90, 255 };
@@ -70,7 +73,7 @@ main(int argc, char* argv[]) {
   Positions   FntPos    = { 0 };
   ActiveSong  Actve     = { 0 };
 
-  TTFData ContextData = { .font_size = 16, .font = NULL, .color = SDLTheme.primary };
+  TTFData ContextData = { .font_size = 64, .font = NULL, .color = SDLTheme.primary };
 
   err = initialize_TTF();
   if (err < 0) {

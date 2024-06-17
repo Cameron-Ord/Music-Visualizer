@@ -41,6 +41,26 @@ update_window_size(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
   int* win_width  = &Cont->win_width;
   int* win_height = &Cont->win_height;
   SDL_GetWindowSize(w, win_width, win_height);
+
+  if (*win_height < 300) {
+    Cont->list_limiter->amount_to_display = 2;
+    return;
+  }
+
+  if (*win_height < 500 && *win_height > 300) {
+    Cont->list_limiter->amount_to_display = 4;
+    return;
+  }
+
+  if (*win_height < 800 && *win_height > 500) {
+    Cont->list_limiter->amount_to_display = 6;
+    return;
+  }
+
+  if (*win_height > 800) {
+    Cont->list_limiter->amount_to_display = 8;
+    return;
+  }
 }
 
 void
@@ -52,22 +72,47 @@ set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_
   int width  = Cont->win_width;
   int height = Cont->win_height;
 
-  SDL_Rect tmp_dir_vp  = { 0, 0, width * 0.5, height };
-  SDL_Rect tmp_song_vp = { width * 0.5, 0, width * 0.5, height };
-  SDL_Rect tmp_sett    = { 0, 0, width, height };
+  if (width > 1280) {
+    SDL_Rect tmp_dir_vp  = { 0, 0, width * 0.5, height };
+    SDL_Rect tmp_song_vp = { width * 0.5, 0, width * 0.5, height };
+    SDL_Rect tmp_sett    = { 0, 0, width, height };
 
-  *dir_vp_ptr      = tmp_dir_vp;
-  *song_vp_ptr     = tmp_song_vp;
-  *settings_vp_ptr = tmp_sett;
+    *dir_vp_ptr      = tmp_dir_vp;
+    *song_vp_ptr     = tmp_song_vp;
+    *settings_vp_ptr = tmp_sett;
 
-  Mouse->mouse_offset_y = 0;
-  Mouse->mouse_offset_x = width * 0.5;
+    Mouse->mouse_offset_y = 0;
+    Mouse->mouse_offset_x = width * 0.5;
 
-  SDLViewports* Vps = SDLC->container->vps;
+    SDLViewports* Vps = SDLC->container->vps;
 
-  Vps->dir_vp      = tmp_dir_vp;
-  Vps->song_vp     = tmp_song_vp;
-  Vps->settings_vp = tmp_sett;
+    Vps->dir_vp      = tmp_dir_vp;
+    Vps->song_vp     = tmp_song_vp;
+    Vps->settings_vp = tmp_sett;
+
+    return;
+  }
+
+  if (width < 1280) {
+    SDL_Rect tmp_dir_vp  = { 0, 0, width * 0.5, height * 0.5 };
+    SDL_Rect tmp_song_vp = { 0, height * 0.5, width, height * 0.5 };
+    SDL_Rect tmp_sett    = { 0, 0, width, height };
+
+    *dir_vp_ptr      = tmp_dir_vp;
+    *song_vp_ptr     = tmp_song_vp;
+    *settings_vp_ptr = tmp_sett;
+
+    Mouse->mouse_offset_y = height * 0.5;
+    Mouse->mouse_offset_x = 0;
+
+    SDLViewports* Vps = SDLC->container->vps;
+
+    Vps->dir_vp      = tmp_dir_vp;
+    Vps->song_vp     = tmp_song_vp;
+    Vps->settings_vp = tmp_sett;
+
+    return;
+  }
 }
 
 void
@@ -91,54 +136,6 @@ set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_
   Vps->visualization_vp = tmp_viz;
   Vps->settings_vp      = tmp_sett;
   Vps->controls_vp      = tmp_cntrl;
-}
-
-void
-render_set_rgba_sliders(SDLContext* SDLC, SDL_Rect* vp) {
-  SDLColours* Col = SDLC->container->theme;
-
-  const size_t len      = 3;
-  const size_t fields   = 4;
-  const size_t elements = len * fields;
-  const u8     max      = 255;
-
-  SDL_Color* colour_struct_array[] = { &Col->primary, &Col->secondary, &Col->tertiary };
-
-  const f32 increment = 1.0 / elements;
-  f32       factor    = 1.0 / elements;
-
-  for (size_t i = 0; i < len; i++) {
-    SDL_Color* rgba_field   = colour_struct_array[i];
-    u8         rgba_array[] = { rgba_field->r, rgba_field->g, rgba_field->b, rgba_field->a };
-    for (size_t j = 0; j < fields; j++) {
-      Col->normalized_positions[i][j] = (float)rgba_array[j] / max;
-      Col->scaled_positions[i][j]     = vp->w * ((float)rgba_array[j] / max);
-
-      int      x   = Col->scaled_positions[i][j] - SCROLLBAR_OFFSET;
-      SDL_Rect bar = { x, vp->h * factor, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-
-      Col->scroll_bars[i][j] = bar;
-      factor += increment;
-    }
-  }
-}
-
-void
-render_draw_rgba_sliders(SDLContext* SDLC, SDL_Rect* vp) {
-
-  SDLColours* Col = SDLC->container->theme;
-
-  const size_t len          = 3;
-  const size_t fields_count = 4;
-
-  SDL_RenderSetViewport(SDLC->r, vp);
-  SDL_SetRenderDrawColor(SDLC->r, Col->primary.r, Col->primary.g, Col->primary.b, Col->primary.a);
-
-  for (size_t i = 0; i < len; i++) {
-    for (size_t j = 0; j < fields_count; j++) {
-      SDL_RenderFillRect(SDLC->r, &Col->scroll_bars[i][j]);
-    }
-  }
 }
 
 void
@@ -253,15 +250,15 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
 
   const int height_offset = 5;
 
-  size_t last_index = LLmtr->dir_first_index + 8;
+  size_t last_index = LLmtr->dir_first_index + LLmtr->amount_to_display;
   if (last_index > (size_t)dir_count) {
     last_index = (size_t)dir_count;
   }
 
   LLmtr->dir_last_index = last_index;
 
-  const f32 increment = 1.0 / (8 + 1);
-  f32       factor    = 1.0 / (8 + 1);
+  const f32 increment = 1.0 / (LLmtr->amount_to_display + 1);
+  f32       factor    = 1.0 / (LLmtr->amount_to_display + 1);
 
   FontData* df_arr = FNT->df_arr;
 
@@ -315,26 +312,29 @@ void
 render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rect* vp) {
   Positions*   Pos   = FNT->pos;
   ListLimiter* LLmtr = SDLC->container->list_limiter;
+  int          width = SDLC->container->win_width;
 
   const int height_offset = 5;
 
-  size_t last_index = LLmtr->song_first_index + 8;
+  size_t last_index = LLmtr->song_first_index + LLmtr->amount_to_display;
   if (last_index > (size_t)file_count) {
     last_index = (size_t)file_count;
   }
 
   LLmtr->song_last_index = last_index;
 
-  const f32 increment = 1.0 / (8 + 1);
-  f32       factor    = 1.0 / (8 + 1);
+  const f32 increment = 1.0 / (LLmtr->amount_to_display + 1);
+  f32       factor    = 1.0 / (LLmtr->amount_to_display + 1);
 
   FontData* sf_arr = FNT->sf_arr;
 
   for (int i = 0; i < file_count; i++) {
     SDL_Rect* font_rect = &sf_arr[i].font_rect;
     SDL_Rect* font_bg   = &sf_arr[i].font_bg;
-    font_rect->y        = 0;
-    font_rect->x        = 0;
+
+    // GOLEM GET YE GONE (is there a better way?)
+    font_rect->y = 0;
+    font_rect->x = (width + width);
   }
 
   for (size_t i = LLmtr->song_first_index; i < last_index; i++) {
@@ -484,8 +484,8 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 
   const f32 one_thousandth = 0.016;
 
-  const int MIN_FONT_SIZE = 10;
-  const int MAX_FONT_SIZE = 18;
+  const int MIN_FONT_SIZE = 12;
+  const int MAX_FONT_SIZE = 20;
 
   int new_font_size = win_width * one_thousandth;
 

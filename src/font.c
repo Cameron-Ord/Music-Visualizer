@@ -170,9 +170,8 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontC
   DirState*     DSPtr = FC->dir_state;
 
   if (point_in_rect(mouse_x, mouse_y, Vps->dir_vp)) {
-    int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[] = { mouse_x, (mouse_y - offset_y) };
+    const int  mouse_arr[] = { mouse_x, mouse_y };
     int        dir_count   = DSPtr->dir_count;
     FontData** df_arr      = &FNT->df_arr;
     FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);

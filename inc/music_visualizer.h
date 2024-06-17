@@ -41,6 +41,7 @@ struct ListLimiter {
   size_t dir_first_index;
   size_t song_last_index;
   size_t dir_last_index;
+  size_t amount_to_display;
 };
 
 struct SDLContainer {

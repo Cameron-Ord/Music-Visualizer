@@ -256,10 +256,12 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
 
   Positions* Pos = FNT->pos;
 
+  // This rect is basically the pivot and doesnt require any offsets for cordinates
+
   if (dir_fonts_created) {
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[] = { (mouse_x), (mouse_y - offset_y) };
+    const int  mouse_arr[] = { (mouse_x), (mouse_y) };
     int        dir_count   = FC->dir_state->dir_count;
     FontData** df_arr      = &FNT->df_arr;
     /*Searching for a the directory title clicked(if any)*/
@@ -321,7 +323,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
 
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->song_vp)) {
     if (strcmp(sign, "Negative") == 0) {
-      int array_increment = LLmtr->song_first_index + 8;
+      int array_increment = LLmtr->song_first_index + LLmtr->amount_to_display;
       if (array_increment + 1 > FC->file_state->file_count) {
         array_increment = 0;
       }
@@ -329,7 +331,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
     }
 
     if (strcmp(sign, "Positive") == 0) {
-      int array_increment = LLmtr->song_first_index - 8;
+      int array_increment = LLmtr->song_first_index - LLmtr->amount_to_display;
       if (array_increment + 1 < 0) {
         array_increment = 0;
       }
@@ -339,7 +341,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
 
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->dir_vp)) {
     if (strcmp(sign, "Negative") == 0) {
-      int array_increment = LLmtr->dir_first_index + 8;
+      int array_increment = LLmtr->dir_first_index + LLmtr->amount_to_display;
       if (array_increment + 1 > FC->dir_state->dir_count) {
         array_increment = 0;
       }
@@ -347,7 +349,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
     }
 
     if (strcmp(sign, "Positive") == 0) {
-      int array_increment = LLmtr->dir_first_index - 8;
+      int array_increment = LLmtr->dir_first_index - LLmtr->amount_to_display;
       if (array_increment + 1 < 0) {
         array_increment = 0;
       }

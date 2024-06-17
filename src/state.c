@@ -47,8 +47,6 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, Spr->sett_gear);
     render_draw_gear(SDLC->r, Spr->sett_gear);
-    render_set_rgba_sliders(SDLC, &settings_vp);
-    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
@@ -153,8 +151,6 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   case TRUE: {
     render_set_gear(SDLC->container, Spr->sett_gear);
     render_draw_gear(SDLC->r, Spr->sett_gear);
-    render_set_rgba_sliders(SDLC, &settings_vp);
-    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
@@ -187,8 +183,6 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   case TRUE: {
     render_set_gear(SDLC->container, Spr->sett_gear);
     render_draw_gear(SDLC->r, Spr->sett_gear);
-    render_set_rgba_sliders(SDLC, &settings_vp);
-    render_draw_rgba_sliders(SDLC, &settings_vp);
     break;
   }
 
