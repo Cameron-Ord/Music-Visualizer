@@ -49,15 +49,9 @@ convert_pixel_colours(SDL_Surface** dptr, SDL_Color from_color, SDL_Color to_col
 }
 
 void
-set_rect(SDL_Rect* rect_ptr, SDL_Surface* surf, int x, int y) {
-  if (surf != NULL) {
-    SDL_Rect tmp = { x, y, surf->w / 2, surf->h / 2 };
-    *rect_ptr    = tmp;
-    return;
-  }
-
-  rect_ptr->x = x;
-  rect_ptr->y = y;
+set_rect(SDL_Rect* rect_ptr, int x, int y, int size_w, int size_h) {
+  SDL_Rect tmp = { x, y, size_w, size_h };
+  *rect_ptr    = tmp;
 }
 
 SDL_Texture*

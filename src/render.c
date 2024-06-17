@@ -27,8 +27,8 @@ clear_render(SDL_Renderer* r) {
 }
 
 void
-render_background(SDL_Renderer* r) {
-  SDL_SetRenderDrawColor(r, 40, 42, 54, 255);
+render_background(SDL_Renderer* r, SDL_Color* rgba) {
+  SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
 }
 
 void
@@ -41,6 +41,11 @@ update_window_size(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
   int* win_width  = &Cont->win_width;
   int* win_height = &Cont->win_height;
   SDL_GetWindowSize(w, win_width, win_height);
+
+  if (*win_height < 150) {
+    Cont->list_limiter->amount_to_display = 1;
+    return;
+  }
 
   if (*win_height < 300) {
     Cont->list_limiter->amount_to_display = 2;
@@ -140,7 +145,9 @@ set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_
 
 void
 render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
-  int w        = 32;
+  const int w = 32;
+  const int h = 32;
+
   int x_offset = Cont->win_width - w;
 
   int padding_x = 10;
@@ -149,7 +156,7 @@ render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
   gear->rect.w = 32;
   gear->rect.h = 32;
 
-  set_rect(&gear->rect, NULL, x_offset - padding_x, 0 + padding_y);
+  set_rect(&gear->rect, x_offset - padding_x, 0 + padding_y, w, h);
 }
 
 void
@@ -166,7 +173,7 @@ render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.5;
 
-  set_rect(&Play->rect, NULL, x_offset - (w / 2), y - (h / 2));
+  set_rect(&Play->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
 
 void
@@ -177,7 +184,7 @@ render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.6;
 
-  set_rect(&Pause->rect, NULL, x_offset - (w / 2), y - (w / 2));
+  set_rect(&Pause->rect, x_offset - (w / 2), y - (w / 2), w, h);
 }
 
 void
@@ -188,7 +195,7 @@ render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.4;
 
-  set_rect(&Stop->rect, NULL, x_offset - (w / 2), y - (w / 2));
+  set_rect(&Stop->rect, x_offset - (w / 2), y - (w / 2), w, h);
 }
 
 void
@@ -212,7 +219,8 @@ render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp) {
 void
 render_bars(SDLContext* SDLC, SDL_Rect* vp) {
 
-  int out_len = SDLC->FTPtr->fft_data->output_len;
+  int        out_len = SDLC->FTPtr->fft_data->output_len;
+  SDL_Color* rgba    = &SDLC->container->theme->tertiary;
 
   if (out_len == 0) {
     fprintf(stdout, "OUTPUT LENGTH 0 - SOMETHING HAS GONE HORRIBLY WRONG\n");
@@ -237,7 +245,7 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
 
     SDL_Rect sample_plus = { x_pos, y_pos, cell_width, bar_height };
 
-    SDL_SetRenderDrawColor(SDLC->r, 189, 147, 249, 255);
+    SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
     SDL_RenderFillRect(SDLC->r, &sample_plus);
   }
 }
@@ -293,7 +301,7 @@ render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
   SDL_RenderSetViewport(SDLC->r, vp);
 
   ListLimiter* LLmtr  = SDLC->container->list_limiter;
-  SDLColours*  Col    = SDLC->container->theme;
+  SDL_Color*   rgba   = &SDLC->container->theme->tertiary;
   FontData*    df_arr = FNT->df_arr;
 
   for (size_t i = LLmtr->dir_first_index; i < LLmtr->dir_last_index; i++) {
@@ -301,7 +309,7 @@ render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
     SDL_Rect* font_bg   = &df_arr[i].font_bg;
 
     if (df_arr[i].has_bg) {
-      SDL_SetRenderDrawColor(SDLC->r, Col->tertiary.r, Col->tertiary.g, Col->tertiary.b, Col->tertiary.a);
+      SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
       SDL_RenderFillRect(SDLC->r, font_bg);
     }
     SDL_RenderCopy(SDLC->r, df_arr[i].font_texture, NULL, font_rect);
@@ -359,7 +367,7 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
   SDL_RenderSetViewport(SDLC->r, vp);
 
   ListLimiter* LLmtr  = SDLC->container->list_limiter;
-  SDLColours*  Col    = SDLC->container->theme;
+  SDL_Color*   rgba   = &SDLC->container->theme->tertiary;
   FontData*    sf_arr = FNT->sf_arr;
 
   for (size_t i = LLmtr->song_first_index; i < LLmtr->song_last_index; i++) {
@@ -367,7 +375,7 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
     SDL_Rect* font_bg   = &sf_arr[i].font_bg;
 
     if (sf_arr[i].has_bg) {
-      SDL_SetRenderDrawColor(SDLC->r, Col->tertiary.r, Col->tertiary.g, Col->tertiary.b, Col->tertiary.a);
+      SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
       SDL_RenderFillRect(SDLC->r, font_bg);
     }
     SDL_RenderCopy(SDLC->r, sf_arr[i].font_texture, NULL, font_rect);
@@ -375,7 +383,7 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
 }
 
 void
-set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp) {
+set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
   int ttl_length       = Aud->wav_len;
   int current_position = Aud->audio_pos;
 
@@ -388,15 +396,14 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp) {
   int x = SkBar->current_pos - SCROLLBAR_OFFSET;
   int y = vp->h * 0.60;
 
-  SDL_Rect sk_box  = { x + sub_amount, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  icon_rect->x = x + (line_x - sub_amount);
+  icon_rect->y = y - (icon_rect->h / 2);
 
-  SkBar->seek_box  = sk_box;
-  SkBar->seek_line = sk_line;
+  SkBar->seek_box = *icon_rect;
 }
 
 void
-set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp) {
+set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
   VBar->current_pos = Aud->volume * (vp->w * 0.20);
 
   int line_x     = vp->w * 0.80;
@@ -405,11 +412,10 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp) {
   int x = VBar->current_pos - SCROLLBAR_OFFSET;
   int y = vp->h * 0.60;
 
-  SDL_Rect sk_box  = { x + (line_x - sub_amount), y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  icon_rect->x = x + (line_x - sub_amount);
+  icon_rect->y = y - (icon_rect->h / 2);
 
-  VBar->seek_box  = sk_box;
-  VBar->seek_line = sk_line;
+  VBar->seek_box = *icon_rect;
 }
 
 void
@@ -430,26 +436,23 @@ set_active_song_title(FontContext* FntPtr, int win_width, int win_height, SDL_Re
 void
 draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve, SDL_Rect* vp) {
   SDL_RenderSetViewport(r, vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->rect);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->offset_rect);
   update_font_rect(&Actve->rect, &Actve->offset_rect, vp->w);
 }
 
 void
-draw_seek_bar(SDL_Renderer* r, SeekBar* SKPtr, SDL_Rect* vp) {
+draw_seek_bar(SDL_Renderer* r, SDL_Texture* tex, SeekBar* SKPtr, SDL_Rect* vp, SDL_Color* rgba) {
   SDL_RenderSetViewport(r, vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
-  SDL_RenderFillRect(r, &SKPtr->seek_box);
-  SDL_RenderFillRect(r, &SKPtr->seek_line);
+  SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
+  SDL_RenderCopy(r, tex, NULL, &SKPtr->seek_box);
 }
 
 void
-draw_vol_bar(SDL_Renderer* r, VolBar* VBar, SDL_Rect* vp) {
+draw_vol_bar(SDL_Renderer* r, SDL_Texture* tex, VolBar* VBar, SDL_Rect* vp, SDL_Color* rgba) {
   SDL_RenderSetViewport(r, vp);
-  SDL_SetRenderDrawColor(r, 189, 147, 249, 255);
-  SDL_RenderFillRect(r, &VBar->seek_box);
-  SDL_RenderFillRect(r, &VBar->seek_line);
+  SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
+  SDL_RenderCopy(r, tex, NULL, &VBar->seek_box);
 }
 
 void

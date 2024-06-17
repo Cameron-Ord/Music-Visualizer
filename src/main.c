@@ -29,13 +29,24 @@ main(int argc, char* argv[]) {
   // default to 4
   LLmtr.amount_to_display = 4;
 
-  SDL_Color prim      = { 187, 147, 249, 255 };
-  SDL_Color secondary = { 40, 42, 54, 255 };
-  SDL_Color tertiary  = { 69, 71, 90, 255 };
+  // Default to dracula tri colour theme
+  SDL_Color prim_drac      = { 187, 147, 249, 255 };
+  SDL_Color secondary_drac = { 40, 42, 54, 255 };
+  SDL_Color tertiary_drac  = { 69, 71, 90, 255 };
 
-  SDLTheme.primary   = prim;
-  SDLTheme.secondary = secondary;
-  SDLTheme.tertiary  = tertiary;
+  SDL_Color prim_nord      = { 236, 239, 244, 255 };
+  SDL_Color secondary_nord = { 49, 52, 64, 255 };
+  SDL_Color tertiary_nord  = { 136, 192, 208, 255 };
+
+  NordTheme    nord = { .prim = prim_nord, .secondary = secondary_nord, .tertiary = tertiary_nord };
+  DraculaTheme drac = { .prim = prim_drac, .secondary = secondary_drac, .tertiary = tertiary_drac };
+
+  SDLThemes themes = { .nord = &nord, .dracula = &drac };
+
+  SDLTheme.primary   = prim_nord;
+  SDLTheme.secondary = secondary_nord;
+  SDLTheme.tertiary  = tertiary_nord;
+  SDLTheme.themes    = &themes;
 
   SDLCont.theme        = &SDLTheme;
   SDLCont.vps          = &SDLVps;
@@ -172,8 +183,7 @@ main(int argc, char* argv[]) {
   }
 
   convert_pixel_colours(&Gear.surf, from_colour, SDLTheme.primary);
-  set_rect(&Gear.rect, Gear.surf, 0.90 * BWIDTH, 0.10 * BHEIGHT);
-
+  set_rect(&Gear.rect, 0, 0, SIZE32, SIZE32);
   Gear.tex = create_image_texture(SDLChunk.r, Gear.surf);
   if (Gear.tex == NULL) {
     PRINT_SDL_ERR(stderr, SDL_GetError());
@@ -188,8 +198,8 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Play.surf, from_colour, SDLTheme.primary);
-  set_rect(&Play.rect, Play.surf, 0, 0);
+  convert_pixel_colours(&Play.surf, from_colour, SDLTheme.tertiary);
+  set_rect(&Play.rect, 0, 0, SIZE16, SIZE16);
 
   Play.tex = create_image_texture(SDLChunk.r, Play.surf);
   if (Play.tex == NULL) {
@@ -205,8 +215,8 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Pause.surf, from_colour, SDLTheme.primary);
-  set_rect(&Pause.rect, Pause.surf, 0, 0);
+  convert_pixel_colours(&Pause.surf, from_colour, SDLTheme.tertiary);
+  set_rect(&Pause.rect, 0, 0, SIZE16, SIZE16);
 
   Pause.tex = create_image_texture(SDLChunk.r, Pause.surf);
   if (Pause.tex == NULL) {
@@ -222,8 +232,8 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Stop.surf, from_colour, SDLTheme.primary);
-  set_rect(&Stop.rect, Stop.surf, 0, 0);
+  convert_pixel_colours(&Stop.surf, from_colour, SDLTheme.tertiary);
+  set_rect(&Stop.rect, 0, 0, SIZE16, SIZE16);
 
   Stop.tex = create_image_texture(SDLChunk.r, Stop.surf);
   if (Stop.tex == NULL) {
@@ -239,17 +249,12 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Seek.surf, from_colour, SDLTheme.primary);
+  convert_pixel_colours(&Seek.surf, from_colour, SDLTheme.tertiary);
 
-  const size_t main_seekers     = 2;
-  const size_t settings_seekers = 12;
+  const size_t main_seekers = 2;
 
   for (size_t i = 0; i < main_seekers; i++) {
-    set_rect(&Seek.rect_main[i], Seek.surf, 0, 0);
-  }
-
-  for (size_t i = 0; i < settings_seekers; i++) {
-    set_rect(&Seek.rect_settings[i], Seek.surf, 0, 0);
+    set_rect(&Seek.rect_main[i], 0, 0, SIZE16, SIZE16);
   }
 
   Seek.tex = create_image_texture(SDLChunk.r, Seek.surf);

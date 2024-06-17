@@ -33,12 +33,11 @@ struct SeekIcon {
   SDL_Surface* surf;
   SDL_Texture* tex;
   SDL_Rect     rect_main[2];
-  SDL_Rect     rect_settings[12];
 };
 
 void         convert_pixel_colours(SDL_Surface** surf_ptr, SDL_Color from_colour, SDL_Color to_colour);
 SDL_Surface* load_image(char* path);
-void         set_rect(SDL_Rect* rect_ptr, SDL_Surface* surf, int x, int y);
+void         set_rect(SDL_Rect* rect_ptr, int x, int y, int size_w, int size_h);
 SDL_Texture* create_image_texture(SDL_Renderer* r, SDL_Surface* surf_ptr);
 
 #endif

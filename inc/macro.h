@@ -29,6 +29,8 @@
     (ptr) = NULL;                                                                                            \
   }
 
+#define SIZE32 32
+#define SIZE16 16
 #define FONT_PATH "Roboto-Regular.ttf"
 #define SETTINGS_ICON_PATH "settings_icon.png"
 #define PLAY_ICON_PATH "play_icon.png"

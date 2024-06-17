@@ -1,5 +1,6 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
+#include "../inc/graphics.h"
 #include "../inc/music_visualizer.h"
 #include "../inc/render.h"
 
@@ -22,14 +23,6 @@ set_viewports(SDLContext* SDLC, SDL_Rect* controls_vp_ptr, SDL_Rect* buttons_vp_
 
 void
 song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
-  render_background(SDLC->r);
-  clear_render(SDLC->r);
-
-  SDL_Rect controls_vp = { 0 };
-  SDL_Rect viz_vp      = { 0 };
-  SDL_Rect settings_vp = { 0 };
-
-  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
 
   SDLContainer* Cont  = SDLC->container;
   SongState*    SSPtr = SDLC->SSPtr;
@@ -37,10 +30,21 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   VolBar*       VBar  = SDLC->SSPtr->vol_bar;
   SDLSprites*   Spr   = SDLC->sprites;
 
-  i8* buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8  vol_latched   = VBar->latched;
-  i8  seek_latched  = SkBar->latched;
-  int font_ready    = Fnt->active->ready;
+  SDL_Color* bg_rgba       = &Cont->theme->secondary;
+  SDL_Color* rgba          = &Cont->theme->tertiary;
+  i8*        buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
+  i8         vol_latched   = VBar->latched;
+  i8         seek_latched  = SkBar->latched;
+  int        font_ready    = Fnt->active->ready;
+
+  render_background(SDLC->r, bg_rgba);
+  clear_render(SDLC->r);
+
+  SDL_Rect controls_vp = { 0 };
+  SDL_Rect viz_vp      = { 0 };
+  SDL_Rect settings_vp = { 0 };
+
+  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
 
   switch (SDLC->viewing_settings) {
 
@@ -64,14 +68,14 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
     }
 
     if (!vol_latched) {
-      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp);
+      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     }
-    draw_vol_bar(SDLC->r, SSPtr->vol_bar, &controls_vp);
+    draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
     if (!seek_latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp);
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     }
-    draw_seek_bar(SDLC->r, SkBar, &controls_vp);
+    draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {
       set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
@@ -90,15 +94,6 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
 
 void
 song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
-  render_background(SDLC->r);
-  clear_render(SDLC->r);
-
-  SDL_Rect controls_vp = { 0 };
-  SDL_Rect viz_vp      = { 0 };
-  SDL_Rect settings_vp = { 0 };
-
-  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
-
   SDLContainer*     Cont  = SDLC->container;
   SongState*        SSPtr = SDLC->SSPtr;
   FourierTransform* FTPtr = SDLC->FTPtr;
@@ -111,6 +106,18 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
 
   i8 vol_latched  = VBar->latched;
   i8 seek_latched = SkBar->latched;
+
+  SDL_Color* rgba    = &Cont->theme->tertiary;
+  SDL_Color* bg_rgba = &Cont->theme->secondary;
+
+  render_background(SDLC->r, bg_rgba);
+  clear_render(SDLC->r);
+
+  SDL_Rect controls_vp = { 0 };
+  SDL_Rect viz_vp      = { 0 };
+  SDL_Rect settings_vp = { 0 };
+
+  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
 
   switch (SDLC->viewing_settings) {
 
@@ -132,14 +139,15 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
     }
 
     if (!vol_latched) {
-      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp);
+      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     }
-    draw_vol_bar(SDLC->r, SSPtr->vol_bar, &controls_vp);
+    draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
     if (!seek_latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp);
+      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     }
-    draw_seek_bar(SDLC->r, SkBar, &controls_vp);
+
+    draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {
       set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
@@ -164,19 +172,22 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
 
 void
 song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
-  render_background(SDLC->r);
+  i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
+  i8 song_fonts_created = Fnt->state->song_fonts_created;
+
+  SDLSprites*   Spr  = SDLC->sprites;
+  SDLContainer* Cont = SDLC->container;
+
+  SDL_Color* bg_rgba = &Cont->theme->secondary;
+
+  render_background(SDLC->r, bg_rgba);
   clear_render(SDLC->r);
 
   SDL_Rect dirs_vp     = { 0 };
   SDL_Rect songs_vp    = { 0 };
   SDL_Rect settings_vp = { 0 };
 
-  SDLSprites* Spr = SDLC->sprites;
-
   set_stopped_viewports(SDLC, &dirs_vp, &songs_vp, &settings_vp);
-
-  i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
-  i8 song_fonts_created = Fnt->state->song_fonts_created;
 
   switch (SDLC->viewing_settings) {
 

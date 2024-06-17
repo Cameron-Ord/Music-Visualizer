@@ -2,6 +2,7 @@
 #define MUSIC_VISUALIZER_H
 
 #include "macro.h"
+#include "themes.h"
 #include "types.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -20,12 +21,15 @@
 #include <unistd.h>
 
 struct SDLColours {
-  SDL_Color primary;
-  SDL_Color secondary;
-  SDL_Color tertiary;
-  f32       normalized_positions[3][4];
-  int       scaled_positions[3][4];
-  SDL_Rect  scroll_bars[3][4];
+  SDL_Color         primary;
+  SDL_Color         secondary;
+  SDL_Color         tertiary;
+  struct SDLThemes* themes;
+};
+
+struct SDLThemes {
+  NordTheme*    nord;
+  DraculaTheme* dracula;
 };
 
 struct SDLViewports {
