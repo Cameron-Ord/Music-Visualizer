@@ -169,7 +169,7 @@ render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.5;
 
-  set_rect(&Play->rect, NULL, x_offset, y - (w / 2));
+  set_rect(&Play->rect, NULL, x_offset - (w / 2), y - (h / 2));
 }
 
 void
@@ -180,7 +180,7 @@ render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.6;
 
-  set_rect(&Pause->rect, NULL, x_offset, y - (w / 2));
+  set_rect(&Pause->rect, NULL, x_offset - (w / 2), y - (w / 2));
 }
 
 void
@@ -191,7 +191,7 @@ render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.4;
 
-  set_rect(&Stop->rect, NULL, x_offset, y - (w / 2));
+  set_rect(&Stop->rect, NULL, x_offset - (w / 2), y - (w / 2));
 }
 
 void
