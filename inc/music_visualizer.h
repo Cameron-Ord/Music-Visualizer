@@ -33,7 +33,6 @@ struct SDLViewports {
   SDL_Rect song_vp;
   SDL_Rect visualization_vp;
   SDL_Rect controls_vp;
-  SDL_Rect buttons_vp;
   SDL_Rect settings_vp;
 };
 

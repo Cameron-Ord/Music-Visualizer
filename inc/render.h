@@ -5,8 +5,8 @@
 
 void  set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_ptr,
                             SDL_Rect* settings_vp_ptr);
-void  set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* buttons_vp_ptr,
-                            SDL_Rect* viz_vp_ptr, SDL_Rect* settings_vp_ptr);
+void  set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_vp_ptr,
+                            SDL_Rect* settings_vp_ptr);
 void  render_set_gear(SDLContainer* Cont, SettingsGear* gear);
 void  render_draw_gear(SDL_Renderer* r, SettingsGear* gear);
 void* destroy_texture(SDL_Texture* tex);

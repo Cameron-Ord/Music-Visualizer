@@ -71,26 +71,23 @@ set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_
 }
 
 void
-set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* buttons_vp_ptr,
-                      SDL_Rect* viz_vp_ptr, SDL_Rect* settings_vp_ptr) {
+set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_vp_ptr,
+                      SDL_Rect* settings_vp_ptr) {
   SDLContainer* Cont = SDLC->container;
 
   int height = Cont->win_height;
   int width  = Cont->win_width;
 
-  SDL_Rect tmp_cntrl   = { 0, 0, width, height * 0.25 };
-  SDL_Rect tmp_buttons = { 0, height * 0.25, width, height * 0.25 };
-  SDL_Rect tmp_viz     = { 0, height * 0.5, width, height * 0.5 };
-  SDL_Rect tmp_sett    = { 0, 0, width, height };
+  SDL_Rect tmp_cntrl = { 0, 0, width, height * 0.25 };
+  SDL_Rect tmp_viz   = { 0, height * 0.25, width, height * 0.75 };
+  SDL_Rect tmp_sett  = { 0, 0, width, height };
 
   *control_vp_ptr  = tmp_cntrl;
-  *buttons_vp_ptr  = tmp_buttons;
   *viz_vp_ptr      = tmp_viz;
   *settings_vp_ptr = tmp_sett;
 
   SDLViewports* Vps = SDLC->container->vps;
 
-  Vps->buttons_vp       = tmp_buttons;
   Vps->visualization_vp = tmp_viz;
   Vps->settings_vp      = tmp_sett;
   Vps->controls_vp      = tmp_cntrl;
@@ -168,7 +165,7 @@ render_set_gear_active(SDLContainer* Cont, SettingsGear* gear, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.4;
 
-  set_rect(&gear->rect, NULL, x_offset - (w / 2), y);
+  set_rect(&gear->rect, NULL, x_offset - (w / 2), y - (h / 2));
 }
 
 void
@@ -351,8 +348,9 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp) {
   int x = SkBar->current_pos - SCROLLBAR_OFFSET;
   int y = vp->h * 0.75;
 
-  SDL_Rect sk_box  = { x + sub_amount, y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  SDL_Rect sk_box = { x + sub_amount, y - (SCROLLBAR_HEIGHT / 2), SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+  SDL_Rect sk_line
+      = { line_x - sub_amount, (y - (SCROLLBAR_HEIGHT / 2)) + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
 
   SkBar->seek_box  = sk_box;
   SkBar->seek_line = sk_line;
@@ -368,8 +366,10 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp) {
   int x = VBar->current_pos - SCROLLBAR_OFFSET;
   int y = vp->h * 0.75;
 
-  SDL_Rect sk_box  = { x + (line_x - sub_amount), y, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
-  SDL_Rect sk_line = { line_x - sub_amount, y + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
+  SDL_Rect sk_box
+      = { x + (line_x - sub_amount), y - (SCROLLBAR_HEIGHT / 2), SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT };
+  SDL_Rect sk_line
+      = { line_x - sub_amount, (y - (SCROLLBAR_HEIGHT / 2)) + SCROLLBAR_HEIGHT_OFFSET, vp->w * 0.20, 2 };
 
   VBar->seek_box  = sk_box;
   VBar->seek_line = sk_line;

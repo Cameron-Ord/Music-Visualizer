@@ -26,11 +26,10 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   clear_render(SDLC->r);
 
   SDL_Rect controls_vp = { 0 };
-  SDL_Rect buttons_vp  = { 0 };
   SDL_Rect viz_vp      = { 0 };
   SDL_Rect settings_vp = { 0 };
 
-  set_playing_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp, &settings_vp);
+  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
 
   SDLContainer* Cont  = SDLC->container;
   SongState*    SSPtr = SDLC->SSPtr;
@@ -91,11 +90,10 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   clear_render(SDLC->r);
 
   SDL_Rect controls_vp = { 0 };
-  SDL_Rect buttons_vp  = { 0 };
   SDL_Rect viz_vp      = { 0 };
   SDL_Rect settings_vp = { 0 };
 
-  set_playing_viewports(SDLC, &controls_vp, &buttons_vp, &viz_vp, &settings_vp);
+  set_playing_viewports(SDLC, &controls_vp, &viz_vp, &settings_vp);
 
   SDLContainer*     Cont  = SDLC->container;
   SongState*        SSPtr = SDLC->SSPtr;
