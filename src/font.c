@@ -229,7 +229,7 @@ clean_text(char text[], char elipsis[]) {
   }
 
   if (strcmp(elipsis, "True") == 0) {
-    int limit = 52;
+    size_t limit = 52;
     if (strlen(text) > limit) {
       text[limit]     = '.';
       text[limit + 1] = '.';

@@ -245,9 +245,8 @@ start_song_from_menu(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 void
 clicked_in_song_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,
                      const int mouse_y) {
-  i8            song_fonts_created = FNT->state->song_fonts_created;
-  int*          file_index         = &FC->file_state->file_index;
-  SDLContainer* SDLCntrPtr         = SDLC->container;
+  i8   song_fonts_created = FNT->state->song_fonts_created;
+  int* file_index         = &FC->file_state->file_index;
 
   if (song_fonts_created) {
     int offset_x = SDLC->mouse->mouse_offset_x;
@@ -280,8 +279,6 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
   // This rect is basically the pivot and doesnt require any offsets for cordinates
 
   if (dir_fonts_created) {
-    int offset_y = SDLC->mouse->mouse_offset_y;
-
     const int  mouse_arr[] = { (mouse_x), (mouse_y) };
     int        dir_count   = FC->dir_state->dir_count;
     FontData** df_arr      = &FNT->df_arr;

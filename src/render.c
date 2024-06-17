@@ -252,7 +252,6 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
 
 void
 render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect* vp) {
-  Positions*   Pos   = FNT->pos;
   ListLimiter* LLmtr = SDLC->container->list_limiter;
   int          width = SDLC->container->win_width;
 
@@ -272,7 +271,6 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
 
   for (int i = 0; i < dir_count; i++) {
     SDL_Rect* font_rect = &df_arr[i].font_rect;
-    SDL_Rect* font_bg   = &df_arr[i].font_bg;
 
     /*GOLEM GET YET GONE*/
     font_rect->y = 0;
@@ -318,7 +316,6 @@ render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
 
 void
 render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rect* vp) {
-  Positions*   Pos   = FNT->pos;
   ListLimiter* LLmtr = SDLC->container->list_limiter;
   int          width = SDLC->container->win_width;
 
@@ -338,7 +335,6 @@ render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rec
 
   for (int i = 0; i < file_count; i++) {
     SDL_Rect* font_rect = &sf_arr[i].font_rect;
-    SDL_Rect* font_bg   = &sf_arr[i].font_bg;
 
     // GOLEM GET YE GONE (is there a better way?)
     font_rect->y = 0;
