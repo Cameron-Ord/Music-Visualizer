@@ -56,12 +56,18 @@ reset_songlist_pos(Positions* pos) {
 void
 clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x, const int mouse_y) {
 
-  SDLSprites*   Spr       = SDLC->sprites;
-  SDLViewports* Vps       = SDLC->container->vps;
-  SDL_Rect      gear_rect = Spr->sett_gear->rect;
+  SDLSprites*   Spr        = SDLC->sprites;
+  SDLViewports* Vps        = SDLC->container->vps;
+  SongState*    SSPtr      = SDLC->SSPtr;
+  SDL_Rect      seek_rect  = SSPtr->seek_bar->seek_box;
+  SDL_Rect      vol_rect   = SSPtr->vol_bar->seek_box;
+  SDL_Rect      gear_rect  = Spr->sett_gear->rect;
+  SDL_Rect      pause_rect = Spr->pause_icon->rect;
+  SDL_Rect      play_rect  = Spr->play_icon->rect;
+  SDL_Rect      stop_rect  = Spr->stop_icon->rect;
 
   SDL_Rect playing_rect_array[] = { Vps->dir_vp, Vps->song_vp, gear_rect };
-  SDL_Rect paused_rect_array[]  = { Vps->controls_vp, Vps->controls_vp, gear_rect };
+  SDL_Rect paused_rect_array[]  = { seek_rect, vol_rect, gear_rect, pause_rect, play_rect, stop_rect };
 
   i8 playing_song = SDLC->SSPtr->pb_state->playing_song;
 
@@ -89,6 +95,21 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
 
         case 2: {
           clicked_settings_gear(SDLC);
+          break;
+        }
+
+        case 3: {
+          pause_song(FC->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+          break;
+        }
+
+        case 4: {
+          play_song(FC->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
+          break;
+        }
+
+        case 5: {
+          stop_playback(FC->file_state, SSPtr->pb_state, &SDLC->audio_dev);
           break;
         }
 
