@@ -144,29 +144,25 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
 void
 update_audio_position(AudioData* ADta, SeekBar* SKBar, SDL_Rect vp) {
-  int ttl_length = vp.w * 0.20;
-  int sub_amount = (vp.w * 0.20) / 2;
+  const int ttl_length       = vp.w * 0.20;
+  const int current_position = SKBar->seek_box.x;
 
-  int current_position = (SKBar->seek_box.x - sub_amount) + SCROLLBAR_OFFSET;
+  f32 normalized = ((float)current_position / (float)ttl_length);
+  u32 scaled_pos = normalized * ADta->wav_len;
 
-  if (current_position < 0.0 || current_position > vp.w) {
+  if (scaled_pos > ADta->wav_len) {
     return;
   }
 
-  f32 normalized  = ((float)current_position / (float)ttl_length);
-  int scaled_pos  = normalized * ADta->wav_len;
   ADta->audio_pos = scaled_pos;
 }
 
 void
 update_vol_pos(AudioData* ADta, VolBar* VBar, SDL_Rect vp) {
+  const int ttl_length       = vp.w * 0.20;
+  const int current_position = VBar->seek_box.x;
 
-  int line_x     = vp.w * 0.80;
-  int sub_amount = (vp.w * 0.20) / 2;
-
-  int ttl_length       = vp.w * 0.20;
-  int current_position = (VBar->seek_box.x - (line_x - sub_amount)) + SCROLLBAR_OFFSET;
-  f32 normalized       = ((float)current_position / (float)ttl_length);
+  f32 normalized = ((float)(current_position) / (float)ttl_length);
 
   f32 min = 0.0f;
   f32 max = 1.0f;

@@ -67,14 +67,10 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
       render_bars(SDLC, &viz_vp);
     }
 
-    if (!vol_latched) {
-      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
-    }
+    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
-    if (!seek_latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
-    }
+    set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {
@@ -138,15 +134,10 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
       render_bars(SDLC, &viz_vp);
     }
 
-    if (!vol_latched) {
-      set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
-    }
+    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
-    if (!seek_latched) {
-      set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
-    }
-
+    set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {

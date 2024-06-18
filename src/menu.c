@@ -197,11 +197,16 @@ move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar*
 
   SDL_Rect controls_vp = Vps->controls_vp;
 
-  int line_x     = controls_vp.w * 0.2;
+  int pos_x      = controls_vp.w * 0.2;
   int sub_amount = (controls_vp.w * 0.20) / 2;
 
-  if (within_bounds_x(mouse_x, (line_x - sub_amount), (line_x - sub_amount) + controls_vp.w * 0.20)) {
-    SKBar->seek_box.x = mouse_x - SCROLLBAR_OFFSET;
+  int offset = pos_x - sub_amount;
+
+  int start = offset;
+  int end   = start + controls_vp.w * 0.20;
+
+  if (within_bounds_x(mouse_x, start, end)) {
+    SKBar->seek_box.x = mouse_x - offset;
     update_audio_position(ADta, SKBar, Vps->controls_vp);
   }
 }
@@ -212,14 +217,16 @@ move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBa
 
   SDL_Rect controls_vp = Vps->controls_vp;
 
-  int line_x     = controls_vp.w * 0.80;
+  int pos_x      = controls_vp.w * 0.80;
   int sub_amount = (controls_vp.w * 0.20) / 2;
 
-  if (within_bounds_x(mouse_x, (line_x - sub_amount), (line_x - sub_amount) + controls_vp.w * 0.20)) {
-    /*Implementing a slight offset here so that it looks a bit nicer, this is compensated for.*/
-    VBar->seek_box.x = mouse_x - SCROLLBAR_OFFSET;
+  int offset = pos_x - sub_amount;
 
-    /*Set the volume off where the mouse is*/
+  int start = offset;
+  int end   = start + controls_vp.w * 0.20;
+
+  if (within_bounds_x(mouse_x, start, end)) {
+    VBar->seek_box.x = mouse_x - offset;
     update_vol_pos(ADta, VBar, Vps->controls_vp);
   }
 }

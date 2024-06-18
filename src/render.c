@@ -184,7 +184,7 @@ render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.6;
 
-  set_rect(&Pause->rect, x_offset - (w / 2), y - (w / 2), w, h);
+  set_rect(&Pause->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
 
 void
@@ -195,7 +195,7 @@ render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
   int y        = vp->h * 0.75;
   int x_offset = vp->w * 0.4;
 
-  set_rect(&Stop->rect, x_offset - (w / 2), y - (w / 2), w, h);
+  set_rect(&Stop->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
 
 void
@@ -383,16 +383,19 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, S
   int ttl_length       = Aud->wav_len;
   int current_position = Aud->audio_pos;
 
-  int line_x     = vp->w * 0.20;
+  int pos_x      = vp->w * 0.20;
   int sub_amount = (vp->w * 0.20) / 2;
 
   SkBar->normalized_pos = ((float)current_position / (float)ttl_length);
   SkBar->current_pos    = SkBar->normalized_pos * (vp->w * 0.20);
 
-  int x = SkBar->current_pos - SCROLLBAR_OFFSET;
+  int x = SkBar->current_pos;
   int y = vp->h * 0.60;
 
-  icon_rect->x = x + (line_x - sub_amount);
+  int box_size = (icon_rect->w / 2);
+  int offset   = pos_x - sub_amount;
+
+  icon_rect->x = x + (offset - box_size);
   icon_rect->y = y - (icon_rect->h / 2);
 
   SkBar->seek_box = *icon_rect;
@@ -402,13 +405,16 @@ void
 set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
   VBar->current_pos = Aud->volume * (vp->w * 0.20);
 
-  int line_x     = vp->w * 0.80;
+  int pos_x      = vp->w * 0.80;
   int sub_amount = (vp->w * 0.20) / 2;
 
-  int x = VBar->current_pos - SCROLLBAR_OFFSET;
+  int x = VBar->current_pos;
   int y = vp->h * 0.60;
 
-  icon_rect->x = x + (line_x - sub_amount);
+  int box_size = (icon_rect->w / 2);
+  int offset   = pos_x - sub_amount;
+
+  icon_rect->x = x + (offset - box_size);
   icon_rect->y = y - (icon_rect->h / 2);
 
   VBar->seek_box = *icon_rect;
