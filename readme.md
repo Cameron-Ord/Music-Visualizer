@@ -4,18 +4,20 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
-![Image](readme_gif/example.gif)
+![Image](example/example.png)
 
 **A music visualizer for Linux systems written in C. This is unfinished software, and the program is mostly written with only my personal use in mind. So please be considerate of this.**
 
 I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
 
 ## Todo
-> - I want to remove the TTF dependency and have more stylized fonts - maybe take the time to make some pixel characters and map them to an enum.
 > - Setting up a settings menu for manipulation of the internal variables of the program.
 
 ## Releases
-I am working on creating a release for this program at the moment.
+I have builds for Windows on x86 architecture at the releases page.
+
+For Linux, go to the build section. I will be whipping up a release for Linux soon as well.
+
 
 **For more details on how the program works, go below.**
 
@@ -49,6 +51,7 @@ The program relies on directories located in the **~/Music dir located in the ho
 - SDL2 ```sudo apt install libsdl2-dev```
 - libsndfile ```sudo apt install libsndfile1``` 
 - SDL_ttf ```sudo apt install libsdl2-ttf-dev```                  
+- SDL_image ```sudo apt install libsdl2-image-dev```
 
 ## Building
 - ```git clone https://github.com/Cameron-Ord/fft_music_visualizer``` 

@@ -24,7 +24,7 @@ LINUX_BIN := LINUX
 WIN_TARGET := fftplayer.exe
 WIN_CC := x86_64-w64-mingw32-gcc
 WIN_LDFLAGS := -Lresources/SDL2/lib -Lresources/SDL2_TTF/lib -Lresources/SDL2_IMAGE/lib -Lresources/libsndfile/lib -Lresources/x86_64-w64-mingw32/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lgdi32 -lsndfile
-LIBINC := -Iresources/SDL2/include -Iresources/SDL2_TTF/include -Iresources/SDL2_IMAGE/include -Iresources/libsndfile/include -Iresources/x86_64-w64-mingw32/include
+LIBINC := -Iresources/SDL2/include -Iresources/libsndfile/include -Iresources/x86_64-w64-mingw32/include
 WIN_CFLAGS :=  -O2 -Wall -Wextra -g
 WIN_BIN := WINDOWS
 
