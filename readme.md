@@ -62,7 +62,7 @@ The program relies on directories located in the **~/Music dir located in the ho
 
 I'm using make for this project, so it will be easiest to build on a linux host. For building the linux version, just make sure you have the required system dev packages as listed above and run ```make linux```. executable will be in the LINUX dir.
 
-For the win binary im cross compiling with mingw so make sure you have mingw64. you will also need the libs manually downloaded and set up. See the makefile itself to see how to set up the dir structure. All the header files for sdl2, including ttf and image just go into the sdl2 include, then then it points to the seperate tff and image folders just for the libs.
+For the win binary im cross compiling with mingw so make sure you have mingw64. you will also need the libs manually downloaded and set up. (I intend to make a script for this later to make it simpler). See the makefile itself to see how to set up the dir structure. All the header files for sdl2, including ttf and image just go into the sdl2 include, then then it points to the seperate tff and image folders just for the libs.
 
 Alternatively, I have release for Windows with an exe!!!1
 
