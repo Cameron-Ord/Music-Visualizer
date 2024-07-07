@@ -80,9 +80,11 @@ somove:
 	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
-	cp -r linux_resources/libsndfile/libsndfile.so $(BINARY_BIN)
-	cp -r linux_resources/SDL2/*.so $(BINARY_BIN)
-	cp -r linux_resources/SDL2/*.so.0 $(BINARY_BIN)
+	cp -r linux_resources/libsndfile/libsndfile.so.1.0.37 $(BINARY_BIN)
+	cp -r linux_resources/SDL2/libSDL2_image-2.0.so.0.800.2 $(BINARY_BIN)
+	cp -r linux_resources/SDL2/libSDL2-2.0.so.0.3000.5 $(BINARY_BIN)
+	cp -r linux_resources/SDL2/libSDL2_ttf-2.0.so.0.2200.0 $(BINARY_BIN)
+	cp -r LICENSES $(BINARY_BIN)
 
 dllmove:
 	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
@@ -96,6 +98,7 @@ dllmove:
 	cp -r win_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/bin/*.dll $(BINARY_BIN)
 	cp -r win_resources/libsndfile-1.2.2-win64/bin/*.dll $(BINARY_BIN)
 	cp -r win_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/bin/*.dll $(BINARY_BIN)
+	cp -r LICENSES $(BINARY_BIN)
 
 
 

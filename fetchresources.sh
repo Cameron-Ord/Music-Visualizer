@@ -174,11 +174,10 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		cp -r ${LINSDLIMG}/include/*.h SDL2/include/SDL2/
 		cp -r ${LINSDLTTF}/*.h SDL2/include/SDL2/
 
-		cp -r ${LINSDL2}/build/.libs/*.so SDL2/
-		cp -r ${LINSDLIMG}/.libs/*.so SDL2/
-		cp -r ${LINSDLTTF}/.libs/*.so SDL2/
-		cp -r ${LINSDLTTF}/.libs/*.so.0 SDL2/
-		cp -r ${LINSND}/src/.libs/*.so libsndfile/
+		cp -r ${LINSDL2}/build/.libs/libSDL2-2.0.so.0.3000.5 SDL2/
+		cp -r ${LINSDLIMG}/.libs/libSDL2_image-2.0.so.0.800.2 SDL2/
+		cp -r ${LINSDLTTF}/.libs/libSDL2_ttf-2.0.so.0.2200.0 SDL2/
+		cp -r ${LINSND}/src/.libs/libsndfile.so.1.0.37 libsndfile/
 
 	fi
 
