@@ -1,6 +1,8 @@
 .vscode
 build/
-resources/
+win_resources/
+linux_resources/
+tempdump/
 WINDOWS/
 LINUX/
 *.out

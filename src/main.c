@@ -280,6 +280,8 @@ main(int argc, char* argv[]) {
   update_window_size(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
+  SDL_EnableScreenSaver();
+
   u32 frame_start;
   int frame_time;
 

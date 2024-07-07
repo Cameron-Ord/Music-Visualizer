@@ -31,7 +31,7 @@
 
 #define SIZE32 32
 #define SIZE16 16
-#define FONT_PATH "Roboto-Regular.ttf"
+#define FONT_PATH "dogicapixel.ttf"
 #define SETTINGS_ICON_PATH "settings_icon.png"
 #define PLAY_ICON_PATH "play_icon.png"
 #define STOP_ICON_PATH "stop_icon.png"

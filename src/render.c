@@ -170,7 +170,7 @@ render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.75;
+  int y        = vp->h * 0.8;
   int x_offset = vp->w * 0.5;
 
   set_rect(&Play->rect, x_offset - (w / 2), y - (h / 2), w, h);
@@ -181,7 +181,7 @@ render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.75;
+  int y        = vp->h * 0.8;
   int x_offset = vp->w * 0.6;
 
   set_rect(&Pause->rect, x_offset - (w / 2), y - (h / 2), w, h);
@@ -192,7 +192,7 @@ render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.75;
+  int y        = vp->h * 0.8;
   int x_offset = vp->w * 0.4;
 
   set_rect(&Stop->rect, x_offset - (w / 2), y - (h / 2), w, h);
@@ -422,7 +422,7 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_
 
 void
 set_active_song_title(FontContext* FntPtr, int win_width, int win_height, SDL_Rect* vp) {
-  int y = vp->h * 0.10;
+  int y = vp->h * 0.20;
 
   FntPtr->active->rect.y        = y;
   FntPtr->active->offset_rect.y = y;
