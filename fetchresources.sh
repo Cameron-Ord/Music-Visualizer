@@ -7,6 +7,21 @@ working_dir=$(pwd)
 cd tempdump
 tempdump_dir=$(pwd)
 
+LIB_SND_FILE_VER="1.2.2"
+SDL2_VER="2.30.5"
+SDL2_IMG_VER="2.8.2"
+SDL2_TTF_VER="2.22.0"
+
+LINSDL2="SDL2-${SDL2_VER}"
+LINSDLIMG="SDL2_image-${SDL2_IMG_VER}"
+LINSDLTTF="SDL2_ttf-${SDL2_TTF_VER}"
+LINSND="libsndfile-${LIB_SND_FILE_VER}"
+
+WINSDL2="SDL2-devel-${SDL2_VER}-mingw"
+WINSND="libsndfile-${LIB_SND_FILE_VER}-win64"
+WINSDLIMG="SDL2_image-devel-${SDL2_IMG_VER}-mingw"
+WINSDLTTF="SDL2_ttf-devel-${SDL2_TTF_VER}-mingw"
+
 if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 
 	if [ ! -d "win64" ]; then
@@ -29,15 +44,10 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		fi
 	done
 
-	LIB_SND_FILE_VER="libsndfile-1.2.2"
-	SDL2_VER="SDL2-2.30.5"
-	SDL2_IMG_VER="SDL2_image-2.8.2"
-	SDL2_TTF_VER="SDL2_ttf-2.22.0"
-
-	wget "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/${LIB_SND_FILE_VER}.tar.xz"
-	wget "https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/${SDL2_VER}.zip"
-	wget "https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/${SDL2_IMG_VER}.zip"
-	wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/${SDL2_TTF_VER}.zip"
+	wget "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/${LINSND}.tar.xz"
+	wget "https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/${LINSDL2}.zip"
+	wget "https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/${LINSDLIMG}.zip"
+	wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/${LINSDLTTF}.zip"
 
 	buffer=("$linux_path"/*)
 	for item in "${buffer[@]}"; do
@@ -66,10 +76,10 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		fi
 	done
 
-	wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/SDL2-devel-2.30.5-mingw.zip
-	wget https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2-win64.zip
-	wget https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/SDL2_image-devel-2.8.2-mingw.zip
-	wget https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/SDL2_ttf-devel-2.22.0-mingw.zip
+	wget "https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/${WINSDL2}.zip"
+	wget "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/${WINSND}.zip"
+	wget "https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/${WINSDLIMG}.zip"
+	wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/${WINSDLTTF}.zip"
 
 	buffer=("$win_path"/*)
 	for item in "${buffer[@]}"; do
@@ -123,31 +133,52 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		fi
 
 		cd ${working_dir}/linux_resources
-		cd $LIB_SND_FILE_VER
+
+		mkdir SDL2
+		mkdir SDL2/include
+		mkdir SDL2/include/SDL2
+
+		mkdir libsndfile
+		mkdir libsndfile/include
+
+		cd $LINSND
 
 		./configure
 		make -j${core_int}
 
 		cd ..
-		cd $SDL2_VER
+		cd $LINSDL2
 
 		./autogen.sh
 		./configure
 		make -j${core_int}
 
 		cd ..
-		cd $SDL2_IMG_VER
+		cd $LINSDLIMG
 
 		./autogen.sh
 		./configure
 		make -j${core_int}
 
 		cd ..
-		cd $SDL2_TTF_VER
+		cd $LINSDLTTF
 
 		./autogen.sh
 		./configure
 		make -j${core_int}
+
+		cd ..
+
+		cp -r ${LINSND}/include/*.h libsndfile/include/
+		cp -r ${LINSDL2}/include/*.h SDL2/include/SDL2/
+		cp -r ${LINSDLIMG}/include/*.h SDL2/include/SDL2/
+		cp -r ${LINSDLTTF}/*.h SDL2/include/SDL2/
+
+		cp -r ${LINSDL2}/build/.libs/*.so SDL2/
+		cp -r ${LINSDLIMG}/.libs/*.so SDL2/
+		cp -r ${LINSDLTTF}/.libs/*.so SDL2/
+		cp -r ${LINSDLTTF}/.libs/*.so.0 SDL2/
+		cp -r ${LINSND}/src/.libs/*.so libsndfile/
 
 	fi
 
@@ -163,6 +194,8 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		rm -r ${working_dir}/win_resources
 		mkdir ${working_dir}/win_resources
 	fi
+
+	mkdir x86_64-w64-mingw32
 
 	for item in "${buffer[@]}"; do
 		if [ -d "$item" ]; then

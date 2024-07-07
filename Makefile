@@ -16,15 +16,15 @@ TARGET :=
 
 LINUX_TARGET := fftplayer
 LINUX_CC := clang
-LINUX_LDFLAGS := -Llinux_resources/SDL2-2.30.5/build/.libs -Llinux_resources/SDL2_ttf-2.22.0/.libs -Llinux_resources/SDL2_image-2.8.2/.libs -Llibsndfile-1.2.2/src/.libs -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -pg -fprofile-instr-generate
-LIN_LIB_INC := -Ilinux_resources/SDL2-2.30.5/include -Ilinux_resources/libsndfile-1.2.2/include
+LINUX_LDFLAGS := -Llinux_resources/SDL2 -Llinux_resources/libsndfile -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -pg -fprofile-instr-generate
+LIN_LIB_INC := -Ilinux_resources/SDL2/include -Ilinux_resources/libsndfile/include
 LINUX_CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping -g
 LINUX_BIN := LINUX
 
 WIN_TARGET := fftplayer.exe
 WIN_CC := x86_64-w64-mingw32-gcc
-WIN_LDFLAGS := -Lwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/bin -Lwin_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/bin -Lwin_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/bin -Lwin_resources/libsndfile-1.2.2-win64/bin -Lwin_resources/x86_64-w64-mingw32/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lgdi32 -lsndfile
-WIN_LIB_INC := -Iwin_resources/SDL2-2.30.5/include -Iwin_resources/libsndfile/include -Iwin_resources/x86_64-w64-mingw32/include
+WIN_LDFLAGS := -Lwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/lib -Lwin_resources/libsndfile-1.2.2-win64/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2  -lSDL2_ttf -lSDL2_image -lsndfile -lgdi32 
+WIN_LIB_INC := -Iwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/include -Iwin_resources/libsndfile-1.2.2-win64/include
 WIN_CFLAGS :=  -O2 -Wall -Wextra -g
 WIN_BIN := WINDOWS
 
@@ -80,6 +80,9 @@ somove:
 	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
+	cp -r linux_resources/libsndfile/libsndfile.so $(BINARY_BIN)
+	cp -r linux_resources/SDL2/*.so $(BINARY_BIN)
+	cp -r linux_resources/SDL2/*.so.0 $(BINARY_BIN)
 
 dllmove:
 	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
@@ -89,6 +92,12 @@ dllmove:
 	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
+	cp -r win_resources/SDL2-2.30.5/x86_64-w64-mingw32/bin/*.dll $(BINARY_BIN)
+	cp -r win_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/bin/*.dll $(BINARY_BIN)
+	cp -r win_resources/libsndfile-1.2.2-win64/bin/*.dll $(BINARY_BIN)
+	cp -r win_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/bin/*.dll $(BINARY_BIN)
+
+
 
 clean:
 	rm -r $(BUILD_DIR)
