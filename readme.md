@@ -61,7 +61,7 @@ For linux I am using clang.
 
 > You have a few options when it comes to building.
 
-If you have the dependencies installed via your package manager you can simply run the build script. If you are running linux I generally recommend this method, as you'll see further that the other method requires a newer version of GLIBc so any linux distribution with older package versions won't be able to run the compiled binary out of the box (IE. Debian).
+If you have the dependencies installed via your package manager you can simply run the build script. If you are running linux I generally recommend this method.
 
 ```./build_linux.sh```
 
@@ -80,9 +80,7 @@ Now for the Linux version with shared objects
 2. run ```quick_compile_linux_libs.sh```
 > Sit and wait to compile all the SDL2/libsnd libs from source. Make sure you have essential build tools installed from your package manager.
 
-Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method AND if you don't have an up to date version of Glibc it won't run so i really do recommend just compiling bash script for linux if you have the libs installed through your package manager.
-
-
+Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method.
 
 
 
