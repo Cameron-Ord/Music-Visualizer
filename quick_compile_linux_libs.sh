@@ -1,9 +1,8 @@
 cd ~/Projects/Music-Visualizer/
+working_dir=$(pwd)
 
 echo "Enter cores to utilize --max 16-- : "
 read cores
-
-working_dir=$(pwd)
 
 if [[ $cores =~ ^[0-9]+$ ]]; then
 	if [ $cores -lt 1 ]; then
@@ -76,7 +75,7 @@ if [ -d $LINSDLIMG ]; then
 	cp -r ${LINSDLIMG}/include/*.h SDL2/include/SDL2/
 fi
 
-echo "COMPILILING TTF"numeric representations.
+echo "COMPILILING TTF"
 
 if [ -d $LINSDLTTF ]; then
 	cd $LINSDLTTF

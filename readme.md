@@ -82,6 +82,7 @@ Now for the Linux version with shared objects
 
 Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method AND if you don't have an up to date version of Glibc it won't run so i really do recommend just compiling bash script for linux if you have the libs installed through your package manager.
 
+I intend on just making system packages later on to solve this
 
 
 

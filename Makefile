@@ -15,7 +15,7 @@ TARGET :=
 
 LINUX_TARGET := fftplayer
 LINUX_CC := clang
-LINUX_LDFLAGS := -Llinux_resources/SDL2 -Llinux_resources/libsndfile -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm
+LINUX_LDFLAGS := -Llinux_resources/SDL2 -Llinux_resources/libsndfile -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm 
 LIN_LIB_INC := -Ilinux_resources/SDL2/include -Ilinux_resources/libsndfile/include
 LINUX_CFLAGS :=  -O2 -Wall -Wextra -g
 LINUX_BIN := LINUX
