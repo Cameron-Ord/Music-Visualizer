@@ -79,16 +79,16 @@ somove:
 	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
-	mkdir -p $(BUILD_DIR)/LIBS
+	mkdir -p $(BINARY_BIN)/LIBS
 	cp -r LICENSES $(BINARY_BIN)
-	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf.so $(BUILD_DIR)/LIBS
-	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf-2.0.so.0.2200.0 $(BUILD_DIR)/LIBS
-	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image.so  $(BUILD_DIR)/LIBS
-	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image-2.0.so.0.800.2  $(BUILD_DIR)/LIBS
-	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2.so  $(BUILD_DIR)/LIBS
-	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2-2.0.so.0.3000.5  $(BUILD_DIR)/LIBS
-	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so $(BUILD_DIR)/LIBS
-	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so.1.0.37 $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf.so $(BINARY_BIN)/LIBS
+	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf-2.0.so.0.2200.0 $(BINARY_BIN)/LIBS
+	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image.so  $(BINARY_BIN)/LIBS
+	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image-2.0.so.0.800.2  $(BINARY_BIN)/LIBS
+	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2.so  $(BINARY_BIN)/LIBS
+	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2-2.0.so.0.3000.5  $(BINARY_BIN)/LIBS
+	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so $(BINARY_BIN)/LIBS
+	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so.1.0.37 $(BINARY_BIN)/LIBS
 
 
 dllmove:
