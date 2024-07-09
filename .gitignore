@@ -1,10 +1,12 @@
 .vscode
 build/
+bin/
 win_resources/
 linux_resources/
 tempdump/
 WINDOWS/
 LINUX/
+*.zip
 *.out
 *.profraw
 *.profdata

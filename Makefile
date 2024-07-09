@@ -81,6 +81,8 @@ somove:
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
 	mkdir -p $(BINARY_BIN)/LIBS
 	cp -r LICENSES $(BINARY_BIN)
+	cp run.sh $(BINARY_BIN)
+	chmod +x $(BINARY_BIN)/run.sh
 	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf.so $(BINARY_BIN)/LIBS
 	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf-2.0.so.0.2200.0 $(BINARY_BIN)/LIBS
 	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image.so  $(BINARY_BIN)/LIBS

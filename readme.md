@@ -43,28 +43,51 @@ The program relies on directories located in the **~/Music dir located in the ho
 - r : random song
 - q : Quit
 
-## Build Requirements
-* **[A Linux Distribution]**
+## BUILDING
 
->  The following are required to build. The packages I am providing here are for Debian repos.
+My program depends on these libs:
 
-- SDL2 ```sudo apt install libsdl2-dev```
-- libsndfile ```sudo apt install libsndfile1``` 
-- SDL_ttf ```sudo apt install libsdl2-ttf-dev```                  
-- SDL_image ```sudo apt install libsdl2-image-dev```
+1. libsndfile
+2. SDL2-devel
+3. SDL2_ttf-devel
+4. SDL2_image-devel
 
-## Building
-- ```git clone https://github.com/Cameron-Ord/fft_music_visualizer``` 
 
-> MinGW x86_64 is required to build the windows binary
+> A word of warning..
+My build processes are done on linux, so generally it is focused for linux enviroments
 
-> Clang or GCC is required to build the linux binary
+For my windows binary, I use MingGW to compile.
+For linux I am using clang.
 
-I'm using make for this project, so it will be easiest to build on a linux host. For building the linux version, just make sure you have the required system dev packages as listed above and run ```make linux```. executable will be in the LINUX dir.
+> You have a few options when it comes to building.
 
-For the win binary im cross compiling with mingw so make sure you have mingw64. you will also need the libs manually downloaded and set up. (I intend to make a script for this later to make it simpler). See the makefile itself to see how to set up the dir structure. All the header files for sdl2, including ttf and image just go into the sdl2 include, then then it points to the seperate tff and image folders just for the libs.
+If you have the dependencies installed via your package manager you can simply run the build script. If you are running linux I generally recommend this method, as you'll see further that the other method requires a newer version of GLIBc so any linux distribution with older package versions won't be able to run the compiled binary out of the box (IE. Debian).
 
-Alternatively, I have release for Windows with an exe!!!1
+```./build_linux.sh```
+
+If you want to build for a windows target - there are a few steps.
+
+1. run ```fetch_resources.sh```
+> This fetches the libs and everything you will need to build. It sets everything up automatically.
+2. run ```make windows```
+> This will compile to a binary and move the DLLs to a directory named WINDOWS
+
+That's it for windows. 
+Now for the Linux version with shared objects
+
+1. run ```fetch_resources.sh```
+> Same as before, if you ran it already, you don't need to again since it grabs both windows and linux resources
+2. run ```quick_compile_linux_libs.sh```
+> Sit and wait to compile all the SDL2/libsnd libs from source. Make sure you have essential build tools installed from your package manager.
+
+Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method AND if you don't have an up to date version of Glibc it won't run so i really do recommend just compiling bash script for linux if you have the libs installed through your package manager.
+
+
+
+
+
+
+
 
 
 
