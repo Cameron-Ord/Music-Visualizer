@@ -80,14 +80,7 @@ Now for the Linux version with shared objects
 2. run ```quick_compile_linux_libs.sh```
 > Sit and wait to compile all the SDL2/libsnd libs from source. Make sure you have essential build tools installed from your package manager.
 
-<<<<<<< HEAD
-Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method AND if you don't have an up to date version of Glibc it won't run so i really do recommend just compiling bash script for linux if you have the libs installed through your package manager.
-
-I intend on just making system packages later on to solve this
-
-=======
 Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method.
->>>>>>> refs/remotes/origin/main
 
 
 
