@@ -4,7 +4,6 @@ SRC_DIRS := ./src
 CC :=
 CFLAGS :=
 BINARY_BIN :=
-FONT_DIR := fonts
 FONT := dogicapixel.ttf
 GFX_DIR := assets
 GEAR_ICON := settings_icon.png
@@ -16,15 +15,15 @@ TARGET :=
 
 LINUX_TARGET := fftplayer
 LINUX_CC := clang
-LINUX_LDFLAGS := -Llinux_resources/SDL2 -Llinux_resources/libsndfile -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm -pg -fprofile-instr-generate
+LINUX_LDFLAGS := -Llinux_resources/SDL2 -Llinux_resources/libsndfile -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm
 LIN_LIB_INC := -Ilinux_resources/SDL2/include -Ilinux_resources/libsndfile/include
-LINUX_CFLAGS :=  -O2 -Wall -Wextra -pg -fprofile-instr-generate -fcoverage-mapping -g
+LINUX_CFLAGS :=  -O2 -Wall -Wextra -g
 LINUX_BIN := LINUX
 
 WIN_TARGET := fftplayer.exe
 WIN_CC := x86_64-w64-mingw32-gcc
 WIN_LDFLAGS := -Lwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/lib -Lwin_resources/libsndfile-1.2.2-win64/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2  -lSDL2_ttf -lSDL2_image -lsndfile -lgdi32 
-WIN_LIB_INC := -Iwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/include -Iwin_resources/libsndfile-1.2.2-win64/include
+WIN_LIB_INC := -Iwin_resources/SDL_HEADERS/include -Iwin_resources/LIBSNDFILE_HEADER/include
 WIN_CFLAGS :=  -O2 -Wall -Wextra -g
 WIN_BIN := WINDOWS
 
@@ -73,21 +72,27 @@ bin:
 	mkdir -p $(BINARY_BIN)
 
 somove:
-	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(FONT) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PLAY_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PAUSE_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(STOP_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(SEEK_ICON) $(BINARY_BIN)
 	mv $(BUILD_DIR)/$(TARGET) $(BINARY_BIN)
-	cp -r linux_resources/libsndfile/libsndfile.so.1.0.37 $(BINARY_BIN)
-	cp -r linux_resources/SDL2/libSDL2_image-2.0.so.0.800.2 $(BINARY_BIN)
-	cp -r linux_resources/SDL2/libSDL2-2.0.so.0.3000.5 $(BINARY_BIN)
-	cp -r linux_resources/SDL2/libSDL2_ttf-2.0.so.0.2200.0 $(BINARY_BIN)
+	mkdir -p $(BUILD_DIR)/LIBS
 	cp -r LICENSES $(BINARY_BIN)
+	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf.so $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2_ttf-2.22.0/.libs/libSDL2_ttf-2.0.so.0.2200.0 $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image.so  $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2_image-2.8.2/.libs/libSDL2_image-2.0.so.0.800.2  $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2.so  $(BUILD_DIR)/LIBS
+	cp linux_resources/SDL2-2.30.5/build/.libs/libSDL2-2.0.so.0.3000.5  $(BUILD_DIR)/LIBS
+	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so $(BUILD_DIR)/LIBS
+	cp linux_resources/libsndfile-1.2.2/src/.libs/libsndfile.so.1.0.37 $(BUILD_DIR)/LIBS
+
 
 dllmove:
-	cp $(FONT_DIR)/$(FONT) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(FONT) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PLAY_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PAUSE_ICON) $(BINARY_BIN)

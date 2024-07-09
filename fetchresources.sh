@@ -1,8 +1,9 @@
+cd ~/Projects/Music-Visualizer/
+working_dir=$(pwd)
+
 if [ ! -d "tempdump" ]; then
 	mkdir tempdump
 fi
-
-working_dir=$(pwd)
 
 cd tempdump
 tempdump_dir=$(pwd)
@@ -22,7 +23,7 @@ WINSND="libsndfile-${LIB_SND_FILE_VER}-win64"
 WINSDLIMG="SDL2_image-devel-${SDL2_IMG_VER}-mingw"
 WINSDLTTF="SDL2_ttf-devel-${SDL2_TTF_VER}-mingw"
 
-if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
+if [ -d "${working_dir}/tempdump" ]; then
 
 	if [ ! -d "win64" ]; then
 		mkdir win64
@@ -38,7 +39,7 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 	buffer=("$linux_path"/*)
 	for item in "${buffer[@]}"; do
 		if [ -f "$item" ]; then
-			rm -f $item
+			rm $item
 		elif [ -d "$item" ]; then
 			rm -r $item
 		fi
@@ -59,7 +60,7 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 			*) ;;
 			esac
 
-			rm -f $item
+			rm $item
 		fi
 	done
 
@@ -70,7 +71,7 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 	buffer=("$win_path"/*)
 	for item in "${buffer[@]}"; do
 		if [ -f "$item" ]; then
-			rm -f $item
+			rm $item
 		elif [ -d "$item" ]; then
 			rm -r $item
 		fi
@@ -91,7 +92,7 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 			*) ;;
 			esac
 
-			rm -f $item
+			rm $item
 		fi
 	done
 
@@ -114,73 +115,6 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 		fi
 	done
 
-	echo "Compile libs? : y/n"
-	read resp
-
-	if [ $resp == "y" ]; then
-
-		echo "Enter cores to utilize --max 16-- : "
-		read cores
-
-		let core_int=cores
-
-		if [ $core_int -lt 1 ]; then
-			$core_int=1
-		fi
-
-		if [ $core_int -gt 16 ]; then
-			$core_int=16
-		fi
-
-		cd ${working_dir}/linux_resources
-
-		mkdir SDL2
-		mkdir SDL2/include
-		mkdir SDL2/include/SDL2
-
-		mkdir libsndfile
-		mkdir libsndfile/include
-
-		cd $LINSND
-
-		./configure
-		make -j${core_int}
-
-		cd ..
-		cd $LINSDL2
-
-		./autogen.sh
-		./configure
-		make -j${core_int}
-
-		cd ..
-		cd $LINSDLIMG
-
-		./autogen.sh
-		./configure
-		make -j${core_int}
-
-		cd ..
-		cd $LINSDLTTF
-
-		./autogen.sh
-		./configure
-		make -j${core_int}
-
-		cd ..
-
-		cp -r ${LINSND}/include/*.h libsndfile/include/
-		cp -r ${LINSDL2}/include/*.h SDL2/include/SDL2/
-		cp -r ${LINSDLIMG}/include/*.h SDL2/include/SDL2/
-		cp -r ${LINSDLTTF}/*.h SDL2/include/SDL2/
-
-		cp -r ${LINSDL2}/build/.libs/libSDL2-2.0.so.0.3000.5 SDL2/
-		cp -r ${LINSDLIMG}/.libs/libSDL2_image-2.0.so.0.800.2 SDL2/
-		cp -r ${LINSDLTTF}/.libs/libSDL2_ttf-2.0.so.0.2200.0 SDL2/
-		cp -r ${LINSND}/src/.libs/libsndfile.so.1.0.37 libsndfile/
-
-	fi
-
 	cd $current_dir
 
 	cd ..
@@ -192,13 +126,24 @@ if [ "$tempdump_dir" == "${working_dir}/tempdump" ]; then
 	else
 		rm -r ${working_dir}/win_resources
 		mkdir ${working_dir}/win_resources
+		mkdir ${working_dir}/win_resources/SDL_HEADERS
+		mkdir ${working_dir}/win_resources/SDL_HEADERS/include
+		mkdir ${working_dir}/win_resources/SDL_HEADERS/include/SDL2
+		mkdir ${working_dir}/win_resources/LIBSNDFILE_HEADER
+		mkdir ${working_dir}/win_resources/LIBSNDFILE_HEADER/include
 	fi
 
-	mkdir x86_64-w64-mingw32
+	current_location=$(pwd)
 
 	for item in "${buffer[@]}"; do
 		if [ -d "$item" ]; then
-			mv $item ${working_dir}/"win_resources/"
+			# If the path string contains libsndfile or sdl
+			if [[ $item == *"libsndfile"* ]]; then
+				cp -r ${item}/include/*.h ${working_dir}/win_resources/LIBSNDFILE_HEADER/include/
+			elif [[ $item == *"SDL"* ]]; then
+				cp -r ${item}/x86_64-w64-mingw32/include/SDL2/*.h ${working_dir}/win_resources/SDL_HEADERS/include/SDL2
+			fi
+			mv $item ${working_dir}/win_resources/
 		fi
 	done
 fi
