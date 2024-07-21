@@ -53,43 +53,23 @@ My program depends on these libs:
 4. SDL2_image-devel
 
 
-> A word of warning..
-My build processes are done on linux, so generally it is focused for linux enviroments
-
 For my windows binary, I use MingGW to compile.
-For linux I am using clang.
+For linux I am mainly using clang, but there are options for GCC.
 
 > You have a few options when it comes to building.
 
-If you have the dependencies installed via your package manager you can simply run the build script. If you are running linux I generally recommend this method.
+If you have the dependencies installed via your package manager you can simply run the build script. Note that this uses clang.
 
 ```./build_linux.sh```
 
+I also have a build script to statically compile into a binary. This uses GCC. Due to the nature of SDL2 and sndfile there may be issues, however, you can use it with ```linux_build_static.sh```
+
 If you want to build for a windows target - there are a few steps.
 
-1. run ```fetch_resources.sh```
+1. run ```fetch_win_resources.sh```
 > This fetches the libs and everything you will need to build. It sets everything up automatically.
-2. run ```make windows```
+2. run ```make``` and then ```make install```
 > This will compile to a binary and move the DLLs to a directory named WINDOWS
-
-That's it for windows. 
-Now for the Linux version with shared objects
-
-1. run ```fetch_resources.sh```
-> Same as before, if you ran it already, you don't need to again since it grabs both windows and linux resources
-2. run ```quick_compile_linux_libs.sh```
-> Sit and wait to compile all the SDL2/libsnd libs from source. Make sure you have essential build tools installed from your package manager.
-
-Similar to the windows method, there will be a LINUX directory with everything in it. To run the binary if you don't have the libs installed systemwide, use the ```run.sh``` script. You are limited to running it from inside the directory with this method.
-
-
-
-
-
-
-
-
-
 
 
 
