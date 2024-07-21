@@ -90,8 +90,18 @@ get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
 void
 instantiate_buffers(FTransformBuffers* bufs) {
   memset(bufs->out_raw_prim, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->in_cpy_prim, 0, DOUBLE_BUFF * sizeof(f32c));
   memset(bufs->processed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
   memset(bufs->smoothed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
   memset(bufs->fft_in_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->pre_raw_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->post_raw_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+
+  memset(bufs->out_raw_sec, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->in_cpy_sec, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->processed_sec, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->smoothed_sec, 0, (DOUBLE_BUFF) * sizeof(f32));
   memset(bufs->fft_in_sec, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->pre_raw_sec, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->post_raw_sec, 0, (DOUBLE_BUFF) * sizeof(f32));
 }

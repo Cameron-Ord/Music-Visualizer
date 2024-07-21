@@ -47,22 +47,39 @@ void
 generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
   const size_t half_size = (size_t)BUFF_SIZE / 2;
 
-  memcpy(bufs->in_cpy_prim, bufs->in_ptr, sizeof(f32) * DOUBLE_BUFF);
+  // Gonna have to break this up because looking at it is a little difficult
+
+  memcpy(bufs->cpy_ptr, bufs->in_ptr, sizeof(f32) * DOUBLE_BUFF);
 
   swap_buffers(bufs->in_ptr, bufs->fft_in_prim, bufs->fft_in_sec);
 
-  hamming_window(bufs->in_cpy_prim);
+  hamming_window(bufs->cpy_ptr);
 
-  fft_func(bufs->in_cpy_prim, 1, bufs->out_raw_prim, (size_t)BUFF_SIZE);
+  memcpy(bufs->pre_ptr, bufs->cpy_ptr, sizeof(f32) * DOUBLE_BUFF);
 
-  squash_to_log(half_size, bufs->out_raw_prim, bufs->processed_prim, &data->max_ampl, &data->output_len, SR);
+  swap_buffers(bufs->cpy_ptr, bufs->in_cpy_prim, bufs->in_cpy_sec);
 
-  apply_smoothing(data->output_len, data->max_ampl, bufs->processed_prim, bufs->smoothed_prim);
+  fft_func(bufs->pre_ptr, 1, bufs->raw_ptr, (size_t)BUFF_SIZE);
 
+  swap_buffers(bufs->pre_ptr, bufs->pre_raw_prim, bufs->pre_raw_sec);
+
+  memcpy(bufs->post_ptr, bufs->raw_ptr, sizeof(f32c) * BUFF_SIZE);
+
+  swap_buffers(bufs->raw_ptr, bufs->out_raw_prim, bufs->out_raw_sec);
+
+  squash_to_log(half_size, bufs->post_ptr, bufs->proc_ptr, &data->max_ampl, &data->output_len, SR);
+
+  swap_buffers(bufs->post_ptr, bufs->post_raw_prim, bufs->post_raw_sec);
+
+  apply_smoothing(data->output_len, data->max_ampl, bufs->proc_ptr, bufs->smoothed_ptr);
+
+  swap_buffers(bufs->proc_ptr, bufs->processed_prim, bufs->processed_sec);
+
+  set_visual_buffer(bufs->visual_buffer, bufs->smoothed_ptr);
+
+  swap_buffers(bufs->smoothed_ptr, bufs->smoothed_prim, bufs->smoothed_sec);
 } /*generate_visual*/
 
-/*This function is used when there is no multithreading. Currently it is not set up to fallback to this if
- * there is an issue with the multithreading, so I have to implement that*/
 void
 hamming_window(f32* in_cpy) {
   /*Iterate for the size of a single channel*/
@@ -85,9 +102,9 @@ hamming_window(f32* in_cpy) {
 void
 squash_to_log(size_t size, f32c* raw, f32* proc, f32* max_ampl, size_t* len, int SR) {
 
-  f32 delta_f = (f32)SR / size;
-  // f32 bin_low  = (f32)(1000.0f / delta_f);
-  // f32 bin_high = (f32)(5000.0f / delta_f);
+  // f32 delta_f = (f32)SR / size;
+  //  f32 bin_low  = (f32)(1000.0f / delta_f);
+  //  f32 bin_high = (f32)(5000.0f / delta_f);
 
   float  step = 1.06f;
   float  lowf = 1.0f;

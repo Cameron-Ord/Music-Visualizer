@@ -47,7 +47,7 @@ check_pos(u32 audio_pos, u32 len) {
 }
 
 void
-swap_buffers(f32* ptr, f32* prim, f32* sec) {
+swap_buffers(void* ptr, void* prim, void* sec) {
   if (ptr == NULL) {
     ptr = prim;
     return;
@@ -61,6 +61,17 @@ swap_buffers(f32* ptr, f32* prim, f32* sec) {
   if (ptr == sec) {
     ptr = prim;
     return;
+  }
+}
+
+void
+set_visual_buffer(f32* vis_ptr, f32* buf_ptr) {
+  if (buf_ptr == NULL) {
+    return;
+  }
+
+  if (vis_ptr != buf_ptr) {
+    vis_ptr = buf_ptr;
   }
 }
 
@@ -245,8 +256,16 @@ load_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   start_song(&PBPtr->playing_song);
   instantiate_buffers(FTBufsPtr);
 
-  FTBufsPtr->in_ptr = FTBufsPtr->fft_in_prim;
-  *buffers_ready    = TRUE;
+  FTBufsPtr->in_ptr        = FTBufsPtr->fft_in_prim;
+  FTBufsPtr->cpy_ptr       = FTBufsPtr->in_cpy_prim;
+  FTBufsPtr->pre_ptr       = FTBufsPtr->pre_raw_prim;
+  FTBufsPtr->raw_ptr       = FTBufsPtr->out_raw_prim;
+  FTBufsPtr->proc_ptr      = FTBufsPtr->processed_prim;
+  FTBufsPtr->smoothed_ptr  = FTBufsPtr->smoothed_prim;
+  FTBufsPtr->post_ptr      = FTBufsPtr->post_raw_prim;
+  FTBufsPtr->visual_buffer = NULL;
+
+  *buffers_ready = TRUE;
 }
 
 void

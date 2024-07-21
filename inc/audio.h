@@ -57,13 +57,28 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32  fft_in_prim[DOUBLE_BUFF];
-  f32  fft_in_sec[DOUBLE_BUFF];
-  f32  in_cpy_prim[DOUBLE_BUFF];
-  f32c out_raw_prim[DOUBLE_BUFF];
-  f32  processed_prim[DOUBLE_BUFF];
-  f32  smoothed_prim[DOUBLE_BUFF];
-  f32* in_ptr;
+  f32   fft_in_prim[DOUBLE_BUFF];
+  f32   fft_in_sec[DOUBLE_BUFF];
+  f32   in_cpy_prim[DOUBLE_BUFF];
+  f32   in_cpy_sec[DOUBLE_BUFF];
+  f32   pre_raw_prim[DOUBLE_BUFF];
+  f32   pre_raw_sec[DOUBLE_BUFF];
+  f32c  post_raw_prim[DOUBLE_BUFF];
+  f32c  post_raw_sec[DOUBLE_BUFF];
+  f32c  out_raw_prim[DOUBLE_BUFF];
+  f32c  out_raw_sec[DOUBLE_BUFF];
+  f32   processed_prim[DOUBLE_BUFF];
+  f32   processed_sec[DOUBLE_BUFF];
+  f32   smoothed_prim[DOUBLE_BUFF];
+  f32   smoothed_sec[DOUBLE_BUFF];
+  f32*  in_ptr;
+  f32*  cpy_ptr;
+  f32*  pre_ptr;
+  f32c* raw_ptr;
+  f32*  proc_ptr;
+  f32*  smoothed_ptr;
+  f32c* post_ptr;
+  f32*  visual_buffer;
 };
 
 struct FTransformData {
@@ -83,7 +98,7 @@ struct FourierTransform {
   struct SongState*         SSPtr;
 };
 
-void              swap_buffers(f32* ptr, f32* prim, f32* sec);
+void              swap_buffers(void* ptr, void* prim, void* sec);
 void              audio_switch(SDL_AudioDeviceID dev, int status);
 void              start_song(i8* playing_song);
 void              stop_song(i8* playing_song);
@@ -115,4 +130,6 @@ void              instantiate_buffers(FTransformBuffers* bufs);
 int               check_pos(u32 audio_pos, u32 len);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
 void              reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
+void              set_visual_buffer(f32* vis_ptr, f32* buf_ptr);
+
 #endif
