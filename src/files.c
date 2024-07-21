@@ -163,8 +163,17 @@ fetch_dirs(DirState* DS) {
         return -1;
       }
 
-      char full_path[PATH_MAX];
-      snprintf(full_path, sizeof(full_path), "%s%s", path, entry->d_name);
+      const size_t size_offset = strlen(entry->d_name);
+
+      char   full_path[PATH_MAX + size_offset];
+      size_t required_len = strlen(path) + strlen(entry->d_name);
+
+      if (required_len < PATH_MAX + size_offset) {
+        snprintf(full_path, sizeof(char) * (PATH_MAX + size_offset), "%s%s", path, entry->d_name);
+      } else {
+        fprintf(stderr, "Exceeded maximum path length!\n");
+        return -1;
+      }
 
       struct stat statbuf;
 
@@ -255,8 +264,17 @@ fetch_files(FileState* FS) {
       return -1;
     }
 
-    char full_path[PATH_MAX];
-    snprintf(full_path, sizeof(full_path), "%s%s", path, entry->d_name);
+    const size_t size_offset = strlen(entry->d_name);
+
+    char   full_path[PATH_MAX + size_offset];
+    size_t required_len = strlen(path) + strlen(entry->d_name);
+
+    if (required_len < PATH_MAX + size_offset) {
+      snprintf(full_path, sizeof(char) * (PATH_MAX + size_offset), "%s%s", path, entry->d_name);
+    } else {
+      fprintf(stderr, "Exceeded maximum path length!\n");
+      return -1;
+    }
 
     struct stat statbuf;
 

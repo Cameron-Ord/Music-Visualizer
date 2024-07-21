@@ -12,7 +12,7 @@
 #include <errno.h>
 
 int
-main(int argc, char* argv[]) {
+main() {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
@@ -277,7 +277,7 @@ main(int argc, char* argv[]) {
   Application.SSPtr  = &AudioChunk;
 
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
-  update_window_size(SDLChunk.container, SDLChunk.mouse, SDLChunk.w);
+  update_window_size(SDLChunk.container, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
   SDL_EnableScreenSaver();
@@ -443,13 +443,13 @@ poll_events(AppContext* app) {
       switch (e.window.event) {
 
       case SDL_WINDOWEVENT_RESIZED: {
-        update_window_size(SDLC->container, SDLC->mouse, SDLC->w);
+        update_window_size(SDLC->container, SDLC->w);
         resize_fonts(SDLC, app->FCPtr, app->FntPtr);
         break;
       }
 
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
-        update_window_size(SDLC->container, SDLC->mouse, SDLC->w);
+        update_window_size(SDLC->container, SDLC->w);
         resize_fonts(SDLC, app->FCPtr, app->FntPtr);
         break;
       }

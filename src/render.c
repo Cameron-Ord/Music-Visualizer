@@ -37,7 +37,7 @@ present_render(SDL_Renderer* r) {
 }
 
 void
-update_window_size(SDLContainer* Cont, SDLMouse* Mouse, SDL_Window* w) {
+update_window_size(SDLContainer* Cont, SDL_Window* w) {
   int* win_width  = &Cont->win_width;
   int* win_height = &Cont->win_height;
   SDL_GetWindowSize(w, win_width, win_height);
@@ -166,7 +166,7 @@ render_draw_gear(SDL_Renderer* r, SettingsGear* gear) {
 }
 
 void
-render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
+render_set_play_button(PlayIcon* Play, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
@@ -177,7 +177,7 @@ render_set_play_button(SDLContainer* Cont, PlayIcon* Play, SDL_Rect* vp) {
 }
 
 void
-render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
+render_set_pause_button(PauseIcon* Pause, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
@@ -188,7 +188,7 @@ render_set_pause_button(SDLContainer* Cont, PauseIcon* Pause, SDL_Rect* vp) {
 }
 
 void
-render_set_stop_button(SDLContainer* Cont, StopIcon* Stop, SDL_Rect* vp) {
+render_set_stop_button(StopIcon* Stop, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
@@ -379,7 +379,7 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
 }
 
 void
-set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
+set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
   int ttl_length       = Aud->wav_len;
   int current_position = Aud->audio_pos;
 
@@ -402,7 +402,7 @@ set_seek_bar(SDLContainer* Cont, SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, S
 }
 
 void
-set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
+set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
   VBar->current_pos = Aud->volume * (vp->w * 0.20);
 
   int pos_x      = vp->w * 0.80;
@@ -421,7 +421,7 @@ set_vol_bar(SDLContainer* Cont, VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_
 }
 
 void
-set_active_song_title(FontContext* FntPtr, int win_width, int win_height, SDL_Rect* vp) {
+set_active_song_title(FontContext* FntPtr, SDL_Rect* vp) {
   int y = vp->h * 0.20;
 
   FntPtr->active->rect.y        = y;

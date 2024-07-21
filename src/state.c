@@ -19,22 +19,16 @@ song_is_over(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
 }
 
 void
-set_viewports(SDLContext* SDLC, SDL_Rect* controls_vp_ptr, SDL_Rect* buttons_vp_ptr, SDL_Rect* viz_vp_ptr) {}
-
-void
 song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
 
   SDLContainer* Cont  = SDLC->container;
   SongState*    SSPtr = SDLC->SSPtr;
   SeekBar*      SkBar = SDLC->SSPtr->seek_bar;
-  VolBar*       VBar  = SDLC->SSPtr->vol_bar;
   SDLSprites*   Spr   = SDLC->sprites;
 
   SDL_Color* bg_rgba       = &Cont->theme->secondary;
   SDL_Color* rgba          = &Cont->theme->tertiary;
   i8*        buffers_ready = &SDLC->FTPtr->fft_data->buffers_ready;
-  i8         vol_latched   = VBar->latched;
-  i8         seek_latched  = SkBar->latched;
   int        font_ready    = Fnt->active->ready;
 
   render_background(SDLC->r, bg_rgba);
@@ -55,9 +49,9 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   }
 
   case FALSE: {
-    render_set_play_button(SDLC->container, Spr->play_icon, &controls_vp);
-    render_set_pause_button(SDLC->container, Spr->pause_icon, &controls_vp);
-    render_set_stop_button(SDLC->container, Spr->stop_icon, &controls_vp);
+    render_set_play_button(Spr->play_icon, &controls_vp);
+    render_set_pause_button(Spr->pause_icon, &controls_vp);
+    render_set_stop_button(Spr->stop_icon, &controls_vp);
 
     render_draw_play_button(SDLC->r, Spr->play_icon, &controls_vp);
     render_draw_pause_button(SDLC->r, Spr->pause_icon, &controls_vp);
@@ -67,14 +61,14 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
       render_bars(SDLC, &viz_vp);
     }
 
-    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
+    set_vol_bar(SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
-    set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
+    set_seek_bar(SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {
-      set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
+      set_active_song_title(Fnt, &controls_vp);
       draw_active_song_title(SDLC->r, Fnt->active, &controls_vp);
     }
     break;
@@ -94,14 +88,10 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   SongState*        SSPtr = SDLC->SSPtr;
   FourierTransform* FTPtr = SDLC->FTPtr;
   SeekBar*          SkBar = SSPtr->seek_bar;
-  VolBar*           VBar  = SSPtr->vol_bar;
   SDLSprites*       Spr   = SDLC->sprites;
 
   i8* buffers_ready = &FTPtr->fft_data->buffers_ready;
   int font_ready    = Fnt->active->ready;
-
-  i8 vol_latched  = VBar->latched;
-  i8 seek_latched = SkBar->latched;
 
   SDL_Color* rgba    = &Cont->theme->tertiary;
   SDL_Color* bg_rgba = &Cont->theme->secondary;
@@ -118,9 +108,9 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   switch (SDLC->viewing_settings) {
 
   case FALSE: {
-    render_set_play_button(SDLC->container, Spr->play_icon, &controls_vp);
-    render_set_pause_button(SDLC->container, Spr->pause_icon, &controls_vp);
-    render_set_stop_button(SDLC->container, Spr->stop_icon, &controls_vp);
+    render_set_play_button(Spr->play_icon, &controls_vp);
+    render_set_pause_button(Spr->pause_icon, &controls_vp);
+    render_set_stop_button(Spr->stop_icon, &controls_vp);
 
     render_draw_play_button(SDLC->r, Spr->play_icon, &controls_vp);
     render_draw_pause_button(SDLC->r, Spr->pause_icon, &controls_vp);
@@ -134,14 +124,14 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
       render_bars(SDLC, &viz_vp);
     }
 
-    set_vol_bar(Cont, SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
+    set_vol_bar(SSPtr->vol_bar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[0]);
     draw_vol_bar(SDLC->r, Spr->seek_icon->tex, SSPtr->vol_bar, &controls_vp, rgba);
 
-    set_seek_bar(Cont, SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
+    set_seek_bar(SkBar, SSPtr->audio_data, &controls_vp, &Spr->seek_icon->rect_main[1]);
     draw_seek_bar(SDLC->r, Spr->seek_icon->tex, SkBar, &controls_vp, rgba);
 
     if (font_ready) {
-      set_active_song_title(Fnt, Cont->win_width, Cont->win_height, &controls_vp);
+      set_active_song_title(Fnt, &controls_vp);
       draw_active_song_title(SDLC->r, Fnt->active, &controls_vp);
     }
     break;
