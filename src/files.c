@@ -17,6 +17,7 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <io.h>
 #include <limits.h>
 #endif
 
@@ -111,17 +112,30 @@ setup_dirs() {
 
   int fd;
   snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(), "log.txt");
+#ifdef __linux__
   fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
   if (fd < 0) {
     PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
     return;
   }
-
   dup2(fd, STDOUT_FILENO);
   close(fd);
+#endif
+
+#ifdef _WIN32
+  fd = open(path, _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
+  if (fd < 0) {
+    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+    return;
+  }
+  _dup2(fd, _fileno(stdout));
+  close(fd);
+#endif
 
   snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(),
            "errlog.txt");
+
+#ifdef __linux__
   fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
   if (fd < 0) {
     PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
@@ -129,6 +143,18 @@ setup_dirs() {
   }
   dup2(fd, STDERR_FILENO);
   close(fd);
+#endif
+
+#ifdef _WIN32
+  fd = open(path, _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
+  if (fd < 0) {
+    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+    return;
+  }
+  _dup2(fd, _fileno(stderr));
+  close(fd);
+#endif
+
 } /*setup_dirs*/
 
 int
