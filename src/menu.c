@@ -123,30 +123,63 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
   }
 
   case FALSE: {
-    size_t len = sizeof(playing_rect_array) / sizeof(playing_rect_array[0]);
-    for (size_t i = 0; i < len; i++) {
-      if (point_in_rect(mouse_x, mouse_y, playing_rect_array[i])) {
-        switch (i) {
-        case 2: {
-          clicked_settings_gear(SDLC);
-          break;
+    switch (SDLC->viewing_settings) {
+    case TRUE: {
+
+      if (point_in_rect(mouse_x, mouse_y, gear_rect)) {
+        clicked_settings_gear(SDLC);
+        return;
+      }
+
+      SDLContainer* Cont = SDLC->container;
+      SDL_Rect      vp   = { 0, 0, Cont->win_width, Cont->win_height };
+
+      if (point_in_rect(mouse_x, mouse_y, vp)) {
+        const int mouse_arr[] = { mouse_x, mouse_y };
+        FontData* col_ptr     = FNT->colours_list;
+        FontData* col_rtn     = get_struct(col_ptr, mouse_arr, COLOUR_LIST_SIZE);
+
+        if (col_rtn == NULL) {
+          return;
         }
 
-        case 1: {
-          clicked_in_song_rect(SDLC, FNT, FC, mouse_x, mouse_y);
-          break;
-        }
+        update_colours(SDLC);
+      }
+      break;
+    }
 
-        case 0: {
-          clicked_in_dir_rect(SDLC, FNT, FC, mouse_x, mouse_y);
-          break;
-        }
+    case FALSE: {
+      size_t len = sizeof(playing_rect_array) / sizeof(playing_rect_array[0]);
+      for (size_t i = 0; i < len; i++) {
+        if (point_in_rect(mouse_x, mouse_y, playing_rect_array[i])) {
+          switch (i) {
+          case 2: {
+            clicked_settings_gear(SDLC);
+            break;
+          }
 
-        default: {
-          break;
-        }
+          case 1: {
+            clicked_in_song_rect(SDLC, FNT, FC, mouse_x, mouse_y);
+            break;
+          }
+
+          case 0: {
+            clicked_in_dir_rect(SDLC, FNT, FC, mouse_x, mouse_y);
+            break;
+          }
+
+          default: {
+            break;
+          }
+          }
         }
       }
+      break;
+    }
+
+    default: {
+      break;
+    }
     }
     break;
   }
@@ -326,21 +359,6 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
   }
 } /*clicked_in_dir_rect*/
 
-FontData*
-get_struct(FontData* arr[], const int mouse_arr[], int len) {
-  /*If the pointer is within the rectangle of any of these titles, return a pointer to the pointer of the
-   * FontData struct array, otherwise clear the background)*/
-  for (int i = 0; i < len; i++) {
-    SDL_Rect rect = (*arr)[i].font_rect;
-    if (point_in_rect(mouse_arr[0], mouse_arr[1], rect)) {
-      return &(*arr)[i];
-    } else {
-      (*arr)[i].has_bg = 0;
-    }
-  }
-  return NULL;
-} /*get_struct*/
-
 void
 scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* sign) {
   SDLViewports* Vps   = SDLC->container->vps;
@@ -386,4 +404,9 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
 void
 clicked_settings_gear(SDLContext* SDLC) {
   SDLC->viewing_settings = !SDLC->viewing_settings;
+}
+
+int
+update_colours(SDLContext* SDLC) {
+  return 0;
 }

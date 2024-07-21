@@ -25,14 +25,69 @@ create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
 }
 
 int
+create_colours_fonts(FontContext* Fnt, Theme* Themes[], SDL_Renderer* r) {
+  for (int s = 0; s < COLOUR_LIST_SIZE; s++) {
+    size_t size = strlen(Themes[s]->name);
+
+    Fnt->active->text = malloc(sizeof(char*) * size);
+    if (Fnt->active->text == NULL) {
+      PRINT_STR_ERR(stderr, "Could not allocate active song char buffer\n", strerror(errno));
+      return -1;
+    }
+
+    Fnt->colours_list[s].has_bg = FALSE;
+    Fnt->colours_list[s].font_surface
+        = create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, Themes[s]->name);
+    if (Fnt->colours_list[s].font_surface == NULL) {
+      return -1;
+    }
+
+    Fnt->colours_list[s].font_texture = create_font_texture(r, Fnt->colours_list[s].font_surface);
+    if (Fnt->colours_list[s].font_texture == NULL) {
+      return -1;
+    }
+
+    SDL_Surface* surf = Fnt->colours_list[s].font_surface;
+    SDL_Rect     rect = { 0, 0, surf->w, surf->h };
+
+    Fnt->colours_list[s].id        = s;
+    Fnt->colours_list[s].text      = Themes[s]->name;
+    Fnt->colours_list[s].font_rect = rect;
+
+    surf = destroy_surface(surf);
+  }
+
+  Fnt->state->col_fonts_created = TRUE;
+  return 0;
+}
+
+int
+destroy_colours_fonts(FontContext* Fnt) {
+  for (int s = 0; s < COLOUR_LIST_SIZE; s++) {
+    SDL_Texture* tex = Fnt->colours_list[s].font_texture;
+
+    tex = destroy_texture(tex);
+    if (tex == NULL) {
+      return -1;
+    }
+    free_ptr(Fnt->colours_list[s].text);
+    Fnt->colours_list[s].text = NULL;
+  }
+
+  Fnt->state->col_fonts_created = FALSE;
+  return 0;
+}
+
+int
 create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
 
   Fnt->active->tex = destroy_texture(Fnt->active->tex);
   free_ptr(Fnt->active->text);
 
   Fnt->active->ready = FALSE;
-  int file_index     = FS->file_index;
-  int size           = strlen(FS->files[file_index]);
+
+  int    file_index = FS->file_index;
+  size_t size       = strlen(FS->files[file_index]);
 
   Fnt->active->text = malloc(sizeof(char*) * size);
   if (Fnt->active->text == NULL) {
@@ -97,14 +152,14 @@ create_song_fonts(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
       return -1;
     }
 
-    SDL_Surface** file_surf = &Fnt->sf_arr[s].font_surface;
-    SDL_Rect      sdl_rect  = { 0, 0, (*file_surf)->w, (*file_surf)->h };
+    SDL_Surface* surf = Fnt->sf_arr[s].font_surface;
+    SDL_Rect     rect = { 0, 0, surf->w, surf->h };
 
     Fnt->sf_arr[s].id        = s;
     Fnt->sf_arr[s].text      = FS->files[s];
-    Fnt->sf_arr[s].font_rect = sdl_rect;
+    Fnt->sf_arr[s].font_rect = rect;
 
-    *file_surf = destroy_surface(*file_surf);
+    surf = destroy_surface(surf);
   }
   Fnt->state->song_fonts_created = TRUE;
   return 0;
@@ -140,14 +195,14 @@ create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
       return -1;
     }
 
-    SDL_Surface** dir_surf = &Fnt->df_arr[s].font_surface;
-    SDL_Rect      sdl_rect = { 0, 0, (*dir_surf)->w, (*dir_surf)->h };
+    SDL_Surface* surf = Fnt->df_arr[s].font_surface;
+    SDL_Rect     rect = { 0, 0, surf->w, surf->h };
 
     Fnt->df_arr[s].id        = s;
     Fnt->df_arr[s].text      = DS->directories[s];
-    Fnt->df_arr[s].font_rect = sdl_rect;
+    Fnt->df_arr[s].font_rect = rect;
 
-    *dir_surf = destroy_surface(*dir_surf);
+    surf = destroy_surface(surf);
   }
 
   Fnt->state->dir_fonts_created = TRUE;
@@ -155,9 +210,29 @@ create_dir_fonts(FontContext* Fnt, DirState* DS, SDL_Renderer* r) {
 }
 
 void
-clear_font_bgs(FontData* arr[], int len) {
+clear_font_bgs(FontData arr[], int len) {
   for (int i = 0; i < len; i++) {
-    (*arr)[i].has_bg = 0;
+    arr[i].has_bg = FALSE;
+  }
+}
+
+void
+create_col_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT) {
+  SDLContainer* Cont = SDLC->container;
+  SDL_Rect      vp   = { 0, 0, Cont->win_width, Cont->win_height };
+
+  if (point_in_rect(mouse_x, mouse_y, vp)) {
+    const int mouse_arr[] = { mouse_x, mouse_y };
+    FontData* col_ptr     = FNT->colours_list;
+    FontData* col_rtn     = get_struct(col_ptr, mouse_arr, COLOUR_LIST_SIZE);
+
+    if (col_rtn == NULL) {
+      return;
+    }
+
+    col_rtn->has_bg = TRUE;
+  } else {
+    clear_font_bgs(FNT->colours_list, COLOUR_LIST_SIZE);
   }
 }
 
@@ -171,10 +246,10 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontC
 
   if (point_in_rect(mouse_x, mouse_y, Vps->dir_vp)) {
 
-    const int  mouse_arr[] = { mouse_x, mouse_y };
-    int        dir_count   = DSPtr->dir_count;
-    FontData** df_arr      = &FNT->df_arr;
-    FontData*  df          = get_struct(df_arr, mouse_arr, dir_count);
+    const int mouse_arr[] = { mouse_x, mouse_y };
+    int       dir_count   = DSPtr->dir_count;
+    FontData* df_arr      = FNT->df_arr;
+    FontData* df          = get_struct(df_arr, mouse_arr, dir_count);
 
     if (df == NULL) {
       return;
@@ -183,7 +258,7 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontC
     df->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
   } else {
-    clear_font_bgs(&FNT->df_arr, DSPtr->dir_count);
+    clear_font_bgs(FNT->df_arr, DSPtr->dir_count);
   }
 } /*create_dir_text_bg*/
 
@@ -199,9 +274,9 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, Font
     int offset_x = SDLC->mouse->mouse_offset_x;
     int offset_y = SDLC->mouse->mouse_offset_y;
 
-    const int  mouse_arr[] = { (mouse_x - offset_x), (mouse_y - offset_y) };
-    int        file_count  = FSPtr->file_count;
-    FontData** sf_arr      = &FNT->sf_arr;
+    const int mouse_arr[] = { (mouse_x - offset_x), (mouse_y - offset_y) };
+    int       file_count  = FSPtr->file_count;
+    FontData* sf_arr      = FNT->sf_arr;
 
     FontData* sf = get_struct(sf_arr, mouse_arr, file_count);
     if (sf == NULL) {
@@ -211,7 +286,7 @@ create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, Font
     sf->has_bg = TRUE;
     /*Y pos is set to 0 as it gets determined by the y_pos in the rendering function*/
   } else {
-    clear_font_bgs(&FNT->sf_arr, FSPtr->file_count);
+    clear_font_bgs(FNT->sf_arr, FSPtr->file_count);
   }
 } /*create_song_text_bg*/
 
@@ -266,6 +341,8 @@ clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
     }
   }
 
+  destroy_colours_fonts(FntPtr);
+
   FntPtr->active->tex = destroy_texture(FntPtr->active->tex);
   free_ptr(FntPtr->active->text);
 }
@@ -291,3 +368,16 @@ clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr,
     }
   }
 } /*clear_existing_list*/
+
+FontData*
+get_struct(FontData arr[], const int mouse_arr[], int len) {
+  for (int i = 0; i < len; i++) {
+    SDL_Rect rect = arr[i].font_rect;
+    if (point_in_rect(mouse_arr[0], mouse_arr[1], rect)) {
+      return &arr[i];
+    } else {
+      arr[i].has_bg = 0;
+    }
+  }
+  return NULL;
+} /*get_struct*/

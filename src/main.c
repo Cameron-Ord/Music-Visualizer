@@ -16,7 +16,7 @@ main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  setup_dirs();
+  // setup_dirs();
 
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
@@ -31,23 +31,23 @@ main(int argc, char* argv[]) {
   LLmtr.amount_to_display = 4;
 
   // Default to dracula tri colour theme
-  SDL_Color prim_drac      = { 187, 147, 249, 255 };
-  SDL_Color secondary_drac = { 40, 42, 54, 255 };
-  SDL_Color tertiary_drac  = { 69, 71, 90, 255 };
+  SDL_Color prim_drac = { 187, 147, 249, 255 };
+  SDL_Color sec_drac  = { 40, 42, 54, 255 };
+  SDL_Color tert_drac = { 69, 71, 90, 255 };
 
-  SDL_Color prim_nord      = { 236, 239, 244, 255 };
-  SDL_Color secondary_nord = { 49, 52, 64, 255 };
-  SDL_Color tertiary_nord  = { 136, 192, 208, 255 };
+  SDL_Color prim_nord = { 236, 239, 244, 255 };
+  SDL_Color sec_nord  = { 49, 52, 64, 255 };
+  SDL_Color tert_nord = { 136, 192, 208, 255 };
 
-  NordTheme    nord = { .prim = prim_nord, .secondary = secondary_nord, .tertiary = tertiary_nord };
-  DraculaTheme drac = { .prim = prim_drac, .secondary = secondary_drac, .tertiary = tertiary_drac };
+  Theme nord = { .prim = prim_nord, .secondary = sec_nord, .tertiary = tert_nord, .name = "Nord" };
+  Theme drac = { .prim = prim_drac, .secondary = sec_drac, .tertiary = tert_drac, .name = "Dracula" };
 
-  SDLThemes themes = { .nord = &nord, .dracula = &drac };
+  Theme* themes[] = { &nord, &drac };
 
   SDLTheme.primary   = prim_nord;
-  SDLTheme.secondary = secondary_nord;
-  SDLTheme.tertiary  = tertiary_nord;
-  SDLTheme.themes    = &themes;
+  SDLTheme.secondary = sec_nord;
+  SDLTheme.tertiary  = tert_nord;
+  SDLTheme.themes    = themes;
 
   SDLCont.theme        = &SDLTheme;
   SDLCont.vps          = &SDLVps;
@@ -127,6 +127,11 @@ main(int argc, char* argv[]) {
     if (err < 0) {
       return 1;
     }
+  }
+
+  err = create_colours_fonts(&FontChunk, themes, SDLChunk.r);
+  if (err < 0) {
+    return 1;
   }
 
   FileChunk.dir_state  = &DState;

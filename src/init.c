@@ -28,7 +28,7 @@ create_window(SDL_Window** w) {
 int
 create_renderer(SDL_Window** w, SDL_Renderer** r) {
   if (*w) {
-    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_ACCELERATED);
     if (!*r) {
       PRINT_SDL_ERR(stderr, SDL_GetError());
       SDL_DestroyWindow(*w);
@@ -36,6 +36,11 @@ create_renderer(SDL_Window** w, SDL_Renderer** r) {
     }
     return 0;
   }
+  int err = SDL_RenderSetVSync(*r, TRUE);
+  if (err != 0) {
+    fprintf(stderr, "COULD NOT SET VSYNC! : %s\n", SDL_GetError());
+  }
+
   return -1;
 }
 

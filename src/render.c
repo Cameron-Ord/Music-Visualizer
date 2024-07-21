@@ -69,6 +69,50 @@ update_window_size(SDLContainer* Cont, SDL_Window* w) {
 }
 
 void
+set_colour_fonts(SDLContext* SDLC, FontContext* FNT) {
+  const int box_height    = SDLC->container->win_height;
+  const int height_offset = 5;
+  const f32 increment     = 1.0 / 8;
+  f32       factor        = 1.0 / 8;
+
+  FontData* col = FNT->colours_list;
+
+  for (int i = 0; i < COLOUR_LIST_SIZE; i++) {
+    SDL_Rect* font_rect = &col[i].font_rect;
+    SDL_Rect* font_bg   = &col[i].font_bg;
+
+    font_rect->y = factor * box_height;
+    font_rect->x = 25;
+
+    if (col[i].has_bg) {
+      int      bg_y = (factor * box_height) - height_offset;
+      SDL_Rect bg   = { font_rect->x - 5, bg_y, font_rect->w + 10, font_rect->h + 10 };
+
+      *font_bg = bg;
+    }
+    factor += increment;
+  }
+}
+
+void
+draw_colour_fonts(SDLContext* SDLC, FontContext* FNT) {
+  SDL_RenderSetViewport(SDLC->r, NULL);
+  SDL_Color* rgba = &SDLC->container->theme->tertiary;
+  FontData*  col  = FNT->colours_list;
+
+  for (int i = 0; i < COLOUR_LIST_SIZE; i++) {
+    SDL_Rect* font_rect = &col[i].font_rect;
+    SDL_Rect* font_bg   = &col[i].font_bg;
+
+    if (col[i].has_bg) {
+      SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
+      SDL_RenderFillRect(SDLC->r, font_bg);
+    }
+    SDL_RenderCopy(SDLC->r, col[i].font_texture, NULL, font_rect);
+  }
+}
+
+void
 set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_ptr,
                       SDL_Rect* settings_vp_ptr) {
   SDLContainer* Cont  = SDLC->container;
@@ -483,6 +527,7 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
   i8* song_fonts_created = &FNT->state->song_fonts_created;
   i8* dir_fonts_created  = &FNT->state->dir_fonts_created;
+  i8  col_fonts_created  = FNT->state->col_fonts_created;
   int win_width          = SDLC->container->win_width;
 
   TTF_Font** font = &FNT->context_data->font;
@@ -524,6 +569,11 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
     }
     free_ptr(FNT->df_arr);
     create_dir_fonts(FNT, FC->dir_state, SDLC->r);
+  }
+
+  if (col_fonts_created) {
+    destroy_colours_fonts(FNT);
+    create_colours_fonts(FNT, SDLC->container->theme->themes, SDLC->r);
   }
 
   if (playing_song) {

@@ -47,7 +47,5 @@ typedef struct PlayIcon          PlayIcon;
 typedef struct PauseIcon         PauseIcon;
 typedef struct StopIcon          StopIcon;
 typedef struct SeekIcon          SeekIcon;
-typedef struct NordTheme         NordTheme;
-typedef struct DraculaTheme      DraculaTheme;
-typedef struct SDLThemes         SDLThemes;
+typedef struct Theme             Theme;
 #endif

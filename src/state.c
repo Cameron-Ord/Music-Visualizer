@@ -175,6 +175,9 @@ song_is_stopped(SDLContext* SDLC, FontContext* Fnt, FileContext* FC) {
   case TRUE: {
     render_set_gear(SDLC->container, Spr->sett_gear);
     render_draw_gear(SDLC->r, Spr->sett_gear);
+
+    set_colour_fonts(SDLC, Fnt);
+    draw_colour_fonts(SDLC, Fnt);
     break;
   }
 

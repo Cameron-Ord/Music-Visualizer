@@ -27,9 +27,13 @@ handle_mouse_motion(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
       create_dir_text_bg(mouse_x, mouse_y, SDLC, FNT, FC);
     }
 
-    if (FNT->state->song_fonts_created && FC->file_state != NULL) {
+    if (FNT->state->song_fonts_created && FC->file_state) {
       create_song_text_bg(mouse_x, mouse_y, SDLC, FNT, FC);
     }
+  }
+
+  if (SDLC->viewing_settings && FNT->state->col_fonts_created) {
+    create_col_text_bg(mouse_x, mouse_y, SDLC, FNT);
   }
 
   if (playing_song) {
@@ -67,12 +71,23 @@ handle_space_key(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
   i8  files_exist = FC->file_state->files_exist;
   i8* hard_stop   = &SDLC->SSPtr->pb_state->hard_stop;
 
-  if (files_exist) {
+  if (files_exist && !SDLC->viewing_settings) {
     *hard_stop = TRUE;
     load_song(SDLC, FC, FNT);
-  } else {
+  }
+
+  if (!files_exist) {
     printf("Cannot play music: No files were found.\n");
   }
+}
+
+int
+status_check(i8 status[]) {
+  if (status[0] && status[1]) {
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 void
@@ -81,7 +96,9 @@ next_song(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
 
-  if (playing_song && files_exist) {
+  i8 status[] = { playing_song, files_exist };
+
+  if (status_check(status) && !SDLC->viewing_settings) {
     *hard_stop = FALSE;
     index_up(FC->file_state);
     load_song(SDLC, FC, FNT);
@@ -94,7 +111,9 @@ prev_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
   i8* hard_stop    = &SDLC->SSPtr->pb_state->hard_stop;
 
-  if (playing_song && files_exist) {
+  i8 status[] = { playing_song, files_exist };
+
+  if (status_check(status) && !SDLC->viewing_settings) {
     *hard_stop = FALSE;
     index_down(FC->file_state);
     load_song(SDLC, FC, FNT);
@@ -111,7 +130,7 @@ random_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   if (file_count <= 0) return;
 
   *file_index = rand() % file_count;
-  if (files_exist) {
+  if (files_exist && !SDLC->viewing_settings) {
     *hard_stop = FALSE;
     load_song(SDLC, FC, FNT);
   }

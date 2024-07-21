@@ -28,7 +28,7 @@
     free(ptr);                                                                                               \
     (ptr) = NULL;                                                                                            \
   }
-
+#define COLOUR_LIST_SIZE 2
 #define SIZE32 32
 #define SIZE16 16
 #define FONT_PATH "dogicapixel.ttf"

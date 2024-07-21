@@ -33,4 +33,6 @@ void  handle_mouse_release(SDLContext* SDLC, FileState* FS);
 int   point_in_rect(int x, int y, SDL_Rect rect);
 int   within_bounds_x(int x, int start, int end);
 char* check_sign(int num);
+int   status_check(i8 status[]);
+
 #endif

@@ -34,4 +34,6 @@ void  render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL
 void  render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp);
 void  render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rect* vp);
 void  render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp);
+void  set_colour_fonts(SDLContext* SDLC, FontContext* FNT);
+void  draw_colour_fonts(SDLContext* SDLC, FontContext* FNT);
 #endif

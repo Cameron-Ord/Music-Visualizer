@@ -21,15 +21,10 @@
 #include <unistd.h>
 
 struct SDLColours {
-  SDL_Color         primary;
-  SDL_Color         secondary;
-  SDL_Color         tertiary;
-  struct SDLThemes* themes;
-};
-
-struct SDLThemes {
-  NordTheme*    nord;
-  DraculaTheme* dracula;
+  SDL_Color primary;
+  SDL_Color secondary;
+  SDL_Color tertiary;
+  Theme**   themes;
 };
 
 struct SDLViewports {
@@ -126,4 +121,6 @@ void  index_up(FileState* FS);
 void  index_down(FileState* FS);
 int   create_settings_icon();
 void  swap(int* offset_x, int* x);
+int   update_colours(SDLContext* SDLC);
+
 #endif
