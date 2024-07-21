@@ -12,10 +12,12 @@ CPP_FLAGS=" -I${INC_DIR} -MMD -MP"
 TARGET="fftplayer"
 
 if [ -d $BUILD_DIR ]; then
+  echo "rm -r ${BUILD_DIR}"
   rm -r $BUILD_DIR
 fi
 
 if [ -d $BIN ]; then
+  echo "rm -r ${BIN}"
   rm -r $BIN
 fi
 
@@ -43,9 +45,10 @@ echo "BUILD STEP" $CC $BUILD_DIR $OBJ_FILES $LD_FLAGS
 
 $CC $OBJ_FILES $LD_FLAGS -o ${working_dir}/${BIN}/${TARGET}
 
-buffer=("${working_dir}/assets/"/*)
+buffer=("${working_dir}/assets/"*)
 for file in "${buffer[@]}"; do
-  cp $file ${working_dir}/${BIN}/
+  cp $file ${working_dir}/${BIN}
+  echo "cp ${file} -> ${working_dir}/${BIN}"
 done
 
 cd $working_dir

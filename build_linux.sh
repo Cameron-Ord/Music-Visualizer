@@ -13,11 +13,13 @@ CPP_FLAGS=" -I${INC_DIR} -MMD -MP"
 TARGET="fftplayer"
 
 if [ -d $BUILD_DIR ]; then
-	rm -r $BUILD_DIR
+  echo "rm -r ${BUILD_DIR}"
+  rm -r $BUILD_DIR
 fi
 
 if [ -d $BIN ]; then
-	rm -r $BIN
+  echo "rm -r ${BIN}"
+  rm -r $BIN
 fi
 
 mkdir -p "$BUILD_DIR"
@@ -32,7 +34,7 @@ echo "Compiling source files..."
 echo "FLAGS" $CC $CPP_FLAGS $CFLAGS
 
 for file in $SRC_FILES; do
-	$CC $CPP_FLAGS $CFLAGS -c ${SRC_DIR}/$file -o ${BUILD_DIR}/$file.o
+  $CC $CPP_FLAGS $CFLAGS -c ${SRC_DIR}/$file -o ${BUILD_DIR}/$file.o
 done
 
 echo "Linking object files..."
@@ -44,9 +46,10 @@ echo "BUILD STEP" $CC $BUILD_DIR $OBJ_FILES $LD_FLAGS
 
 $CC $OBJ_FILES $LD_FLAGS -o ${working_dir}/${BIN}/${TARGET}
 
-buffer=("${working_dir}/assets/"/*)
+buffer=("${working_dir}/assets/"*)
 for file in "${buffer[@]}"; do
-	cp $file ${working_dir}/${BIN}/
+  cp $file ${working_dir}/${BIN}
+  echo "cp ${file} -> ${working_dir}/${BIN}"
 done
 
 cd $working_dir
