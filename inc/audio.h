@@ -93,7 +93,6 @@ struct FTransformData {
 struct FourierTransform {
   struct FTransformBuffers* fft_buffers;
   struct FTransformData*    fft_data;
-  struct WindowWorker*      window_worker;
   struct SDLContext*        SDLC;
   struct SongState*         SSPtr;
 };

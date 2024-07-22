@@ -18,8 +18,8 @@ void  grab_seek_bar(SDLContext* SDLC, FileState* FS, const int mouse_x, const in
 void  grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y);
 void  seek_latch_on(SeekBar* SKBar, int switch_value);
 void  vol_latch_on(VolBar* VBar, int switch_value);
-char* find_clicked_dir(FontData* df_arr[], int dir_count, const int mouse_arr[]);
-int   find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[]);
+char* find_clicked_dir(FontData df_arr[], int dir_count, const int mouse_arr[]);
+int   find_clicked_song(FontData sf_arr[], int file_count, const int mouse_arr[]);
 void  clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,
                       const int mouse_y);
 void  clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x,

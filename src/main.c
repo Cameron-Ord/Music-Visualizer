@@ -31,22 +31,45 @@ main(int argc, char* argv[]) {
   LLmtr.amount_to_display = 4;
 
   // Default to dracula tri colour theme
-  SDL_Color prim_drac = { 187, 147, 249, 255 };
-  SDL_Color sec_drac  = { 40, 42, 54, 255 };
-  SDL_Color tert_drac = { 69, 71, 90, 255 };
+  SDL_Color prim_drac = { 255, 121, 198, 255 };
+  // bg
+  SDL_Color sec_drac = { 40, 42, 54, 255 };
+  // aux (bars - seekers - etc)
+  SDL_Color tert_drac = { 189, 147, 249, 255 };
+  // text
+  SDL_Color text_drac   = { 248, 248, 242, 255 };
+  SDL_Color textbg_drac = { 98, 114, 164, 255 };
 
-  SDL_Color prim_nord = { 236, 239, 244, 255 };
-  SDL_Color sec_nord  = { 49, 52, 64, 255 };
+  SDL_Color prim_nord = { 129, 161, 193, 255 };
+  // bg
+  SDL_Color sec_nord = { 46, 52, 64, 255 };
+  // aux (bars - seekers - etc)
   SDL_Color tert_nord = { 136, 192, 208, 255 };
+  // text
+  SDL_Color text_nord   = { 216, 222, 233, 255 };
+  SDL_Color textbg_nord = { 94, 129, 172, 255 };
 
-  Theme nord = { .prim = prim_nord, .secondary = sec_nord, .tertiary = tert_nord, .name = "Nord" };
-  Theme drac = { .prim = prim_drac, .secondary = sec_drac, .tertiary = tert_drac, .name = "Dracula" };
+  Theme nord = { .prim      = prim_nord,
+                 .secondary = sec_nord,
+                 .tertiary  = tert_nord,
+                 .text      = text_nord,
+                 .text_bg   = textbg_nord,
+                 .name      = "Nord" };
+
+  Theme drac = { .prim      = prim_drac,
+                 .secondary = sec_drac,
+                 .tertiary  = tert_drac,
+                 .text      = text_drac,
+                 .text_bg   = textbg_drac,
+                 .name      = "Dracula" };
 
   Theme* themes[] = { &nord, &drac };
 
   SDLTheme.primary   = prim_nord;
   SDLTheme.secondary = sec_nord;
   SDLTheme.tertiary  = tert_nord;
+  SDLTheme.text      = text_nord;
+  SDLTheme.textbg    = textbg_nord;
   SDLTheme.themes    = themes;
 
   SDLCont.theme        = &SDLTheme;
@@ -85,7 +108,7 @@ main(int argc, char* argv[]) {
   Positions   FntPos    = { 0 };
   ActiveSong  Actve     = { 0 };
 
-  TTFData ContextData = { .font_size = 64, .font = NULL, .color = SDLTheme.primary };
+  TTFData ContextData = { .font_size = 64, .font = NULL, .color = SDLTheme.text };
 
   err = initialize_TTF();
   if (err < 0) {
@@ -204,7 +227,7 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Play.surf, from_colour, SDLTheme.tertiary);
+  convert_pixel_colours(&Play.surf, from_colour, SDLTheme.primary);
   set_rect(&Play.rect, 0, 0, SIZE16, SIZE16);
 
   Play.tex = create_image_texture(SDLChunk.r, Play.surf);
@@ -221,7 +244,7 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Pause.surf, from_colour, SDLTheme.tertiary);
+  convert_pixel_colours(&Pause.surf, from_colour, SDLTheme.primary);
   set_rect(&Pause.rect, 0, 0, SIZE16, SIZE16);
 
   Pause.tex = create_image_texture(SDLChunk.r, Pause.surf);
@@ -238,7 +261,7 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Stop.surf, from_colour, SDLTheme.tertiary);
+  convert_pixel_colours(&Stop.surf, from_colour, SDLTheme.primary);
   set_rect(&Stop.rect, 0, 0, SIZE16, SIZE16);
 
   Stop.tex = create_image_texture(SDLChunk.r, Stop.surf);
@@ -255,7 +278,7 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
-  convert_pixel_colours(&Seek.surf, from_colour, SDLTheme.tertiary);
+  convert_pixel_colours(&Seek.surf, from_colour, SDLTheme.primary);
 
   const size_t main_seekers = 2;
 

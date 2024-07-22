@@ -58,10 +58,9 @@ SDL_Texture*
 create_image_texture(SDL_Renderer* r, SDL_Surface* surf_ptr) {
   SDL_Texture* tex_ptr = SDL_CreateTextureFromSurface(r, surf_ptr);
   if (!tex_ptr) {
-    surf_ptr = destroy_surface(surf_ptr);
+    destroy_surface(surf_ptr);
     return NULL;
   }
 
-  surf_ptr = destroy_surface(surf_ptr);
   return tex_ptr;
 }

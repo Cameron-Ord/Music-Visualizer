@@ -6,6 +6,8 @@ struct Theme {
   SDL_Color prim;
   SDL_Color secondary;
   SDL_Color tertiary;
+  SDL_Color text;
+  SDL_Color text_bg;
   char*     name;
 };
 

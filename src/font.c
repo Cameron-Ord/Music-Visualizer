@@ -27,14 +27,6 @@ create_font_texture(SDL_Renderer* r, SDL_Surface* surface) {
 int
 create_colours_fonts(FontContext* Fnt, Theme* Themes[], SDL_Renderer* r) {
   for (int s = 0; s < COLOUR_LIST_SIZE; s++) {
-    size_t size = strlen(Themes[s]->name);
-
-    Fnt->active->text = malloc(sizeof(char*) * size);
-    if (Fnt->active->text == NULL) {
-      PRINT_STR_ERR(stderr, "Could not allocate active song char buffer\n", strerror(errno));
-      return -1;
-    }
-
     Fnt->colours_list[s].has_bg = FALSE;
     Fnt->colours_list[s].font_surface
         = create_font_surface(&Fnt->context_data->font, Fnt->context_data->color, Themes[s]->name);
@@ -61,17 +53,29 @@ create_colours_fonts(FontContext* Fnt, Theme* Themes[], SDL_Renderer* r) {
   return 0;
 }
 
+void
+destroy_dir_fonts(FontContext* Fnt, int dir_count) {
+  for (int i = 0; i < dir_count; i++) {
+    Fnt->df_arr[i].font_texture = destroy_texture(Fnt->df_arr[i].font_texture);
+  }
+  free_ptr(Fnt->df_arr);
+  Fnt->state->dir_fonts_created = FALSE;
+}
+
+void
+destroy_song_fonts(FontContext* Fnt, int file_count) {
+  for (int i = 0; i < file_count; i++) {
+    Fnt->sf_arr[i].font_texture = destroy_texture(Fnt->sf_arr[i].font_texture);
+  }
+  free_ptr(Fnt->sf_arr);
+  Fnt->state->song_fonts_created = FALSE;
+}
+
 int
 destroy_colours_fonts(FontContext* Fnt) {
   for (int s = 0; s < COLOUR_LIST_SIZE; s++) {
     SDL_Texture* tex = Fnt->colours_list[s].font_texture;
-
-    tex = destroy_texture(tex);
-    if (tex == NULL) {
-      return -1;
-    }
-    free_ptr(Fnt->colours_list[s].text);
-    Fnt->colours_list[s].text = NULL;
+    tex              = destroy_texture(tex);
   }
 
   Fnt->state->col_fonts_created = FALSE;
@@ -80,7 +84,6 @@ destroy_colours_fonts(FontContext* Fnt) {
 
 int
 create_active_song_font(FontContext* Fnt, FileState* FS, SDL_Renderer* r) {
-
   Fnt->active->tex = destroy_texture(Fnt->active->tex);
   free_ptr(Fnt->active->text);
 
@@ -348,7 +351,7 @@ clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
 }
 
 void
-clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr, char* selection) {
+clear_existing_list(FontData sf_arr[], int song_fonts_created, FileState* FSPtr, char* selection) {
   FSPtr->selected_dir = selection;
   if (FSPtr->files_exist && FSPtr->file_count > 0) {
     for (int i = 0; i < FSPtr->file_count; i++) {
@@ -364,7 +367,7 @@ clear_existing_list(FontData** sf_arr, int song_fonts_created, FileState* FSPtr,
 
   if (song_fonts_created) {
     for (int i = 0; i < FSPtr->file_count; i++) {
-      (*sf_arr)[i].font_texture = destroy_texture((*sf_arr)[i].font_texture);
+      sf_arr[i].font_texture = destroy_texture(sf_arr[i].font_texture);
     }
   }
 } /*clear_existing_list*/

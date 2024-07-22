@@ -53,17 +53,17 @@ update_window_size(SDLContainer* Cont, SDL_Window* w) {
   }
 
   if (*win_height < 500 && *win_height > 300) {
-    Cont->list_limiter->amount_to_display = 4;
+    Cont->list_limiter->amount_to_display = 3;
     return;
   }
 
   if (*win_height < 800 && *win_height > 500) {
-    Cont->list_limiter->amount_to_display = 6;
+    Cont->list_limiter->amount_to_display = 4;
     return;
   }
 
   if (*win_height > 800) {
-    Cont->list_limiter->amount_to_display = 8;
+    Cont->list_limiter->amount_to_display = 6;
     return;
   }
 }
@@ -97,7 +97,7 @@ set_colour_fonts(SDLContext* SDLC, FontContext* FNT) {
 void
 draw_colour_fonts(SDLContext* SDLC, FontContext* FNT) {
   SDL_RenderSetViewport(SDLC->r, NULL);
-  SDL_Color* rgba = &SDLC->container->theme->tertiary;
+  SDL_Color* rgba = &SDLC->container->theme->textbg;
   FontData*  col  = FNT->colours_list;
 
   for (int i = 0; i < COLOUR_LIST_SIZE; i++) {
@@ -205,6 +205,9 @@ render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
 
 void
 render_draw_gear(SDL_Renderer* r, SettingsGear* gear) {
+  if (gear->tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, NULL);
   SDL_RenderCopy(r, gear->tex, NULL, &gear->rect);
 }
@@ -244,18 +247,27 @@ render_set_stop_button(StopIcon* Stop, SDL_Rect* vp) {
 
 void
 render_draw_play_button(SDL_Renderer* r, PlayIcon* Play, SDL_Rect* vp) {
+  if (Play->tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, vp);
   SDL_RenderCopy(r, Play->tex, NULL, &Play->rect);
 }
 
 void
 render_draw_pause_button(SDL_Renderer* r, PauseIcon* Pause, SDL_Rect* vp) {
+  if (Pause->tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, vp);
   SDL_RenderCopy(r, Pause->tex, NULL, &Pause->rect);
 }
 
 void
 render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp) {
+  if (Stop->tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, vp);
   SDL_RenderCopy(r, Stop->tex, NULL, &Stop->rect);
 }
@@ -347,7 +359,7 @@ render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
   SDL_RenderSetViewport(SDLC->r, vp);
 
   ListLimiter* LLmtr  = SDLC->container->list_limiter;
-  SDL_Color*   rgba   = &SDLC->container->theme->tertiary;
+  SDL_Color*   rgba   = &SDLC->container->theme->textbg;
   FontData*    df_arr = FNT->df_arr;
 
   for (size_t i = LLmtr->dir_first_index; i < LLmtr->dir_last_index; i++) {
@@ -411,7 +423,7 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
   SDL_RenderSetViewport(SDLC->r, vp);
 
   ListLimiter* LLmtr  = SDLC->container->list_limiter;
-  SDL_Color*   rgba   = &SDLC->container->theme->tertiary;
+  SDL_Color*   rgba   = &SDLC->container->theme->textbg;
   FontData*    sf_arr = FNT->sf_arr;
 
   for (size_t i = LLmtr->song_first_index; i < LLmtr->song_last_index; i++) {
@@ -493,6 +505,9 @@ draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve, SDL_Rect* vp) {
 
 void
 draw_seek_bar(SDL_Renderer* r, SDL_Texture* tex, SeekBar* SKPtr, SDL_Rect* vp, SDL_Color* rgba) {
+  if (tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, vp);
   SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
   SDL_RenderCopy(r, tex, NULL, &SKPtr->seek_box);
@@ -500,6 +515,9 @@ draw_seek_bar(SDL_Renderer* r, SDL_Texture* tex, SeekBar* SKPtr, SDL_Rect* vp, S
 
 void
 draw_vol_bar(SDL_Renderer* r, SDL_Texture* tex, VolBar* VBar, SDL_Rect* vp, SDL_Color* rgba) {
+  if (tex == NULL) {
+    return;
+  }
   SDL_RenderSetViewport(r, vp);
   SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
   SDL_RenderCopy(r, tex, NULL, &VBar->seek_box);
@@ -529,8 +547,8 @@ void
 resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 
   i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
-  i8* song_fonts_created = &FNT->state->song_fonts_created;
-  i8* dir_fonts_created  = &FNT->state->dir_fonts_created;
+  i8  song_fonts_created = FNT->state->song_fonts_created;
+  i8  dir_fonts_created  = FNT->state->dir_fonts_created;
   i8  col_fonts_created  = FNT->state->col_fonts_created;
   int win_width          = SDLC->container->win_width;
 
@@ -556,22 +574,14 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   TTF_SetFontSize(*font, new_font_size);
 
   int file_count = FC->file_state->file_count;
-  if (*song_fonts_created) {
-    *song_fonts_created = FALSE;
-    for (int i = 0; i < file_count; i++) {
-      FNT->sf_arr[i].font_texture = destroy_texture(FNT->sf_arr[i].font_texture);
-    }
-    free_ptr(FNT->sf_arr);
+  if (song_fonts_created) {
+    destroy_song_fonts(FNT, file_count);
     create_song_fonts(FNT, FC->file_state, SDLC->r);
   }
 
   int dir_count = FC->dir_state->dir_count;
-  if (*dir_fonts_created) {
-    *dir_fonts_created = FALSE;
-    for (int i = 0; i < dir_count; i++) {
-      FNT->df_arr[i].font_texture = destroy_texture(FNT->df_arr[i].font_texture);
-    }
-    free_ptr(FNT->df_arr);
+  if (dir_fonts_created) {
+    destroy_dir_fonts(FNT, dir_count);
     create_dir_fonts(FNT, FC->dir_state, SDLC->r);
   }
 
@@ -581,6 +591,9 @@ resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   }
 
   if (playing_song) {
+    // this kinda seems confusing, that it lacks the destroy function. It just destroys the existing
+    // textures/text inside the function itself before creating new ones. I just didn't seperate that step for
+    // this one.
     create_active_song_font(FNT, FC->file_state, SDLC->r);
   }
 }

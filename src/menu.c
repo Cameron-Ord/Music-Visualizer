@@ -4,6 +4,7 @@
 #include "../inc/init.h"
 #include "../inc/input.h"
 #include "../inc/music_visualizer.h"
+#include "../inc/render.h"
 
 int
 within_bounds_x(int x, int start, int end) {
@@ -23,26 +24,38 @@ point_in_rect(int x, int y, SDL_Rect rect) {
 } /*point_in_rect*/
 
 int
-find_clicked_song(FontData* sf_arr[], int file_count, const int mouse_arr[]) {
+find_clicked_song(FontData sf_arr[], int file_count, const int mouse_arr[]) {
   /*If the pointer is within the rectangle of any of these song titles, return the id(The id is determined by
    * the index inside the loop where the fonts are created, so it's essentially an index as well)*/
   for (int i = 0; i < file_count; i++) {
-    SDL_Rect sf_rect = (*sf_arr)[i].font_rect;
+    SDL_Rect sf_rect = sf_arr[i].font_rect;
     if (point_in_rect(mouse_arr[0], mouse_arr[1], sf_rect)) {
-      return (*sf_arr)[i].id;
+      return sf_arr[i].id;
     }
   }
   return -1;
 } /*find_clicked_song*/
 
+FontData*
+find_clicked_theme(FontData col[], const int mouse_arr[]) {
+  for (int i = 0; i < COLOUR_LIST_SIZE; i++) {
+    SDL_Rect rect = col[i].font_rect;
+    if (point_in_rect(mouse_arr[0], mouse_arr[1], rect)) {
+      return &col[i];
+    }
+  }
+  return NULL;
+}
+
 char*
-find_clicked_dir(FontData* df_arr[], int dir_count, const int mouse_arr[]) {
+find_clicked_dir(FontData df_arr[], int dir_count, const int mouse_arr[]) {
   /*
    * Getting the selection text via rect coordinates. Unrelated to the displayed text.
    */
   for (int i = 0; i < dir_count; i++) {
-    if (point_in_rect(mouse_arr[0], mouse_arr[1], (*df_arr)[i].font_rect)) {
-      return (*df_arr)[i].text;
+    SDL_Rect df_rect = df_arr[i].font_rect;
+    if (point_in_rect(mouse_arr[0], mouse_arr[1], df_rect)) {
+      return df_arr[i].text;
     }
   }
   return "NO_SELECTION";
@@ -137,13 +150,16 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
       if (point_in_rect(mouse_x, mouse_y, vp)) {
         const int mouse_arr[] = { mouse_x, mouse_y };
         FontData* col_ptr     = FNT->colours_list;
-        FontData* col_rtn     = get_struct(col_ptr, mouse_arr, COLOUR_LIST_SIZE);
+        FontData* col_rtn     = find_clicked_theme(col_ptr, mouse_arr);
 
         if (col_rtn == NULL) {
           return;
         }
 
-        update_colours(SDLC);
+        int err = update_colours(SDLC, FNT, FC, col_rtn->text);
+        if (err < 0) {
+          fprintf(stderr, "COULD NOT CHANGE COLOUR! : %s\n", strerror(errno));
+        }
       }
       break;
     }
@@ -293,10 +309,10 @@ clicked_in_song_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const 
     int offset_y = SDLC->mouse->mouse_offset_y;
 
     /*Finding the index associated with the title clicked*/
-    const int  mouse_arr[]     = { (mouse_x - offset_x), (mouse_y - offset_y) };
-    int        file_count      = FC->file_state->file_count;
-    FontData** sf_arr          = &FNT->sf_arr;
-    int        selection_index = find_clicked_song(sf_arr, file_count, mouse_arr);
+    const int mouse_arr[]     = { (mouse_x - offset_x), (mouse_y - offset_y) };
+    int       file_count      = FC->file_state->file_count;
+    FontData* sf_arr          = FNT->sf_arr;
+    int       selection_index = find_clicked_song(sf_arr, file_count, mouse_arr);
 
     if (selection_index < 0) {
       return;
@@ -319,9 +335,9 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
   // This rect is basically the pivot and doesnt require any offsets for cordinates
 
   if (dir_fonts_created) {
-    const int  mouse_arr[] = { (mouse_x), (mouse_y) };
-    int        dir_count   = FC->dir_state->dir_count;
-    FontData** df_arr      = &FNT->df_arr;
+    const int mouse_arr[] = { (mouse_x), (mouse_y) };
+    int       dir_count   = FC->dir_state->dir_count;
+    FontData* df_arr      = FNT->df_arr;
     /*Searching for a the directory title clicked(if any)*/
     char* selection = find_clicked_dir(df_arr, dir_count, mouse_arr);
 
@@ -407,6 +423,87 @@ clicked_settings_gear(SDLContext* SDLC) {
 }
 
 int
-update_colours(SDLContext* SDLC) {
+update_colours(SDLContext* SDLC, FontContext* Fnt, FileContext* FC, char* theme_name) {
+  Theme**     themes_ptr    = SDLC->container->theme->themes;
+  SDLColours* current_theme = SDLC->container->theme;
+
+  SDL_Color last_prim = current_theme->primary;
+  for (int i = 0; i < COLOUR_LIST_SIZE; i++) {
+    if (themes_ptr[i]->name == theme_name) {
+      current_theme->primary   = themes_ptr[i]->prim;
+      current_theme->secondary = themes_ptr[i]->secondary;
+      current_theme->tertiary  = themes_ptr[i]->tertiary;
+      current_theme->text      = themes_ptr[i]->text;
+      current_theme->textbg    = themes_ptr[i]->text_bg;
+    }
+  }
+
+  SDLSprites*   Sprites = SDLC->sprites;
+  PlayIcon*     play    = Sprites->play_icon;
+  SettingsGear* gear    = Sprites->sett_gear;
+  SeekIcon*     seeker  = Sprites->seek_icon;
+  StopIcon*     stop    = Sprites->stop_icon;
+  PauseIcon*    pause   = Sprites->pause_icon;
+
+  gear->tex = destroy_texture(gear->tex);
+  convert_pixel_colours(&gear->surf, last_prim, current_theme->primary);
+  gear->tex = create_image_texture(SDLC->r, gear->surf);
+  if (gear->tex == NULL) {
+    fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", gear->surf);
+  }
+
+  play->tex = destroy_texture(play->tex);
+  convert_pixel_colours(&play->surf, last_prim, current_theme->primary);
+  play->tex = create_image_texture(SDLC->r, play->surf);
+  if (play->tex == NULL) {
+    fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", play->surf);
+  }
+
+  seeker->tex = destroy_texture(seeker->tex);
+  convert_pixel_colours(&seeker->surf, last_prim, current_theme->primary);
+  seeker->tex = create_image_texture(SDLC->r, seeker->surf);
+
+  if (seeker->tex == NULL) {
+    fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", seeker->surf);
+  }
+
+  stop->tex = destroy_texture(stop->tex);
+  convert_pixel_colours(&stop->surf, last_prim, current_theme->primary);
+  stop->tex = create_image_texture(SDLC->r, stop->surf);
+  if (stop->tex == NULL) {
+    fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", stop->surf);
+  }
+
+  pause->tex = destroy_texture(pause->tex);
+  convert_pixel_colours(&pause->surf, last_prim, current_theme->primary);
+  pause->tex = create_image_texture(SDLC->r, pause->surf);
+  if (pause->tex == NULL) {
+    fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", pause->surf);
+  }
+
+  i8 song_fonts_created = Fnt->state->song_fonts_created;
+  i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
+  i8 col_fonts_created  = Fnt->state->col_fonts_created;
+
+  int file_count = FC->file_state->file_count;
+  int dir_count  = FC->dir_state->dir_count;
+
+  Fnt->context_data->color = current_theme->text;
+
+  if (song_fonts_created) {
+    destroy_song_fonts(Fnt, file_count);
+    create_song_fonts(Fnt, FC->file_state, SDLC->r);
+  }
+
+  if (dir_fonts_created) {
+    destroy_dir_fonts(Fnt, dir_count);
+    create_dir_fonts(Fnt, FC->dir_state, SDLC->r);
+  }
+
+  if (col_fonts_created) {
+    destroy_colours_fonts(Fnt);
+    create_colours_fonts(Fnt, themes_ptr, SDLC->r);
+  }
+
   return 0;
 }

@@ -24,6 +24,8 @@ struct SDLColours {
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color tertiary;
+  SDL_Color text;
+  SDL_Color textbg;
   Theme**   themes;
 };
 
@@ -121,6 +123,6 @@ void  index_up(FileState* FS);
 void  index_down(FileState* FS);
 int   create_settings_icon();
 void  swap(int* offset_x, int* x);
-int   update_colours(SDLContext* SDLC);
+int   update_colours(SDLContext* SDLC, FontContext* Fnt, FileContext* FC, char* theme_name);
 
 #endif
