@@ -488,7 +488,7 @@ set_active_song_title(FontContext* FntPtr, SDL_Rect* vp) {
   FntPtr->active->offset_rect.y = y;
 
   int padding = 0;
-  if (FntPtr->active->rect.w >= vp->w) {
+  if (FntPtr->active->rect.w >= vp->w - 100) {
     padding = (FntPtr->active->rect.w - vp->w) + 100;
   }
 

@@ -6,7 +6,7 @@
 ## Music Visualizer
 ![Image](example/example.png)
 
-**A music visualizer for Linux systems written in C. This is unfinished software, and the program is mostly written with only my personal use in mind. So please be considerate of this.**
+**A music visualizer for Linux systems written in C. I pretty much learned C writing this, so some things aren't as I would write them going forward, but this has been a great project for me and I learned quite a bit! If you're interested in checking it out, check the releases page or keep reading for linux builds.**
 
 I'm still thinking of a name for this program, haven't really thought of anything yet so I'm just going with Music Visualizer for now. 
 
