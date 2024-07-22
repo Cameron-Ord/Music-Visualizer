@@ -51,6 +51,7 @@ struct SDLContainer {
   struct SDLColours*   theme;
   struct SDLViewports* vps;
   struct ListLimiter*  list_limiter;
+  SDL_Surface*         win_icon;
 };
 
 struct SDLMouse {

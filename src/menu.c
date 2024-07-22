@@ -505,5 +505,11 @@ update_colours(SDLContext* SDLC, FontContext* Fnt, FileContext* FC, char* theme_
     create_colours_fonts(Fnt, themes_ptr, SDLC->r);
   }
 
+  SDLContainer* Cont = SDLC->container;
+  if (Cont->win_icon != NULL) {
+    convert_pixel_colours(&Cont->win_icon, last_prim, current_theme->primary);
+    SDL_SetWindowIcon(SDLC->w, Cont->win_icon);
+  }
+
   return 0;
 }

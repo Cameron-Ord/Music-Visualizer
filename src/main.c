@@ -203,6 +203,17 @@ main(int argc, char* argv[]) {
 
   SDL_Color from_colour = { 255, 255, 255, 255 };
 
+  SDLCont.win_icon = NULL;
+  SDLCont.win_icon = load_image(MUSIC_ICON_PATH);
+  if (SDLCont.win_icon == NULL) {
+    PRINT_SDL_ERR(stderr, SDL_GetError());
+  }
+
+  if (SDLCont.win_icon) {
+    convert_pixel_colours(&SDLCont.win_icon, from_colour, SDLTheme.primary);
+    SDL_SetWindowIcon(SDLChunk.w, SDLCont.win_icon);
+  }
+
   SettingsGear Gear = { 0 };
 
   Gear.surf = load_image(SETTINGS_ICON_PATH);
@@ -362,6 +373,10 @@ main(int argc, char* argv[]) {
 
   if (Seek.tex) {
     SDL_DestroyTexture(Seek.tex);
+  }
+
+  if (SDLCont.win_icon) {
+    SDL_FreeSurface(SDLCont.win_icon);
   }
 
   clear_fonts(&FontChunk, &FileChunk);

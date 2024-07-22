@@ -37,4 +37,6 @@
 #define STOP_ICON_PATH "stop_icon.png"
 #define PAUSE_ICON_PATH "pause_icon.png"
 #define SEEKER_ICON_PATH "seek_icon.png"
+#define MUSIC_ICON_PATH "music_icon.png"
+
 #endif

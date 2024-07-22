@@ -11,6 +11,7 @@ PLAY_ICON := play_icon.png
 PAUSE_ICON := pause_icon.png
 STOP_ICON := stop_icon.png
 SEEK_ICON := seek_icon.png
+MUSIC_ICON := music_icon.png
 TARGET :=
 
 WIN_TARGET := fftplayer.exe
@@ -52,6 +53,7 @@ bin:
 
 bin_resources:
 	cp $(GFX_DIR)/$(FONT) $(BINARY_BIN)
+	cp $(GFX_DIR)/$(MUSIC_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(GEAR_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PLAY_ICON) $(BINARY_BIN)
 	cp $(GFX_DIR)/$(PAUSE_ICON) $(BINARY_BIN)
