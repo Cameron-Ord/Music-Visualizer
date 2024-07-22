@@ -540,9 +540,6 @@ swap(int* offset_x, int* x) {
   *offset_x = tmp;
 }
 
-/*If I just made my own fonts with pixel art I wouldn't have this abomination. This is my first experience
- * using fonts and honestly I hate it so much. Plus they aren't really fitting to the style I want.*/
-
 void
 resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
 

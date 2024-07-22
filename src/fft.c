@@ -140,16 +140,6 @@ amp(f32c z) {
 } /*amp*/
 
 void
-low_pass(float* input, int size, float cutoff, int SR) {
-  /*Just a simple attenuation, don't feel like complicating this. Not currently in use*/
-  float nyquist    = (float)SR / 2.0f;
-  int   cutoff_bin = (int)((cutoff / nyquist) * size);
-  for (int i = 0; i < cutoff_bin; ++i) {
-    input[i] *= 0.5;
-  }
-} /*low_pass*/
-
-void
 apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed) {
   /*Linear smoothing*/
 
