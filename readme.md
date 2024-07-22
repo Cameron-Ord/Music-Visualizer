@@ -56,8 +56,8 @@ For linux I am mainly using clang, but there are options for GCC.
 
 If you have the dependencies installed via your package manager you can simply run the build scripts.
 
-```./build_linux-clang.sh```
-```./build_linux-gcc.sh```
+```./build_linux_clang.sh```
+```./build_linux_gcc.sh```
 
 If you want to build for a windows target - there are a few steps.
 
