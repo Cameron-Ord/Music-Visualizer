@@ -15,8 +15,7 @@ I'm still thinking of a name for this program, haven't really thought of anythin
 
 ## Releases
 I have builds for Windows on x86 architecture at the releases page.
-
-For Linux, go to the build section. I will be whipping up a release for Linux soon as well.
+For Linux, go to the build section. Building is relatively easy.
 
 
 **For more details on how the program works, go below.**
@@ -52,17 +51,13 @@ My program depends on these libs:
 3. SDL2_ttf-devel
 4. SDL2_image-devel
 
-
 For my windows binary, I use MingGW to compile.
 For linux I am mainly using clang, but there are options for GCC.
 
-> You have a few options when it comes to building.
+If you have the dependencies installed via your package manager you can simply run the build scripts.
 
-If you have the dependencies installed via your package manager you can simply run the build script. Note that this uses clang.
-
-```./build_linux.sh```
-
-I also have a build script to statically compile into a binary. This uses GCC. Due to the nature of SDL2 and sndfile there may be issues, however, you can use it with ```linux_build_static.sh```
+```./build_linux-clang.sh```
+```./build_linux-gcc.sh```
 
 If you want to build for a windows target - there are a few steps.
 
