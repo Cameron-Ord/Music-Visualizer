@@ -1,5 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
+#include "macdef.h"
+#include "macro.h"
 #include "types.h"
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_types.h>

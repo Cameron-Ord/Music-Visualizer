@@ -1,6 +1,7 @@
 #ifndef FONT_H
 #define FONT_H
 
+#include "macdef.h"
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL_render.h>

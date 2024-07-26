@@ -1,6 +1,7 @@
 #ifndef MUSIC_VISUALIZER_H
 #define MUSIC_VISUALIZER_H
 
+#include "macdef.h"
 #include "macro.h"
 #include "themes.h"
 #include "types.h"

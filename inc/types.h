@@ -1,5 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
+#include "macdef.h"
 #include "macro.h"
 #include <complex.h>
 #include <inttypes.h>

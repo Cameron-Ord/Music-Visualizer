@@ -1,5 +1,6 @@
 #ifndef AUDIO_H
 #define AUDIO_H
+#include "macdef.h"
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL_audio.h>

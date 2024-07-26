@@ -443,14 +443,16 @@ set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) 
   int ttl_length       = Aud->wav_len;
   int current_position = Aud->audio_pos;
 
-  int pos_x      = vp->w * 0.20;
-  int sub_amount = (vp->w * 0.20) / 2;
+  int pos_x      = vp->w * RELATIVE_WIDTH;
+  int sub_amount = (vp->w * RELATIVE_WIDTH) / 2;
 
   SkBar->normalized_pos = ((float)current_position / (float)ttl_length);
-  SkBar->current_pos    = SkBar->normalized_pos * (vp->w * 0.20);
+  SkBar->current_pos    = SkBar->normalized_pos * (vp->w * RELATIVE_WIDTH);
+
+  const f32 relative_height = 0.60;
 
   int x = SkBar->current_pos;
-  int y = vp->h * 0.60;
+  int y = vp->h * relative_height;
 
   int box_size = (icon_rect->w / 2);
   int offset   = pos_x - sub_amount;
@@ -463,13 +465,16 @@ set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) 
 
 void
 set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
-  VBar->current_pos = Aud->volume * (vp->w * 0.20);
+  VBar->current_pos = Aud->volume * (vp->w * RELATIVE_WIDTH);
 
-  int pos_x      = vp->w * 0.80;
-  int sub_amount = (vp->w * 0.20) / 2;
+  const f32 relative_x_mult = 0.80;
+  const f32 relative_height = 0.60;
+
+  int pos_x      = vp->w * relative_x_mult;
+  int sub_amount = (vp->w * RELATIVE_WIDTH) / 2;
 
   int x = VBar->current_pos;
-  int y = vp->h * 0.60;
+  int y = vp->h * relative_height;
 
   int box_size = (icon_rect->w / 2);
   int offset   = pos_x - sub_amount;
@@ -482,7 +487,9 @@ set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
 
 void
 set_active_song_title(FontContext* FntPtr, SDL_Rect* vp) {
-  int y = vp->h * 0.20;
+  const f32 relative_height = 0.20;
+
+  int y = vp->h * relative_height;
 
   FntPtr->active->rect.y        = y;
   FntPtr->active->offset_rect.y = y;

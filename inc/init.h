@@ -1,6 +1,7 @@
 #ifndef INIT_H
 #define INIT_H
 
+#include "macdef.h"
 #include "macro.h"
 #include "types.h"
 #include <SDL2/SDL.h>
