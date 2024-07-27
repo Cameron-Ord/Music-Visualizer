@@ -155,7 +155,7 @@ read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
 
 void
 update_audio_position(AudioData* ADta, SeekBar* SKBar, SDL_Rect vp) {
-  const int ttl_length       = vp.w * RELATIVE_WIDTH;
+  const int ttl_length       = vp.w * TWO_TENTHS;
   const int current_position = SKBar->seek_box.x;
 
   f32 normalized = ((float)current_position / (float)ttl_length);
@@ -170,7 +170,7 @@ update_audio_position(AudioData* ADta, SeekBar* SKBar, SDL_Rect vp) {
 
 void
 update_vol_pos(AudioData* ADta, VolBar* VBar, SDL_Rect vp) {
-  const int ttl_length       = vp.w * RELATIVE_WIDTH;
+  const int ttl_length       = vp.w * TWO_TENTHS;
   const int current_position = VBar->seek_box.x;
 
   f32 normalized = ((float)(current_position) / (float)ttl_length);

@@ -442,17 +442,16 @@ grab_vol_bar(SDLContext* SDLC, const int mouse_x, const int mouse_y) {
 
 void
 move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar* SKBar) {
-  SDLViewports* Vps = SDLCntr->vps;
+  SDLViewports* Vps         = SDLCntr->vps;
+  SDL_Rect      controls_vp = Vps->controls_vp;
 
-  SDL_Rect controls_vp = Vps->controls_vp;
-
-  int pos_x      = controls_vp.w * RELATIVE_WIDTH;
-  int sub_amount = (controls_vp.w * RELATIVE_WIDTH) / 2;
+  int pos_x      = controls_vp.w * TWO_TENTHS;
+  int sub_amount = (controls_vp.w * TWO_TENTHS) / 2;
 
   int offset = pos_x - sub_amount;
 
   int start = offset;
-  int end   = start + controls_vp.w * RELATIVE_WIDTH;
+  int end   = start + controls_vp.w * TWO_TENTHS;
 
   if (within_bounds_x(mouse_x, start, end)) {
     SKBar->seek_box.x = mouse_x - offset;
@@ -462,19 +461,16 @@ move_seekbar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, SeekBar*
 
 void
 move_volume_bar(const int mouse_x, SDLContainer* SDLCntr, AudioData* ADta, VolBar* VBar) {
-  SDLViewports* Vps = SDLCntr->vps;
+  SDLViewports* Vps         = SDLCntr->vps;
+  SDL_Rect      controls_vp = Vps->controls_vp;
 
-  SDL_Rect controls_vp = Vps->controls_vp;
-
-  const f32 relative_width = 0.80;
-
-  int pos_x      = controls_vp.w * relative_width;
-  int sub_amount = (controls_vp.w * RELATIVE_WIDTH) / 2;
+  int pos_x      = controls_vp.w * EIGHT_TENTHS;
+  int sub_amount = (controls_vp.w * TWO_TENTHS) / 2;
 
   int offset = pos_x - sub_amount;
 
   int start = offset;
-  int end   = start + controls_vp.w * RELATIVE_WIDTH;
+  int end   = start + controls_vp.w * TWO_TENTHS;
 
   if (within_bounds_x(mouse_x, start, end)) {
     VBar->seek_box.x = mouse_x - offset;
@@ -585,7 +581,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->song_vp)) {
     if (strcmp(sign, "Negative") == 0) {
       int array_increment = LLmtr->song_first_index + LLmtr->amount_to_display;
-      if (array_increment + 1 > FC->file_state->file_count) {
+      if (array_increment >= FC->file_state->file_count - 1) {
         array_increment = 0;
       }
       LLmtr->song_first_index = array_increment;
@@ -593,7 +589,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
 
     if (strcmp(sign, "Positive") == 0) {
       int array_increment = LLmtr->song_first_index - LLmtr->amount_to_display;
-      if (array_increment + 1 < 0) {
+      if (array_increment < 0) {
         array_increment = 0;
       }
       LLmtr->song_first_index = array_increment;
@@ -603,7 +599,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->dir_vp)) {
     if (strcmp(sign, "Negative") == 0) {
       int array_increment = LLmtr->dir_first_index + LLmtr->amount_to_display;
-      if (array_increment + 1 > FC->dir_state->dir_count) {
+      if (array_increment >= FC->dir_state->dir_count - 1) {
         array_increment = 0;
       }
       LLmtr->dir_first_index = array_increment;
@@ -611,7 +607,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
 
     if (strcmp(sign, "Positive") == 0) {
       int array_increment = LLmtr->dir_first_index - LLmtr->amount_to_display;
-      if (array_increment + 1 < 0) {
+      if (array_increment < 0) {
         array_increment = 0;
       }
       LLmtr->dir_first_index = array_increment;

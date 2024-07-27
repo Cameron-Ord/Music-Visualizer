@@ -8,7 +8,19 @@
 #define BWIDTH 600
 #define BHEIGHT 400
 #define M_PI 3.14159265358979323846
-#define RELATIVE_WIDTH 0.20
+#define ONE_TENTH 0.10
+#define TWO_TENTHS 0.20
+#define THREE_TENTHS 0.30
+#define FOUR_TENTHS 0.40
+#define FIVE_TENTHS 0.50
+#define SIX_TENTHS 0.60
+#define SEVEN_TENTH 0.70
+#define EIGHT_TENTHS 0.80
+#define NINE_TENTHS 0.90
+
+#define ONE_QUARTER 0.25
+#define HALF 0.50
+#define THREE_QUARTERS 0.75
 
 #define BUFF_SIZE (1 << 12)
 #define DOUBLE_BUFF (BUFF_SIZE * 2)

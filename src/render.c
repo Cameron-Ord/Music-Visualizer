@@ -122,8 +122,8 @@ set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_
   int height = Cont->win_height;
 
   if (width > 1280) {
-    SDL_Rect tmp_dir_vp  = { 0, 0, width * 0.5, height };
-    SDL_Rect tmp_song_vp = { width * 0.5, 0, width * 0.5, height };
+    SDL_Rect tmp_dir_vp  = { 0, 0, width * HALF, height };
+    SDL_Rect tmp_song_vp = { width * HALF, 0, width * HALF, height };
     SDL_Rect tmp_sett    = { 0, 0, width, height };
 
     *dir_vp_ptr      = tmp_dir_vp;
@@ -131,7 +131,7 @@ set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_
     *settings_vp_ptr = tmp_sett;
 
     Mouse->mouse_offset_y = 0;
-    Mouse->mouse_offset_x = width * 0.5;
+    Mouse->mouse_offset_x = width * HALF;
 
     SDLViewports* Vps = SDLC->container->vps;
 
@@ -143,15 +143,15 @@ set_stopped_viewports(SDLContext* SDLC, SDL_Rect* dir_vp_ptr, SDL_Rect* song_vp_
   }
 
   if (width < 1280) {
-    SDL_Rect tmp_dir_vp  = { 0, 0, width * 0.5, height * 0.5 };
-    SDL_Rect tmp_song_vp = { 0, height * 0.5, width, height * 0.5 };
+    SDL_Rect tmp_dir_vp  = { 0, 0, width * HALF, height * HALF };
+    SDL_Rect tmp_song_vp = { 0, height * HALF, width, height * HALF };
     SDL_Rect tmp_sett    = { 0, 0, width, height };
 
     *dir_vp_ptr      = tmp_dir_vp;
     *song_vp_ptr     = tmp_song_vp;
     *settings_vp_ptr = tmp_sett;
 
-    Mouse->mouse_offset_y = height * 0.5;
+    Mouse->mouse_offset_y = height * HALF;
     Mouse->mouse_offset_x = 0;
 
     SDLViewports* Vps = SDLC->container->vps;
@@ -172,8 +172,8 @@ set_playing_viewports(SDLContext* SDLC, SDL_Rect* control_vp_ptr, SDL_Rect* viz_
   int height = Cont->win_height;
   int width  = Cont->win_width;
 
-  SDL_Rect tmp_cntrl = { 0, 0, width, height * 0.25 };
-  SDL_Rect tmp_viz   = { 0, height * 0.25, width, height * 0.75 };
+  SDL_Rect tmp_cntrl = { 0, 0, width, height * ONE_QUARTER };
+  SDL_Rect tmp_viz   = { 0, height * ONE_QUARTER, width, height * THREE_QUARTERS };
   SDL_Rect tmp_sett  = { 0, 0, width, height };
 
   *control_vp_ptr  = tmp_cntrl;
@@ -217,8 +217,8 @@ render_set_play_button(PlayIcon* Play, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.8;
-  int x_offset = vp->w * 0.5;
+  int y        = vp->h * EIGHT_TENTHS;
+  int x_offset = vp->w * FIVE_TENTHS;
 
   set_rect(&Play->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
@@ -228,8 +228,8 @@ render_set_pause_button(PauseIcon* Pause, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.8;
-  int x_offset = vp->w * 0.6;
+  int y        = vp->h * EIGHT_TENTHS;
+  int x_offset = vp->w * SIX_TENTHS;
 
   set_rect(&Pause->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
@@ -239,8 +239,8 @@ render_set_stop_button(StopIcon* Stop, SDL_Rect* vp) {
   const int w = 16;
   const int h = 16;
 
-  int y        = vp->h * 0.8;
-  int x_offset = vp->w * 0.4;
+  int y        = vp->h * EIGHT_TENTHS;
+  int x_offset = vp->w * FOUR_TENTHS;
 
   set_rect(&Stop->rect, x_offset - (w / 2), y - (h / 2), w, h);
 }
@@ -274,7 +274,6 @@ render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp) {
 
 void
 render_bars(SDLContext* SDLC, SDL_Rect* vp) {
-
   int        out_len = SDLC->FTPtr->fft_data->output_len;
   SDL_Color* rgba    = &SDLC->container->theme->tertiary;
 
@@ -318,8 +317,8 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
   const int height_offset = 5;
 
   size_t last_index = LLmtr->dir_first_index + LLmtr->amount_to_display;
-  if (last_index > (size_t)dir_count) {
-    last_index = (size_t)dir_count;
+  if (last_index > (size_t)dir_count - 1) {
+    last_index = (size_t)dir_count - 1;
   }
 
   LLmtr->dir_last_index = last_index;
@@ -333,6 +332,12 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
     SDL_Rect* font_rect = &df_arr[i].font_rect;
 
     /*GOLEM GET YET GONE*/
+    /*I want to change this to actual logic in the future. It will be simple to do this, as the problem lies
+     * with my point_in_rect function. Since the rectangles for all the items here technically have a position
+     * regardless of them being shown or not, when the mouse clicks, the hitbox is still the unshown rect (x
+     * is 0, y is 0. So top left of the window), so I need to add a condition to the visible items and add a
+     * check using that variable. or I can just keep this method as they need to be out of the way for the
+     * displayed fonts*/
     font_rect->y = 0;
     font_rect->x = (width + width);
   }
@@ -382,8 +387,8 @@ render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rec
   const int height_offset = 5;
 
   size_t last_index = LLmtr->song_first_index + LLmtr->amount_to_display;
-  if (last_index > (size_t)file_count) {
-    last_index = (size_t)file_count;
+  if (last_index > (size_t)file_count - 1) {
+    last_index = (size_t)file_count - 1;
   }
 
   LLmtr->song_last_index = last_index;
@@ -396,7 +401,13 @@ render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rec
   for (int i = 0; i < file_count; i++) {
     SDL_Rect* font_rect = &sf_arr[i].font_rect;
 
-    // GOLEM GET YE GONE (is there a better way?)
+    // GOLEM GET YE GONE
+    /*I want to change this to actual logic in the future. It will be simple to do this, as the problem lies
+     * with my point_in_rect function. Since the rectangles for all the items here technically have a position
+     * regardless of them being shown or not, when the mouse clicks, the hitbox is still the unshown rect (x
+     * is 0, y is 0. So top left of the window), so I need to add a condition to the visible items and add a
+     * check using that variable. or I can just keep this method as they need to be out of the way for the
+     * displayed fonts*/
     font_rect->y = 0;
     font_rect->x = (width + width);
   }
@@ -443,16 +454,14 @@ set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) 
   int ttl_length       = Aud->wav_len;
   int current_position = Aud->audio_pos;
 
-  int pos_x      = vp->w * RELATIVE_WIDTH;
-  int sub_amount = (vp->w * RELATIVE_WIDTH) / 2;
+  int pos_x      = vp->w * TWO_TENTHS;
+  int sub_amount = (vp->w * TWO_TENTHS) / 2;
 
   SkBar->normalized_pos = ((float)current_position / (float)ttl_length);
-  SkBar->current_pos    = SkBar->normalized_pos * (vp->w * RELATIVE_WIDTH);
-
-  const f32 relative_height = 0.60;
+  SkBar->current_pos    = SkBar->normalized_pos * (vp->w * TWO_TENTHS);
 
   int x = SkBar->current_pos;
-  int y = vp->h * relative_height;
+  int y = vp->h * SIX_TENTHS;
 
   int box_size = (icon_rect->w / 2);
   int offset   = pos_x - sub_amount;
@@ -465,16 +474,13 @@ set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) 
 
 void
 set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
-  VBar->current_pos = Aud->volume * (vp->w * RELATIVE_WIDTH);
+  VBar->current_pos = Aud->volume * (vp->w * TWO_TENTHS);
 
-  const f32 relative_x_mult = 0.80;
-  const f32 relative_height = 0.60;
-
-  int pos_x      = vp->w * relative_x_mult;
-  int sub_amount = (vp->w * RELATIVE_WIDTH) / 2;
+  int pos_x      = vp->w * EIGHT_TENTHS;
+  int sub_amount = (vp->w * TWO_TENTHS) / 2;
 
   int x = VBar->current_pos;
-  int y = vp->h * relative_height;
+  int y = vp->h * SIX_TENTHS;
 
   int box_size = (icon_rect->w / 2);
   int offset   = pos_x - sub_amount;
@@ -487,9 +493,7 @@ set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect) {
 
 void
 set_active_song_title(FontContext* FntPtr, SDL_Rect* vp) {
-  const f32 relative_height = 0.20;
-
-  int y = vp->h * relative_height;
+  int y = vp->h * TWO_TENTHS;
 
   FntPtr->active->rect.y        = y;
   FntPtr->active->offset_rect.y = y;
