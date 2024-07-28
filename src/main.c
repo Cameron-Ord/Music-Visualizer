@@ -10,13 +10,14 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <errno.h>
+#include <linux/limits.h>
 
 int
 main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  setup_dirs();
+  // setup_dirs();
 
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };

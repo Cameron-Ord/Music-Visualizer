@@ -363,3 +363,35 @@ clear_files(FileContext* FCPtr) {
     free_ptr(FCPtr->file_state->files);
   }
 }
+
+int
+verify_directory_existence(char* name) {
+  struct stat statbuf;
+  char        home_path[PATH_MAX];
+  strcpy(home_path, getenv(get_platform_env()));
+
+  size_t home_path_length       = strlen(home_path);
+  size_t music_length           = strlen("Music");
+  size_t music_directory_length = strlen("fftmplayer");
+  size_t target_length          = strlen(name);
+
+  size_t total_length = home_path_length + music_length + music_directory_length + target_length + 3;
+
+  /*+1 for null terminator*/
+  char target_path[total_length + 1];
+
+  snprintf(target_path, (total_length + 1) * sizeof(char), "%s%sMusic%sfftmplayer%s%s", home_path,
+           get_slash(), get_slash(), get_slash(), name);
+
+  if (stat(target_path, &statbuf) != 0) {
+    if (errno == ENOENT) {
+      fprintf(stderr, "No directory found..\n");
+      return -1;
+    } else {
+      PRINT_STR_ERR(stderr, "STATBUF ERROR : ", strerror(errno));
+      return -1;
+    }
+  }
+
+  return S_ISDIR(statbuf.st_mode);
+}

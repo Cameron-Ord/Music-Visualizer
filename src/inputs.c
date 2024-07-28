@@ -544,6 +544,11 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
       return;
     }
 
+    int err = verify_directory_existence(selection);
+    if (err != 1) {
+      return;
+    }
+
     /*Clear any existing fonts for the song title section (if any) and reset the position variable*/
 
     ListLimiter* LLmtr = SDLC->container->list_limiter;

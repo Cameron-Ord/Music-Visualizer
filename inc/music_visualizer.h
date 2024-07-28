@@ -112,6 +112,7 @@ struct FileContext {
   struct FileState* file_state;
 };
 
+int   verify_directory_existence(char* name);
 void  check_size(SDLContainer* Cont, SDL_Window* w);
 char* get_platform_env();
 void  clicked_settings_gear(SDLContext* SDLC);
