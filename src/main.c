@@ -10,7 +10,6 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_video.h>
 #include <errno.h>
-#include <linux/limits.h>
 
 int
 main(int argc, char* argv[]) {
