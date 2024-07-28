@@ -538,12 +538,13 @@ update_font_rect(SDL_Rect* rect_ptr, SDL_Rect* offset_rect, int max) {
   static f32 accumulator;
   f32        increment = 0.5;
 
+  if (rect_ptr->x >= max) {
+    swap(&offset_rect->x, &rect_ptr->x);
+  }
+
   if (accumulator >= 1.0) {
     accumulator = 1.0;
     rect_ptr->x += (int)accumulator;
-    if (rect_ptr->x >= max) {
-      swap(&offset_rect->x, &rect_ptr->x);
-    }
     accumulator = 0.0;
   }
 
