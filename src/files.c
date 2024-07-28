@@ -83,7 +83,9 @@ setup_dirs() {
   char   path[PATH_MAX];
   mode_t mode = S_IRWXU;
 
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s", home, get_slash(), get_slash(), get_slash());
+  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s", home, get_slash(), get_slash(),
+           get_slash());
+
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
       perror("chmod");
@@ -96,7 +98,9 @@ setup_dirs() {
     }
   }
 
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(), get_slash());
+  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(),
+           get_slash());
+
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
       perror("chmod");
@@ -110,51 +114,21 @@ setup_dirs() {
     }
   }
 
-  int fd;
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(), "log.txt");
-#ifdef __linux__
-  fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
-  if (fd < 0) {
-    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(),
+           get_slash(), "log.txt");
+
+  if (freopen(path, "w", stdout) == NULL) {
+    PRINT_STR_ERR(stderr, "Error redirecting STDOUT", strerror(errno));
     return;
   }
-  dup2(fd, STDOUT_FILENO);
-  close(fd);
-#endif
 
-#ifdef _WIN32
-  fd = open(path, _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
-  if (fd < 0) {
-    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
+  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(),
+           get_slash(), "errlog.txt");
+
+  if (freopen(path, "w", stderr) == NULL) {
+    PRINT_STR_ERR(stdout, "Could not redirect STDERR!", strerror(errno));
     return;
   }
-  _dup2(fd, _fileno(stdout));
-  close(fd);
-#endif
-
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(), get_slash(),
-           "errlog.txt");
-
-#ifdef __linux__
-  fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
-  if (fd < 0) {
-    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
-    return;
-  }
-  dup2(fd, STDERR_FILENO);
-  close(fd);
-#endif
-
-#ifdef _WIN32
-  fd = open(path, _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
-  if (fd < 0) {
-    PRINT_STR_ERR(stderr, "Could not open file", strerror(errno));
-    return;
-  }
-  _dup2(fd, _fileno(stderr));
-  close(fd);
-#endif
-
 } /*setup_dirs*/
 
 int

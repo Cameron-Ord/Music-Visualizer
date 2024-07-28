@@ -317,8 +317,8 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
   const int height_offset = 5;
 
   size_t last_index = LLmtr->dir_first_index + LLmtr->amount_to_display;
-  if (last_index > (size_t)dir_count - 1) {
-    last_index = (size_t)dir_count - 1;
+  if (last_index > (size_t)dir_count) {
+    last_index = (size_t)dir_count;
   }
 
   LLmtr->dir_last_index = last_index;
@@ -387,8 +387,8 @@ render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rec
   const int height_offset = 5;
 
   size_t last_index = LLmtr->song_first_index + LLmtr->amount_to_display;
-  if (last_index > (size_t)file_count - 1) {
-    last_index = (size_t)file_count - 1;
+  if (last_index > (size_t)file_count) {
+    last_index = (size_t)file_count;
   }
 
   LLmtr->song_last_index = last_index;

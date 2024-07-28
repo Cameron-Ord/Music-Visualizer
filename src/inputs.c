@@ -581,7 +581,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->song_vp)) {
     if (strcmp(sign, "Negative") == 0) {
       int array_increment = LLmtr->song_first_index + LLmtr->amount_to_display;
-      if (array_increment >= FC->file_state->file_count - 1) {
+      if (array_increment >= FC->file_state->file_count) {
         array_increment = 0;
       }
       LLmtr->song_first_index = array_increment;
@@ -599,7 +599,7 @@ scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* s
   if (point_in_rect(mouse_arr[0], mouse_arr[1], Vps->dir_vp)) {
     if (strcmp(sign, "Negative") == 0) {
       int array_increment = LLmtr->dir_first_index + LLmtr->amount_to_display;
-      if (array_increment >= FC->dir_state->dir_count - 1) {
+      if (array_increment >= FC->dir_state->dir_count) {
         array_increment = 0;
       }
       LLmtr->dir_first_index = array_increment;

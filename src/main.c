@@ -389,6 +389,9 @@ main(int argc, char* argv[]) {
   TTF_Quit();
   SDL_Quit();
 
+  fclose(stdout);
+  fclose(stderr);
+
   return 0;
 }
 
