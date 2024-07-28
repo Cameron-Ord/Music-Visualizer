@@ -511,7 +511,6 @@ draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve, SDL_Rect* vp) {
   SDL_RenderSetViewport(r, vp);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->rect);
   SDL_RenderCopy(r, Actve->tex, NULL, &Actve->offset_rect);
-  update_font_rect(&Actve->rect, &Actve->offset_rect, vp->w);
 }
 
 void
@@ -536,10 +535,19 @@ draw_vol_bar(SDL_Renderer* r, SDL_Texture* tex, VolBar* VBar, SDL_Rect* vp, SDL_
 
 void
 update_font_rect(SDL_Rect* rect_ptr, SDL_Rect* offset_rect, int max) {
-  rect_ptr->x += 1;
-  if (rect_ptr->x >= max) {
-    swap(&offset_rect->x, &rect_ptr->x);
+  static f32 accumulator;
+  f32        increment = 0.5;
+
+  if (accumulator >= 1.0) {
+    accumulator = 1.0;
+    rect_ptr->x += (int)accumulator;
+    if (rect_ptr->x >= max) {
+      swap(&offset_rect->x, &rect_ptr->x);
+    }
+    accumulator = 0.0;
   }
+
+  accumulator += increment;
 }
 
 void

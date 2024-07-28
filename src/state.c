@@ -133,6 +133,7 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
     if (font_ready) {
       set_active_song_title(Fnt, &controls_vp);
       draw_active_song_title(SDLC->r, Fnt->active, &controls_vp);
+      update_font_rect(&Fnt->active->rect, &Fnt->active->offset_rect, controls_vp.w);
     }
     break;
   }
