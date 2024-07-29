@@ -136,14 +136,13 @@ main(int argc, char* argv[]) {
 
   int res = fetch_dirs(&DState);
   if (res < 0) {
-    fprintf(stderr, "Error getting directoies : %s\n", strerror(errno));
+    PRINT_STR_ERR(stderr, "Error getting directories : %s", strerror(errno));
   } else if (res == 0) {
-    fprintf(stdout, "No dirs found\n");
+    fprintf(stdout, "No directories found\n");
   }
   DState.dir_count = res;
 
   if (res > 0) {
-    fprintf(stdout, "Creating fonts for dirs..\n");
     DState.dirs_exist = TRUE;
 
     err = create_dir_fonts(&FontChunk, &DState, SDLChunk.r);

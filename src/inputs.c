@@ -543,10 +543,33 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
     if (strcmp(selection, "NO_SELECTION") == 0) {
       return;
     }
-
-    int err = verify_directory_existence(selection);
+    int err;
+    err = verify_directory_existence(selection);
     if (err != 1) {
-      return;
+      destroy_dir_fonts(FNT, dir_count);
+      destroy_song_fonts(FNT, FC->file_state->file_count);
+      clear_dirs(FC);
+      clear_files(FC);
+
+      int res = fetch_dirs(FC->dir_state);
+      if (res < 0) {
+        PRINT_STR_ERR(stderr, "Error getting directories : %s", strerror(errno));
+        return;
+      } else if (res == 0) {
+        fprintf(stdout, "No directories found\n");
+        return;
+      }
+
+      FC->dir_state->dir_count = res;
+      if (res > 0) {
+        FC->dir_state->dirs_exist = TRUE;
+
+        err = create_dir_fonts(FNT, FC->dir_state, SDLC->r);
+        if (err < 0) {
+          PRINT_STR_ERR(stderr, "FAILED TO CREATE NEW FONTS FOR DIRECTORIES! ERRNO : %s", strerror(errno));
+          return;
+        }
+      }
     }
 
     /*Clear any existing fonts for the song title section (if any) and reset the position variable*/

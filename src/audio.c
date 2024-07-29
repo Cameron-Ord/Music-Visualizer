@@ -280,7 +280,7 @@ stop_song(i8* playing_song) {
 
 void
 stop_playback(FileState* FS, PlaybackState* PBS, SDL_AudioDeviceID* dev_ptr) {
-  if (FS) {
+  if (FS != NULL) {
     printf("\nSTOPPING: %s\n", FS->files[FS->file_index]);
   }
 
@@ -291,7 +291,7 @@ stop_playback(FileState* FS, PlaybackState* PBS, SDL_AudioDeviceID* dev_ptr) {
 
 void
 play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
-  if (FS) {
+  if (FS != NULL) {
     printf("\nNOW PLAYING: %d : %s\n", FS->file_index, FS->files[FS->file_index]);
   }
 
@@ -301,7 +301,9 @@ play_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
 
 void
 pause_song(FileState* FS, i8* is_paused, SDL_AudioDeviceID* dev) {
-  printf("\nPAUSING: %s\n", FS->files[FS->file_index]);
+  if (FS != NULL) {
+    printf("\nPAUSING: %s\n", FS->files[FS->file_index]);
+  }
 
   audio_switch(*dev, 1);
   *is_paused = TRUE;

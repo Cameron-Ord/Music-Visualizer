@@ -4,6 +4,7 @@
 #include "../inc/graphics.h"
 #include "../inc/music_visualizer.h"
 #include <complex.h>
+#include <time.h>
 
 void*
 destroy_surface(SDL_Surface* surf) {
@@ -108,7 +109,9 @@ draw_colour_fonts(SDLContext* SDLC, FontContext* FNT) {
       SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
       SDL_RenderFillRect(SDLC->r, font_bg);
     }
-    SDL_RenderCopy(SDLC->r, col[i].font_texture, NULL, font_rect);
+    if (col[i].font_texture != NULL) {
+      SDL_RenderCopy(SDLC->r, col[i].font_texture, NULL, font_rect);
+    }
   }
 }
 
@@ -205,11 +208,10 @@ render_set_gear(SDLContainer* Cont, SettingsGear* gear) {
 
 void
 render_draw_gear(SDL_Renderer* r, SettingsGear* gear) {
-  if (gear->tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, NULL);
-  SDL_RenderCopy(r, gear->tex, NULL, &gear->rect);
+  if (gear->tex != NULL) {
+    SDL_RenderCopy(r, gear->tex, NULL, &gear->rect);
+  }
 }
 
 void
@@ -247,29 +249,26 @@ render_set_stop_button(StopIcon* Stop, SDL_Rect* vp) {
 
 void
 render_draw_play_button(SDL_Renderer* r, PlayIcon* Play, SDL_Rect* vp) {
-  if (Play->tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, vp);
-  SDL_RenderCopy(r, Play->tex, NULL, &Play->rect);
+  if (Play->tex != NULL) {
+    SDL_RenderCopy(r, Play->tex, NULL, &Play->rect);
+  }
 }
 
 void
 render_draw_pause_button(SDL_Renderer* r, PauseIcon* Pause, SDL_Rect* vp) {
-  if (Pause->tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, vp);
-  SDL_RenderCopy(r, Pause->tex, NULL, &Pause->rect);
+  if (Pause->tex != NULL) {
+    SDL_RenderCopy(r, Pause->tex, NULL, &Pause->rect);
+  }
 }
 
 void
 render_draw_stop_button(SDL_Renderer* r, StopIcon* Stop, SDL_Rect* vp) {
-  if (Stop->tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, vp);
-  SDL_RenderCopy(r, Stop->tex, NULL, &Stop->rect);
+  if (Stop->tex != NULL) {
+    SDL_RenderCopy(r, Stop->tex, NULL, &Stop->rect);
+  }
 }
 
 void
@@ -278,11 +277,10 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
   SDL_Color* rgba    = &SDLC->container->theme->tertiary;
 
   if (out_len == 0) {
-    fprintf(stdout, "OUTPUT LENGTH 0 - SOMETHING HAS GONE HORRIBLY WRONG\n");
-    PlaybackState* pb = SDLC->SSPtr->pb_state;
+    PRINT_STR_ERR(stderr, "Audio processing returned empty buffer, stopping.. -> current errno : %s",
+                  strerror(errno));
 
-    pb->hard_stop = TRUE;
-    stop_playback(NULL, pb, &SDLC->audio_dev);
+    stop_playback(NULL, SDLC->SSPtr->pb_state, &SDLC->audio_dev);
     return;
   }
 
@@ -375,7 +373,10 @@ render_draw_dir_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
       SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
       SDL_RenderFillRect(SDLC->r, font_bg);
     }
-    SDL_RenderCopy(SDLC->r, df_arr[i].font_texture, NULL, font_rect);
+
+    if (df_arr[i].font_texture != NULL) {
+      SDL_RenderCopy(SDLC->r, df_arr[i].font_texture, NULL, font_rect);
+    }
   }
 }
 
@@ -445,7 +446,10 @@ render_draw_song_list(SDLContext* SDLC, FontContext* FNT, SDL_Rect* vp) {
       SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
       SDL_RenderFillRect(SDLC->r, font_bg);
     }
-    SDL_RenderCopy(SDLC->r, sf_arr[i].font_texture, NULL, font_rect);
+
+    if (sf_arr[i].font_texture != NULL) {
+      SDL_RenderCopy(SDLC->r, sf_arr[i].font_texture, NULL, font_rect);
+    }
   }
 }
 
@@ -509,28 +513,28 @@ set_active_song_title(FontContext* FntPtr, SDL_Rect* vp) {
 void
 draw_active_song_title(SDL_Renderer* r, ActiveSong* Actve, SDL_Rect* vp) {
   SDL_RenderSetViewport(r, vp);
-  SDL_RenderCopy(r, Actve->tex, NULL, &Actve->rect);
-  SDL_RenderCopy(r, Actve->tex, NULL, &Actve->offset_rect);
+  if (Actve->tex != NULL) {
+    SDL_RenderCopy(r, Actve->tex, NULL, &Actve->rect);
+    SDL_RenderCopy(r, Actve->tex, NULL, &Actve->offset_rect);
+  }
 }
 
 void
 draw_seek_bar(SDL_Renderer* r, SDL_Texture* tex, SeekBar* SKPtr, SDL_Rect* vp, SDL_Color* rgba) {
-  if (tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, vp);
   SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
-  SDL_RenderCopy(r, tex, NULL, &SKPtr->seek_box);
+  if (tex != NULL) {
+    SDL_RenderCopy(r, tex, NULL, &SKPtr->seek_box);
+  }
 }
 
 void
 draw_vol_bar(SDL_Renderer* r, SDL_Texture* tex, VolBar* VBar, SDL_Rect* vp, SDL_Color* rgba) {
-  if (tex == NULL) {
-    return;
-  }
   SDL_RenderSetViewport(r, vp);
   SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
-  SDL_RenderCopy(r, tex, NULL, &VBar->seek_box);
+  if (tex != NULL) {
+    SDL_RenderCopy(r, tex, NULL, &VBar->seek_box);
+  }
 }
 
 void
@@ -562,7 +566,6 @@ swap(int* offset_x, int* x) {
 
 void
 resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
-
   i8  playing_song       = SDLC->SSPtr->pb_state->playing_song;
   i8  song_fonts_created = FNT->state->song_fonts_created;
   i8  dir_fonts_created  = FNT->state->dir_fonts_created;

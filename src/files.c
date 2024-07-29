@@ -333,35 +333,40 @@ fetch_files(FileState* FS) {
 
 void
 clear_dirs(FileContext* FCPtr) {
-  i8  dirs_exist = FCPtr->dir_state->dirs_exist;
-  int dir_count  = FCPtr->dir_state->dir_count;
+  i8*  dirs_exist = &FCPtr->dir_state->dirs_exist;
+  int* dir_count  = &FCPtr->dir_state->dir_count;
 
-  if (dir_count > 0 && dirs_exist) {
-    for (int i = 0; i < dir_count; i++) {
+  if (*dir_count > 0 && *dirs_exist) {
+    for (int i = 0; i < *dir_count; i++) {
       free_ptr(FCPtr->dir_state->directories[i]);
     }
   }
 
-  if (dirs_exist) {
+  if (*dirs_exist) {
     free_ptr(FCPtr->dir_state->directories);
   }
+
+  *dir_count  = 0;
+  *dirs_exist = FALSE;
 }
 
 void
 clear_files(FileContext* FCPtr) {
+  i8*  files_exist = &FCPtr->file_state->files_exist;
+  int* file_count  = &FCPtr->file_state->file_count;
 
-  i8  files_exist = FCPtr->file_state->files_exist;
-  int file_count  = FCPtr->file_state->file_count;
-
-  if (file_count > 0 && files_exist) {
-    for (int i = 0; i < file_count; i++) {
+  if (*file_count > 0 && *files_exist) {
+    for (int i = 0; i < *file_count; i++) {
       free_ptr(FCPtr->file_state->files[i]);
     }
   }
 
-  if (files_exist) {
+  if (*files_exist) {
     free_ptr(FCPtr->file_state->files);
   }
+
+  *file_count  = 0;
+  *files_exist = FALSE;
 }
 
 int
