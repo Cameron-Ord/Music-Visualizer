@@ -92,6 +92,7 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
     PRINT_STR_ERR(stderr, "Audio processing returned empty buffer, stopping.. -> current errno : %s",
                   strerror(errno));
 
+    SDLC->SSPtr->pb_state->hard_stop = TRUE;
     stop_playback(NULL, SDLC->SSPtr->pb_state, &SDLC->audio_dev);
     return;
   }

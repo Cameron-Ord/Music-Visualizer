@@ -18,6 +18,7 @@ free_all(AppContext* a) {
   }
 
   if (a->SSPtr->pb_state->playing_song) {
+    a->SSPtr->pb_state->hard_stop = TRUE;
     stop_playback(NULL, a->SSPtr->pb_state, &a->SDLC->audio_dev);
   }
 

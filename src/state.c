@@ -43,8 +43,9 @@ song_is_paused(SDLContext* SDLC, FontContext* Fnt) {
   switch (SDLC->viewing_settings) {
 
   case TRUE: {
-    render_set_gear(SDLC->container, Spr->sett_gear);
-    render_draw_gear(SDLC->r, Spr->sett_gear);
+    i8* hard_stop = &SSPtr->pb_state->hard_stop;
+    *hard_stop    = TRUE;
+    stop_playback(NULL, SSPtr->pb_state, &SDLC->audio_dev);
     break;
   }
 
@@ -139,8 +140,9 @@ song_is_playing(SDLContext* SDLC, FontContext* Fnt) {
   }
 
   case TRUE: {
-    render_set_gear(SDLC->container, Spr->sett_gear);
-    render_draw_gear(SDLC->r, Spr->sett_gear);
+    i8* hard_stop = &SSPtr->pb_state->hard_stop;
+    *hard_stop    = TRUE;
+    stop_playback(NULL, SSPtr->pb_state, &SDLC->audio_dev);
     break;
   }
 

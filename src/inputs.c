@@ -279,8 +279,8 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
   SDL_Rect      play_rect  = Spr->play_icon->rect;
   SDL_Rect      stop_rect  = Spr->stop_icon->rect;
 
-  SDL_Rect playing_rect_array[] = { Vps->dir_vp, Vps->song_vp, gear_rect };
-  SDL_Rect paused_rect_array[]  = { seek_rect, vol_rect, gear_rect, pause_rect, play_rect, stop_rect };
+  SDL_Rect paused_rect_array[]  = { Vps->dir_vp, Vps->song_vp, gear_rect };
+  SDL_Rect playing_rect_array[] = { seek_rect, vol_rect, pause_rect, play_rect, stop_rect };
 
   i8 playing_song = SDLC->SSPtr->pb_state->playing_song;
 
@@ -292,9 +292,9 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
   }
 
   case TRUE: {
-    size_t len = sizeof(paused_rect_array) / sizeof(paused_rect_array[0]);
+    size_t len = sizeof(playing_rect_array) / sizeof(playing_rect_array[0]);
     for (size_t i = 0; i < len; i++) {
-      if (point_in_rect(mouse_x, mouse_y, paused_rect_array[i])) {
+      if (point_in_rect(mouse_x, mouse_y, playing_rect_array[i])) {
         switch (i) {
         case 0: {
           grab_seek_bar(SDLC, FC->file_state, mouse_x, mouse_y);
@@ -307,21 +307,16 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
         }
 
         case 2: {
-          clicked_settings_gear(SDLC);
-          break;
-        }
-
-        case 3: {
           pause_song(FC->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
           break;
         }
 
-        case 4: {
+        case 3: {
           play_song(FC->file_state, &SSPtr->pb_state->is_paused, &SDLC->audio_dev);
           break;
         }
 
-        case 5: {
+        case 4: {
           stop_playback(FC->file_state, SSPtr->pb_state, &SDLC->audio_dev);
           break;
         }
@@ -365,9 +360,9 @@ clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int m
     }
 
     case FALSE: {
-      size_t len = sizeof(playing_rect_array) / sizeof(playing_rect_array[0]);
+      size_t len = sizeof(paused_rect_array) / sizeof(paused_rect_array[0]);
       for (size_t i = 0; i < len; i++) {
-        if (point_in_rect(mouse_x, mouse_y, playing_rect_array[i])) {
+        if (point_in_rect(mouse_x, mouse_y, paused_rect_array[i])) {
           switch (i) {
           case 2: {
             clicked_settings_gear(SDLC);
