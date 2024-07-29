@@ -543,6 +543,7 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
     if (strcmp(selection, "NO_SELECTION") == 0) {
       return;
     }
+
     int err;
     err = verify_directory_existence(selection);
     if (err != 1) {
@@ -707,29 +708,19 @@ update_colours(SDLContext* SDLC, FontContext* Fnt, FileContext* FC, char* theme_
     fprintf(stderr, "COULD NOT CREATE TEXTURE FOR ADDR %p\n", pause->surf);
   }
 
-  i8 song_fonts_created = Fnt->state->song_fonts_created;
-  i8 dir_fonts_created  = Fnt->state->dir_fonts_created;
-  i8 col_fonts_created  = Fnt->state->col_fonts_created;
-
   int file_count = FC->file_state->file_count;
   int dir_count  = FC->dir_state->dir_count;
 
   Fnt->context_data->color = current_theme->text;
 
-  if (song_fonts_created) {
-    destroy_song_fonts(Fnt, file_count);
-    create_song_fonts(Fnt, FC->file_state, SDLC->r);
-  }
+  destroy_song_fonts(Fnt, file_count);
+  create_song_fonts(Fnt, FC->file_state, SDLC->r);
 
-  if (dir_fonts_created) {
-    destroy_dir_fonts(Fnt, dir_count);
-    create_dir_fonts(Fnt, FC->dir_state, SDLC->r);
-  }
+  destroy_dir_fonts(Fnt, dir_count);
+  create_dir_fonts(Fnt, FC->dir_state, SDLC->r);
 
-  if (col_fonts_created) {
-    destroy_colours_fonts(Fnt);
-    create_colours_fonts(Fnt, themes_ptr, SDLC->r);
-  }
+  destroy_colours_fonts(Fnt);
+  create_colours_fonts(Fnt, themes_ptr, SDLC->r);
 
   SDLContainer* Cont = SDLC->container;
   if (Cont->win_icon != NULL) {

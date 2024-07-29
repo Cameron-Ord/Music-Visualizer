@@ -1,4 +1,5 @@
 #include "../inc/font.h"
+#include "../inc/audio.h"
 #include "../inc/input.h"
 #include "../inc/music_visualizer.h"
 #include "../inc/render.h"
@@ -50,35 +51,6 @@ create_colours_fonts(FontContext* Fnt, Theme* Themes[], SDL_Renderer* r) {
   }
 
   Fnt->state->col_fonts_created = TRUE;
-  return 0;
-}
-
-void
-destroy_dir_fonts(FontContext* Fnt, int dir_count) {
-  for (int i = 0; i < dir_count; i++) {
-    Fnt->df_arr[i].font_texture = destroy_texture(Fnt->df_arr[i].font_texture);
-  }
-  free_ptr(Fnt->df_arr);
-  Fnt->state->dir_fonts_created = FALSE;
-}
-
-void
-destroy_song_fonts(FontContext* Fnt, int file_count) {
-  for (int i = 0; i < file_count; i++) {
-    Fnt->sf_arr[i].font_texture = destroy_texture(Fnt->sf_arr[i].font_texture);
-  }
-  free_ptr(Fnt->sf_arr);
-  Fnt->state->song_fonts_created = FALSE;
-}
-
-int
-destroy_colours_fonts(FontContext* Fnt) {
-  for (int s = 0; s < COLOUR_LIST_SIZE; s++) {
-    SDL_Texture* tex = Fnt->colours_list[s].font_texture;
-    tex              = destroy_texture(tex);
-  }
-
-  Fnt->state->col_fonts_created = FALSE;
   return 0;
 }
 
@@ -268,7 +240,6 @@ create_dir_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontC
 void
 create_song_text_bg(const int mouse_x, const int mouse_y, SDLContext* SDLC, FontContext* FNT,
                     FileContext* FC) {
-
   SDLContainer* Cont  = SDLC->container;
   SDLViewports* Vps   = Cont->vps;
   FileState*    FSPtr = FC->file_state;
@@ -321,57 +292,6 @@ clean_text(char text[], char elipsis[]) {
   text[k] = '\0';
 }
 
-void
-clear_fonts(FontContext* FntPtr, FileContext* FCPtr) {
-
-  i8 files_exist        = FCPtr->file_state->files_exist;
-  i8 song_fonts_created = FntPtr->state->song_fonts_created;
-
-  if (song_fonts_created && files_exist) {
-    int file_count = FCPtr->file_state->file_count;
-    for (int i = 0; i < file_count; i++) {
-      destroy_texture(FntPtr->sf_arr[i].font_texture);
-    }
-  }
-
-  i8 dirs_exist        = FCPtr->dir_state->dirs_exist;
-  i8 dir_fonts_created = FntPtr->state->dir_fonts_created;
-
-  if (dir_fonts_created && dirs_exist) {
-    int dir_count = FCPtr->dir_state->dir_count;
-    for (int i = 0; i < dir_count; i++) {
-      destroy_texture(FntPtr->df_arr[i].font_texture);
-    }
-  }
-
-  destroy_colours_fonts(FntPtr);
-
-  FntPtr->active->tex = destroy_texture(FntPtr->active->tex);
-  free_ptr(FntPtr->active->text);
-}
-
-void
-clear_existing_list(FontData sf_arr[], int song_fonts_created, FileState* FSPtr, char* selection) {
-  FSPtr->selected_dir = selection;
-  if (FSPtr->files_exist && FSPtr->file_count > 0) {
-    for (int i = 0; i < FSPtr->file_count; i++) {
-      free_ptr(FSPtr->files[i]);
-    }
-
-    FSPtr->file_count = 0;
-  }
-
-  if (FSPtr->files_exist) {
-    free_ptr(FSPtr->files);
-  }
-
-  if (song_fonts_created) {
-    for (int i = 0; i < FSPtr->file_count; i++) {
-      sf_arr[i].font_texture = destroy_texture(sf_arr[i].font_texture);
-    }
-  }
-} /*clear_existing_list*/
-
 FontData*
 get_struct(FontData arr[], const int mouse_arr[], int len) {
   for (int i = 0; i < len; i++) {
@@ -384,3 +304,48 @@ get_struct(FontData arr[], const int mouse_arr[], int len) {
   }
   return NULL;
 } /*get_struct*/
+
+void
+resize_fonts(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
+  i8  playing_song = SDLC->SSPtr->pb_state->playing_song;
+  int win_width    = SDLC->container->win_width;
+
+  TTF_Font** font = &FNT->context_data->font;
+
+  const f32 one_thousandth = 0.016;
+
+  const int MIN_FONT_SIZE = 12;
+  const int MAX_FONT_SIZE = 20;
+
+  int new_font_size = win_width * one_thousandth;
+
+  if (new_font_size > MAX_FONT_SIZE) {
+    new_font_size = MAX_FONT_SIZE;
+  }
+
+  if (new_font_size < MIN_FONT_SIZE) {
+    new_font_size = MIN_FONT_SIZE;
+  }
+
+  FNT->context_data->font_size = new_font_size;
+
+  TTF_SetFontSize(*font, new_font_size);
+
+  int file_count = FC->file_state->file_count;
+  destroy_song_fonts(FNT, file_count);
+  create_song_fonts(FNT, FC->file_state, SDLC->r);
+
+  int dir_count = FC->dir_state->dir_count;
+  destroy_dir_fonts(FNT, dir_count);
+  create_dir_fonts(FNT, FC->dir_state, SDLC->r);
+
+  destroy_colours_fonts(FNT);
+  create_colours_fonts(FNT, SDLC->container->theme->themes, SDLC->r);
+
+  if (playing_song) {
+    // this kinda seems confusing, that it lacks the destroy function. It just destroys the existing
+    // textures/text inside the function itself before creating new ones. I just didn't seperate that step for
+    // this one.
+    create_active_song_font(FNT, FC->file_state, SDLC->r);
+  }
+}

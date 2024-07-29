@@ -127,5 +127,5 @@ void  index_down(FileState* FS);
 int   create_settings_icon();
 void  swap(int* offset_x, int* x);
 int   update_colours(SDLContext* SDLC, FontContext* Fnt, FileContext* FC, char* theme_name);
-
+void  free_all(AppContext* a);
 #endif

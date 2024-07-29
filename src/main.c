@@ -16,7 +16,7 @@ main(int argc, char* argv[]) {
   /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
    * logging*/
 
-  setup_dirs();
+  // setup_dirs();
 
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
@@ -336,58 +336,14 @@ main(int argc, char* argv[]) {
     }
   }
 
-  /*Clean up*/
-
-  if (SDLChunk.r) {
-    SDL_DestroyRenderer(SDLChunk.r);
-  }
-
-  if (SDLChunk.w) {
-    SDL_DestroyWindow(SDLChunk.w);
-  }
-
-  if (PBSte.playing_song) {
-    stop_playback(&FState, &PBSte, &SDLChunk.audio_dev);
-  }
-
-  if (SDLChunk.audio_dev) {
-    SDL_CloseAudioDevice(SDLChunk.audio_dev);
-  }
-
-  if (Stop.tex) {
-    SDL_DestroyTexture(Stop.tex);
-  }
-
-  if (Pause.tex) {
-    SDL_DestroyTexture(Pause.tex);
-  }
-
-  if (Play.tex) {
-    SDL_DestroyTexture(Play.tex);
-  }
-
-  if (Gear.tex) {
-    SDL_DestroyTexture(Gear.tex);
-  }
-
-  if (Seek.tex) {
-    SDL_DestroyTexture(Seek.tex);
-  }
-
-  if (SDLCont.win_icon) {
-    SDL_FreeSurface(SDLCont.win_icon);
-  }
-
-  clear_fonts(&FontChunk, &FileChunk);
-  clear_files(&FileChunk);
-  clear_dirs(&FileChunk);
-
-  free_ptr(ADta.buffer);
-
+  fprintf(stdout, "Quiting SDL2 Image..\n");
   IMG_Quit();
+  fprintf(stdout, "Quiting SDL2 TTF..\n");
   TTF_Quit();
+  fprintf(stdout, "Quiting SDL2..\n");
   SDL_Quit();
 
+  fprintf(stdout, "Closing streams\n");
   fclose(stdout);
   fclose(stderr);
 
@@ -410,6 +366,7 @@ poll_events(AppContext* app) {
 
     case SDL_QUIT: {
       SDLC->running = FALSE;
+      free_all(app);
       break;
     }
 
@@ -448,6 +405,7 @@ poll_events(AppContext* app) {
 
       case SDLK_q: {
         SDLC->running = FALSE;
+        free_all(app);
         break;
       }
 
