@@ -71,13 +71,15 @@ chmod_dir(char* path, mode_t mode) {
   return -1;
 }
 
-void
+PathContainer
 setup_dirs() {
+  struct PathContainer p = { 0 };
 
   char* home = getenv(get_platform_env());
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
-    return;
+    p.is_valid = FALSE;
+    return p;
   }
 
   char   path[PATH_MAX];
@@ -89,12 +91,14 @@ setup_dirs() {
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
       perror("chmod");
-      return;
+      p.is_valid = FALSE;
+      return p;
     }
   } else {
     if (errno != EEXIST) {
       PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
-      return;
+      p.is_valid = FALSE;
+      return p;
     }
   }
 
@@ -104,31 +108,47 @@ setup_dirs() {
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
       perror("chmod");
-      return;
+      p.is_valid = FALSE;
+      return p;
     }
   } else {
     if (errno != EEXIST) {
       PRINT_STR_ERR(stderr, "Failed to create DIR", strerror(errno));
       perror("mkdir");
-      return;
+      p.is_valid = FALSE;
+      return p;
     }
   }
 
-  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(),
-           get_slash(), "log.txt");
+  // snprintf returns a negative number if encoding failed.
 
-  if (freopen(path, "w", stdout) == NULL) {
-    PRINT_STR_ERR(stderr, "Error redirecting STDOUT", strerror(errno));
-    return;
+  int err;
+  err = snprintf(p.log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(),
+                 get_slash(), get_slash(), "log.txt");
+  if (err < 0) {
+    p.is_valid = FALSE;
+    return p;
   }
 
-  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(), get_slash(),
-           get_slash(), "errlog.txt");
+  // if (freopen(path, "w", stdout) == NULL) {
+  // PRINT_STR_ERR(stderr, "Error redirecting STDOUT", strerror(errno));
+  // return;
+  //}
 
-  if (freopen(path, "w", stderr) == NULL) {
-    PRINT_STR_ERR(stdout, "Could not redirect STDERR!", strerror(errno));
-    return;
+  err = snprintf(p.err_log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(),
+                 get_slash(), get_slash(), "errlog.txt");
+  if (err < 0) {
+    p.is_valid = FALSE;
+    return p;
   }
+
+  // if (freopen(path, "w", stderr) == NULL) {
+  // PRINT_STR_ERR(stdout, "Could not redirect STDERR!", strerror(errno));
+  // return;
+  //}
+
+  p.is_valid = TRUE;
+  return p;
 } /*setup_dirs*/
 
 int

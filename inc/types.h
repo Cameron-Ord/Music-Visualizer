@@ -17,6 +17,7 @@ typedef float    f32;
 typedef double   f64;
 typedef float _Complex f32c;
 
+typedef struct PathContainer     PathContainer;
 typedef struct AppContext        AppContext;
 typedef struct VolBar            VolBar;
 typedef struct SDLMouse          SDLMouse;

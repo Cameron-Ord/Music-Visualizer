@@ -13,10 +13,6 @@
 
 int
 main(int argc, char* argv[]) {
-  /*Creating the folders for the application if they don't exist, and rerouting stdout and stderr to files for
-   * logging*/
-
-  // setup_dirs();
 
   AppContext   Application = { 0 };
   SDLContext   SDLChunk    = { 0 };
@@ -26,6 +22,15 @@ main(int argc, char* argv[]) {
   SDLContainer SDLCont     = { 0 };
   ListLimiter  LLmtr       = { 0 };
   SDLMouse     SDLCursor   = { 0 };
+
+  PathContainer p = setup_dirs();
+  if (p.is_valid) {
+    strcpy(SDLChunk.log_path, p.log_path_cpy);
+    strcpy(SDLChunk.err_log_path, p.err_log_path_cpy);
+  }
+
+  fprintf(stdout, "LOG PATH -> %s\n", SDLChunk.log_path);
+  fprintf(stderr, "ERROR LOG PATH -> %s\n", SDLChunk.err_log_path);
 
   // default to 4
   LLmtr.amount_to_display = 4;
@@ -102,6 +107,8 @@ main(int argc, char* argv[]) {
     SDL_DestroyWindow(SDLChunk.w);
     return 1;
   }
+
+  SDL_EnableScreenSaver();
 
   FontContext FontChunk = { 0 };
   FontState   FntSte    = { 0 };
@@ -317,8 +324,6 @@ main(int argc, char* argv[]) {
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
   update_window_size(SDLChunk.container, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
-
-  SDL_EnableScreenSaver();
 
   u32 frame_start;
   int frame_time;

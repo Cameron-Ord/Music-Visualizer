@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <math.h>
 #include <sndfile.h>
 #include <stdio.h>
@@ -60,6 +61,12 @@ struct SDLMouse {
   int mouse_offset_x;
 };
 
+struct PathContainer {
+  char log_path_cpy[PATH_MAX];
+  char err_log_path_cpy[PATH_MAX];
+  i8   is_valid;
+};
+
 struct SDLSprites {
   struct SettingsGear* sett_gear;
   struct PlayIcon*     play_icon;
@@ -69,12 +76,15 @@ struct SDLSprites {
 };
 
 struct SDLContext {
-  SDL_Renderer*            r;
-  SDL_Window*              w;
-  SDL_AudioSpec            spec;
-  SDL_AudioDeviceID        audio_dev;
-  i8                       running;
-  i8                       viewing_settings;
+  SDL_Renderer*     r;
+  SDL_Window*       w;
+  SDL_AudioSpec     spec;
+  SDL_AudioDeviceID audio_dev;
+  i8                running;
+  i8                viewing_settings;
+  char              log_path[PATH_MAX];
+  char              err_log_path[PATH_MAX];
+
   struct SDLSprites*       sprites;
   struct SDLContainer*     container;
   struct SDLMouse*         mouse;
