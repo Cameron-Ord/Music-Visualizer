@@ -1,49 +1,22 @@
 #include "../inc/audio.h"
 #include "../inc/font.h"
-#include "../inc/macro.h"
 #include "../inc/music_visualizer.h"
 
 void
-callback(void* data, Uint8* stream, int len) {
-  SDLContext*       SDLCPtr = (struct SDLContext*)data;
-  SongState*        SSPtr   = SDLCPtr->SSPtr;
-  FourierTransform* FTPtr   = SDLCPtr->FTPtr;
-  AudioData*        Aud     = SSPtr->audio_data;
-
-  u32* wav_len   = &Aud->wav_len;
-  u32* audio_pos = &Aud->audio_pos;
-  f32* buf       = Aud->buffer;
-
-  u32 remaining = (*wav_len - *audio_pos);
-
-  int samples_to_copy = ((u32)len / sizeof(float) < remaining) ? len / sizeof(float) : remaining;
-
-  float* f32_stream = (float*)stream;
-
-  for (int i = 0; i < samples_to_copy; i++) {
-    f32_stream[i] = buf[i + *audio_pos] * Aud->volume;
-  }
-
-  // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
-
-  if (check_pos(*audio_pos, *wav_len)) {
-    fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
-  }
-
-  *audio_pos += samples_to_copy;
-
-  if (*audio_pos >= *wav_len) {
-    fprintf(stdout, "End reached.. Starting next song.\n");
-    SSPtr->pb_state->song_ended = TRUE;
-  }
+change_volume(f32* vol, f32 amount) {
+  *vol = clamp(*vol, amount, 0.0f, 1.0f);
 }
 
-int
-check_pos(u32 audio_pos, u32 len) {
-  if (audio_pos > 0 && audio_pos < len) {
-    return 1;
+f32
+clamp(f32 vol, f32 amount, f32 min, f32 max) {
+  f32 sum = vol += amount;
+  if (sum < min) {
+    return min;
   }
-  return 0;
+  if (sum > max) {
+    return max;
+  }
+  return sum;
 }
 
 void
@@ -73,84 +46,6 @@ set_visual_buffer(f32* vis_ptr, f32* buf_ptr) {
   if (vis_ptr != buf_ptr) {
     vis_ptr = buf_ptr;
   }
-}
-
-int
-read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
-
-  char* home = getenv(get_platform_env());
-  if (home == NULL) {
-    PRINT_STR_ERR(stderr, "Err getting home DIR", strerror(errno));
-    return -1;
-  }
-
-  FileState* FS  = FC->file_state;
-  AudioData* Aud = SS->audio_data;
-  reset_playback_variables(Aud, SS->pb_state, FT->fft_data);
-
-  char combined_path[PATH_MAX];
-  char path[PATH_MAX];
-
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s", home, get_slash(), get_slash(), get_slash(),
-           FS->selected_dir, get_slash());
-
-  sprintf(combined_path, "%s%s", path, FS->files[FS->file_index]);
-  printf("READING FILE : %s OF PATH : %s\n", FS->files[FS->file_index], path);
-
-  SNDFILE* sndfile;
-  SF_INFO  sfinfo;
-
-  sndfile = sf_open(combined_path, SFM_READ, &sfinfo);
-  if (!sndfile) {
-    PRINT_STR_ERR(stderr, "Err opening file for reading", strerror(errno));
-    return -1;
-  }
-
-  if (sfinfo.channels != 2) {
-    fprintf(stderr, "Must be a 2 channel audio file!\n");
-    return -1;
-  }
-
-  Aud->channels = sfinfo.channels;
-  Aud->sr       = sfinfo.samplerate;
-  Aud->format   = sfinfo.format;
-
-  printf("--CHANNELS : %d\n", Aud->channels);
-  printf("--SAMPLE RATE : %d\n", Aud->sr);
-  printf("--FORMAT : %x\n", Aud->format);
-#ifdef _WIN32
-  printf("--FRAMES :  %lld\n", sfinfo.frames);
-#endif
-
-#ifdef __linux__
-  printf("--FRAMES :  %ld\n", sfinfo.frames);
-#endif
-
-  Aud->samples     = sfinfo.frames * sfinfo.channels;
-  Aud->total_bytes = Aud->samples * sizeof(f32);
-
-  Aud->buffer = realloc(Aud->buffer, Aud->samples * sizeof(float));
-  if (Aud->buffer == NULL) {
-    return -1;
-  }
-
-  memset(Aud->buffer, 0, Aud->samples * sizeof(float));
-  printf("--BUFFER : %p\n", Aud->buffer);
-
-  sf_count_t num_read = sf_read_float(sndfile, Aud->buffer, Aud->samples);
-  if (num_read < 0) {
-    PRINT_STR_ERR(stderr, "Err reading audio data", strerror(errno));
-    free_ptr(Aud->buffer);
-    sf_close(sndfile);
-    return -1;
-  }
-
-  Aud->wav_len = Aud->samples;
-
-  printf("\n..Done reading. Closing file\n\n");
-  sf_close(sndfile);
-
-  return 0;
 }
 
 void

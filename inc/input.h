@@ -5,6 +5,9 @@
 #include "types.h"
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_types.h>
+
+FontData* find_clicked_theme(FontData col[], const int mouse_arr[]);
+
 void  handle_mouse_click(SDLContext* SDLC, FontContext* FNT, FileContext* FC);
 void  handle_mouse_motion(SDLContext* SDLC, FontContext* FNT, FileContext* FC);
 void  poll_events(AppContext* app);
