@@ -177,12 +177,6 @@ render_set_dir_list(SDLContext* SDLC, FontContext* FNT, int dir_count, SDL_Rect*
     SDL_Rect* font_rect = &df_arr[i].font_rect;
 
     /*GOLEM GET YET GONE*/
-    /*I want to change this to actual logic in the future. It will be simple to do this, as the problem lies
-     * with my point_in_rect function. Since the rectangles for all the items here technically have a position
-     * regardless of them being shown or not, when the mouse clicks, the hitbox is still the unshown rect (x
-     * is 0, y is 0. So top left of the window), so I need to add a condition to the visible items and add a
-     * check using that variable. or I can just keep this method as they need to be out of the way for the
-     * displayed fonts*/
     font_rect->y = 0;
     font_rect->x = (width + width);
   }
@@ -227,12 +221,6 @@ render_set_song_list(SDLContext* SDLC, FontContext* FNT, int file_count, SDL_Rec
     SDL_Rect* font_rect = &sf_arr[i].font_rect;
 
     // GOLEM GET YE GONE
-    /*I want to change this to actual logic in the future. It will be simple to do this, as the problem lies
-     * with my point_in_rect function. Since the rectangles for all the items here technically have a position
-     * regardless of them being shown or not, when the mouse clicks, the hitbox is still the unshown rect (x
-     * is 0, y is 0. So top left of the window), so I need to add a condition to the visible items and add a
-     * check using that variable. or I can just keep this method as they need to be out of the way for the
-     * displayed fonts*/
     font_rect->y = 0;
     font_rect->x = (width + width);
   }
