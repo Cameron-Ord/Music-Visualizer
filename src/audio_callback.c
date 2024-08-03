@@ -1,6 +1,7 @@
 
 #include "../inc/audio.h"
 #include "../inc/music_visualizer.h"
+#include "../inc/utils.h"
 
 void
 callback(void* data, Uint8* stream, int len) {
@@ -35,12 +36,4 @@ callback(void* data, Uint8* stream, int len) {
     fprintf(stdout, "End reached.. Starting next song.\n");
     SSPtr->pb_state->song_ended = TRUE;
   }
-}
-
-int
-check_pos(u32 audio_pos, u32 len) {
-  if (audio_pos > 0 && audio_pos < len) {
-    return 1;
-  }
-  return 0;
 }

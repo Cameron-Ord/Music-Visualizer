@@ -3,6 +3,7 @@
 #include "../inc/input.h"
 #include "../inc/music_visualizer.h"
 #include "../inc/render.h"
+#include "../inc/utils.h"
 
 SDL_Surface*
 create_font_surface(TTF_Font** font, SDL_Color color, char* text) {

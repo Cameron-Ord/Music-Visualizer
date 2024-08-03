@@ -35,9 +35,5 @@ void  start_song_from_menu(SDLContext* SDLC, FileContext* FC, FontContext* FNT);
 void  scroll_in_rect(const int mouse_arr[], SDLContext* SDLC, FileContext* FC, char* sign);
 void  handle_mouse_wheel(Sint32 wheel_y, SDLContext* SDLC, FileContext* FC);
 void  handle_mouse_release(SDLContext* SDLC, FileState* FS);
-int   point_in_rect(int x, int y, SDL_Rect rect);
-int   within_bounds_x(int x, int start, int end);
-char* check_sign(int num);
-int   status_check(i8 status[]);
 
 #endif

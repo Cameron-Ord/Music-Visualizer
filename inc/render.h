@@ -24,7 +24,7 @@ void  set_seek_bar(SeekBar* SkBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_
 void  set_vol_bar(VolBar* VBar, AudioData* Aud, SDL_Rect* vp, SDL_Rect* icon_rect);
 void  draw_vol_bar(SDL_Renderer* r, SDL_Texture* tex, VolBar* VBar, SDL_Rect* vp, SDL_Color* rgba);
 void  update_window_size(SDLContainer* Cont, SDL_Window* w);
-void  get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt);
+void  get_window_container_size(SDL_Window* w, int* width, int* height);
 void  clear_render(SDL_Renderer* r);
 void  present_render(SDL_Renderer* r);
 void  render_background(SDL_Renderer* r, SDL_Color* rgba);

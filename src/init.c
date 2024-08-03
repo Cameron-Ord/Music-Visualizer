@@ -1,7 +1,10 @@
 #include "../inc/init.h"
 #include "../inc/audio.h"
 #include "../inc/font.h"
-#include "../inc/music_visualizer.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 int
 initialize_SDL() {
@@ -80,11 +83,6 @@ initialize_sdl_image() {
   }
 
   return 0;
-}
-
-void
-get_window_container_size(SDL_Window* w, SDLContainer* SDLCnt) {
-  SDL_GetWindowSize(w, &SDLCnt->win_width, &SDLCnt->win_height);
 }
 
 void

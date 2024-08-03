@@ -5,10 +5,10 @@
 #include "../inc/input.h"
 #include "../inc/music_visualizer.h"
 #include "../inc/render.h"
+#include "../inc/utils.h"
 
 void
 clicked_in_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const int mouse_x, const int mouse_y) {
-
   SDLSprites*   Spr        = SDLC->sprites;
   SDLViewports* Vps        = SDLC->container->vps;
   SongState*    SSPtr      = SDLC->SSPtr;
@@ -169,10 +169,6 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
   i8 song_fonts_created = FNT->state->song_fonts_created;
   i8 dir_fonts_created  = FNT->state->dir_fonts_created;
 
-  Positions* Pos = FNT->pos;
-
-  // This rect is basically the pivot and doesnt require any offsets for cordinates
-
   if (dir_fonts_created) {
     const int mouse_arr[] = { (mouse_x), (mouse_y) };
     int       dir_count   = FC->dir_state->dir_count;
@@ -222,7 +218,6 @@ clicked_in_dir_rect(SDLContext* SDLC, FontContext* FNT, FileContext* FC, const i
     LLmtr->song_last_index  = 0;
 
     clear_existing_list(df_arr, song_fonts_created, FC->file_state, selection);
-    reset_songlist_pos(Pos);
 
     /*Getting the regular file names inside the selected directory*/
     FC->file_state->files_exist = FALSE;
@@ -330,7 +325,6 @@ handle_mouse_click(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
 void
 handle_mouse_motion(SDLContext* SDLC, FontContext* FNT, FileContext* FC) {
   int mouse_x, mouse_y;
-
   int playing_song      = SDLC->SSPtr->pb_state->playing_song;
   i8  scrollbar_latched = SDLC->SSPtr->seek_bar->latched;
   i8  volbar_latched    = SDLC->SSPtr->vol_bar->latched;
