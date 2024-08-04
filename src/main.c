@@ -27,6 +27,18 @@ main(int argc, char* argv[]) {
   fprintf(stdout, "LOG PATH -> %s\n", SDLChunk.log_path);
   fprintf(stderr, "ERROR LOG PATH -> %s\n", SDLChunk.err_log_path);
 
+  FILE* stdout_file = freopen(SDLChunk.log_path, "a", stdout);
+  if (stdout_file != NULL) {
+  } else {
+    PRINT_STR_ERR(stderr, "Error redirecting STDOUT to file", strerror(errno));
+  }
+
+  FILE* stderr_file = freopen(SDLChunk.err_log_path, "a", stderr);
+  if (stderr_file != NULL) {
+  } else {
+    PRINT_STR_ERR(stderr, "Error redirecting STDERR to file", strerror(errno));
+  }
+
   // default to 4
   LLmtr.amount_to_display = 4;
 
@@ -343,9 +355,11 @@ main(int argc, char* argv[]) {
   fprintf(stdout, "Quiting SDL2..\n");
   SDL_Quit();
 
-  fprintf(stdout, "Closing streams\n");
-  fclose(stdout);
-  fclose(stderr);
-
+  if (stdout_file) {
+    fclose(stdout_file);
+  }
+  if (stderr_file) {
+    fclose(stderr_file);
+  }
   return 0;
 }

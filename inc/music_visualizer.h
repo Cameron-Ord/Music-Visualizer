@@ -82,8 +82,9 @@ struct SDLContext {
   SDL_AudioDeviceID audio_dev;
   i8                running;
   i8                viewing_settings;
-  char              log_path[PATH_MAX];
-  char              err_log_path[PATH_MAX];
+
+  char log_path[PATH_MAX];
+  char err_log_path[PATH_MAX];
 
   struct SDLSprites*       sprites;
   struct SDLContainer*     container;

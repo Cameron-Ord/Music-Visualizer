@@ -4,7 +4,6 @@
 
 int
 read_to_buffer(FileContext* FC, SongState* SS, FourierTransform* FT) {
-
   char* home = getenv(get_platform_env());
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Err getting home DIR", strerror(errno));
