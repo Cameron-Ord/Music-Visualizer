@@ -5,14 +5,14 @@
 
 f32
 clamp(f32 vol, f32 amount, f32 min, f32 max) {
-  f32 sum = vol += amount;
-  if (sum < min) {
+  vol += amount;
+  if (vol < min) {
     return min;
   }
-  if (sum > max) {
+  if (vol > max) {
     return max;
   }
-  return sum;
+  return vol;
 }
 
 char*
@@ -96,4 +96,17 @@ find_clicked_dir(FontData df_arr[], int dir_count, const int mouse_arr[]) {
 void
 get_window_container_size(SDL_Window* w, int* width, int* height) {
   SDL_GetWindowSize(w, width, height);
+}
+
+int
+check_buffer_bounds(int MAX, int MIN, int SIZE) {
+  if (SIZE <= MIN) {
+    return 0;
+  }
+
+  if (SIZE > MAX) {
+    return 0;
+  }
+
+  return 1;
 }

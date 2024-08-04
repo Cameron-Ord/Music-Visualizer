@@ -1,4 +1,5 @@
 #include "../inc/music_visualizer.h"
+#include "../inc/utils.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,6 +76,7 @@ PathContainer
 setup_dirs() {
   struct PathContainer p = { 0 };
 
+  int   written;
   char* home = getenv(get_platform_env());
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Error getting home ENV", strerror(errno));
@@ -85,8 +87,13 @@ setup_dirs() {
   char   path[PATH_MAX];
   mode_t mode = S_IRWXU;
 
-  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s", home, get_slash(), get_slash(),
-           get_slash());
+  written = snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s", home, get_slash(), get_slash(),
+                     get_slash());
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
+    p.is_valid = FALSE;
+    return p;
+  }
 
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
@@ -102,8 +109,14 @@ setup_dirs() {
     }
   }
 
-  snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(),
-           get_slash());
+  memset(path, '0', sizeof(char) * PATH_MAX);
+  written = snprintf(path, PATH_MAX * sizeof(char), "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(),
+                     get_slash());
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
+    p.is_valid = FALSE;
+    return p;
+  }
 
   if (make_directory(path, mode) == 0) {
     if (chmod_dir(path, mode) != 0) {
@@ -122,10 +135,10 @@ setup_dirs() {
 
   // snprintf returns a negative number if encoding failed.
 
-  int err;
-  err = snprintf(p.log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(),
-                 get_slash(), get_slash(), "log.txt");
-  if (err < 0) {
+  written = snprintf(p.log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(),
+                     get_slash(), get_slash(), "log.txt");
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
     p.is_valid = FALSE;
     return p;
   }
@@ -135,9 +148,10 @@ setup_dirs() {
   // return;
   //}
 
-  err = snprintf(p.err_log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home, get_slash(),
-                 get_slash(), get_slash(), "errlog.txt");
-  if (err < 0) {
+  written = snprintf(p.err_log_path_cpy, PATH_MAX * sizeof(char), "%s%sMusic%sfftmlogs%s%s", home,
+                     get_slash(), get_slash(), get_slash(), "errlog.txt");
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
     p.is_valid = FALSE;
     return p;
   }
@@ -159,14 +173,19 @@ fetch_dirs(DirState* DS) {
   struct dirent* entry;
   int            dir_count = 0;
   char*          home      = getenv(get_platform_env());
-
   if (home == NULL) {
     PRINT_STR_ERR(stderr, "Failed to get home ENV", strerror(errno));
     return -1;
   }
 
+  int  written;
   char path[PATH_MAX];
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(), get_slash());
+
+  written = snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s", home, get_slash(), get_slash(), get_slash());
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
+    return -1;
+  }
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -183,20 +202,15 @@ fetch_dirs(DirState* DS) {
         return -1;
       }
 
-      const size_t size_offset = strlen(entry->d_name);
-
-      char   full_path[PATH_MAX + size_offset];
-      size_t required_len = strlen(path) + strlen(entry->d_name);
-
-      if (required_len < PATH_MAX + size_offset) {
-        snprintf(full_path, sizeof(char) * (PATH_MAX + size_offset), "%s%s", path, entry->d_name);
-      } else {
-        fprintf(stderr, "Exceeded maximum path length!\n");
+      char full_path[PATH_MAX];
+      written = snprintf(full_path, sizeof(char) * PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(),
+                         get_slash(), get_slash(), entry->d_name);
+      if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+        fprintf(stderr, "Buffer exceeded or does not contain path\n");
         return -1;
       }
 
       struct stat statbuf;
-
       if (stat(full_path, &statbuf) != 0) {
         fprintf(stderr, "stat failed on %s: %s\n", full_path, strerror(errno));
         break;
@@ -225,10 +239,18 @@ fetch_dirs(DirState* DS) {
 
           /*It really do be the easiest way*/
 
-          snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(), get_slash(),
-                   get_slash(), entry->d_name);
-          snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(), get_slash(),
-                   get_slash(), duped_name);
+          written = snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(),
+                             get_slash(), get_slash(), entry->d_name);
+          if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+            fprintf(stderr, "Buffer exceeded or does not contain path\n");
+            return -1;
+          }
+          written = snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s", home, get_slash(),
+                             get_slash(), get_slash(), duped_name);
+          if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+            fprintf(stderr, "Buffer exceeded or does not contain path\n");
+            return -1;
+          }
 
           rename(input_path, output_path);
         }
@@ -251,7 +273,7 @@ fetch_dirs(DirState* DS) {
 
 int
 fetch_files(FileState* FS) {
-
+  int            written;
   char***        files        = &FS->files;
   char*          selected_dir = FS->selected_dir;
   DIR*           directory;
@@ -264,11 +286,12 @@ fetch_files(FileState* FS) {
     return -1;
   }
   char path[PATH_MAX];
-
-  /*I hate it*/
-
-  snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s", home, get_slash(), get_slash(), get_slash(),
-           selected_dir, get_slash());
+  written = snprintf(path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s", home, get_slash(), get_slash(),
+                     get_slash(), selected_dir, get_slash());
+  if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+    fprintf(stderr, "Buffer exceeded or does not contain path\n");
+    return -1;
+  }
 
   directory = opendir(path);
   if (directory == NULL) {
@@ -277,27 +300,21 @@ fetch_files(FileState* FS) {
   }
 
   while ((entry = readdir(directory)) != NULL) {
-
     char* duped_name = malloc(PATH_MAX * sizeof(char*));
     if (duped_name == NULL) {
       closedir(directory);
       return -1;
     }
 
-    const size_t size_offset = strlen(entry->d_name);
-
-    char   full_path[PATH_MAX + size_offset];
-    size_t required_len = strlen(path) + strlen(entry->d_name);
-
-    if (required_len < PATH_MAX + size_offset) {
-      snprintf(full_path, sizeof(char) * (PATH_MAX + size_offset), "%s%s", path, entry->d_name);
-    } else {
-      fprintf(stderr, "Exceeded maximum path length!\n");
+    char full_path[PATH_MAX];
+    written = snprintf(full_path, sizeof(char) * PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(),
+                       get_slash(), get_slash(), selected_dir, get_slash(), entry->d_name);
+    if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+      fprintf(stderr, "Buffer exceeded or does not contain path\n");
       return -1;
     }
 
     struct stat statbuf;
-
     if (stat(full_path, &statbuf) != 0) {
       fprintf(stderr, "stat failed on %s: %s\n", full_path, strerror(errno));
       break;
@@ -325,12 +342,19 @@ fetch_files(FileState* FS) {
         char input_path[PATH_MAX];
         char output_path[PATH_MAX];
 
-        /*My eyes bleed*/
+        written = snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(),
+                           get_slash(), get_slash(), selected_dir, get_slash(), entry->d_name);
+        if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+          fprintf(stderr, "Buffer exceeded or does not contain path\n");
+          return -1;
+        }
 
-        snprintf(input_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(), get_slash(),
-                 get_slash(), selected_dir, get_slash(), entry->d_name);
-        snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(), get_slash(),
-                 get_slash(), selected_dir, get_slash(), duped_name);
+        written = snprintf(output_path, PATH_MAX, "%s%sMusic%sfftmplayer%s%s%s%s", home, get_slash(),
+                           get_slash(), get_slash(), selected_dir, get_slash(), duped_name);
+        if (check_buffer_bounds(PATH_MAX, 0, written) != 1) {
+          fprintf(stderr, "Buffer exceeded or does not contain path\n");
+          return -1;
+        }
 
         rename(input_path, output_path);
       }
