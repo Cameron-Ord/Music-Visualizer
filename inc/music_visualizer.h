@@ -11,8 +11,11 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#else
+#include <limits.h>
+#endif
 #include <math.h>
 #include <sndfile.h>
 #include <stdio.h>

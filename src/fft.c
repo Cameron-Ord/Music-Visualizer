@@ -44,7 +44,7 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
-  const size_t half_size = (size_t)BUFF_SIZE / 2;
+  const size_t half_size = (size_t)DOUBLE_BUFF / 2;
 
   // Gonna have to break this up because looking at it is a little difficult
 
@@ -58,15 +58,15 @@ generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
 
   swap_buffers(bufs->cpy_ptr, bufs->in_cpy_prim, bufs->in_cpy_sec);
 
-  fft_func(bufs->pre_ptr, 1, bufs->raw_ptr, (size_t)BUFF_SIZE);
+  fft_func(bufs->pre_ptr, 1, bufs->raw_ptr, half_size);
 
   swap_buffers(bufs->pre_ptr, bufs->pre_raw_prim, bufs->pre_raw_sec);
 
-  memcpy(bufs->post_ptr, bufs->raw_ptr, sizeof(f32c) * BUFF_SIZE);
+  memcpy(bufs->post_ptr, bufs->raw_ptr, sizeof(f32c) * half_size);
 
   swap_buffers(bufs->raw_ptr, bufs->out_raw_prim, bufs->out_raw_sec);
 
-  squash_to_log(half_size, bufs->post_ptr, bufs->proc_ptr, &data->max_ampl, &data->output_len, SR);
+  squash_to_log(half_size / 2, bufs->post_ptr, bufs->proc_ptr, &data->max_ampl, &data->output_len, SR);
 
   swap_buffers(bufs->post_ptr, bufs->post_raw_prim, bufs->post_raw_sec);
 
@@ -83,18 +83,16 @@ void
 hamming_window(f32* in_cpy) {
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
-    f32 left  = in_cpy[i * 2];
-    f32 right = in_cpy[i * 2 + 1];
+    f32* left  = &in_cpy[i * 2];
+    f32* right = &in_cpy[i * 2 + 1];
 
     float Nf = (float)BUFF_SIZE;
     float t  = (float)i / (Nf - 1);
     /*Calculate the hamming window*/
     float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
 
-    left *= hamm;
-    right *= hamm;
-
-    in_cpy[i] = (left + right) / 2;
+    *left *= hamm;
+    *right *= hamm;
   }
 }
 
