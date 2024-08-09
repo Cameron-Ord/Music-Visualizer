@@ -60,16 +60,6 @@ load_song(SDLContext* SDLC, FileContext* FC, FontContext* FNT) {
   play_song(FC->file_state, &PBPtr->is_paused, &SDLC->audio_dev);
   start_song(&PBPtr->playing_song);
   instantiate_buffers(FTBufsPtr);
-
-  FTBufsPtr->in_ptr        = FTBufsPtr->fft_in_prim;
-  FTBufsPtr->cpy_ptr       = FTBufsPtr->in_cpy_prim;
-  FTBufsPtr->pre_ptr       = FTBufsPtr->pre_raw_prim;
-  FTBufsPtr->raw_ptr       = FTBufsPtr->out_raw_prim;
-  FTBufsPtr->proc_ptr      = FTBufsPtr->processed_prim;
-  FTBufsPtr->smoothed_ptr  = FTBufsPtr->smoothed_prim;
-  FTBufsPtr->post_ptr      = FTBufsPtr->post_raw_prim;
-  FTBufsPtr->visual_buffer = NULL;
-
   *buffers_ready = TRUE;
 }
 

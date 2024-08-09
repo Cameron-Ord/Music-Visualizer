@@ -8,35 +8,6 @@ change_volume(f32* vol, f32 amount) {
 }
 
 void
-swap_buffers(void* ptr, void* prim, void* sec) {
-  if (ptr == NULL) {
-    ptr = prim;
-    return;
-  }
-
-  if (ptr == prim) {
-    ptr = sec;
-    return;
-  }
-
-  if (ptr == sec) {
-    ptr = prim;
-    return;
-  }
-}
-
-void
-set_visual_buffer(f32* vis_ptr, f32* buf_ptr) {
-  if (buf_ptr == NULL) {
-    return;
-  }
-
-  if (vis_ptr != buf_ptr) {
-    vis_ptr = buf_ptr;
-  }
-}
-
-void
 update_audio_position(AudioData* ADta, SeekBar* SKBar, SDL_Rect vp) {
   const int ttl_length       = vp.w * TWO_TENTHS;
   const int current_position = SKBar->seek_box.x;

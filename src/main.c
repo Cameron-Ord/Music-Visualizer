@@ -178,7 +178,6 @@ main(int argc, char* argv[]) {
   FTransformBuffers FTransBufs = { 0 };
 
   FTransData.max_ampl = 1.0f;
-  FTransBufs.in_ptr   = NULL;
 
   instantiate_buffers(&FTransBufs);
 

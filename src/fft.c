@@ -35,7 +35,7 @@ void
 fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
     u32  audio_pos = SS->audio_data->audio_pos;
-    f32* in_buf    = FT->fft_buffers->in_ptr;
+    f32* in_buf    = FT->fft_buffers->fft_in_prim;
     f32* aud_buf   = SS->audio_data->buffer;
 
     memcpy(in_buf, aud_buf + audio_pos, bytes);
@@ -45,38 +45,14 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 void
 generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
   const size_t half_size = (size_t)DOUBLE_BUFF / 2;
-
-  // Gonna have to break this up because looking at it is a little difficult
-
-  memcpy(bufs->cpy_ptr, bufs->in_ptr, sizeof(f32) * DOUBLE_BUFF);
-
-  swap_buffers(bufs->in_ptr, bufs->fft_in_prim, bufs->fft_in_sec);
-
-  hamming_window(bufs->cpy_ptr);
-
-  memcpy(bufs->pre_ptr, bufs->cpy_ptr, sizeof(f32) * DOUBLE_BUFF);
-
-  swap_buffers(bufs->cpy_ptr, bufs->in_cpy_prim, bufs->in_cpy_sec);
-
-  fft_func(bufs->pre_ptr, 1, bufs->raw_ptr, half_size);
-
-  swap_buffers(bufs->pre_ptr, bufs->pre_raw_prim, bufs->pre_raw_sec);
-
-  memcpy(bufs->post_ptr, bufs->raw_ptr, sizeof(f32c) * half_size);
-
-  swap_buffers(bufs->raw_ptr, bufs->out_raw_prim, bufs->out_raw_sec);
-
-  squash_to_log(half_size / 2, bufs->post_ptr, bufs->proc_ptr, &data->max_ampl, &data->output_len, SR);
-
-  swap_buffers(bufs->post_ptr, bufs->post_raw_prim, bufs->post_raw_sec);
-
-  apply_smoothing(data->output_len, data->max_ampl, bufs->proc_ptr, bufs->smoothed_ptr);
-
-  swap_buffers(bufs->proc_ptr, bufs->processed_prim, bufs->processed_sec);
-
-  set_visual_buffer(bufs->visual_buffer, bufs->smoothed_ptr);
-
-  swap_buffers(bufs->smoothed_ptr, bufs->smoothed_prim, bufs->smoothed_sec);
+  memcpy(bufs->in_cpy_prim, bufs->fft_in_prim, sizeof(f32) * DOUBLE_BUFF);
+  hamming_window(bufs->in_cpy_prim);
+  memcpy(bufs->pre_raw_prim, bufs->in_cpy_prim, sizeof(f32) * DOUBLE_BUFF);
+  fft_func(bufs->pre_raw_prim, 1, bufs->out_raw_prim, half_size);
+  memcpy(bufs->post_raw_prim, bufs->out_raw_prim, sizeof(f32c) * half_size);
+  squash_to_log(half_size / 2, bufs->post_raw_prim, bufs->processed_prim, &data->max_ampl, &data->output_len,
+                SR);
+  apply_smoothing(data->output_len, data->max_ampl, bufs->processed_prim, bufs->smoothed_prim);
 } /*generate_visual*/
 
 void
@@ -142,6 +118,6 @@ apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed) {
 
   for (size_t i = 0; i < len; ++i) {
     processed[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 7 * (1.0 / FPS);
+    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 8 * (1.0 / FPS);
   }
 }

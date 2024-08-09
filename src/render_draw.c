@@ -98,11 +98,7 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
   }
 
   SDL_RenderSetViewport(SDLC->r, vp);
-
-  f32* out = SDLC->FTPtr->fft_buffers->smoothed_ptr;
-  if (out == NULL) {
-    return;
-  }
+  f32* out = SDLC->FTPtr->fft_buffers->smoothed_prim;
 
   i16 cell_width = vp->w / out_len;
   int h          = vp->h;
