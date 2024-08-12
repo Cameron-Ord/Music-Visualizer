@@ -117,12 +117,14 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
     SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
     SDL_RenderFillRect(SDLC->r, &sample_end);
 
-    int      start_x_pos  = (i * (int)(cell_width + cell_width / 2));
-    int      start_y_pos  = h - ((float)h * start);
-    SDL_Rect sample_start = { start_x_pos, start_y_pos, cell_width, end_y_pos - start_y_pos };
+    int start_x_pos = (i * (int)(cell_width + cell_width / 2));
+    int start_y_pos = h - ((float)h * start);
 
-    SDL_SetRenderDrawColor(SDLC->r, rgba_s->r, rgba_s->g, rgba_s->b, rgba_s->a);
-    SDL_RenderFillRect(SDLC->r, &sample_start);
+    if (end_y_pos > start_y_pos) {
+      SDL_Rect sample_start = { start_x_pos, start_y_pos, cell_width, end_y_pos - start_y_pos };
+      SDL_SetRenderDrawColor(SDLC->r, rgba_s->r, rgba_s->g, rgba_s->b, rgba_s->a);
+      SDL_RenderFillRect(SDLC->r, &sample_start);
+    }
   }
 }
 
