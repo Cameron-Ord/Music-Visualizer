@@ -62,10 +62,8 @@ hamming_window(f32* in_cpy, f32* pre_raw_ptr) {
     float t  = (float)i / (Nf - 1);
     /*Calculate the hamming window*/
     float hamm     = 0.54 - 0.46 * cosf(2 * M_PI * t);
-    pre_raw_ptr[i] = in_cpy[i * 2] + in_cpy[i * 2 + 1];
-    pre_raw_ptr[i] /= 2;
+    pre_raw_ptr[i] = MAX(in_cpy[i * 2], in_cpy[i * 2 + 1]);
     pre_raw_ptr[i] *= hamm;
-    // averaging the channels into a seperate buffer
   }
 }
 
