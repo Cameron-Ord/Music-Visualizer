@@ -24,8 +24,6 @@ callback(void* data, Uint8* stream, int len) {
     f32_stream[i] = buf[i + *audio_pos] * Aud->volume;
   }
 
-  // memmove(f32_stream, Aud->buffer + Aud->audio_pos, sizeof(f32) * samples_to_copy);
-
   if (check_pos(*audio_pos, *wav_len)) {
     fft_push(FTPtr, SSPtr, SDLCPtr->spec.channels, samples_to_copy * sizeof(float));
   }

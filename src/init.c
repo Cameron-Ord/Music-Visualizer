@@ -4,6 +4,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_render.h>
 #include <SDL2/SDL_ttf.h>
 
 int
@@ -94,4 +95,5 @@ instantiate_buffers(FTransformBuffers* bufs) {
   memset(bufs->post_raw, 0, BUFF_SIZE * sizeof(f32));
   memset(bufs->processed, 0, HALF_BUFF * sizeof(f32));
   memset(bufs->smoothed, 0, HALF_BUFF * sizeof(f32));
+  memset(bufs->smear, 0, HALF_BUFF * sizeof(f32));
 }

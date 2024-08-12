@@ -87,6 +87,7 @@ void
 render_bars(SDLContext* SDLC, SDL_Rect* vp) {
   int        out_len = SDLC->FTPtr->fft_data->output_len;
   SDL_Color* rgba    = &SDLC->container->theme->tertiary;
+  SDL_Color* rgba_s  = &SDLC->container->theme->textbg;
 
   if (out_len == 0) {
     PRINT_STR_ERR(stderr, "Audio processing returned empty buffer, stopping.. -> current errno : %s",
@@ -98,21 +99,30 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
   }
 
   SDL_RenderSetViewport(SDLC->r, vp);
-  f32* out = SDLC->FTPtr->fft_buffers->smoothed;
 
-  i16 cell_width = vp->w / out_len;
-  int h          = vp->h;
+  f32* smooth_buff = SDLC->FTPtr->fft_buffers->smoothed;
+  f32* smear_buff  = SDLC->FTPtr->fft_buffers->smear;
+  i16  cell_width  = vp->w / out_len;
+  int  h           = vp->h;
 
   for (int i = 0; i < out_len; ++i) {
-    float t          = out[i];
-    int   x_pos      = (i * (int)(cell_width + cell_width / 2));
-    int   y_pos      = h - ((float)h * t);
-    int   bar_height = (float)h * t;
+    float start = smear_buff[i];
+    float end   = smooth_buff[i];
 
-    SDL_Rect sample_plus = { x_pos, y_pos, cell_width, bar_height };
+    int      end_x_pos      = (i * (int)(cell_width + cell_width / 2));
+    int      end_y_pos      = h - ((float)h * end);
+    int      end_bar_height = end * h;
+    SDL_Rect sample_end     = { end_x_pos, end_y_pos, cell_width, end_bar_height };
 
     SDL_SetRenderDrawColor(SDLC->r, rgba->r, rgba->g, rgba->b, rgba->a);
-    SDL_RenderFillRect(SDLC->r, &sample_plus);
+    SDL_RenderFillRect(SDLC->r, &sample_end);
+
+    int      start_x_pos  = (i * (int)(cell_width + cell_width / 2));
+    int      start_y_pos  = h - ((float)h * start);
+    SDL_Rect sample_start = { start_x_pos, start_y_pos, cell_width, end_y_pos - start_y_pos };
+
+    SDL_SetRenderDrawColor(SDLC->r, rgba_s->r, rgba_s->g, rgba_s->b, rgba_s->a);
+    SDL_RenderFillRect(SDLC->r, &sample_start);
   }
 }
 

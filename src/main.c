@@ -331,7 +331,7 @@ main(int argc, char* argv[]) {
   update_window_size(SDLChunk.container, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);
 
-  u32 frame_start;
+  u64 frame_start;
   int frame_time;
 
   while (SDLChunk.running == TRUE) {

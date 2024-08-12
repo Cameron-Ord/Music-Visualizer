@@ -65,6 +65,7 @@ struct FTransformBuffers {
   f32c post_raw[BUFF_SIZE];
   f32  processed[HALF_BUFF];
   f32  smoothed[HALF_BUFF];
+  f32  smear[HALF_BUFF];
 };
 
 struct FTransformData {
@@ -111,6 +112,7 @@ void              fft_push(FourierTransform* FT, SongState* SS, int channels, in
 void              hamming_window(f32* in_cpy, f32* pre_raw_ptr);
 void              instantiate_buffers(FTransformBuffers* bufs);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
+void              apply_smear(size_t len, f32* smooth, f32* smear);
 void              reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
 
 #endif

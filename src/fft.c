@@ -1,4 +1,5 @@
 #include "../inc/audio.h"
+#include <SDL2/SDL_timer.h>
 #include <complex.h>
 #include <math.h>
 #include <string.h>
@@ -9,7 +10,6 @@
 
 void
 fft_func(f32* in, size_t stride, f32c* out, size_t n) {
-
   if (n == 1) {
     out[0] = in[0];
     return;
@@ -51,25 +51,21 @@ generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
   memcpy(bufs->post_raw, bufs->out_raw, sizeof(f32c) * BUFF_SIZE);
   squash_to_log(HALF_BUFF, bufs->post_raw, bufs->processed, &data->max_ampl, &data->output_len, SR);
   apply_smoothing(data->output_len, data->max_ampl, bufs->processed, bufs->smoothed);
+  apply_smear(data->output_len, bufs->smoothed, bufs->smear);
 } /*generate_visual*/
 
 void
 hamming_window(f32* in_cpy, f32* pre_raw_ptr) {
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
-    f32* left  = &in_cpy[i * 2];
-    f32* right = &in_cpy[i * 2 + 1];
-
     float Nf = (float)BUFF_SIZE;
     float t  = (float)i / (Nf - 1);
     /*Calculate the hamming window*/
-    float hamm = 0.54 - 0.46 * cosf(2 * M_PI * t);
-
-    *left *= hamm;
-    *right *= hamm;
-
-    // Grabbing the max value from either channel
-    pre_raw_ptr[i] = MAX(*left, *right);
+    float hamm     = 0.54 - 0.46 * cosf(2 * M_PI * t);
+    pre_raw_ptr[i] = in_cpy[i * 2] + in_cpy[i * 2 + 1];
+    pre_raw_ptr[i] /= 2;
+    pre_raw_ptr[i] *= hamm;
+    // averaging the channels into a seperate buffer
   }
 }
 
@@ -116,9 +112,15 @@ amp(f32c z) {
 void
 apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed) {
   /*Linear smoothing*/
-
   for (size_t i = 0; i < len; ++i) {
     processed[i] /= max_ampl;
-    smoothed[i] = smoothed[i] + (processed[i] - smoothed[i]) * 8 * (1.0 / FPS);
+    smoothed[i] += (processed[i] - smoothed[i]) * 8 * (1.0 / FPS);
+  }
+}
+
+void
+apply_smear(size_t len, f32* smooth, f32* smear) {
+  for (size_t i = 0; i < len; ++i) {
+    smear[i] += (smooth[i] - smear[i]) * 5 * (1.0 / FPS);
   }
 }
