@@ -58,13 +58,13 @@ struct SongState {
 };
 
 struct FTransformBuffers {
-  f32  fft_in_prim[DOUBLE_BUFF];
-  f32  in_cpy_prim[DOUBLE_BUFF];
-  f32  pre_raw_prim[DOUBLE_BUFF];
-  f32c post_raw_prim[DOUBLE_BUFF];
-  f32c out_raw_prim[DOUBLE_BUFF];
-  f32  processed_prim[DOUBLE_BUFF];
-  f32  smoothed_prim[DOUBLE_BUFF];
+  f32  fft_in[DOUBLE_BUFF];
+  f32  in_cpy[DOUBLE_BUFF];
+  f32  pre_raw[BUFF_SIZE];
+  f32c out_raw[BUFF_SIZE];
+  f32c post_raw[BUFF_SIZE];
+  f32  processed[HALF_BUFF];
+  f32  smoothed[HALF_BUFF];
 };
 
 struct FTransformData {
@@ -108,7 +108,7 @@ float             amp(float _Complex z);
 void              generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR);
 void              fft_func(f32* in, size_t stride, f32c* out, size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
-void              hamming_window(f32* in_cpy);
+void              hamming_window(f32* in_cpy, f32* pre_raw_ptr);
 void              instantiate_buffers(FTransformBuffers* bufs);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
 void              reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);

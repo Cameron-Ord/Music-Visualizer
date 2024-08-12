@@ -26,7 +26,6 @@ if [ -d "${working_dir}/tempdump" ]; then
   cd win64
   win_path=$(pwd)
   buffer=("$win_path"/*)
-
   for item in "${buffer[@]}"; do
     if [ -f "$item" ]; then
       rm $item
@@ -40,6 +39,7 @@ if [ -d "${working_dir}/tempdump" ]; then
   wget "https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/${WINSDLIMG}.zip"
   wget "https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.22.0/${WINSDLTTF}.zip"
 
+  buffer=("$win_path"/*)
   for item in "${buffer[@]}"; do
     if [ -f "$item" ]; then
       ext="${item##*.}"
@@ -71,7 +71,7 @@ if [ -d "${working_dir}/tempdump" ]; then
   fi
 
   current_location=$(pwd)
-
+  buffer=("$win_path"/*)
   for item in "${buffer[@]}"; do
     if [ -d "$item" ]; then
       # If the path string contains libsndfile or sdl

@@ -35,7 +35,7 @@ void
 fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
   if (channels == 2) {
     u32  audio_pos = SS->audio_data->audio_pos;
-    f32* in_buf    = FT->fft_buffers->fft_in_prim;
+    f32* in_buf    = FT->fft_buffers->fft_in;
     f32* aud_buf   = SS->audio_data->buffer;
 
     memcpy(in_buf, aud_buf + audio_pos, bytes);
@@ -44,19 +44,17 @@ fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes) {
 
 void
 generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
-  const size_t half_size = (size_t)DOUBLE_BUFF / 2;
-  memcpy(bufs->in_cpy_prim, bufs->fft_in_prim, sizeof(f32) * DOUBLE_BUFF);
-  hamming_window(bufs->in_cpy_prim);
-  memcpy(bufs->pre_raw_prim, bufs->in_cpy_prim, sizeof(f32) * DOUBLE_BUFF);
-  fft_func(bufs->pre_raw_prim, 1, bufs->out_raw_prim, half_size);
-  memcpy(bufs->post_raw_prim, bufs->out_raw_prim, sizeof(f32c) * half_size);
-  squash_to_log(half_size / 2, bufs->post_raw_prim, bufs->processed_prim, &data->max_ampl, &data->output_len,
-                SR);
-  apply_smoothing(data->output_len, data->max_ampl, bufs->processed_prim, bufs->smoothed_prim);
+  memcpy(bufs->in_cpy, bufs->fft_in, sizeof(f32) * DOUBLE_BUFF);
+  memset(bufs->out_raw, 0, sizeof(f32c) * BUFF_SIZE);
+  hamming_window(bufs->in_cpy, bufs->pre_raw);
+  fft_func(bufs->pre_raw, 1, bufs->out_raw, BUFF_SIZE);
+  memcpy(bufs->post_raw, bufs->out_raw, sizeof(f32c) * BUFF_SIZE);
+  squash_to_log(HALF_BUFF, bufs->post_raw, bufs->processed, &data->max_ampl, &data->output_len, SR);
+  apply_smoothing(data->output_len, data->max_ampl, bufs->processed, bufs->smoothed);
 } /*generate_visual*/
 
 void
-hamming_window(f32* in_cpy) {
+hamming_window(f32* in_cpy, f32* pre_raw_ptr) {
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
     f32* left  = &in_cpy[i * 2];
@@ -69,6 +67,9 @@ hamming_window(f32* in_cpy) {
 
     *left *= hamm;
     *right *= hamm;
+
+    // Grabbing the max value from either channel
+    pre_raw_ptr[i] = MAX(*left, *right);
   }
 }
 

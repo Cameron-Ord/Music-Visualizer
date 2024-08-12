@@ -87,11 +87,11 @@ initialize_sdl_image() {
 
 void
 instantiate_buffers(FTransformBuffers* bufs) {
-  memset(bufs->out_raw_prim, 0, DOUBLE_BUFF * sizeof(f32c));
-  memset(bufs->in_cpy_prim, 0, DOUBLE_BUFF * sizeof(f32c));
-  memset(bufs->processed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->smoothed_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->fft_in_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->pre_raw_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
-  memset(bufs->post_raw_prim, 0, (DOUBLE_BUFF) * sizeof(f32));
+  memset(bufs->fft_in, 0, DOUBLE_BUFF * sizeof(f32));
+  memset(bufs->in_cpy, 0, DOUBLE_BUFF * sizeof(f32c));
+  memset(bufs->pre_raw, 0, BUFF_SIZE * sizeof(f32));
+  memset(bufs->out_raw, 0, BUFF_SIZE * sizeof(f32c));
+  memset(bufs->post_raw, 0, BUFF_SIZE * sizeof(f32));
+  memset(bufs->processed, 0, HALF_BUFF * sizeof(f32));
+  memset(bufs->smoothed, 0, HALF_BUFF * sizeof(f32));
 }
