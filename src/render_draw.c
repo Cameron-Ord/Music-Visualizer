@@ -110,7 +110,7 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
     float end   = smooth_buff[i];
 
     int      end_x_pos      = (i * (int)(cell_width + cell_width / 2));
-    int      end_y_pos      = h - ((float)h * end);
+    int      end_y_pos      = h - (end * h);
     int      end_bar_height = end * h;
     SDL_Rect sample_end     = { end_x_pos, end_y_pos, cell_width, end_bar_height };
 
@@ -118,7 +118,7 @@ render_bars(SDLContext* SDLC, SDL_Rect* vp) {
     SDL_RenderFillRect(SDLC->r, &sample_end);
 
     int start_x_pos = (i * (int)(cell_width + cell_width / 2));
-    int start_y_pos = h - ((float)h * start);
+    int start_y_pos = h - (start * h);
 
     if (end_y_pos > start_y_pos) {
       SDL_Rect sample_start = { start_x_pos, start_y_pos, cell_width, end_y_pos - start_y_pos };

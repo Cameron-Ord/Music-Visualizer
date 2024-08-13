@@ -1,4 +1,5 @@
 #include "../inc/audio.h"
+#include "../inc/utils.h"
 #include <SDL2/SDL_timer.h>
 #include <complex.h>
 #include <math.h>
@@ -67,8 +68,14 @@ void
 hamming_window(f32* in_cpy, f32* pre_raw_ptr, f32* hamming_values) {
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
-    pre_raw_ptr[i] = MAX(in_cpy[i * 2], in_cpy[i * 2 + 1]);
-    pre_raw_ptr[i] *= hamming_values[i];
+
+    int left  = i * 2;
+    int right = i * 2 + 1;
+
+    if (check_buffer_bounds(BUFF_SIZE, 0, right) && check_buffer_bounds(BUFF_SIZE, 0, left)) {
+      pre_raw_ptr[i] = MAX(in_cpy[left], in_cpy[right]);
+      pre_raw_ptr[i] *= hamming_values[i];
+    }
   }
 }
 
