@@ -75,6 +75,7 @@ struct FTransformData {
   i8        buffers_ready;
   i8        is_processing;
   SDL_Rect* rect_buff;
+  f32       hamming_values[BUFF_SIZE];
 };
 
 struct FourierTransform {
@@ -109,10 +110,11 @@ float             amp(float _Complex z);
 void              generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR);
 void              fft_func(f32* in, size_t stride, f32c* out, size_t n);
 void              fft_push(FourierTransform* FT, SongState* SS, int channels, int bytes);
-void              hamming_window(f32* in_cpy, f32* pre_raw_ptr);
+void              hamming_window(f32* in_cpy, f32* pre_raw_ptr, f32* hamming_values);
 void              instantiate_buffers(FTransformBuffers* bufs);
 void              apply_smoothing(size_t len, f32 max_ampl, f32* processed, f32* smoothed);
 void              apply_smear(size_t len, f32* smooth, f32* smear);
 void              reset_playback_variables(AudioData* AD, PlaybackState* PBste, FTransformData* FTData);
+void              calculate_window(f32* hamming_values);
 
 #endif

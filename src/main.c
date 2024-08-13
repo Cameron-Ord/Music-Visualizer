@@ -327,6 +327,7 @@ main(int argc, char* argv[]) {
   Application.FntPtr = &FontChunk;
   Application.SSPtr  = &AudioChunk;
 
+  calculate_window(FTransData.hamming_values);
   /*Calling update viewports here to instantiate the values and ensure that things are placed relatively*/
   update_window_size(SDLChunk.container, SDLChunk.w);
   resize_fonts(&SDLChunk, &FileChunk, &FontChunk);

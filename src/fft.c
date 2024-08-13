@@ -46,7 +46,7 @@ void
 generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
   memcpy(bufs->in_cpy, bufs->fft_in, sizeof(f32) * DOUBLE_BUFF);
   memset(bufs->out_raw, 0, sizeof(f32c) * BUFF_SIZE);
-  hamming_window(bufs->in_cpy, bufs->pre_raw);
+  hamming_window(bufs->in_cpy, bufs->pre_raw, data->hamming_values);
   fft_func(bufs->pre_raw, 1, bufs->out_raw, BUFF_SIZE);
   memcpy(bufs->post_raw, bufs->out_raw, sizeof(f32c) * BUFF_SIZE);
   squash_to_log(HALF_BUFF, bufs->post_raw, bufs->processed, &data->max_ampl, &data->output_len, SR);
@@ -55,15 +55,20 @@ generate_visual(FTransformData* data, FTransformBuffers* bufs, int SR) {
 } /*generate_visual*/
 
 void
-hamming_window(f32* in_cpy, f32* pre_raw_ptr) {
+calculate_window(f32* hamming_values) {
+  for (int i = 0; i < BUFF_SIZE; ++i) {
+    f32 Nf            = (f32)BUFF_SIZE;
+    f32 t             = (f32)i / (Nf - 1);
+    hamming_values[i] = 0.54 - 0.46 * cosf(2 * M_PI * t);
+  }
+}
+
+void
+hamming_window(f32* in_cpy, f32* pre_raw_ptr, f32* hamming_values) {
   /*Iterate for the size of a single channel*/
   for (int i = 0; i < BUFF_SIZE; ++i) {
-    float Nf = (float)BUFF_SIZE;
-    float t  = (float)i / (Nf - 1);
-    /*Calculate the hamming window*/
-    float hamm     = 0.54 - 0.46 * cosf(2 * M_PI * t);
     pre_raw_ptr[i] = MAX(in_cpy[i * 2], in_cpy[i * 2 + 1]);
-    pre_raw_ptr[i] *= hamm;
+    pre_raw_ptr[i] *= hamming_values[i];
   }
 }
 
