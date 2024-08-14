@@ -14,7 +14,7 @@ I'm still thinking of a name for this program, haven't really thought of anythin
 > - Setting up a settings menu for manipulation of the internal variables of the program.
 
 ## Releases
-I have builds for Windows on x86 architecture at the releases page.
+I have builds for Windows on x64 architecture at the releases page.
 For Linux, go to the build section. Building is relatively easy.
 
 
