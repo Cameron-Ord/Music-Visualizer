@@ -2,6 +2,7 @@
 #include "../include/program_path.hpp"
 
 std::string ProgramPath::join_str(std::string source, std::string add) {
+  source += return_slash();
   return source += add;
 }
 

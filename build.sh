@@ -45,11 +45,11 @@ echo "BUILD STEP" $CC $BUILD_DIR $OBJ_FILES $LD_FLAGS
 
 $CC $OBJ_FILES $LD_FLAGS -o ${working_dir}/${BIN}/${TARGET}
 
-buffer=("${working_dir}/assets/"*)
-for file in "${buffer[@]}"; do
-	cp $file ${working_dir}/${BIN}
-	echo "cp ${file} -> ${working_dir}/${BIN}"
-done
+#buffer=("${working_dir}/assets/"*)
+#for file in "${buffer[@]}"; do
+#cp $file ${working_dir}/${BIN}
+#echo "cp ${file} -> ${working_dir}/${BIN}"
+#done
 
 cd $working_dir
 echo "Build complete."
