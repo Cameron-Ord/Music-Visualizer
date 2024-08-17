@@ -1,0 +1,14 @@
+#ifndef WINDOW_ENTITY_H
+#define WINDOW_ENTITY_H
+#include <SDL2/SDL.h>
+
+class SDL2Window {
+public:
+  SDL2Window();
+  void *create_window(SDL_Window **w);
+  SDL_Window **get_window();
+
+private:
+  SDL_Window *w;
+};
+#endif
