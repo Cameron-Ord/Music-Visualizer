@@ -1,6 +1,7 @@
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
 #include "../include/sdl2_entity.hpp"
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_timer.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@ int main(int argc, char *argv[]) {
   SDL2Renderer rend;
   SDL2Window win;
   SDL2KeyInputs key;
+  SDL2Fonts fonts;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -21,10 +23,12 @@ int main(int argc, char *argv[]) {
   SDL2Window *_window = sdl2.get_window_entity();
   SDL2Renderer *_renderer = sdl2.get_render_entity();
   SDL2KeyInputs *_key_inputs = sdl2.get_key_input_entity();
+  SDL2Fonts *_fonts = sdl2.get_font_entity();
 
   _window = &win;
   _renderer = &rend;
   _key_inputs = &key;
+  _fonts = &fonts;
 
   _window->create_window(_window->get_window());
   if (*_window->get_window() == NULL) {
@@ -41,12 +45,22 @@ int main(int argc, char *argv[]) {
   }
 
   if (!sdl2.initialize_sdl2_events()) {
-    fprintf(stderr, "Failed to initialize SDL2 inputs!\n");
+    fprintf(stderr, "Failed to initialize SDL2 inputs! -> EXIT\n");
     return 1;
   }
 
   if (!sdl2.initialize_sdl2_audio()) {
-    fprintf(stderr, "Failed to initialize SDL2 audio!\n");
+    fprintf(stderr, "Failed to initialize SDL2 audio! -> EXIT\n");
+    return 1;
+  }
+
+  if (!sdl2.initialize_sdl2_image()) {
+    fprintf(stderr, "Failed to initialize SDL2 image! -> EXIT\n");
+    return 1;
+  }
+
+  if (!sdl2.initialize_sdl2_ttf()) {
+    fprintf(stderr, "Failed to initialize SDL2 ttf! -> EXIT\n");
     return 1;
   }
 
@@ -93,10 +107,10 @@ int main(int argc, char *argv[]) {
     rend.render_bg(*rend.get_renderer(), &rgba);
 
     frame_start = SDL_GetTicks64();
-    int event_return = _key_inputs->poll_events();
+    const int event_return = _key_inputs->poll_events();
 
     switch (event_return) {
-    case QUIT_GAME: {
+    case QUIT: {
       sdl2.set_play_state(0);
       break;
     }
@@ -121,6 +135,8 @@ int main(int argc, char *argv[]) {
     fclose(std_err_file);
   }
 
+  IMG_Quit();
+  TTF_Quit();
   SDL_Quit();
   return 0;
 }

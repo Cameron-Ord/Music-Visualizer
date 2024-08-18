@@ -5,6 +5,7 @@ void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {
                           SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (!*r) {
     fprintf(stderr, "Could not create renderer! -> %s", SDL_GetError());
+    SDL_DestroyWindow(*w);
     return NULL;
   }
 
