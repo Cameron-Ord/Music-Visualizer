@@ -56,13 +56,12 @@ int ProgramFiles::fill_directories(std::string src_path, std::string slash) {
         tmp.directory_name += entry->d_name[i];
       }
 
-      fprintf(stdout, "Adding to directories -> %s\n",
-              tmp.directory_name.c_str());
       directories.push_back(tmp);
       dir_accumulator++;
     }
   }
 
+  fprintf(stdout, "Directories added -> %d\n", dir_accumulator);
   dir_count = dir_accumulator;
   return 1;
 }

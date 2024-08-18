@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
   ProgramThemes themes;
   ProgramPath pathing;
   ProgramFiles files;
-  SDL2Fonts fonts(*themes.get_text());
+  SDL2Fonts fonts;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -93,6 +93,16 @@ int main(int argc, char *argv[]) {
   err = files.fill_directories(pathing.get_src_path(), pathing.return_slash());
   if (!err) {
     fprintf(stdout, "Error, or no directories found!\n");
+  }
+
+  err = fonts.create_dir_text(*files.retrieve_directories(),
+                              *rend.get_renderer(), *themes.get_text());
+  if (!err) {
+    fprintf(stdout, "Failed to create fonts!!\n");
+    IMG_Quit();
+    TTF_Quit();
+    SDL_Quit();
+    return 1;
   }
 
   uint64_t frame_start;
