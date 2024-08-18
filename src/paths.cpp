@@ -3,6 +3,28 @@
 #include <errno.h>
 #include <string.h>
 
+ProgramPath::ProgramPath() {
+  const std::string platform_home = get_platform_home();
+  const char *home_to_char = platform_home.c_str();
+
+  size_t i = 0;
+  char *home = getenv(home_to_char);
+  std::string home_env_str = "";
+
+  while (home[i] != '\0') {
+    home_env_str += home[i];
+    i++;
+  }
+
+  HOME_PATH = home_env_str;
+}
+
+ProgramPath::~ProgramPath() {}
+
+std::string ProgramPath::get_src_path() { return SOURCE_PATH; }
+
+std::string ProgramPath::get_home_path() { return HOME_PATH; }
+
 std::string ProgramPath::join_str(std::string source, std::string add) {
   source += return_slash();
   return source += add;
@@ -115,21 +137,3 @@ int ProgramPath::create_log_directories() {
   LOG_PATH = program_log_path;
   return 1;
 }
-
-ProgramPath::ProgramPath() {
-  const std::string platform_home = get_platform_home();
-  const char *home_to_char = platform_home.c_str();
-
-  size_t i = 0;
-  char *home = getenv(home_to_char);
-  std::string home_env_str;
-
-  while (home[i] != '\0') {
-    home_env_str += home[i];
-    i++;
-  }
-
-  HOME_PATH = home_env_str;
-}
-
-ProgramPath::~ProgramPath() {}

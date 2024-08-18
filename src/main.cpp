@@ -6,11 +6,14 @@
 
 int main(int argc, char *argv[]) {
   // instantiate classes
+  int err;
   SDL2INTERNAL sdl2;
   SDL2Renderer rend;
   SDL2Window win;
   SDL2KeyInputs key;
   ProgramThemes themes;
+  ProgramPath pathing;
+  ProgramFiles files;
   SDL2Fonts fonts(*themes.get_text());
 
   if (!sdl2.initialize_sdl2_video()) {
@@ -61,11 +64,11 @@ int main(int argc, char *argv[]) {
 
   if (!fonts.open_font()) {
     fprintf(stderr, "Failed to open font! -> EXIT\n");
+    IMG_Quit();
+    TTF_Quit();
+    SDL_Quit();
     return 1;
   }
-
-  ProgramPath pathing;
-  int err;
 
   err = pathing.create_music_source();
   if (!err) {
@@ -85,6 +88,11 @@ int main(int argc, char *argv[]) {
     TTF_Quit();
     SDL_Quit();
     return 1;
+  }
+
+  err = files.fill_directories(pathing.get_src_path(), pathing.return_slash());
+  if (!err) {
+    fprintf(stdout, "Error, or no directories found!\n");
   }
 
   uint64_t frame_start;
@@ -112,6 +120,8 @@ int main(int argc, char *argv[]) {
   sdl2.set_entity(&fonts, FONT);
   sdl2.set_entity(&key, KEY_INPUT);
   sdl2.set_entity(&themes, THEMES);
+  sdl2.set_entity(&pathing, PATHS);
+  sdl2.set_entity(&files, FILES);
 
   const int ticks_per_frame = (1000.0 / 60);
   sdl2.set_play_state(1);

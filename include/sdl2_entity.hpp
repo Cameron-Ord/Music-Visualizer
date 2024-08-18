@@ -3,6 +3,7 @@
 #include "events.hpp"
 #include "files.hpp"
 #include "font_entity.h"
+#include "program_path.hpp"
 #include "render_entity.h"
 #include "theme.hpp"
 #include "window_entity.h"
@@ -14,7 +15,8 @@ typedef enum {
   RENDERER = 2,
   KEY_INPUT = 3,
   THEMES = 4,
-  FILES = 5
+  FILES = 5,
+  PATHS = 6
 } CLASS_ENUM_MAP;
 
 class SDL2INTERNAL {
@@ -40,6 +42,7 @@ private:
   SDL2Renderer *_render_context;
   SDL2KeyInputs *_key_input_context;
   ProgramThemes *_themes;
+  ProgramPath *_path;
   ProgramFiles *_files;
 };
 #endif

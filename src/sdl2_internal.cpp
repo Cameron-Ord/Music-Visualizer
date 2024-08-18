@@ -7,6 +7,9 @@ SDL2INTERNAL::SDL2INTERNAL() {
   _render_context = NULL;
   _key_input_context = NULL;
   _font_context = NULL;
+  _themes = NULL;
+  _path = NULL;
+  _files = NULL;
 }
 
 SDL2INTERNAL::~SDL2INTERNAL() {}
@@ -58,30 +61,41 @@ void SDL2INTERNAL::set_entity(void *void_class_ptr, int CLASS_ENUM_VALUE) {
   switch (CLASS_ENUM_VALUE) {
   case WINDOW: {
     _window_context = (SDL2Window *)void_class_ptr;
-    break;
+    return;
   }
+
   case FONT: {
     _font_context = (SDL2Fonts *)void_class_ptr;
-    break;
+    return;
   }
+
   case RENDERER: {
     _render_context = (SDL2Renderer *)void_class_ptr;
-    break;
+    return;
   }
+
   case KEY_INPUT: {
     _key_input_context = (SDL2KeyInputs *)void_class_ptr;
-    break;
+    return;
   }
+
   case THEMES: {
     _themes = (ProgramThemes *)void_class_ptr;
-    break;
+    return;
   }
+
   case FILES: {
     _files = (ProgramFiles *)void_class_ptr;
-    break;
+    return;
   }
+
+  case PATHS: {
+    _path = (ProgramPath *)void_class_ptr;
+    return;
+  }
+
   default: {
-    break;
+    return;
   }
   }
 }
@@ -91,25 +105,33 @@ void *SDL2INTERNAL::get_entity(int CLASS_ENUM_VALUE) {
   case WINDOW: {
     return _window_context;
   }
+
   case FONT: {
     return _font_context;
   }
+
   case RENDERER: {
     return _render_context;
   }
+
   case KEY_INPUT: {
     return _key_input_context;
   }
+
   case THEMES: {
     return _themes;
   }
+
   case FILES: {
     return _files;
   }
-  default: {
-    break;
-  }
+
+  case PATHS: {
+    return _path;
   }
 
-  return NULL;
+  default: {
+    return NULL;
+  }
+  }
 }
