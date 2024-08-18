@@ -1,5 +1,5 @@
-#ifndef SDL2_AUDIO_H
-#define SDL2_AUDIO_H
+#ifndef SDL2_AUDIO_HPP
+#define SDL2_AUDIO_HPP
 
 class SDL2Audio {
 public:

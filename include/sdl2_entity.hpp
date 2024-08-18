@@ -1,17 +1,21 @@
-#ifndef SDL2_ENTITY_H
-#define SDL2_ENTITY_H
+#ifndef SDL2_ENTITY_HPP
+#define SDL2_ENTITY_HPP
 #include "events.hpp"
+#include "files.hpp"
 #include "font_entity.h"
 #include "render_entity.h"
+#include "theme.hpp"
 #include "window_entity.h"
 #include <SDL2/SDL.h>
 
-class SDL2Fonts;
-class SDL2Renderer;
-class SDL2Window;
-class SDL2KeyInputs;
-class ProgramPath;
-class SDL2INTERNAL;
+typedef enum {
+  WINDOW = 0,
+  FONT = 1,
+  RENDERER = 2,
+  KEY_INPUT = 3,
+  THEMES = 4,
+  FILES = 5
+} CLASS_ENUM_MAP;
 
 class SDL2INTERNAL {
 public:
@@ -22,10 +26,10 @@ public:
   int initialize_sdl2_audio();
   int initialize_sdl2_ttf();
   int initialize_sdl2_image();
-  SDL2Window *get_window_entity();
-  SDL2Renderer *get_render_entity();
-  SDL2KeyInputs *get_key_input_entity();
-  SDL2Fonts *get_font_entity();
+
+  void set_entity(void *void_class_ptr, int CLASS_ENUM_VALUE);
+  void *get_entity(int CLASS_ENUM_VALUE);
+
   int get_play_state();
   void set_play_state(int bool_num);
 
@@ -35,5 +39,7 @@ private:
   SDL2Fonts *_font_context;
   SDL2Renderer *_render_context;
   SDL2KeyInputs *_key_input_context;
+  ProgramThemes *_themes;
+  ProgramFiles *_files;
 };
 #endif

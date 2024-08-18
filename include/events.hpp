@@ -1,5 +1,5 @@
-#ifndef EVENTS_H
-#define EVENTS_H
+#ifndef EVENTS_HPP
+#define EVENTS_HPP
 #include <SDL2/SDL.h>
 
 typedef enum { Q = SDL_SCANCODE_Q, A = SDL_SCANCODE_A } SDL_SCANCODES_ENUM;

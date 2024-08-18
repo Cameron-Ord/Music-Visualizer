@@ -5,7 +5,7 @@ int SDL2KeyInputs::poll_events() {
   while (SDL_PollEvent(&e)) {
     switch (e.type) {
     case SDL_QUIT: {
-      return QUIT_GAME;
+      return QUIT;
     }
     default: {
       return DEFAULT_CASE;

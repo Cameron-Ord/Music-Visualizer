@@ -1,13 +1,10 @@
-#ifndef PROGRAM_PATH_H
-#define PROGRAM_PATH_H
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#include <errno.h>
+#ifndef PROGRAM_PATH_HPP
+#define PROGRAM_PATH_HPP
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 class ProgramPath {
 public:

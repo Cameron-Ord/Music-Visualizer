@@ -1,5 +1,7 @@
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
+#include <errno.h>
+#include <string.h>
 
 std::string ProgramPath::join_str(std::string source, std::string add) {
   source += return_slash();
