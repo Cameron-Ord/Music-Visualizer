@@ -41,6 +41,11 @@ size_t SDL2Renderer::get_draw_index(int INDEX_ENUM_VALUE) {
 }
 
 void SDL2Renderer::render_set_song_limiter(size_t vec_size) {
+  if (vec_size < desired_song_draw_limit) {
+    real_song_draw_limit = vec_size;
+    return;
+  }
+
   size_t position = current_song_draw_index + 1;
   size_t remainder = vec_size - position;
 
@@ -76,8 +81,14 @@ void SDL2Renderer::render_draw_songs(SDL_Renderer *r,
 }
 
 void SDL2Renderer::render_set_directory_limiter(size_t vec_size) {
+  if (vec_size < desired_directory_draw_limit) {
+    real_directory_draw_limit = vec_size;
+    return;
+  }
+
   size_t position = current_dir_draw_index + 1;
   size_t remainder = vec_size - position;
+
   if (remainder > desired_directory_draw_limit) {
     real_directory_draw_limit = desired_directory_draw_limit;
   } else {
