@@ -23,6 +23,10 @@ public:
 
 private:
   SDL_Renderer* r;
+  size_t        current_dir_draw_index;
+  size_t        current_song_draw_index;
+  int           directory_draw_limit;
+  int           song_draw_limit;
 };
 
 #endif

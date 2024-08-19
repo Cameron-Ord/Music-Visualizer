@@ -1,23 +1,53 @@
 #include "../include/render_entity.hpp"
 
-SDL2Renderer::SDL2Renderer() { r = NULL; }
+SDL2Renderer::SDL2Renderer() {
+  r                       = NULL;
+  song_draw_limit         = 6;
+  directory_draw_limit    = 6;
+  current_dir_draw_index  = 0;
+  current_song_draw_index = 0;
+}
 
 SDL2Renderer::~SDL2Renderer() {}
 
 void
 SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec) {
+  size_t limiter;
+  if (text_vec->size() > directory_draw_limit) {
+    if (current_dir_draw_index + 1 < text_vec->size() - directory_draw_limit) {
+      limiter = directory_draw_limit;
+    } else {
+      limiter = text_vec->size();
+    }
+  }
+
+  const float increment = 1.0 / limiter;
+  float       factor    = 1.0 / limiter;
+
   const int eight_tenths_w = 0.8 * sizes.first;
 
   for (size_t i = 0; i < text_vec->size(); i++) {
     if ((*text_vec)[i].is_valid) {
       (*text_vec)[i].rect.x = eight_tenths_w;
+      (*text_vec)[i].rect.y = factor * sizes.second;
     }
+
+    factor += increment;
   }
 }
 
 void
 SDL2Renderer::render_draw_directories(SDL_Renderer* r, std::vector<Text>* text_vec) {
-  for (size_t i = 0; i < text_vec->size(); i++) {
+  size_t limiter;
+  if (text_vec->size() > directory_draw_limit) {
+    if (current_dir_draw_index + 1 < text_vec->size() - directory_draw_limit) {
+      limiter = directory_draw_limit;
+    } else {
+      limiter = text_vec->size();
+    }
+  }
+
+  for (size_t i = current_dir_draw_index; i < limiter; i++) {
     if ((*text_vec)[i].is_valid) {
       SDL_RenderCopy(r, (*text_vec)[i].tex, NULL, &(*text_vec)[i].rect);
     }
