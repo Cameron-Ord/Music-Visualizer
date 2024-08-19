@@ -2,7 +2,7 @@
 
 SDL2Renderer::SDL2Renderer() {
   r = NULL;
-  desired_song_draw_limit = 6;
+  desired_song_draw_limit = 12;
   desired_directory_draw_limit = 6;
   real_song_draw_limit = 0;
   real_directory_draw_limit = 0;
@@ -41,17 +41,13 @@ size_t SDL2Renderer::get_draw_index(int INDEX_ENUM_VALUE) {
 }
 
 void SDL2Renderer::render_set_song_limiter(size_t vec_size) {
-  if (vec_size > desired_song_draw_limit) {
-    size_t position = current_song_draw_index + 1;
-    size_t remainder = vec_size - position;
+  size_t position = current_song_draw_index + 1;
+  size_t remainder = vec_size - position;
 
-    if (remainder > vec_size) {
-      real_song_draw_limit = desired_song_draw_limit;
-    } else {
-      real_song_draw_limit = vec_size;
-    }
+  if (remainder > desired_song_draw_limit) {
+    real_song_draw_limit = desired_song_draw_limit;
   } else {
-    real_song_draw_limit = vec_size;
+    real_song_draw_limit = remainder;
   }
 }
 
@@ -80,17 +76,12 @@ void SDL2Renderer::render_draw_songs(SDL_Renderer *r,
 }
 
 void SDL2Renderer::render_set_directory_limiter(size_t vec_size) {
-  if (vec_size > desired_directory_draw_limit) {
-    size_t position = current_dir_draw_index + 1;
-    size_t remainder = vec_size - position;
-
-    if (remainder > vec_size) {
-      real_directory_draw_limit = desired_directory_draw_limit;
-    } else {
-      real_directory_draw_limit = vec_size;
-    }
+  size_t position = current_dir_draw_index + 1;
+  size_t remainder = vec_size - position;
+  if (remainder > desired_directory_draw_limit) {
+    real_directory_draw_limit = desired_directory_draw_limit;
   } else {
-    real_directory_draw_limit = vec_size;
+    real_directory_draw_limit = remainder;
   }
 }
 
