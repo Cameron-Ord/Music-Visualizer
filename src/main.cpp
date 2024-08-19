@@ -1,10 +1,10 @@
+#include "../include/audio.hpp"
 #include "../include/events.hpp"
 #include "../include/files.hpp"
 #include "../include/font_entity.hpp"
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
 #include "../include/render_entity.hpp"
-#include "../include/sdl2_audio.hpp"
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
@@ -15,6 +15,7 @@
 int main(int argc, char *argv[]) {
   // instantiate classes
   bool err;
+  USERDATA userdata;
   SDL2INTERNAL sdl2;
   SDL2Renderer rend;
   SDL2Window win;
@@ -25,6 +26,9 @@ int main(int argc, char *argv[]) {
   SDL2Fonts fonts;
   AudioData ad;
   SDL2Audio sdl2_ad;
+
+  userdata.ad = &ad;
+  userdata.sdl2_ad = &sdl2_ad;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -292,6 +296,11 @@ int main(int argc, char *argv[]) {
                                                   pathing.get_opened_dir());
           std::string file_path = pathing.join_str(dir_path, file_name);
           bool result = ad.read_audio_file(file_path);
+          if (result) {
+            sdl2_ad.set_audio_spec(&userdata);
+            sdl2_ad.open_audio_device();
+            sdl2_ad.resume_audio();
+          }
           break;
         }
         case LISTENING: {
