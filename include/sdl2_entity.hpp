@@ -10,39 +10,40 @@
 #include <SDL2/SDL.h>
 
 typedef enum {
-  WINDOW = 0,
-  FONT = 1,
-  RENDERER = 2,
+  WINDOW    = 0,
+  FONT      = 1,
+  RENDERER  = 2,
   KEY_INPUT = 3,
-  THEMES = 4,
-  FILES = 5,
-  PATHS = 6
+  THEMES    = 4,
+  FILES     = 5,
+  PATHS     = 6
 } CLASS_ENUM_MAP;
 
 class SDL2INTERNAL {
 public:
   ~SDL2INTERNAL();
   SDL2INTERNAL();
-  int initialize_sdl2_video();
-  int initialize_sdl2_events();
-  int initialize_sdl2_audio();
-  int initialize_sdl2_ttf();
-  int initialize_sdl2_image();
 
-  void set_entity(void *void_class_ptr, int CLASS_ENUM_VALUE);
-  void *get_entity(int CLASS_ENUM_VALUE);
+  bool initialize_sdl2_video();
+  bool initialize_sdl2_events();
+  bool initialize_sdl2_audio();
+  bool initialize_sdl2_ttf();
+  bool initialize_sdl2_image();
 
-  int get_play_state();
-  void set_play_state(int bool_num);
+  void  set_entity(void* void_class_ptr, int CLASS_ENUM_VALUE);
+  void* get_entity(int CLASS_ENUM_VALUE);
+
+  bool get_play_state();
+  void set_play_state(bool state);
 
 private:
-  int play_state;
-  SDL2Window *_window_context;
-  SDL2Fonts *_font_context;
-  SDL2Renderer *_render_context;
-  SDL2KeyInputs *_key_input_context;
-  ProgramThemes *_themes;
-  ProgramPath *_path;
-  ProgramFiles *_files;
+  bool           play_state;
+  SDL2Window*    _window_context;
+  SDL2Fonts*     _font_context;
+  SDL2Renderer*  _render_context;
+  SDL2KeyInputs* _key_input_context;
+  ProgramThemes* _themes;
+  ProgramPath*   _path;
+  ProgramFiles*  _files;
 };
 #endif

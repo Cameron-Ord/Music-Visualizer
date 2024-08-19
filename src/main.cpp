@@ -4,17 +4,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char* argv[]) {
   // instantiate classes
-  int err;
-  SDL2INTERNAL sdl2;
-  SDL2Renderer rend;
-  SDL2Window win;
+  bool          err;
+  SDL2INTERNAL  sdl2;
+  SDL2Renderer  rend;
+  SDL2Window    win;
   SDL2KeyInputs key;
   ProgramThemes themes;
-  ProgramPath pathing;
-  ProgramFiles files;
-  SDL2Fonts fonts;
+  ProgramPath   pathing;
+  ProgramFiles  files;
+  SDL2Fonts     fonts;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -23,16 +24,14 @@ int main(int argc, char *argv[]) {
 
   win.create_window(win.get_window());
   if (win.get_window() == NULL) {
-    fprintf(stderr,
-            "Failed to initialize SDL2 window! -> WINDOW POINTER WAS NULL\n");
+    fprintf(stderr, "Failed to initialize SDL2 window! -> WINDOW POINTER WAS NULL\n");
     SDL_Quit();
     return 1;
   }
 
   rend.create_renderer(win.get_window(), rend.get_renderer());
   if (*rend.get_renderer() == NULL) {
-    fprintf(stderr,
-            "Failed to initialize SDL2 renderer -> RENDER POINTER WAS NULL!\n");
+    fprintf(stderr, "Failed to initialize SDL2 renderer -> RENDER POINTER WAS NULL!\n");
     SDL_Quit();
     return 1;
   }
@@ -95,32 +94,23 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "Error, or no directories found!\n");
   }
 
-  err = fonts.create_dir_text(*files.retrieve_directories(),
-                              *rend.get_renderer(), *themes.get_text());
-  if (!err) {
-    fprintf(stdout, "Failed to create fonts!!\n");
-    IMG_Quit();
-    TTF_Quit();
-    SDL_Quit();
-    return 1;
-  }
+  fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(), *themes.get_text(),
+                        fonts.get_font_ptr());
 
   uint64_t frame_start;
-  int frame_time;
+  int      frame_time;
 
   const std::string logging_src_path = pathing.get_logging_path();
-  const std::string log_file_concat =
-      pathing.join_str(logging_src_path, "log.txt");
+  const std::string log_file_concat  = pathing.join_str(logging_src_path, "log.txt");
 
-  FILE *std_out_file = freopen(log_file_concat.c_str(), "a", stdout);
+  FILE* std_out_file = freopen(log_file_concat.c_str(), "a", stdout);
   if (std_out_file == NULL) {
     fprintf(stderr, "Could not redirect STDOUT! -> %s\n", strerror(errno));
   }
 
-  const std::string errlog_file_concat =
-      pathing.join_str(logging_src_path, "errlog.txt");
+  const std::string errlog_file_concat = pathing.join_str(logging_src_path, "errlog.txt");
 
-  FILE *std_err_file = freopen(errlog_file_concat.c_str(), "a", stderr);
+  FILE* std_err_file = freopen(errlog_file_concat.c_str(), "a", stderr);
   if (std_err_file == NULL) {
     fprintf(stderr, "Could not redirect STDERR! -> %s\n", strerror(errno));
   }
@@ -134,18 +124,18 @@ int main(int argc, char *argv[]) {
   sdl2.set_entity(&files, FILES);
 
   const int ticks_per_frame = (1000.0 / 60);
-  sdl2.set_play_state(1);
+  sdl2.set_play_state(true);
 
   while (sdl2.get_play_state()) {
     rend.render_clear(*rend.get_renderer());
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
 
-    frame_start = SDL_GetTicks64();
+    frame_start            = SDL_GetTicks64();
     const int event_return = key.poll_events();
 
     switch (event_return) {
     case QUIT: {
-      sdl2.set_play_state(0);
+      sdl2.set_play_state(false);
       break;
     }
     default: {

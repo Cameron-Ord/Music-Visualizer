@@ -10,9 +10,10 @@ class ProgramPath {
 public:
   ProgramPath();
   ~ProgramPath();
-  int create_music_source();
-  int create_log_directories();
-  int make_directory(const std::string path, const mode_t mode);
+
+  bool create_music_source();
+  bool create_log_directories();
+  bool make_directory(const std::string path, const mode_t mode);
 
   std::string get_home_path();
   std::string get_src_path();
