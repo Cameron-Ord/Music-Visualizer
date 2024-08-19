@@ -142,14 +142,84 @@ main(int argc, char* argv[]) {
     rend.render_set_directories(sdl2.get_stored_window_size(), fonts.get_dir_vec());
     rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
 
-    frame_start            = SDL_GetTicks64();
-    const int event_return = key.poll_events();
+    frame_start                            = SDL_GetTicks64();
+    const std::pair<int, int> event_return = key.poll_events();
 
-    switch (event_return) {
+    const int event_type = event_return.first;
+    const int keycode    = event_return.second;
+
+    switch (event_type) {
+    case KEYBOARD_PRESS: {
+      switch (keycode) {
+      case Q: {
+        sdl2.set_play_state(false);
+        break;
+      }
+      case UP: {
+        break;
+      }
+      case DOWN: {
+        break;
+      }
+      case LEFT: {
+        break;
+      }
+      case RIGHT: {
+        break;
+      }
+      case ENTER: {
+        break;
+      }
+      case BACKSPACE: {
+        break;
+      }
+      case SPACE: {
+        break;
+      }
+      }
+      break;
+    }
+
+    case KEYBOARD_RELEASE: {
+      switch (keycode) {
+      case Q: {
+        sdl2.set_play_state(false);
+        break;
+      }
+      case UP: {
+        break;
+      }
+      case DOWN: {
+        break;
+      }
+      case LEFT: {
+        break;
+      }
+      case RIGHT: {
+        break;
+      }
+      case ENTER: {
+        break;
+      }
+      case BACKSPACE: {
+        break;
+      }
+      case SPACE: {
+        break;
+      }
+      }
+      break;
+    }
+
     case QUIT: {
       sdl2.set_play_state(false);
       break;
     }
+
+    case DEFAULT_CASE: {
+      break;
+    }
+
     default: {
       break;
     }
