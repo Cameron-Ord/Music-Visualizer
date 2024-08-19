@@ -28,6 +28,7 @@ typedef enum {
 typedef enum {
   AT_DIRECTORIES = 0,
   AT_SONGS       = 1,
+  LISTENING      = 2,
 } USER_STATE;
 
 class SDL2INTERNAL {

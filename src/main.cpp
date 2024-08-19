@@ -151,6 +151,15 @@ main(int argc, char* argv[]) {
       rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
       break;
     }
+
+    case AT_SONGS: {
+      break;
+    }
+
+    case LISTENING: {
+      break;
+    }
+
     default: {
       break;
     }
@@ -176,11 +185,18 @@ main(int argc, char* argv[]) {
         sdl2.set_play_state(false);
         break;
       }
-      case UP: {
 
+      /*ON UP ARROW*/
+      case UP: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_up_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
+          break;
+        }
+        case AT_SONGS: {
+          break;
+        }
+        case LISTENING: {
           break;
         }
         default: {
@@ -190,30 +206,62 @@ main(int argc, char* argv[]) {
 
         break;
       }
+
+      /*ON DOWN ARROW*/
       case DOWN: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_down_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
           break;
         }
+        case AT_SONGS: {
+          break;
+        }
+        case LISTENING: {
+          break;
+        }
         default: {
           break;
         }
         }
         break;
       }
+
+      /*ON LEFT ARROW*/
       case LEFT: {
         break;
       }
+
+      /*ON RIGHT ARROW*/
       case RIGHT: {
         break;
       }
+
+      /*ON ENTER KEY*/
       case ENTER: {
+        switch (sdl2.get_current_user_state()) {
+        case AT_DIRECTORIES: {
+          break;
+        }
+        case AT_SONGS: {
+          break;
+        }
+        case LISTENING: {
+          break;
+        }
+        default: {
+          break;
+        }
+        }
         break;
       }
+
+      /*ON BACKSPACE*/
       case BACKSPACE: {
         break;
       }
+
+      /*ON SPACE*/
       case SPACE: {
         break;
       }
