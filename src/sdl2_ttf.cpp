@@ -25,14 +25,14 @@ SDL2Fonts::get_font_ptr() {
   return font;
 }
 
-std::vector<Text>
+std::vector<Text>*
 SDL2Fonts::get_dir_vec() {
-  return dir_text_vec;
+  return &dir_text_vec;
 }
 
-std::vector<Text>
+std::vector<Text>*
 SDL2Fonts::get_song_vec() {
-  return song_text_vec;
+  return &song_text_vec;
 }
 
 void

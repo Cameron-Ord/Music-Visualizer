@@ -35,6 +35,9 @@ main(int argc, char* argv[]) {
     return 1;
   }
 
+  std::pair<int, int> sizes = sdl2.get_current_window_size(*win.get_window());
+  sdl2.set_window_size(sizes);
+
   rend.create_renderer(win.get_window(), rend.get_renderer());
   if (*rend.get_renderer() == NULL) {
     fprintf(stderr, "Failed to initialize SDL2 renderer -> RENDER POINTER WAS NULL!\n");

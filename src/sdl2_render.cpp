@@ -5,20 +5,21 @@ SDL2Renderer::SDL2Renderer() { r = NULL; }
 SDL2Renderer::~SDL2Renderer() {}
 
 void
-SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text> text_vec) {
+SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec) {
   const int eight_tenths_w = 0.8 * sizes.first;
-  for (size_t i = 0; i < text_vec.size(); i++) {
-    if (text_vec[i].is_valid) {
-      text_vec[i].rect.x = eight_tenths_w;
+
+  for (size_t i = 0; i < text_vec->size(); i++) {
+    if ((*text_vec)[i].is_valid) {
+      (*text_vec)[i].rect.x = eight_tenths_w;
     }
   }
 }
 
 void
-SDL2Renderer::render_draw_directories(SDL_Renderer* r, std::vector<Text> text_vec) {
-  for (size_t i = 0; i < text_vec.size(); i++) {
-    if (text_vec[i].is_valid) {
-      SDL_RenderCopy(r, text_vec[i].tex, NULL, &text_vec[i].rect);
+SDL2Renderer::render_draw_directories(SDL_Renderer* r, std::vector<Text>* text_vec) {
+  for (size_t i = 0; i < text_vec->size(); i++) {
+    if ((*text_vec)[i].is_valid) {
+      SDL_RenderCopy(r, (*text_vec)[i].tex, NULL, &(*text_vec)[i].rect);
     }
   }
 }

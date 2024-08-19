@@ -32,8 +32,8 @@ public:
                            const SDL_Color color);
   TTF_Font*    get_font_ptr();
 
-  std::vector<Text> get_dir_vec();
-  std::vector<Text> get_song_vec();
+  std::vector<Text>* get_dir_vec();
+  std::vector<Text>* get_song_vec();
 
 private:
   std::vector<Text> dir_text_vec;

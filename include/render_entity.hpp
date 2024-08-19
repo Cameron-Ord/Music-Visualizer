@@ -18,8 +18,8 @@ public:
   void render_bg(SDL_Renderer* r, SDL_Color* rgba);
   void render_present(SDL_Renderer* r);
 
-  void render_set_directories(std::pair<int, int> sizes, std::vector<Text> text_vec);
-  void render_draw_directories(SDL_Renderer* r, std::vector<Text> text_vec);
+  void render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec);
+  void render_draw_directories(SDL_Renderer* r, std::vector<Text>* text_vec);
 
 private:
   SDL_Renderer* r;
