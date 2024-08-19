@@ -1,6 +1,6 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
-
+#include <string>
 #include <utility>
 
 class SDL2Fonts;
@@ -25,6 +25,11 @@ typedef enum {
   PATHS     = 6
 } CLASS_ENUM_MAP;
 
+typedef enum {
+  AT_DIRECTORIES = 0,
+  AT_SONGS       = 1,
+} USER_STATE;
+
 class SDL2INTERNAL {
 public:
   ~SDL2INTERNAL();
@@ -43,11 +48,13 @@ public:
 
   std::pair<int, int> get_stored_window_size();
   std::pair<int, int> get_current_window_size(SDL_Window* window);
+  int                 get_current_user_state();
 
   void set_window_size(std::pair<int, int> size);
   void set_play_state(bool state);
 
 private:
+  int            user_state;
   int            win_width;
   int            win_height;
   bool           play_state;

@@ -103,6 +103,8 @@ SDL2Fonts::create_text(const std::string text, TTF_Font* font, SDL_Renderer* r, 
   text_entity.rect     = tmp;
   text_entity.tex      = tex_ptr;
   text_entity.is_valid = true;
+  text_entity.width    = surf_ptr->w;
+  text_entity.height   = surf_ptr->h;
 
   surf_ptr = destroy_text_surface(surf_ptr);
 

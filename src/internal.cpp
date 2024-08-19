@@ -2,6 +2,7 @@
 
 SDL2INTERNAL::SDL2INTERNAL() {
   play_state         = 1;
+  user_state         = AT_DIRECTORIES;
   _window_context    = NULL;
   _render_context    = NULL;
   _key_input_context = NULL;
@@ -12,6 +13,11 @@ SDL2INTERNAL::SDL2INTERNAL() {
 }
 
 SDL2INTERNAL::~SDL2INTERNAL() {}
+
+int
+SDL2INTERNAL::get_current_user_state() {
+  return user_state;
+}
 
 bool
 SDL2INTERNAL::initialize_sdl2_events() {

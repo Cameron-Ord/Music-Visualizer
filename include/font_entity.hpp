@@ -10,6 +10,8 @@ struct Text {
   SDL_Texture* tex;
   SDL_Surface* surf;
   SDL_Rect     rect;
+  int          width;
+  int          height;
   int          id;
   bool         is_valid;
 };

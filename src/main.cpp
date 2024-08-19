@@ -6,7 +6,6 @@
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -132,15 +131,30 @@ main(int argc, char* argv[]) {
   sdl2.set_entity(&pathing, PATHS);
   sdl2.set_entity(&files, FILES);
 
+  SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
+
   const int ticks_per_frame = (1000.0 / 60);
   sdl2.set_play_state(true);
 
   while (sdl2.get_play_state()) {
-    rend.render_clear(*rend.get_renderer());
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
+    rend.render_clear(*rend.get_renderer());
 
-    rend.render_set_directories(sdl2.get_stored_window_size(), fonts.get_dir_vec());
-    rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
+    switch (sdl2.get_current_user_state()) {
+    case AT_DIRECTORIES: {
+      rend.render_set_directory_limiter(fonts.get_dir_vec()->size(), sdl2.get_stored_window_size());
+      rend.render_set_directories(sdl2.get_stored_window_size(), fonts.get_dir_vec());
+      rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
+
+      rend.render_set_text_bg(sdl2.get_stored_window_size(), rend.get_draw_limit(DIR_LIMITER),
+                              rend.get_draw_index(DIR_INDEX), *key.get_cursor_index(), fonts.get_dir_vec());
+      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+      break;
+    }
+    default: {
+      break;
+    }
+    }
 
     frame_start                            = SDL_GetTicks64();
     const std::pair<int, int> event_return = key.poll_events();
@@ -149,6 +163,13 @@ main(int argc, char* argv[]) {
     const int keycode    = event_return.second;
 
     switch (event_type) {
+
+    case WINDOW_SIZE_CHANGED: {
+      std::pair<int, int> sizes = sdl2.get_current_window_size(*win.get_window());
+      sdl2.set_window_size(sizes);
+      break;
+    }
+
     case KEYBOARD_PRESS: {
       switch (keycode) {
       case Q: {
@@ -156,9 +177,29 @@ main(int argc, char* argv[]) {
         break;
       }
       case UP: {
+
+        switch (sdl2.get_current_user_state()) {
+        case AT_DIRECTORIES: {
+          key.cycle_up_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
+          break;
+        }
+        default: {
+          break;
+        }
+        }
+
         break;
       }
       case DOWN: {
+        switch (sdl2.get_current_user_state()) {
+        case AT_DIRECTORIES: {
+          key.cycle_down_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
+          break;
+        }
+        default: {
+          break;
+        }
+        }
         break;
       }
       case LEFT: {

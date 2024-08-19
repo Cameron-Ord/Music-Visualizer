@@ -12,21 +12,83 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
-void
-SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec) {
-  if (text_vec->size() > desired_directory_draw_limit) {
-    size_t position  = current_dir_draw_index + 1;
-    size_t remainder = text_vec->size() - position;
+size_t
+SDL2Renderer::get_draw_limit(int LIMITER_ENUM_VALUE) {
+  switch (LIMITER_ENUM_VALUE) {
+  case DIR_LIMITER: {
+    return real_directory_draw_limit;
+  }
+  case SONG_LIMITER: {
+    return real_song_draw_limit;
+  }
+  default: {
+    return 0;
+  }
+  }
+}
 
-    if (remainder > text_vec->size()) {
+size_t
+SDL2Renderer::get_draw_index(int INDEX_ENUM_VALUE) {
+  switch (INDEX_ENUM_VALUE) {
+  case DIR_INDEX: {
+    return current_dir_draw_index;
+  }
+  case SONG_INDEX: {
+    return current_song_draw_index;
+  }
+  default: {
+    return 0;
+  }
+  }
+}
+
+void
+SDL2Renderer::render_set_directory_limiter(size_t vec_size, std::pair<int, int> win_size) {
+  if (vec_size > desired_directory_draw_limit) {
+    size_t position  = current_dir_draw_index + 1;
+    size_t remainder = vec_size - position;
+
+    if (remainder > vec_size) {
       real_directory_draw_limit = desired_directory_draw_limit;
     } else {
-      real_directory_draw_limit = text_vec->size();
+      real_directory_draw_limit = vec_size;
     }
   } else {
-    real_directory_draw_limit = text_vec->size();
+    real_directory_draw_limit = vec_size;
   }
+}
 
+void
+SDL2Renderer::render_set_text_bg(std::pair<int, int> sizes, size_t draw_limit, size_t draw_index,
+                                 size_t cursor_index, const std::vector<Text>* text_vec) {
+  int pixel_increment  = sizes.second / (draw_limit + 1);
+  int pixel_accumulate = pixel_increment;
+
+  drawing_text_bg = false;
+
+  for (size_t i = 0; i < draw_limit; i++) {
+    if (i == cursor_index) {
+      text_bg.w       = (*text_vec)[i + draw_index].width + 10;
+      text_bg.h       = (*text_vec)[i + draw_index].height + 10;
+      text_bg.x       = 25 - 5;
+      text_bg.y       = pixel_accumulate - 5;
+      drawing_text_bg = true;
+    }
+
+    pixel_accumulate += pixel_increment;
+  }
+}
+
+void
+SDL2Renderer::render_draw_text_bg(SDL_Renderer* r, const SDL_Color* rgba) {
+  if (drawing_text_bg) {
+    SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a / 2);
+    SDL_RenderFillRect(r, &text_bg);
+  }
+}
+
+void
+SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec) {
   int pixel_increment  = sizes.second / (real_directory_draw_limit + 1);
   int pixel_accumulate = pixel_increment;
 

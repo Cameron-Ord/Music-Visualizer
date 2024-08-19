@@ -1,7 +1,9 @@
 #ifndef EVENTS_HPP
 #define EVENTS_HPP
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
+#include <string>
 
 typedef enum {
   Q         = SDLK_q,
@@ -15,20 +17,25 @@ typedef enum {
 } SDL_KEYCODES_ENUM;
 
 typedef enum {
-  DEFAULT_CASE     = 0,
-  QUIT             = 1,
-  MOUSE_CLICKED    = 2,
-  KEYBOARD_PRESS   = 3,
-  KEYBOARD_RELEASE = 4
+  DEFAULT_CASE        = 0,
+  QUIT                = 1,
+  MOUSE_CLICKED       = 2,
+  KEYBOARD_PRESS      = 3,
+  KEYBOARD_RELEASE    = 4,
+  WINDOW_SIZE_CHANGED = 5
 } EVENT_RETURN;
 
 class SDL2KeyInputs {
 public:
+  SDL2KeyInputs();
+
   std::pair<int, int> poll_events();
-  void                on_key_down();
-  void                on_key_up();
+  void                cycle_up_list(size_t* cursor_index, size_t max_length);
+  void                cycle_down_list(size_t* cursor_index, size_t max_length);
+  size_t*             get_cursor_index();
 
 private:
+  size_t cursor_index;
 };
 
 #endif
