@@ -294,6 +294,10 @@ int main(int argc, char *argv[]) {
 
       /*ON BACKSPACE*/
       case BACKSPACE: {
+        if (sdl2.get_current_user_state() == AT_SONGS) {
+          key.reset_cursor_index();
+          sdl2.set_current_user_state(AT_DIRECTORIES);
+        }
         break;
       }
 
