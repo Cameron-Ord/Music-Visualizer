@@ -1,26 +1,26 @@
 #include "../include/sdl2_entity.hpp"
 
 SDL2INTERNAL::SDL2INTERNAL() {
-  play_state         = 1;
-  user_state         = AT_DIRECTORIES;
-  _window_context    = NULL;
-  _render_context    = NULL;
+  play_state = 1;
+  user_state = AT_DIRECTORIES;
+  _window_context = NULL;
+  _render_context = NULL;
   _key_input_context = NULL;
-  _font_context      = NULL;
-  _themes            = NULL;
-  _path              = NULL;
-  _files             = NULL;
+  _font_context = NULL;
+  _themes = NULL;
+  _path = NULL;
+  _files = NULL;
 }
 
 SDL2INTERNAL::~SDL2INTERNAL() {}
 
-int
-SDL2INTERNAL::get_current_user_state() {
-  return user_state;
+int SDL2INTERNAL::get_current_user_state() { return user_state; }
+
+void SDL2INTERNAL::set_current_user_state(int USER_STATE_ENUM_VALUE) {
+  user_state = USER_STATE_ENUM_VALUE;
 }
 
-bool
-SDL2INTERNAL::initialize_sdl2_events() {
+bool SDL2INTERNAL::initialize_sdl2_events() {
   if (SDL_Init(SDL_INIT_EVENTS) != 0) {
     fprintf(stderr, "SDL2 Could not initialize events -> %s\n", SDL_GetError());
     return false;
@@ -28,8 +28,7 @@ SDL2INTERNAL::initialize_sdl2_events() {
   return true;
 }
 
-bool
-SDL2INTERNAL::initialize_sdl2_video() {
+bool SDL2INTERNAL::initialize_sdl2_video() {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     fprintf(stderr, "SDL2 Could not initalize video -> %s\n", SDL_GetError());
     return false;
@@ -37,8 +36,7 @@ SDL2INTERNAL::initialize_sdl2_video() {
   return true;
 }
 
-bool
-SDL2INTERNAL::initialize_sdl2_audio() {
+bool SDL2INTERNAL::initialize_sdl2_audio() {
   if (SDL_Init(SDL_INIT_AUDIO) != 0) {
     fprintf(stderr, "SDL2 could not initialize audio -> %s\n", SDL_GetError());
     return false;
@@ -46,8 +44,7 @@ SDL2INTERNAL::initialize_sdl2_audio() {
   return true;
 }
 
-bool
-SDL2INTERNAL::initialize_sdl2_ttf() {
+bool SDL2INTERNAL::initialize_sdl2_ttf() {
   if (TTF_Init() != 0) {
     fprintf(stderr, "SDL2 TTF could not initialize -> %s\n", SDL_GetError());
     return false;
@@ -55,8 +52,7 @@ SDL2INTERNAL::initialize_sdl2_ttf() {
   return true;
 }
 
-bool
-SDL2INTERNAL::initialize_sdl2_image() {
+bool SDL2INTERNAL::initialize_sdl2_image() {
   if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
     fprintf(stderr, "SDL2 IMG could not initialize -> %s\n", SDL_GetError());
     return false;
@@ -64,80 +60,70 @@ SDL2INTERNAL::initialize_sdl2_image() {
   return true;
 }
 
-std::pair<int, int>
-SDL2INTERNAL::get_current_window_size(SDL_Window* window) {
-  int                 w, h;
+std::pair<int, int> SDL2INTERNAL::get_current_window_size(SDL_Window *window) {
+  int w, h;
   std::pair<int, int> win_size_values;
 
   SDL_GetWindowSize(window, &w, &h);
 
-  win_size_values.first  = w;
+  win_size_values.first = w;
   win_size_values.second = h;
 
   return win_size_values;
 }
 
-std::pair<int, int>
-SDL2INTERNAL::get_stored_window_size() {
+std::pair<int, int> SDL2INTERNAL::get_stored_window_size() {
   std::pair<int, int> sizes;
 
-  sizes.first  = win_width;
+  sizes.first = win_width;
   sizes.second = win_height;
 
   return sizes;
 }
 
-void
-SDL2INTERNAL::set_window_size(std::pair<int, int> sizes) {
-  win_width  = sizes.first;
+void SDL2INTERNAL::set_window_size(std::pair<int, int> sizes) {
+  win_width = sizes.first;
   win_height = sizes.second;
 }
 
-void
-SDL2INTERNAL::set_play_state(bool state) {
-  play_state = state;
-}
+void SDL2INTERNAL::set_play_state(bool state) { play_state = state; }
 
-bool
-SDL2INTERNAL::get_play_state() {
-  return play_state;
-}
+bool SDL2INTERNAL::get_play_state() { return play_state; }
 
-void
-SDL2INTERNAL::set_entity(void* void_class_ptr, int CLASS_ENUM_VALUE) {
+void SDL2INTERNAL::set_entity(void *void_class_ptr, int CLASS_ENUM_VALUE) {
   switch (CLASS_ENUM_VALUE) {
   case WINDOW: {
-    _window_context = (SDL2Window*)void_class_ptr;
+    _window_context = (SDL2Window *)void_class_ptr;
     return;
   }
 
   case FONT: {
-    _font_context = (SDL2Fonts*)void_class_ptr;
+    _font_context = (SDL2Fonts *)void_class_ptr;
     return;
   }
 
   case RENDERER: {
-    _render_context = (SDL2Renderer*)void_class_ptr;
+    _render_context = (SDL2Renderer *)void_class_ptr;
     return;
   }
 
   case KEY_INPUT: {
-    _key_input_context = (SDL2KeyInputs*)void_class_ptr;
+    _key_input_context = (SDL2KeyInputs *)void_class_ptr;
     return;
   }
 
   case THEMES: {
-    _themes = (ProgramThemes*)void_class_ptr;
+    _themes = (ProgramThemes *)void_class_ptr;
     return;
   }
 
   case FILES: {
-    _files = (ProgramFiles*)void_class_ptr;
+    _files = (ProgramFiles *)void_class_ptr;
     return;
   }
 
   case PATHS: {
-    _path = (ProgramPath*)void_class_ptr;
+    _path = (ProgramPath *)void_class_ptr;
     return;
   }
 
@@ -147,8 +133,7 @@ SDL2INTERNAL::set_entity(void* void_class_ptr, int CLASS_ENUM_VALUE) {
   }
 }
 
-void*
-SDL2INTERNAL::get_entity(int CLASS_ENUM_VALUE) {
+void *SDL2INTERNAL::get_entity(int CLASS_ENUM_VALUE) {
   switch (CLASS_ENUM_VALUE) {
   case WINDOW: {
     return _window_context;

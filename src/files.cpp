@@ -108,8 +108,8 @@ bool ProgramFiles::fill_directories(std::string src_path, std::string slash) {
   return true;
 }
 
-void ProgramFiles::clear_files() {}
-void ProgramFiles::clear_directories() {}
+void ProgramFiles::clear_files() { files.clear(); }
+void ProgramFiles::clear_directories() { directories.clear(); }
 
 std::vector<Files> *ProgramFiles::retrieve_directory_files() { return &files; }
 std::vector<Directory> *ProgramFiles::retrieve_directories() {

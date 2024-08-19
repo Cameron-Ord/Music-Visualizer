@@ -4,8 +4,7 @@
 
 SDL2KeyInputs::SDL2KeyInputs() { cursor_index = 0; }
 
-std::pair<int, int>
-SDL2KeyInputs::poll_events() {
+std::pair<int, int> SDL2KeyInputs::poll_events() {
   SDL_Event e;
 
   std::pair<int, int> event_pair;
@@ -17,14 +16,14 @@ SDL2KeyInputs::poll_events() {
       switch (e.window.event) {
 
       case SDL_WINDOWEVENT_SIZE_CHANGED: {
-        event_pair.first  = WINDOW_SIZE_CHANGED;
+        event_pair.first = WINDOW_SIZE_CHANGED;
         event_pair.second = 0;
 
         return event_pair;
       }
 
       case SDL_WINDOWEVENT_RESIZED: {
-        event_pair.first  = WINDOW_SIZE_CHANGED;
+        event_pair.first = WINDOW_SIZE_CHANGED;
         event_pair.second = 0;
 
         return event_pair;
@@ -37,21 +36,21 @@ SDL2KeyInputs::poll_events() {
     }
 
     case SDL_KEYDOWN: {
-      event_pair.first  = KEYBOARD_PRESS;
+      event_pair.first = KEYBOARD_PRESS;
       event_pair.second = e.key.keysym.sym;
 
       return event_pair;
     }
 
     case SDL_KEYUP: {
-      event_pair.first  = KEYBOARD_RELEASE;
+      event_pair.first = KEYBOARD_RELEASE;
       event_pair.second = e.key.keysym.sym;
 
       return event_pair;
     }
 
     case SDL_QUIT: {
-      event_pair.first  = QUIT;
+      event_pair.first = QUIT;
       event_pair.second = 0;
 
       return event_pair;
@@ -62,14 +61,15 @@ SDL2KeyInputs::poll_events() {
     }
   }
 
-  event_pair.first  = DEFAULT_CASE;
+  event_pair.first = DEFAULT_CASE;
   event_pair.second = 0;
 
   return event_pair;
 }
 
-void
-SDL2KeyInputs::cycle_up_list(size_t* cursor_index, size_t max_length) {
+void SDL2KeyInputs::reset_cursor_index() { cursor_index = 0; }
+
+void SDL2KeyInputs::cycle_up_list(size_t *cursor_index, size_t max_length) {
   int tmp = *cursor_index;
 
   tmp -= 1;
@@ -80,21 +80,17 @@ SDL2KeyInputs::cycle_up_list(size_t* cursor_index, size_t max_length) {
   *cursor_index = tmp;
 }
 
-void
-SDL2KeyInputs::cycle_down_list(size_t* cursor_index, size_t max_length) {
+void SDL2KeyInputs::cycle_down_list(size_t *cursor_index, size_t max_length) {
   *cursor_index += 1;
   if (*cursor_index > max_length - 1) {
     *cursor_index = 0;
   }
 }
 
-size_t*
-SDL2KeyInputs::get_cursor_index() {
-  return &cursor_index;
-}
+size_t *SDL2KeyInputs::get_cursor_index() { return &cursor_index; }
 
-std::string
-SDL2KeyInputs::select_directory(const size_t cursor_index, const size_t list_index,
-                                const std::vector<Text>* d) {
+std::string SDL2KeyInputs::select_directory(const size_t cursor_index,
+                                            const size_t list_index,
+                                            const std::vector<Text> *d) {
   return (*d)[cursor_index + list_index].name;
 }

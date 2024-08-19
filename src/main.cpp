@@ -149,8 +149,7 @@ int main(int argc, char *argv[]) {
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      rend.render_set_directory_limiter(fonts.get_dir_vec()->size(),
-                                        sdl2.get_stored_window_size());
+      rend.render_set_directory_limiter(fonts.get_dir_vec()->size());
       rend.render_set_directories(sdl2.get_stored_window_size(),
                                   fonts.get_dir_vec());
       rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
@@ -163,6 +162,15 @@ int main(int argc, char *argv[]) {
     }
 
     case AT_SONGS: {
+      rend.render_set_song_limiter(fonts.get_song_vec()->size());
+      rend.render_set_songs(sdl2.get_stored_window_size(),
+                            fonts.get_song_vec());
+      rend.render_draw_songs(*rend.get_renderer(), fonts.get_song_vec());
+      rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                              rend.get_draw_limit(SONG_LIMITER),
+                              rend.get_draw_index(SONG_INDEX),
+                              *key.get_cursor_index(), fonts.get_song_vec());
+      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
       break;
     }
 
@@ -206,6 +214,8 @@ int main(int argc, char *argv[]) {
           break;
         }
         case AT_SONGS: {
+          key.cycle_up_list(key.get_cursor_index(),
+                            rend.get_draw_limit(SONG_LIMITER));
           break;
         }
         case LISTENING: {
@@ -228,6 +238,8 @@ int main(int argc, char *argv[]) {
           break;
         }
         case AT_SONGS: {
+          key.cycle_down_list(key.get_cursor_index(),
+                              rend.get_draw_limit(SONG_LIMITER));
           break;
         }
         case LISTENING: {
@@ -254,12 +266,17 @@ int main(int argc, char *argv[]) {
       case ENTER: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
+          files.clear_files();
+          key.reset_cursor_index();
           std::string dir_name = key.select_directory(
               *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
               fonts.get_dir_vec());
-
           files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
                            pathing.return_slash());
+          fonts.create_file_text(*files.retrieve_directory_files(),
+                                 *rend.get_renderer(), *themes.get_text(),
+                                 fonts.get_font_ptr());
+          sdl2.set_current_user_state(AT_SONGS);
           break;
         }
         case AT_SONGS: {
