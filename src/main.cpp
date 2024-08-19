@@ -4,6 +4,7 @@
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
 #include "../include/render_entity.hpp"
+#include "../include/sdl2_audio.hpp"
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
@@ -22,6 +23,8 @@ int main(int argc, char *argv[]) {
   ProgramPath pathing;
   ProgramFiles files;
   SDL2Fonts fonts;
+  AudioData ad;
+  SDL2Audio sdl2_ad;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -267,9 +270,10 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           files.clear_files();
-          std::string dir_name = key.select_directory(
+          std::string dir_name = key.select_element(
               *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
               fonts.get_dir_vec());
+          pathing.set_opened_dir(dir_name);
           key.reset_cursor_index();
           rend.reset_vector_positions();
           files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
@@ -281,6 +285,13 @@ int main(int argc, char *argv[]) {
           break;
         }
         case AT_SONGS: {
+          std::string file_name = key.select_element(
+              *key.get_cursor_index(), rend.get_draw_index(SONG_INDEX),
+              fonts.get_song_vec());
+          std::string dir_path = pathing.join_str(pathing.get_src_path(),
+                                                  pathing.get_opened_dir());
+          std::string file_path = pathing.join_str(dir_path, file_name);
+          bool result = ad.read_audio_file(file_path);
           break;
         }
         case LISTENING: {

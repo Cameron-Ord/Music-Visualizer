@@ -16,15 +16,15 @@ public:
   void clear_files();
   void clear_directories();
 
-  std::vector<Directory>* retrieve_directories();
-  std::vector<Files>*     retrieve_directory_files();
+  std::vector<Directory> *retrieve_directories();
+  std::vector<Files> *retrieve_directory_files();
 
 private:
-  int                    file_count;
-  int                    dir_count;
+  int file_count;
+  int dir_count;
   std::vector<Directory> directories;
-  std::vector<Files>     files;
-  std::vector<Icon>      icons_vec;
+  std::vector<Files> files;
+  std::vector<Icon> icons_vec;
 };
 
 #endif

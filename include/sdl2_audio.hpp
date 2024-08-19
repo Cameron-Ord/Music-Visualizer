@@ -9,7 +9,10 @@ void callback();
 
 class AudioData {
 public:
-  int read_audio_file(std::string file_path);
+  AudioData();
+  ~AudioData();
+  void zero_values();
+  bool read_audio_file(std::string file_path);
 
 private:
   float *buffer;
