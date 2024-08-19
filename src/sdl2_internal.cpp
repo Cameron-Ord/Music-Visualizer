@@ -1,5 +1,4 @@
 #include "../include/sdl2_entity.hpp"
-#include <SDL2/SDL.h>
 
 SDL2INTERNAL::SDL2INTERNAL() {
   play_state         = 1;
@@ -57,6 +56,35 @@ SDL2INTERNAL::initialize_sdl2_image() {
     return false;
   }
   return true;
+}
+
+std::pair<int, int>
+SDL2INTERNAL::get_current_window_size(SDL_Window* window) {
+  int                 w, h;
+  std::pair<int, int> win_size_values;
+
+  SDL_GetWindowSize(window, &w, &h);
+
+  win_size_values.first  = w;
+  win_size_values.second = h;
+
+  return win_size_values;
+}
+
+std::pair<int, int>
+SDL2INTERNAL::get_stored_window_size() {
+  std::pair<int, int> sizes;
+
+  sizes.first  = win_width;
+  sizes.second = win_height;
+
+  return sizes;
+}
+
+void
+SDL2INTERNAL::set_window_size(std::pair<int, int> sizes) {
+  win_width  = sizes.first;
+  win_height = sizes.second;
 }
 
 void

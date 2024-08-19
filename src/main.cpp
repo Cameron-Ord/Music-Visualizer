@@ -1,6 +1,12 @@
+#include "../include/events.hpp"
+#include "../include/files.hpp"
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
+#include "../include/render_entity.hpp"
 #include "../include/sdl2_entity.hpp"
+#include "../include/theme.hpp"
+#include "../include/window_entity.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -130,6 +136,9 @@ main(int argc, char* argv[]) {
     rend.render_clear(*rend.get_renderer());
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
 
+    rend.render_set_directories(sdl2.get_stored_window_size(), fonts.get_dir_vec());
+    rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
+
     frame_start            = SDL_GetTicks64();
     const int event_return = key.poll_events();
 
@@ -143,12 +152,12 @@ main(int argc, char* argv[]) {
     }
     }
 
-    rend.render_present(*rend.get_renderer());
-
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {
       SDL_Delay(ticks_per_frame - frame_time);
     }
+
+    rend.render_present(*rend.get_renderer());
   }
 
   if (std_out_file != NULL) {

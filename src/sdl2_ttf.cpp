@@ -1,4 +1,4 @@
-#include "../include/sdl2_entity.hpp"
+#include "../include/font_entity.hpp"
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_render.h>
 
@@ -23,6 +23,16 @@ SDL2Fonts::open_font() {
 TTF_Font*
 SDL2Fonts::get_font_ptr() {
   return font;
+}
+
+std::vector<Text>
+SDL2Fonts::get_dir_vec() {
+  return dir_text_vec;
+}
+
+std::vector<Text>
+SDL2Fonts::get_song_vec() {
+  return song_text_vec;
 }
 
 void

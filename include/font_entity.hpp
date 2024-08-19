@@ -1,5 +1,5 @@
-#ifndef SDL2_TTF_H
-#define SDL2_TTF_H
+#ifndef SDL2_TTF_HPP
+#define SDL2_TTF_HPP
 
 #include "files.hpp"
 #include <SDL2/SDL_pixels.h>
@@ -31,6 +31,9 @@ public:
   Text         create_text(const std::string text, TTF_Font* font, SDL_Renderer* r, const int text_id,
                            const SDL_Color color);
   TTF_Font*    get_font_ptr();
+
+  std::vector<Text> get_dir_vec();
+  std::vector<Text> get_song_vec();
 
 private:
   std::vector<Text> dir_text_vec;

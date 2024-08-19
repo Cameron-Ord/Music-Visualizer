@@ -1,6 +1,7 @@
-#include "../include/sdl2_entity.hpp"
+#include "../include/events.hpp"
 
-int SDL2KeyInputs::poll_events() {
+int
+SDL2KeyInputs::poll_events() {
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     switch (e.type) {
