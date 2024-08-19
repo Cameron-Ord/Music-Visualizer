@@ -1,22 +1,11 @@
 #ifndef SDL2_TTF_HPP
 #define SDL2_TTF_HPP
 
-#include "files.hpp"
+#include "file_def.hpp"
+#include "font_def.hpp"
 #include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_ttf.h>
-#include <iostream>
-
-struct Text {
-  SDL_Texture* tex;
-  SDL_Surface* surf;
-  SDL_Rect     rect;
-  int          width;
-  int          height;
-  int          id;
-  bool         is_valid;
-};
-
-typedef Text Text;
+#include <vector>
 
 class SDL2Fonts {
 public:

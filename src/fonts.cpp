@@ -87,7 +87,8 @@ SDL2Fonts::create_text_texture(SDL_Renderer* r, SDL_Surface* surf) {
 Text
 SDL2Fonts::create_text(const std::string text, TTF_Font* font, SDL_Renderer* r, const int text_id,
                        const SDL_Color color) {
-  Text text_entity = { .tex = NULL, .surf = NULL, .rect = { 0, 0, 0, 0 }, .id = text_id, .is_valid = false };
+  Text text_entity
+      = { .tex = NULL, .surf = NULL, .rect = { 0, 0, 0, 0 }, .id = text_id, .is_valid = false, .name = text };
   SDL_Surface* surf_ptr = create_text_surface(font, color, text);
   if (surf_ptr == NULL) {
     return text_entity;

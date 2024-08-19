@@ -13,3 +13,10 @@ AlignConsecutiveAssignments: true
 AlignOperands: true
 BreakBeforeBraces: Attach
 SpaceBeforeParens: ControlStatements
+BreakAfterBinaryOperators: None
+BreakBeforeBinaryOperators: NonAssignment
+BinPackArguments: false
+BinPackParameters: false
+PenaltyBreakStringLiterals: 1000
+PenaltyExcessCharacter: 100
+PenaltyReturnTypeOnItsOwnLine: 60

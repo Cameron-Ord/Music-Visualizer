@@ -1,26 +1,27 @@
 #include "../include/events.hpp"
 #include "../include/files.hpp"
+#include "../include/font_entity.hpp"
 #include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
 #include "../include/render_entity.hpp"
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-int
-main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   // instantiate classes
-  bool          err;
-  SDL2INTERNAL  sdl2;
-  SDL2Renderer  rend;
-  SDL2Window    win;
+  bool err;
+  SDL2INTERNAL sdl2;
+  SDL2Renderer rend;
+  SDL2Window win;
   SDL2KeyInputs key;
   ProgramThemes themes;
-  ProgramPath   pathing;
-  ProgramFiles  files;
-  SDL2Fonts     fonts;
+  ProgramPath pathing;
+  ProgramFiles files;
+  SDL2Fonts fonts;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -29,7 +30,8 @@ main(int argc, char* argv[]) {
 
   win.create_window(win.get_window());
   if (win.get_window() == NULL) {
-    fprintf(stderr, "Failed to initialize SDL2 window! -> WINDOW POINTER WAS NULL\n");
+    fprintf(stderr, "Failed to initialize SDL2 window! -> "
+                    "WINDOW POINTER WAS NULL\n");
     SDL_Quit();
     return 1;
   }
@@ -39,10 +41,13 @@ main(int argc, char* argv[]) {
 
   rend.create_renderer(win.get_window(), rend.get_renderer());
   if (*rend.get_renderer() == NULL) {
-    fprintf(stderr, "Failed to initialize SDL2 renderer -> RENDER POINTER WAS NULL!\n");
+    fprintf(stderr, "Failed to initialize SDL2 renderer -> "
+                    "RENDER POINTER WAS NULL!\n");
     SDL_Quit();
     return 1;
   }
+
+  SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
 
   if (!sdl2.initialize_sdl2_events()) {
     fprintf(stderr, "Failed to initialize SDL2 inputs! -> EXIT\n");
@@ -79,7 +84,8 @@ main(int argc, char* argv[]) {
 
   err = pathing.create_music_source();
   if (!err) {
-    fprintf(stderr, "Failed to create or acknowledge existence of source "
+    fprintf(stderr, "Failed to create or acknowledge "
+                    "existence of source "
                     "directories! -> EXIT\n");
     IMG_Quit();
     TTF_Quit();
@@ -89,7 +95,8 @@ main(int argc, char* argv[]) {
 
   err = pathing.create_log_directories();
   if (!err) {
-    fprintf(stderr, "Failed to create or acknowledge existence of logging "
+    fprintf(stderr, "Failed to create or acknowledge "
+                    "existence of logging "
                     "directories! -> EXIT\n");
     IMG_Quit();
     TTF_Quit();
@@ -102,23 +109,22 @@ main(int argc, char* argv[]) {
     fprintf(stdout, "Error, or no directories found!\n");
   }
 
-  fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(), *themes.get_text(),
-                        fonts.get_font_ptr());
-
-  uint64_t frame_start;
-  int      frame_time;
+  fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(),
+                        *themes.get_text(), fonts.get_font_ptr());
 
   const std::string logging_src_path = pathing.get_logging_path();
-  const std::string log_file_concat  = pathing.join_str(logging_src_path, "log.txt");
+  const std::string log_file_concat =
+      pathing.join_str(logging_src_path, "log.txt");
 
-  FILE* std_out_file = freopen(log_file_concat.c_str(), "a", stdout);
+  FILE *std_out_file = freopen(log_file_concat.c_str(), "a", stdout);
   if (std_out_file == NULL) {
     fprintf(stderr, "Could not redirect STDOUT! -> %s\n", strerror(errno));
   }
 
-  const std::string errlog_file_concat = pathing.join_str(logging_src_path, "errlog.txt");
+  const std::string errlog_file_concat =
+      pathing.join_str(logging_src_path, "errlog.txt");
 
-  FILE* std_err_file = freopen(errlog_file_concat.c_str(), "a", stderr);
+  FILE *std_err_file = freopen(errlog_file_concat.c_str(), "a", stderr);
   if (std_err_file == NULL) {
     fprintf(stderr, "Could not redirect STDERR! -> %s\n", strerror(errno));
   }
@@ -131,9 +137,10 @@ main(int argc, char* argv[]) {
   sdl2.set_entity(&pathing, PATHS);
   sdl2.set_entity(&files, FILES);
 
-  SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
-
   const int ticks_per_frame = (1000.0 / 60);
+  uint64_t frame_start;
+  int frame_time;
+
   sdl2.set_play_state(true);
 
   while (sdl2.get_play_state()) {
@@ -142,12 +149,15 @@ main(int argc, char* argv[]) {
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      rend.render_set_directory_limiter(fonts.get_dir_vec()->size(), sdl2.get_stored_window_size());
-      rend.render_set_directories(sdl2.get_stored_window_size(), fonts.get_dir_vec());
+      rend.render_set_directory_limiter(fonts.get_dir_vec()->size(),
+                                        sdl2.get_stored_window_size());
+      rend.render_set_directories(sdl2.get_stored_window_size(),
+                                  fonts.get_dir_vec());
       rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
-
-      rend.render_set_text_bg(sdl2.get_stored_window_size(), rend.get_draw_limit(DIR_LIMITER),
-                              rend.get_draw_index(DIR_INDEX), *key.get_cursor_index(), fonts.get_dir_vec());
+      rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                              rend.get_draw_limit(DIR_LIMITER),
+                              rend.get_draw_index(DIR_INDEX),
+                              *key.get_cursor_index(), fonts.get_dir_vec());
       rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
       break;
     }
@@ -165,16 +175,17 @@ main(int argc, char* argv[]) {
     }
     }
 
-    frame_start                            = SDL_GetTicks64();
+    frame_start = SDL_GetTicks64();
     const std::pair<int, int> event_return = key.poll_events();
 
     const int event_type = event_return.first;
-    const int keycode    = event_return.second;
+    const int keycode = event_return.second;
 
     switch (event_type) {
 
     case WINDOW_SIZE_CHANGED: {
-      std::pair<int, int> sizes = sdl2.get_current_window_size(*win.get_window());
+      std::pair<int, int> sizes =
+          sdl2.get_current_window_size(*win.get_window());
       sdl2.set_window_size(sizes);
       break;
     }
@@ -190,7 +201,8 @@ main(int argc, char* argv[]) {
       case UP: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
-          key.cycle_up_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
+          key.cycle_up_list(key.get_cursor_index(),
+                            rend.get_draw_limit(DIR_LIMITER));
           break;
         }
         case AT_SONGS: {
@@ -211,7 +223,8 @@ main(int argc, char* argv[]) {
       case DOWN: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
-          key.cycle_down_list(key.get_cursor_index(), rend.get_draw_limit(DIR_LIMITER));
+          key.cycle_down_list(key.get_cursor_index(),
+                              rend.get_draw_limit(DIR_LIMITER));
           break;
         }
         case AT_SONGS: {
@@ -241,6 +254,12 @@ main(int argc, char* argv[]) {
       case ENTER: {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
+          std::string dir_name = key.select_directory(
+              *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
+              fonts.get_dir_vec());
+
+          files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
+                           pathing.return_slash());
           break;
         }
         case AT_SONGS: {

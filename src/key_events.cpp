@@ -1,5 +1,6 @@
 #include "../include/events.hpp"
 #include <algorithm>
+#include <list>
 
 SDL2KeyInputs::SDL2KeyInputs() { cursor_index = 0; }
 
@@ -90,4 +91,10 @@ SDL2KeyInputs::cycle_down_list(size_t* cursor_index, size_t max_length) {
 size_t*
 SDL2KeyInputs::get_cursor_index() {
   return &cursor_index;
+}
+
+std::string
+SDL2KeyInputs::select_directory(const size_t cursor_index, const size_t list_index,
+                                const std::vector<Text>* d) {
+  return (*d)[cursor_index + list_index].name;
 }

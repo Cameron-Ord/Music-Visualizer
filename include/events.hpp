@@ -4,6 +4,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
 #include <string>
+#include <vector>
+
+#include "font_def.hpp"
 
 typedef enum {
   Q         = SDLK_q,
@@ -33,6 +36,8 @@ public:
   void                cycle_up_list(size_t* cursor_index, size_t max_length);
   void                cycle_down_list(size_t* cursor_index, size_t max_length);
   size_t*             get_cursor_index();
+  std::string         select_directory(const size_t cursor_index, const size_t list_index,
+                                       const std::vector<Text>* d);
 
 private:
   size_t cursor_index;

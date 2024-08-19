@@ -1,9 +1,11 @@
 #ifndef RENDER_ENTITY_HPP
 #define RENDER_ENTITY_HPP
-#include "font_entity.hpp"
+
+#include "font_def.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
+#include <vector>
 
 typedef enum { DIR_INDEX = 0, DIR_LIMITER = 1, SONG_INDEX = 2, SONG_LIMITER = 3 } LIMITER_ENUM;
 
