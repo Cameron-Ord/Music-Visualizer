@@ -267,14 +267,11 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           files.clear_files();
-          key.reset_cursor_index();
-          rend.reset_vector_positions();
           std::string dir_name = key.select_directory(
               *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
               fonts.get_dir_vec());
-
-          fprintf(stdout, "%s\n", dir_name.c_str());
-
+          key.reset_cursor_index();
+          rend.reset_vector_positions();
           files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
                            pathing.return_slash());
           fonts.create_file_text(*files.retrieve_directory_files(),
