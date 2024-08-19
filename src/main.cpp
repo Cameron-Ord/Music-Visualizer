@@ -268,6 +268,7 @@ int main(int argc, char *argv[]) {
         case AT_DIRECTORIES: {
           files.clear_files();
           key.reset_cursor_index();
+          rend.reset_vector_positions();
           std::string dir_name = key.select_directory(
               *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
               fonts.get_dir_vec());
@@ -297,6 +298,7 @@ int main(int argc, char *argv[]) {
         if (sdl2.get_current_user_state() == AT_SONGS) {
           key.reset_cursor_index();
           sdl2.set_current_user_state(AT_DIRECTORIES);
+          fonts.destroy_file_text(fonts.get_song_vec());
         }
         break;
       }

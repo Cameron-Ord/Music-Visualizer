@@ -46,6 +46,22 @@ void SDL2Fonts::create_file_text(const std::vector<Files> f, SDL_Renderer *r,
   }
 }
 
+void SDL2Fonts::destroy_file_text(std::vector<Text> *file_vec) {
+  for (Text f : *file_vec) {
+    f.tex = destroy_text_texture(f.tex);
+  }
+
+  file_vec->clear();
+}
+
+void SDL2Fonts::destroy_dir_text(std::vector<Text> *dir_vec) {
+  for (Text d : *dir_vec) {
+    d.tex = destroy_text_texture(d.tex);
+  }
+
+  dir_vec->clear();
+}
+
 SDL_Surface *SDL2Fonts::create_text_surface(TTF_Font *font,
                                             const SDL_Color color,
                                             const std::string text) {

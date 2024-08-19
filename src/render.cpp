@@ -12,6 +12,13 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
+void SDL2Renderer::reset_vector_positions() {
+  real_directory_draw_limit = 0;
+  real_song_draw_limit = 0;
+  current_dir_draw_index = 0;
+  current_song_draw_index = 0;
+}
+
 size_t SDL2Renderer::get_draw_limit(int LIMITER_ENUM_VALUE) {
   switch (LIMITER_ENUM_VALUE) {
   case DIR_LIMITER: {

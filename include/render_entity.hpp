@@ -37,6 +37,7 @@ public:
   void render_draw_text_bg(SDL_Renderer *r, const SDL_Color *rgba);
   size_t get_draw_limit(int LIMITER_ENUM_VALUE);
   size_t get_draw_index(int INDEX_ENUM_VALUE);
+  void reset_vector_positions();
 
 private:
   SDL_Renderer *r;
