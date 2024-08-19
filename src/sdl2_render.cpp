@@ -1,53 +1,48 @@
 #include "../include/render_entity.hpp"
 
 SDL2Renderer::SDL2Renderer() {
-  r                       = NULL;
-  song_draw_limit         = 6;
-  directory_draw_limit    = 6;
-  current_dir_draw_index  = 0;
-  current_song_draw_index = 0;
+  r                            = NULL;
+  desired_song_draw_limit      = 6;
+  desired_directory_draw_limit = 6;
+  real_song_draw_limit         = 0;
+  real_directory_draw_limit    = 0;
+  current_dir_draw_index       = 0;
+  current_song_draw_index      = 0;
 }
 
 SDL2Renderer::~SDL2Renderer() {}
 
 void
 SDL2Renderer::render_set_directories(std::pair<int, int> sizes, std::vector<Text>* text_vec) {
-  size_t limiter;
-  if (text_vec->size() > directory_draw_limit) {
-    if (current_dir_draw_index + 1 < text_vec->size() - directory_draw_limit) {
-      limiter = directory_draw_limit;
+  if (text_vec->size() > desired_directory_draw_limit) {
+    size_t position  = current_dir_draw_index + 1;
+    size_t remainder = text_vec->size() - position;
+
+    if (remainder > text_vec->size()) {
+      real_directory_draw_limit = desired_directory_draw_limit;
     } else {
-      limiter = text_vec->size();
+      real_directory_draw_limit = text_vec->size();
     }
+  } else {
+    real_directory_draw_limit = text_vec->size();
   }
 
-  const float increment = 1.0 / limiter;
-  float       factor    = 1.0 / limiter;
+  int pixel_increment  = sizes.second / (real_directory_draw_limit + 1);
+  int pixel_accumulate = pixel_increment;
 
-  const int eight_tenths_w = 0.8 * sizes.first;
-
-  for (size_t i = 0; i < text_vec->size(); i++) {
+  for (size_t i = current_dir_draw_index; i < real_directory_draw_limit; i++) {
     if ((*text_vec)[i].is_valid) {
-      (*text_vec)[i].rect.x = eight_tenths_w;
-      (*text_vec)[i].rect.y = factor * sizes.second;
+      (*text_vec)[i].rect.x = 25;
+      (*text_vec)[i].rect.y = pixel_accumulate;
     }
 
-    factor += increment;
+    pixel_accumulate += pixel_increment;
   }
 }
 
 void
 SDL2Renderer::render_draw_directories(SDL_Renderer* r, std::vector<Text>* text_vec) {
-  size_t limiter;
-  if (text_vec->size() > directory_draw_limit) {
-    if (current_dir_draw_index + 1 < text_vec->size() - directory_draw_limit) {
-      limiter = directory_draw_limit;
-    } else {
-      limiter = text_vec->size();
-    }
-  }
-
-  for (size_t i = current_dir_draw_index; i < limiter; i++) {
+  for (size_t i = current_dir_draw_index; i < real_directory_draw_limit; i++) {
     if ((*text_vec)[i].is_valid) {
       SDL_RenderCopy(r, (*text_vec)[i].tex, NULL, &(*text_vec)[i].rect);
     }
