@@ -272,6 +272,9 @@ int main(int argc, char *argv[]) {
           std::string dir_name = key.select_directory(
               *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
               fonts.get_dir_vec());
+
+          fprintf(stdout, "%s\n", dir_name.c_str());
+
           files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
                            pathing.return_slash());
           fonts.create_file_text(*files.retrieve_directory_files(),
