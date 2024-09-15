@@ -172,8 +172,7 @@ int main(int argc, char *argv[]) {
       case 1: {
         sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
         key.cycle_down_list(key.get_cursor_index(),
-                            rend.get_draw_limit(SONG_LIMITER),
-                            rend.get_draw_index_ptr(SONG_INDEX));
+                            rend.get_draw_limit(SONG_LIMITER));
 
         sdl2_ad.pause_audio();
         sdl2_ad.close_audio_device();
@@ -235,7 +234,7 @@ int main(int argc, char *argv[]) {
 
       rend.render_draw_bars(&data->output_len, bufs->smear, bufs->smoothed,
                             &win_sizes.second, &win_sizes.first,
-                            themes.get_primary(), themes.get_tertiary(),
+                            themes.get_primary(), themes.get_textbg(),
                             *rend.get_renderer());
       break;
     }
@@ -246,10 +245,10 @@ int main(int argc, char *argv[]) {
     }
 
     frame_start = SDL_GetTicks64();
-    const std::pair<int, int> event_return = key.poll_events();
+    const std::pair<int, SDL_Keysym> event_return = key.poll_events();
 
     const int event_type = event_return.first;
-    const int keycode = event_return.second;
+    const SDL_Keycode keycode = event_return.second.sym;
 
     switch (event_type) {
 
@@ -273,14 +272,12 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(DIR_LIMITER),
-                            rend.get_draw_index_ptr(DIR_INDEX));
+                            rend.get_draw_limit(DIR_LIMITER));
           break;
         }
         case AT_SONGS: {
           key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(SONG_LIMITER),
-                            rend.get_draw_index_ptr(SONG_INDEX));
+                            rend.get_draw_limit(SONG_LIMITER));
           break;
         }
         case LISTENING: {
@@ -299,14 +296,12 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(DIR_LIMITER),
-                              rend.get_draw_index_ptr(DIR_INDEX));
+                              rend.get_draw_limit(DIR_LIMITER));
           break;
         }
         case AT_SONGS: {
           key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(SONG_LIMITER),
-                              rend.get_draw_index_ptr(SONG_INDEX));
+                              rend.get_draw_limit(SONG_LIMITER));
           break;
         }
         case LISTENING: {
