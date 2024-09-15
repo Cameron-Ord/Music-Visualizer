@@ -50,20 +50,6 @@ size_t SDL2Renderer::get_draw_limit(int LIMITER_ENUM_VALUE) {
   }
 }
 
-size_t *SDL2Renderer::get_draw_index_ptr(int INDEX_ENUM_VALUE) {
-  switch (INDEX_ENUM_VALUE) {
-  case DIR_INDEX: {
-    return &current_dir_draw_index;
-  }
-  case SONG_INDEX: {
-    return &current_song_draw_index;
-  }
-  default: {
-    return 0;
-  }
-  }
-}
-
 void SDL2Renderer::render_draw_bars(size_t *len, float *smear, float *smooth,
                                     int *win_height, int *win_width,
                                     SDL_Color *prim, SDL_Color *sec,
@@ -130,13 +116,15 @@ void SDL2Renderer::render_set_songs(std::pair<int, int> sizes,
   int pixel_increment = sizes.second / (real_song_draw_limit + 1);
   int pixel_accumulate = pixel_increment;
 
-  for (size_t i = current_song_draw_index; i < real_song_draw_limit; i++) {
-    if ((*text_vec)[i].is_valid) {
-      (*text_vec)[i].rect.x = 25;
-      (*text_vec)[i].rect.y = pixel_accumulate;
+  size_t draw_index = current_song_draw_index;
+  for (size_t i = 0; i < real_song_draw_limit; i++) {
+    if ((*text_vec)[draw_index].is_valid) {
+      (*text_vec)[draw_index].rect.x = 25;
+      (*text_vec)[draw_index].rect.y = pixel_accumulate;
     }
 
     pixel_accumulate += pixel_increment;
+    draw_index++;
   }
 }
 
@@ -170,13 +158,15 @@ void SDL2Renderer::render_set_directories(std::pair<int, int> sizes,
   int pixel_increment = sizes.second / (real_directory_draw_limit + 1);
   int pixel_accumulate = pixel_increment;
 
-  for (size_t i = current_dir_draw_index; i < real_directory_draw_limit; i++) {
-    if ((*text_vec)[i].is_valid) {
-      (*text_vec)[i].rect.x = 25;
-      (*text_vec)[i].rect.y = pixel_accumulate;
+  size_t draw_index = current_dir_draw_index;
+  for (size_t i = 0; i < real_directory_draw_limit; i++) {
+    if ((*text_vec)[draw_index].is_valid) {
+      (*text_vec)[draw_index].rect.x = 25;
+      (*text_vec)[draw_index].rect.y = pixel_accumulate;
     }
 
     pixel_accumulate += pixel_increment;
+    draw_index++;
   }
 }
 

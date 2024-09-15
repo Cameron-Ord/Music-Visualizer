@@ -37,7 +37,6 @@ public:
   void render_draw_text_bg(SDL_Renderer *r, const SDL_Color *rgba);
   size_t get_draw_limit(int LIMITER_ENUM_VALUE);
   size_t get_draw_index(int INDEX_ENUM_VALUE);
-  size_t *get_draw_index_ptr(int INDEX_ENUM_VALUE);
   void reset_vector_positions();
   void render_draw_bars(size_t *len, float *smear, float *smooth,
                         int *win_height, int *win_width, SDL_Color *prim,
