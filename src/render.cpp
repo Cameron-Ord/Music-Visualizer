@@ -19,6 +19,23 @@ void SDL2Renderer::reset_vector_positions() {
   current_song_draw_index = 0;
 }
 
+void SDL2Renderer::set_draw_limits(int h) {
+  if (h < 400) {
+    desired_song_draw_limit = 4;
+    desired_directory_draw_limit = 2;
+    return;
+  } else if (h > 400 && h < 800) {
+    desired_song_draw_limit = 6;
+    desired_directory_draw_limit = 4;
+  } else if (h > 800 && h < 1280) {
+    desired_song_draw_limit = 8;
+    desired_directory_draw_limit = 6;
+  } else if (h > 1280) {
+    desired_directory_draw_limit = 8;
+    desired_song_draw_limit = 12;
+  }
+}
+
 size_t SDL2Renderer::get_draw_limit(int LIMITER_ENUM_VALUE) {
   switch (LIMITER_ENUM_VALUE) {
   case DIR_LIMITER: {
@@ -30,6 +47,51 @@ size_t SDL2Renderer::get_draw_limit(int LIMITER_ENUM_VALUE) {
   default: {
     return 0;
   }
+  }
+}
+
+size_t *SDL2Renderer::get_draw_index_ptr(int INDEX_ENUM_VALUE) {
+  switch (INDEX_ENUM_VALUE) {
+  case DIR_INDEX: {
+    return &current_dir_draw_index;
+  }
+  case SONG_INDEX: {
+    return &current_song_draw_index;
+  }
+  default: {
+    return 0;
+  }
+  }
+}
+
+void SDL2Renderer::render_draw_bars(size_t *len, float *smear, float *smooth,
+                                    int *win_height, int *win_width,
+                                    SDL_Color *prim, SDL_Color *sec,
+                                    SDL_Renderer *r) {
+  int cell_width = *win_width / *len;
+  int h = *win_height;
+
+  for (size_t i = 0; i < *len; ++i) {
+    float start = smear[i];
+    float end = smooth[i];
+
+    int end_x_pos = (i * (int)(cell_width + cell_width / 2));
+    int end_y_pos = h - (end * h);
+    int end_bar_height = end * h;
+    SDL_Rect sample_end = {end_x_pos, end_y_pos, cell_width, end_bar_height};
+
+    SDL_SetRenderDrawColor(r, prim->r, prim->g, prim->b, prim->a);
+    SDL_RenderFillRect(r, &sample_end);
+
+    int start_x_pos = (i * (int)(cell_width + cell_width / 2));
+    int start_y_pos = h - (start * h);
+
+    if (end_y_pos > start_y_pos) {
+      SDL_Rect sample_start = {start_x_pos, start_y_pos, cell_width,
+                               end_y_pos - start_y_pos};
+      SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a);
+      SDL_RenderFillRect(r, &sample_start);
+    }
   }
 }
 

@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 struct AudioDataContainer {
-  float fft_in[1 << 12];
   float *buffer;
   uint32_t length;
   uint32_t position;

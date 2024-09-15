@@ -18,10 +18,8 @@ public:
                        const SDL_Color color, TTF_Font *font);
   void create_file_text(const std::vector<Files> f, SDL_Renderer *r,
                         const SDL_Color color, TTF_Font *font);
-
   void destroy_file_text(std::vector<Text> *file_vec);
   void destroy_dir_text(std::vector<Text> *dir_vec);
-
   SDL_Surface *destroy_text_surface(SDL_Surface *ptr);
   SDL_Texture *destroy_text_texture(SDL_Texture *ptr);
   bool open_font();
@@ -37,6 +35,7 @@ private:
   std::vector<Text> song_text_vec;
   std::string font_path;
   int font_size;
+  size_t character_limit;
   TTF_Font *font;
 };
 

@@ -1,5 +1,6 @@
 #include "../include/audio.hpp"
 #include "../include/events.hpp"
+#include "../include/fft.hpp"
 #include "../include/files.hpp"
 #include "../include/font_entity.hpp"
 #include "../include/macdefs.hpp"
@@ -15,7 +16,9 @@
 int main(int argc, char *argv[]) {
   // instantiate classes
   bool err;
+
   USERDATA userdata;
+  FourierTransform fft;
   SDL2INTERNAL sdl2;
   SDL2Renderer rend;
   SDL2Window win;
@@ -29,6 +32,7 @@ int main(int argc, char *argv[]) {
 
   userdata.ad = &ad;
   userdata.sdl2_ad = &sdl2_ad;
+  userdata.fft = &fft;
 
   if (!sdl2.initialize_sdl2_video()) {
     fprintf(stdout, "Failed to initialize SDL2 video!\n");
@@ -154,6 +158,49 @@ int main(int argc, char *argv[]) {
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
     rend.render_clear(*rend.get_renderer());
 
+    switch (sdl2_ad.get_stream_flag()) {
+    default: {
+      break;
+    }
+    case 1: {
+      switch (*sdl2_ad.get_next_song_flag()) {
+      case 0: {
+        fft.generate_visual();
+        break;
+      }
+
+      case 1: {
+        sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
+        key.cycle_down_list(key.get_cursor_index(),
+                            rend.get_draw_limit(SONG_LIMITER),
+                            rend.get_draw_index_ptr(SONG_INDEX));
+
+        sdl2_ad.pause_audio();
+        sdl2_ad.close_audio_device();
+        std::string file_name = key.select_element(
+            *key.get_cursor_index(), rend.get_draw_index(SONG_INDEX),
+            fonts.get_song_vec());
+        std::string dir_path =
+            pathing.join_str(pathing.get_src_path(), pathing.get_opened_dir());
+        std::string file_path = pathing.join_str(dir_path, file_name);
+        bool result = ad.read_audio_file(file_path);
+        if (result) {
+          sdl2_ad.set_audio_spec(&userdata);
+          sdl2_ad.open_audio_device();
+          sdl2_ad.resume_audio();
+          sdl2.set_current_user_state(LISTENING);
+        }
+
+        break;
+      }
+      default: {
+        break;
+      }
+      }
+      break;
+    }
+    }
+
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
       rend.render_set_directory_limiter(fonts.get_dir_vec()->size());
@@ -182,6 +229,14 @@ int main(int argc, char *argv[]) {
     }
 
     case LISTENING: {
+      FData *data = fft.get_data();
+      FBuffers *bufs = fft.get_bufs();
+      std::pair win_sizes = sdl2.get_stored_window_size();
+
+      rend.render_draw_bars(&data->output_len, bufs->smear, bufs->smoothed,
+                            &win_sizes.second, &win_sizes.first,
+                            themes.get_primary(), themes.get_tertiary(),
+                            *rend.get_renderer());
       break;
     }
 
@@ -202,6 +257,7 @@ int main(int argc, char *argv[]) {
       std::pair<int, int> sizes =
           sdl2.get_current_window_size(*win.get_window());
       sdl2.set_window_size(sizes);
+      rend.set_draw_limits(sizes.second);
       break;
     }
 
@@ -217,12 +273,14 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(DIR_LIMITER));
+                            rend.get_draw_limit(DIR_LIMITER),
+                            rend.get_draw_index_ptr(DIR_INDEX));
           break;
         }
         case AT_SONGS: {
           key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(SONG_LIMITER));
+                            rend.get_draw_limit(SONG_LIMITER),
+                            rend.get_draw_index_ptr(SONG_INDEX));
           break;
         }
         case LISTENING: {
@@ -241,12 +299,14 @@ int main(int argc, char *argv[]) {
         switch (sdl2.get_current_user_state()) {
         case AT_DIRECTORIES: {
           key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(DIR_LIMITER));
+                              rend.get_draw_limit(DIR_LIMITER),
+                              rend.get_draw_index_ptr(DIR_INDEX));
           break;
         }
         case AT_SONGS: {
           key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(SONG_LIMITER));
+                              rend.get_draw_limit(SONG_LIMITER),
+                              rend.get_draw_index_ptr(SONG_INDEX));
           break;
         }
         case LISTENING: {
@@ -261,11 +321,35 @@ int main(int argc, char *argv[]) {
 
       /*ON LEFT ARROW*/
       case LEFT: {
+        switch (sdl2.get_current_user_state()) {
+        case AT_SONGS: {
+          key.reset_cursor_index();
+          sdl2.set_current_user_state(AT_DIRECTORIES);
+          fonts.destroy_file_text(fonts.get_song_vec());
+          break;
+        }
+        case LISTENING: {
+          sdl2.set_current_user_state(AT_SONGS);
+          break;
+        }
+        default: {
+          break;
+        }
+        }
         break;
       }
 
       /*ON RIGHT ARROW*/
       case RIGHT: {
+        switch (sdl2.get_current_user_state()) {
+        case AT_SONGS: {
+          sdl2.set_current_user_state(LISTENING);
+          break;
+        }
+        default: {
+          break;
+        }
+        }
         break;
       }
 
@@ -289,6 +373,8 @@ int main(int argc, char *argv[]) {
           break;
         }
         case AT_SONGS: {
+          sdl2_ad.pause_audio();
+          sdl2_ad.close_audio_device();
           std::string file_name = key.select_element(
               *key.get_cursor_index(), rend.get_draw_index(SONG_INDEX),
               fonts.get_song_vec());
@@ -300,6 +386,7 @@ int main(int argc, char *argv[]) {
             sdl2_ad.set_audio_spec(&userdata);
             sdl2_ad.open_audio_device();
             sdl2_ad.resume_audio();
+            sdl2.set_current_user_state(LISTENING);
           }
           break;
         }
@@ -315,11 +402,13 @@ int main(int argc, char *argv[]) {
 
       /*ON BACKSPACE*/
       case BACKSPACE: {
-        if (sdl2.get_current_user_state() == AT_SONGS) {
-          key.reset_cursor_index();
-          sdl2.set_current_user_state(AT_DIRECTORIES);
-          fonts.destroy_file_text(fonts.get_song_vec());
+
+        switch (sdl2.get_current_user_state()) {
+        case AT_SONGS: {
+          break;
         }
+        }
+
         break;
       }
 

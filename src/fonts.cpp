@@ -6,6 +6,7 @@ SDL2Fonts::SDL2Fonts() {
   font = NULL;
   font_path = "dogicapixel.ttf";
   font_size = 16;
+  character_limit = 40;
 }
 
 SDL2Fonts::~SDL2Fonts() {}
@@ -99,7 +100,14 @@ Text SDL2Fonts::create_text(const std::string text, TTF_Font *font,
                       .id = text_id,
                       .is_valid = false,
                       .name = text};
-  SDL_Surface *surf_ptr = create_text_surface(font, color, text);
+
+  std::string text_cpy = text;
+  if (text_cpy.size() > character_limit) {
+    text_cpy.erase(character_limit);
+    text_cpy += "...";
+  }
+
+  SDL_Surface *surf_ptr = create_text_surface(font, color, text_cpy);
   if (surf_ptr == NULL) {
     return text_entity;
   }

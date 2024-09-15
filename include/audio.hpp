@@ -33,20 +33,18 @@ public:
   bool open_audio_device();
   void close_audio_device();
 
-  bool get_play_state();
-  bool get_end_state();
-  bool get_pause_state();
+  void set_flag(int flag, int *mutable_flag);
+  int *get_next_song_flag();
+  int get_stream_flag();
 
   SDL_AudioDeviceID *get_device();
   SDL_AudioSpec *get_spec();
 
 private:
+  int next_song_flag;
+  int audio_streaming;
   SDL_AudioSpec spec;
   SDL_AudioDeviceID dev;
-
-  bool song_playing;
-  bool song_ended;
-  bool song_paused;
 };
 
 #endif

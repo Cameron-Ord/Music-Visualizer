@@ -69,8 +69,9 @@ std::pair<int, int> SDL2KeyInputs::poll_events() {
 
 void SDL2KeyInputs::reset_cursor_index() { cursor_index = 0; }
 
-void SDL2KeyInputs::cycle_up_list(size_t *cursor_index, size_t max_length) {
-  int tmp = *cursor_index;
+void SDL2KeyInputs::cycle_up_list(size_t *cursor_index, size_t max_length,
+                                  size_t *draw_cursor_index) {
+  size_t tmp = *cursor_index;
 
   tmp -= 1;
   if (tmp < 0) {
@@ -80,11 +81,16 @@ void SDL2KeyInputs::cycle_up_list(size_t *cursor_index, size_t max_length) {
   *cursor_index = tmp;
 }
 
-void SDL2KeyInputs::cycle_down_list(size_t *cursor_index, size_t max_length) {
-  *cursor_index += 1;
-  if (*cursor_index > max_length - 1) {
-    *cursor_index = 0;
+void SDL2KeyInputs::cycle_down_list(size_t *cursor_index, size_t max_length,
+                                    size_t *draw_cursor_index) {
+  size_t tmp = *cursor_index;
+  tmp += 1;
+
+  if (tmp > max_length - 1) {
+    tmp = 0;
   }
+
+  *cursor_index = tmp;
 }
 
 size_t *SDL2KeyInputs::get_cursor_index() { return &cursor_index; }
