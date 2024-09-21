@@ -10,8 +10,6 @@
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
 
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_video.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>

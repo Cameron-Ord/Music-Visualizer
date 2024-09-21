@@ -9,7 +9,6 @@ void SDL2Renderer::render_set_text_bg(const WIN_SIZE *sizes,
   drawing_text_bg = false;
 
   for (auto it = text_vec->begin(); it != text_vec->end(); it++) {
-    printf("%ld\n", it->id);
     if (it->id == *cursor_index) {
       text_bg.w = it->width + 10;
       text_bg.h = it->height + 10;

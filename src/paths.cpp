@@ -38,14 +38,16 @@ std::string ProgramPath::join_str(std::string source, std::string add) {
 std::string ProgramPath::get_logging_path() { return LOG_PATH; }
 
 std::string ProgramPath::return_slash() {
+  std::string slash;
 #ifdef __linux__
-  return "/";
+  slash = "/";
+  return slash;
+#elif _WIN32
+  slash = "\\";
+  return slash;
 #endif
-
-#ifdef _WIN32
-  return "\";
-#endif
-      return "NOT_SUPPORTED";
+  slash = "NOT SUPPORTED";
+  return slash;
 }
 
 std::string ProgramPath::get_platform_home() {

@@ -50,8 +50,8 @@ bool AudioData::read_audio_file(std::string file_path) {
   a_data.bytes = a_data.samples * sizeof(float);
 
   fprintf(stdout, "SAMPLE RATE %d\n", a_data.SR);
-  fprintf(stdout, "BYTES %ld\n", a_data.bytes);
-  fprintf(stdout, "SAMPLES %ld\n", a_data.samples);
+  fprintf(stdout, "BYTES %zu\n", a_data.bytes);
+  fprintf(stdout, "SAMPLES %zu\n", a_data.samples);
 
   a_data.buffer = (float *)realloc(a_data.buffer, a_data.bytes);
   if (!a_data.buffer) {
@@ -59,6 +59,7 @@ bool AudioData::read_audio_file(std::string file_path) {
     sf_close(sndfile);
     return false;
   }
+
   memset(a_data.buffer, 0, a_data.bytes);
 
   sf_count_t read = sf_read_float(sndfile, a_data.buffer, a_data.samples);

@@ -58,7 +58,7 @@ bool ProgramFiles::fill_files(std::string src_path, std::string slash) {
     }
   }
 
-  fprintf(stdout, "Files added -> %ld\n", file_accumulator);
+  fprintf(stdout, "Files added -> %zu\n", file_accumulator);
   file_count = file_accumulator;
   return true;
 }
@@ -109,7 +109,7 @@ bool ProgramFiles::fill_directories(std::string src_path, std::string slash) {
     }
   }
   fprintf(stdout, "<==============>\n");
-  fprintf(stdout, "Directories added -> %ld\n", dir_accumulator);
+  fprintf(stdout, "Directories added -> %zu\n", dir_accumulator);
   fprintf(stdout, "<==============>\n");
   dir_count = dir_accumulator;
   return true;

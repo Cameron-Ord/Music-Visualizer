@@ -4,7 +4,10 @@
 #include "audio_def.h"
 #include "userdata_def.h"
 #include <SDL2/SDL_audio.h>
+#include <cstring>
 #include <sndfile.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 
 void callback(void *data, uint8_t *stream, int len);
