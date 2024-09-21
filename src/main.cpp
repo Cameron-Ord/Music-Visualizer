@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
   }
 
   SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
+  SDL_EnableScreenSaver();
 
   if (!sdl2.initialize_sdl2_events()) {
     fprintf(stderr, "Failed to initialize SDL2 inputs! -> EXIT\n");
