@@ -19,26 +19,16 @@ typedef enum {
   SPACE = SDLK_SPACE,
 } SDL_KEYCODES_ENUM;
 
-typedef enum {
-  DEFAULT_CASE = 0,
-  QUIT = 1,
-  MOUSE_CLICKED = 2,
-  KEYBOARD_PRESS = 3,
-  KEYBOARD_RELEASE = 4,
-  WINDOW_SIZE_CHANGED = 5
-} EVENT_RETURN;
-
 class SDL2KeyInputs {
 public:
   SDL2KeyInputs();
 
   void reset_cursor_index();
   std::pair<int, SDL_Keysym> poll_events();
-  void cycle_up_list(size_t *cursor_index, size_t max_length);
-  void cycle_down_list(size_t *cursor_index, size_t max_length);
-  size_t *get_cursor_index();
-  std::string select_element(const size_t cursor_index, const size_t list_index,
-                             const std::vector<Text> *d);
+  void cycle_up_list(size_t max_length);
+  void cycle_down_list(size_t max_length);
+  const size_t *get_cursor_index();
+  std::string select_element(const std::vector<Text> *d);
 
 private:
   size_t cursor_index;

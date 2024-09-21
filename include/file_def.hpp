@@ -4,24 +4,24 @@
 #include <string>
 
 struct Icon {
-  std::string  file_name;
-  SDL_Texture* texture;
-  SDL_Surface* surface;
-  int          is_valid;
+  std::string file_name;
+  SDL_Texture *texture;
+  SDL_Surface *surface;
+  int is_valid;
 };
 
 struct Directory {
   std::string directory_name;
-  int         directory_id;
+  size_t directory_id;
 };
 
 struct Files {
   std::string file_name;
-  int         file_id;
+  size_t file_id;
 };
 
-typedef Icon      Icon;
+typedef Icon Icon;
 typedef Directory Directory;
-typedef Files     Files;
+typedef Files Files;
 
 #endif

@@ -11,6 +11,7 @@
 #include "../include/window_entity.hpp"
 
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_video.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,8 +50,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  std::pair<int, int> sizes = sdl2.get_current_window_size(*win.get_window());
+  WIN_SIZE sizes = sdl2.get_current_window_size(*win.get_window());
   sdl2.set_window_size(sizes);
+
+  rend.set_font_draw_limit(sizes.HEIGHT);
+  fonts.set_char_limit(sizes.WIDTH);
 
   rend.create_renderer(win.get_window(), rend.get_renderer());
   if (*rend.get_renderer() == NULL) {
@@ -95,6 +99,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  fonts.approximate_size_utf8();
+
   err = pathing.create_music_source();
   if (!err) {
     fprintf(stderr, "Failed to create or acknowledge "
@@ -123,7 +129,8 @@ int main(int argc, char *argv[]) {
   }
 
   fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(),
-                        *themes.get_text(), fonts.get_font_ptr());
+                        *themes.get_text(), fonts.get_font_ptr(),
+                        rend.get_font_draw_limit());
 
   const std::string logging_src_path = pathing.get_logging_path();
   const std::string log_file_concat =
@@ -142,19 +149,12 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Could not redirect STDERR! -> %s\n", strerror(errno));
   }
 
-  sdl2.set_entity(&win, WINDOW);
-  sdl2.set_entity(&rend, RENDERER);
-  sdl2.set_entity(&fonts, FONT);
-  sdl2.set_entity(&key, KEY_INPUT);
-  sdl2.set_entity(&themes, THEMES);
-  sdl2.set_entity(&pathing, PATHS);
-  sdl2.set_entity(&files, FILES);
-
   const int ticks_per_frame = (1000.0 / 60);
   uint64_t frame_start;
   int frame_time;
 
   sdl2.set_play_state(true);
+  sdl2.set_current_user_state(AT_DIRECTORIES);
 
   while (sdl2.get_play_state()) {
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
@@ -173,17 +173,14 @@ int main(int argc, char *argv[]) {
 
       case 1: {
         sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
-        key.cycle_down_list(key.get_cursor_index(),
-                            rend.get_draw_limit(SONG_LIMITER));
-
+        key.cycle_down_list(fonts.get_song_vec(rend.get_song_index())->size());
         sdl2_ad.pause_audio();
         sdl2_ad.close_audio_device();
-        std::string file_name = key.select_element(
-            *key.get_cursor_index(), rend.get_draw_index(SONG_INDEX),
-            fonts.get_song_vec());
-        std::string dir_path =
+        const std::vector<Text> *f = fonts.get_song_vec(rend.get_song_index());
+        const std::string file_name = key.select_element(f);
+        const std::string dir_path =
             pathing.join_str(pathing.get_src_path(), pathing.get_opened_dir());
-        std::string file_path = pathing.join_str(dir_path, file_name);
+        const std::string file_path = pathing.join_str(dir_path, file_name);
         bool result = ad.read_audio_file(file_path);
         if (result) {
           sdl2_ad.set_audio_spec(&userdata);
@@ -191,7 +188,6 @@ int main(int argc, char *argv[]) {
           sdl2_ad.resume_audio();
           sdl2.set_current_user_state(LISTENING);
         }
-
         break;
       }
       default: {
@@ -204,27 +200,27 @@ int main(int argc, char *argv[]) {
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      rend.render_set_directory_limiter(fonts.get_dir_vec()->size());
-      rend.render_set_directories(sdl2.get_stored_window_size(),
-                                  fonts.get_dir_vec());
-      rend.render_draw_directories(*rend.get_renderer(), fonts.get_dir_vec());
+      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
+      rend.render_set_text(sdl2.get_stored_window_size(),
+                           fonts.get_dir_vec(rend.get_dir_index()));
+      rend.render_draw_text(*rend.get_renderer(),
+                            fonts.get_dir_vec(rend.get_dir_index()));
       rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              rend.get_draw_limit(DIR_LIMITER),
-                              rend.get_draw_index(DIR_INDEX),
-                              *key.get_cursor_index(), fonts.get_dir_vec());
+                              fonts.get_dir_vec(rend.get_dir_index()),
+                              key.get_cursor_index());
       rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
       break;
     }
 
     case AT_SONGS: {
-      rend.render_set_song_limiter(fonts.get_song_vec()->size());
-      rend.render_set_songs(sdl2.get_stored_window_size(),
-                            fonts.get_song_vec());
-      rend.render_draw_songs(*rend.get_renderer(), fonts.get_song_vec());
+      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
+      rend.render_set_text(sdl2.get_stored_window_size(),
+                           fonts.get_song_vec(rend.get_song_index()));
+      rend.render_draw_text(*rend.get_renderer(),
+                            fonts.get_song_vec(rend.get_song_index()));
       rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              rend.get_draw_limit(SONG_LIMITER),
-                              rend.get_draw_index(SONG_INDEX),
-                              *key.get_cursor_index(), fonts.get_song_vec());
+                              fonts.get_song_vec(rend.get_song_index()),
+                              key.get_cursor_index());
       rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
       break;
     }
@@ -232,12 +228,10 @@ int main(int argc, char *argv[]) {
     case LISTENING: {
       FData *data = fft.get_data();
       FBuffers *bufs = fft.get_bufs();
-      std::pair win_sizes = sdl2.get_stored_window_size();
-
+      const WIN_SIZE *sizes = sdl2.get_stored_window_size();
       rend.render_draw_bars(&data->output_len, bufs->smear, bufs->smoothed,
-                            &win_sizes.second, &win_sizes.first,
-                            themes.get_primary(), themes.get_textbg(),
-                            *rend.get_renderer());
+                            &sizes->HEIGHT, &sizes->WIDTH, themes.get_primary(),
+                            themes.get_textbg(), *rend.get_renderer());
       break;
     }
 
@@ -246,221 +240,251 @@ int main(int argc, char *argv[]) {
     }
     }
 
-    frame_start = SDL_GetTicks64();
-    const std::pair<int, SDL_Keysym> event_return = key.poll_events();
-
-    const int event_type = event_return.first;
-    const SDL_Keycode keycode = event_return.second.sym;
-
-    switch (event_type) {
-
-    case WINDOW_SIZE_CHANGED: {
-      std::pair<int, int> sizes =
-          sdl2.get_current_window_size(*win.get_window());
-      sdl2.set_window_size(sizes);
-      rend.set_draw_limits(sizes.second);
-      break;
-    }
-
-    case KEYBOARD_PRESS: {
-      switch (keycode) {
-      case Q: {
-        sdl2.set_play_state(false);
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+      switch (e.type) {
+      default: {
         break;
       }
 
-      /*ON UP ARROW*/
-      case UP: {
-        switch (sdl2.get_current_user_state()) {
-        case AT_DIRECTORIES: {
-          key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(DIR_LIMITER));
-          break;
-        }
-        case AT_SONGS: {
-          key.cycle_up_list(key.get_cursor_index(),
-                            rend.get_draw_limit(SONG_LIMITER));
-          break;
-        }
-        case LISTENING: {
-          break;
-        }
+      case SDL_WINDOWEVENT: {
+        switch (e.window.event) {
         default: {
           break;
         }
-        }
+        case SDL_WINDOWEVENT_RESIZED: {
+          WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
+          sdl2.set_window_size(ws);
+          rend.set_font_draw_limit(ws.HEIGHT);
+          fonts.set_char_limit(ws.WIDTH);
 
-        break;
-      }
-
-      /*ON DOWN ARROW*/
-      case DOWN: {
-        switch (sdl2.get_current_user_state()) {
-        case AT_DIRECTORIES: {
-          key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(DIR_LIMITER));
-          break;
-        }
-        case AT_SONGS: {
-          key.cycle_down_list(key.get_cursor_index(),
-                              rend.get_draw_limit(SONG_LIMITER));
-          break;
-        }
-        case LISTENING: {
-          break;
-        }
-        default: {
-          break;
-        }
-        }
-        break;
-      }
-
-      /*ON LEFT ARROW*/
-      case LEFT: {
-        switch (sdl2.get_current_user_state()) {
-        case AT_SONGS: {
-          key.reset_cursor_index();
-          sdl2.set_current_user_state(AT_DIRECTORIES);
-          fonts.destroy_file_text(fonts.get_song_vec());
-          break;
-        }
-        case LISTENING: {
-          sdl2.set_current_user_state(AT_SONGS);
-          break;
-        }
-        default: {
-          break;
-        }
-        }
-        break;
-      }
-
-      /*ON RIGHT ARROW*/
-      case RIGHT: {
-        switch (sdl2.get_current_user_state()) {
-        case AT_SONGS: {
-          sdl2.set_current_user_state(LISTENING);
-          break;
-        }
-        default: {
-          break;
-        }
-        }
-        break;
-      }
-
-      /*ON ENTER KEY*/
-      case ENTER: {
-        switch (sdl2.get_current_user_state()) {
-        case AT_DIRECTORIES: {
-          files.clear_files();
-          std::string dir_name = key.select_element(
-              *key.get_cursor_index(), rend.get_draw_index(DIR_INDEX),
-              fonts.get_dir_vec());
-          pathing.set_opened_dir(dir_name);
-          key.reset_cursor_index();
-          rend.reset_vector_positions();
-          files.fill_files(pathing.join_str(pathing.get_src_path(), dir_name),
-                           pathing.return_slash());
-          fonts.create_file_text(*files.retrieve_directory_files(),
-                                 *rend.get_renderer(), *themes.get_text(),
-                                 fonts.get_font_ptr());
-          sdl2.set_current_user_state(AT_SONGS);
-          break;
-        }
-        case AT_SONGS: {
-          sdl2_ad.pause_audio();
-          sdl2_ad.close_audio_device();
-          std::string file_name = key.select_element(
-              *key.get_cursor_index(), rend.get_draw_index(SONG_INDEX),
-              fonts.get_song_vec());
-          std::string dir_path = pathing.join_str(pathing.get_src_path(),
-                                                  pathing.get_opened_dir());
-          std::string file_path = pathing.join_str(dir_path, file_name);
-          bool result = ad.read_audio_file(file_path);
-          if (result) {
-            sdl2_ad.set_audio_spec(&userdata);
-            sdl2_ad.open_audio_device();
-            sdl2_ad.resume_audio();
-            sdl2.set_current_user_state(LISTENING);
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_SONGS: {
+            fonts.create_file_text(*files.retrieve_directory_files(),
+                                   *rend.get_renderer(), *themes.get_text(),
+                                   fonts.get_font_ptr(),
+                                   rend.get_font_draw_limit());
+            break;
+          }
+          case AT_DIRECTORIES: {
+            fonts.create_dir_text(*files.retrieve_directories(),
+                                  *rend.get_renderer(), *themes.get_text(),
+                                  fonts.get_font_ptr(),
+                                  rend.get_font_draw_limit());
+            break;
+          }
           }
           break;
         }
-        case LISTENING: {
+
+        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+          WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
+          sdl2.set_window_size(ws);
+          rend.set_font_draw_limit(ws.HEIGHT);
+          fonts.set_char_limit(ws.WIDTH);
+
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_SONGS: {
+            fonts.create_file_text(*files.retrieve_directory_files(),
+                                   *rend.get_renderer(), *themes.get_text(),
+                                   fonts.get_font_ptr(),
+                                   rend.get_font_draw_limit());
+            break;
+          }
+          case AT_DIRECTORIES: {
+            fonts.create_dir_text(*files.retrieve_directories(),
+                                  *rend.get_renderer(), *themes.get_text(),
+                                  fonts.get_font_ptr(),
+                                  rend.get_font_draw_limit());
+            break;
+          }
+          }
           break;
         }
+        }
+        break;
+      }
+
+      case SDL_KEYDOWN: {
+        switch (e.key.keysym.sym) {
         default: {
           break;
         }
+
+        case LEFT: {
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_DIRECTORIES: {
+            break;
+          }
+          case AT_SONGS: {
+            sdl2.set_current_user_state(AT_DIRECTORIES);
+            break;
+          }
+          case LISTENING: {
+            sdl2.set_current_user_state(AT_SONGS);
+            break;
+          }
+          }
+          break;
         }
-        break;
-      }
 
-      /*ON BACKSPACE*/
-      case BACKSPACE: {
+        case RIGHT: {
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_DIRECTORIES: {
+            const std::vector<Text> *d =
+                fonts.get_dir_vec(rend.get_dir_index());
+            std::string dir_name = key.select_element(d);
+            pathing.set_opened_dir(dir_name);
+            bool result = files.fill_files(
+                pathing.join_str(pathing.get_src_path(), dir_name),
+                pathing.return_slash());
+            if (files.retrieve_directory_files()->size() > 0 && result) {
+              key.reset_cursor_index();
+              fonts.create_file_text(*files.retrieve_directory_files(),
+                                     *rend.get_renderer(), *themes.get_text(),
+                                     fonts.get_font_ptr(),
+                                     rend.get_font_draw_limit());
+              sdl2.set_current_user_state(AT_SONGS);
+            }
 
-        switch (sdl2.get_current_user_state()) {
-        case AT_SONGS: {
+            break;
+          }
+          case AT_SONGS: {
+            sdl2_ad.pause_audio();
+            sdl2_ad.close_audio_device();
+            const std::vector<Text> *f =
+                fonts.get_song_vec(rend.get_song_index());
+            const std::string file_name = key.select_element(f);
+            const std::string dir_path = pathing.join_str(
+                pathing.get_src_path(), pathing.get_opened_dir());
+            const std::string file_path = pathing.join_str(dir_path, file_name);
+            bool result = ad.read_audio_file(file_path);
+            if (result) {
+              sdl2_ad.set_audio_spec(&userdata);
+              sdl2_ad.open_audio_device();
+              sdl2_ad.resume_audio();
+              sdl2.set_current_user_state(LISTENING);
+            }
+            break;
+          }
+          case LISTENING: {
+            break;
+          }
+          }
+          break;
+        }
+
+        case UP: {
+
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_DIRECTORIES: {
+
+            if (SDL_Keymod(e.key.keysym.mod & KMOD_SHIFT)) {
+              size_t current_index = rend.get_dir_index();
+              size_t vec_size = fonts.get_dir_vec_size();
+
+              if (current_index > 0) {
+                rend.set_dir_index(current_index - 1);
+              }
+
+              key.reset_cursor_index();
+            } else {
+              key.cycle_up_list(
+                  fonts.get_dir_vec(rend.get_dir_index())->size());
+            }
+            break;
+          }
+          case AT_SONGS: {
+
+            if (SDL_Keymod(e.key.keysym.mod & KMOD_SHIFT)) {
+              size_t current_index = rend.get_song_index();
+              size_t vec_size = fonts.get_song_vec_size();
+
+              if (current_index > 0) {
+                rend.set_song_index(current_index - 1);
+              }
+
+              key.reset_cursor_index();
+            } else {
+              key.cycle_up_list(
+                  fonts.get_song_vec(rend.get_song_index())->size());
+            }
+            break;
+          }
+          }
+          break;
+        }
+        case DOWN: {
+          switch (sdl2.get_current_user_state()) {
+          default: {
+            break;
+          }
+          case AT_DIRECTORIES: {
+
+            if (SDL_Keymod(e.key.keysym.mod & KMOD_SHIFT)) {
+              size_t current_index = rend.get_dir_index();
+              size_t vec_size = fonts.get_dir_vec_size();
+
+              if (vec_size - 1 > current_index) {
+                rend.set_dir_index(current_index + 1);
+              }
+
+              key.reset_cursor_index();
+            } else {
+              key.cycle_down_list(
+                  fonts.get_dir_vec(rend.get_dir_index())->size());
+            }
+
+            break;
+          }
+          case AT_SONGS: {
+
+            if (SDL_Keymod(e.key.keysym.mod & KMOD_SHIFT)) {
+              size_t current_index = rend.get_song_index();
+              size_t vec_size = fonts.get_song_vec_size();
+
+              if (vec_size - 1 > current_index) {
+                rend.set_song_index(current_index + 1);
+              }
+
+              key.reset_cursor_index();
+            } else {
+              key.cycle_down_list(
+                  fonts.get_song_vec(rend.get_song_index())->size());
+            }
+            break;
+          }
+          }
+
           break;
         }
         }
-
         break;
       }
 
-      /*ON SPACE*/
-      case SPACE: {
-        break;
-      }
-      }
-      break;
-    }
-
-    case KEYBOARD_RELEASE: {
-      switch (keycode) {
-      case Q: {
+      case SDL_QUIT: {
         sdl2.set_play_state(false);
         break;
       }
-      case UP: {
-        break;
       }
-      case DOWN: {
-        break;
-      }
-      case LEFT: {
-        break;
-      }
-      case RIGHT: {
-        break;
-      }
-      case ENTER: {
-        break;
-      }
-      case BACKSPACE: {
-        break;
-      }
-      case SPACE: {
-        break;
-      }
-      }
-      break;
     }
 
-    case QUIT: {
-      sdl2.set_play_state(false);
-      break;
-    }
-
-    case DEFAULT_CASE: {
-      break;
-    }
-
-    default: {
-      break;
-    }
-    }
+    frame_start = SDL_GetTicks64();
 
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {
@@ -477,6 +501,8 @@ int main(int argc, char *argv[]) {
   if (std_err_file != NULL) {
     fclose(std_err_file);
   }
+
+  fonts.destroy_allocated_fonts();
 
   IMG_Quit();
   TTF_Quit();

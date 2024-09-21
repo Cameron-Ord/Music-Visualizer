@@ -17,10 +17,11 @@ ProgramFiles::ProgramFiles() {
 ProgramFiles::~ProgramFiles() {}
 
 bool ProgramFiles::fill_files(std::string src_path, std::string slash) {
+  clear_files();
   DIR *directory = NULL;
   struct dirent *entry;
   const char *path_char_ptr = src_path.c_str();
-  int file_accumulator = 0;
+  size_t file_accumulator = 0;
 
   directory = opendir(path_char_ptr);
   if (directory == NULL) {
@@ -57,16 +58,21 @@ bool ProgramFiles::fill_files(std::string src_path, std::string slash) {
     }
   }
 
-  fprintf(stdout, "Files added -> %d\n", file_accumulator);
+  fprintf(stdout, "Files added -> %ld\n", file_accumulator);
   file_count = file_accumulator;
   return true;
 }
 
 bool ProgramFiles::fill_directories(std::string src_path, std::string slash) {
+  clear_directories();
   DIR *directory = NULL;
   struct dirent *entry;
   const char *path_char_ptr = src_path.c_str();
-  int dir_accumulator = 0;
+  size_t dir_accumulator = 0;
+
+  printf("\n");
+  printf("Opening directory -> %s\n", src_path.c_str());
+  printf("\n");
 
   directory = opendir(path_char_ptr);
   if (directory == NULL) {
@@ -102,8 +108,9 @@ bool ProgramFiles::fill_directories(std::string src_path, std::string slash) {
       dir_accumulator++;
     }
   }
-
-  fprintf(stdout, "Directories added -> %d\n", dir_accumulator);
+  fprintf(stdout, "<==============>\n");
+  fprintf(stdout, "Directories added -> %ld\n", dir_accumulator);
+  fprintf(stdout, "<==============>\n");
   dir_count = dir_accumulator;
   return true;
 }

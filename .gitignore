@@ -1,3 +1,5 @@
 build/
 bin/
-
+WINDOWS/
+win_resources/
+*.zip
