@@ -56,13 +56,19 @@ bool SDL2Audio::open_audio_device() {
 void SDL2Audio::close_audio_device() { SDL_CloseAudioDevice(dev); }
 
 void SDL2Audio::pause_audio() {
-  SDL_PauseAudioDevice(dev, true);
-  audio_streaming = 0;
+  int status = SDL_GetAudioDeviceStatus(dev);
+  if (status) {
+    SDL_PauseAudioDevice(dev, true);
+    audio_streaming = 0;
+  }
 }
 
 void SDL2Audio::resume_audio() {
-  SDL_PauseAudioDevice(dev, false);
-  audio_streaming = 1;
+  int status = SDL_GetAudioDeviceStatus(dev);
+  if (status) {
+    SDL_PauseAudioDevice(dev, false);
+    audio_streaming = 1;
+  }
 }
 
 void SDL2Audio::set_flag(int flag, int *mutable_value) {

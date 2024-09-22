@@ -159,86 +159,6 @@ int main(int argc, char *argv[]) {
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
     rend.render_clear(*rend.get_renderer());
 
-    switch (sdl2_ad.get_stream_flag()) {
-    default: {
-      break;
-    }
-    case 1: {
-      switch (*sdl2_ad.get_next_song_flag()) {
-      case 0: {
-        fft.generate_visual();
-        break;
-      }
-
-      case 1: {
-        sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
-        key.cycle_down_list(fonts.get_song_vec(rend.get_song_index())->size());
-        sdl2_ad.pause_audio();
-        sdl2_ad.close_audio_device();
-        const std::vector<Text> *f = fonts.get_song_vec(rend.get_song_index());
-        const std::string file_name = key.select_element(f);
-        const std::string dir_path =
-            pathing.join_str(pathing.get_src_path(), pathing.get_opened_dir());
-        const std::string file_path = pathing.join_str(dir_path, file_name);
-        bool result = ad.read_audio_file(file_path);
-        if (result) {
-          sdl2_ad.set_audio_spec(&userdata);
-          sdl2_ad.open_audio_device();
-          sdl2_ad.resume_audio();
-          sdl2.set_current_user_state(LISTENING);
-        }
-        break;
-      }
-      default: {
-        break;
-      }
-      }
-      break;
-    }
-    }
-
-    switch (sdl2.get_current_user_state()) {
-    case AT_DIRECTORIES: {
-      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
-      rend.render_set_text(sdl2.get_stored_window_size(),
-                           fonts.get_dir_vec(rend.get_dir_index()));
-      rend.render_draw_text(*rend.get_renderer(),
-                            fonts.get_dir_vec(rend.get_dir_index()));
-      rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              fonts.get_dir_vec(rend.get_dir_index()),
-                              key.get_cursor_index());
-      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
-      break;
-    }
-
-    case AT_SONGS: {
-      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
-      rend.render_set_text(sdl2.get_stored_window_size(),
-                           fonts.get_song_vec(rend.get_song_index()));
-      rend.render_draw_text(*rend.get_renderer(),
-                            fonts.get_song_vec(rend.get_song_index()));
-      rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              fonts.get_song_vec(rend.get_song_index()),
-                              key.get_cursor_index());
-      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
-      break;
-    }
-
-    case LISTENING: {
-      FData *data = fft.get_data();
-      FBuffers *bufs = fft.get_bufs();
-      const WIN_SIZE *sizes = sdl2.get_stored_window_size();
-      rend.render_draw_bars(&data->output_len, bufs->smear, bufs->smoothed,
-                            &sizes->HEIGHT, &sizes->WIDTH, themes.get_primary(),
-                            themes.get_textbg(), *rend.get_renderer());
-      break;
-    }
-
-    default: {
-      break;
-    }
-    }
-
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       switch (e.type) {
@@ -316,6 +236,15 @@ int main(int argc, char *argv[]) {
           break;
         }
 
+        case SPACE: {
+          if (sdl2_ad.get_stream_flag()) {
+            sdl2_ad.pause_audio();
+          } else {
+            sdl2_ad.resume_audio();
+          }
+          break;
+        }
+
         case LEFT: {
           switch (sdl2.get_current_user_state()) {
           default: {
@@ -351,6 +280,7 @@ int main(int argc, char *argv[]) {
                 pathing.return_slash());
             if (files.retrieve_directory_files()->size() > 0 && result) {
               key.reset_cursor_index();
+              rend.set_song_index(0);
               fonts.create_file_text(*files.retrieve_directory_files(),
                                      *rend.get_renderer(), *themes.get_text(),
                                      fonts.get_font_ptr(),
@@ -481,6 +411,86 @@ int main(int argc, char *argv[]) {
         break;
       }
       }
+    }
+
+    switch (sdl2_ad.get_stream_flag()) {
+    default: {
+      break;
+    }
+    case 1: {
+      switch (*sdl2_ad.get_next_song_flag()) {
+      case 0: {
+        fft.generate_visual();
+        break;
+      }
+
+      case 1: {
+        sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
+        key.cycle_down_list(fonts.get_song_vec(rend.get_song_index())->size());
+        sdl2_ad.pause_audio();
+        sdl2_ad.close_audio_device();
+        const std::vector<Text> *f = fonts.get_song_vec(rend.get_song_index());
+        const std::string file_name = key.select_element(f);
+        const std::string dir_path =
+            pathing.join_str(pathing.get_src_path(), pathing.get_opened_dir());
+        const std::string file_path = pathing.join_str(dir_path, file_name);
+        bool result = ad.read_audio_file(file_path);
+        if (result) {
+          sdl2_ad.set_audio_spec(&userdata);
+          sdl2_ad.open_audio_device();
+          sdl2_ad.resume_audio();
+          sdl2.set_current_user_state(LISTENING);
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+      }
+      break;
+    }
+    }
+
+    switch (sdl2.get_current_user_state()) {
+    case AT_DIRECTORIES: {
+      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
+      rend.render_set_text(sdl2.get_stored_window_size(),
+                           fonts.get_dir_vec(rend.get_dir_index()));
+      rend.render_draw_text(*rend.get_renderer(),
+                            fonts.get_dir_vec(rend.get_dir_index()));
+      rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                              fonts.get_dir_vec(rend.get_dir_index()),
+                              key.get_cursor_index());
+      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+      break;
+    }
+
+    case AT_SONGS: {
+      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
+      rend.render_set_text(sdl2.get_stored_window_size(),
+                           fonts.get_song_vec(rend.get_song_index()));
+      rend.render_draw_text(*rend.get_renderer(),
+                            fonts.get_song_vec(rend.get_song_index()));
+      rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                              fonts.get_song_vec(rend.get_song_index()),
+                              key.get_cursor_index());
+      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+      break;
+    }
+
+    case LISTENING: {
+      FData *data = fft.get_data();
+      FBuffers *bufs = fft.get_bufs();
+      const WIN_SIZE *sizes = sdl2.get_stored_window_size();
+      rend.render_draw_bars(&data->output_len, bufs->smear, bufs->smoothed,
+                            &sizes->HEIGHT, &sizes->WIDTH, themes.get_primary(),
+                            themes.get_textbg(), *rend.get_renderer());
+      break;
+    }
+
+    default: {
+      break;
+    }
     }
 
     frame_start = SDL_GetTicks64();

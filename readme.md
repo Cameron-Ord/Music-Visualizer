@@ -29,6 +29,7 @@ The program relies on directories located in the **~/Music dir located in the ho
 - Down : Navigate down through list
 - Shift + Up : Cycle upwards through list
 - Shift + Down : Cycle downwards through list
+- Space : Toggle Pause
 
 ## BUILDING
 My program depends on these libs:
