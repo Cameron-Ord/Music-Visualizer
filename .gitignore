@@ -1,16 +1,5 @@
-.vscode
 build/
 bin/
-win_resources/
-linux_resources/
-tempdump/
 WINDOWS/
-LINUX/
+win_resources/
 *.zip
-*.out
-*.profraw
-*.profdata
-*.json
-*.txt
-*.png~
-*.kra

@@ -14,8 +14,8 @@ SEEK_ICON := seek_icon.png
 MUSIC_ICON := music_icon.png
 TARGET :=
 
-WIN_TARGET := fftplayer.exe
-WIN_CC := x86_64-w64-mingw32-gcc
+WIN_TARGET := MVisualizer.exe
+WIN_CC := x86_64-w64-mingw32-g++
 WIN_LDFLAGS := -Lwin_resources/SDL2-2.30.5/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_ttf-2.22.0/x86_64-w64-mingw32/lib -Lwin_resources/SDL2_image-2.8.2/x86_64-w64-mingw32/lib -Lwin_resources/libsndfile-1.2.2-win64/lib -lm -lmingw32 -mwindows -lSDL2main -lSDL2  -lSDL2_ttf -lSDL2_image -lsndfile -lgdi32 
 WIN_LIB_INC := -Iwin_resources/SDL_HEADERS/include -Iwin_resources/LIBSNDFILE_HEADER/include
 WIN_CFLAGS :=  -O2 -Wall -Wextra -g
@@ -43,8 +43,9 @@ $(BUILD_DIR)/$(LINUX_TARGET): $(OBJS)
 $(BUILD_DIR)/$(WIN_TARGET): $(OBJS)
 	$(WIN_CC) $(OBJS) -o $@ $(WIN_LDFLAGS) 
 
-# Build step for C source
-$(BUILD_DIR)/%.c.o: %.c
+
+# Build step for C++ source
+$(BUILD_DIR)/%.cpp.o: %.cpp
 	mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
