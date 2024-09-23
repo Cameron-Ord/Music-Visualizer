@@ -9,13 +9,19 @@ FourierTransform::FourierTransform() {
   data.output_len = 0;
   memset(data.hamming_values, 0, sizeof(float) * BUFF_SIZE);
   memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
-  memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float _Complex));
+  memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float));
   memset(bufs.pre_raw, 0, BUFF_SIZE * sizeof(float));
-  memset(bufs.out_raw, 0, BUFF_SIZE * sizeof(float _Complex));
-  memset(bufs.post_raw, 0, BUFF_SIZE * sizeof(float));
   memset(bufs.processed, 0, HALF_BUFF * sizeof(float));
   memset(bufs.smoothed, 0, HALF_BUFF * sizeof(float));
   memset(bufs.smear, 0, HALF_BUFF * sizeof(float));
+
+  for (size_t i = 0; i < BUFF_SIZE; i++) {
+    bufs.out_raw[i] = std::complex<float>(0.0f, 0.0f);
+  }
+
+  for (size_t i = 0; i < BUFF_SIZE; i++) {
+    bufs.post_raw[i] = std::complex<float>(0.0f, 0.0f);
+  }
 
   calculate_window();
 }
@@ -23,10 +29,8 @@ FourierTransform::FourierTransform() {
 FData *FourierTransform::get_data() { return &data; }
 FBuffers *FourierTransform::get_bufs() { return &bufs; }
 
-
-
-void FourierTransform::fft_func(float *in, size_t stride, std::complex<float> *out,
-                                size_t n) {
+void FourierTransform::fft_func(float *in, size_t stride,
+                                std::complex<float> *out, size_t n) {
   if (n == 1) {
     out[0] = in[0];
     return;
@@ -40,7 +44,8 @@ void FourierTransform::fft_func(float *in, size_t stride, std::complex<float> *o
   // out = e - o*x e + o*x e e| e + o*x o - o*x o o
   for (size_t k = 0; k < n / 2; ++k) {
     float t = (float)k / n;
-    std::complex<float> v = std::exp(std::complex<float>(0, -2 * M_PI * t)) * out[k + half_n];
+    std::complex<float> v =
+        std::exp(std::complex<float>(0, -2 * M_PI * t)) * out[k + half_n];
     std::complex<float> e = out[k];
     out[k] = e + v;
     out[k + half_n] = e - v;

@@ -2,7 +2,6 @@ project('MVisualizer', 'cpp',
     default_options : ['cpp_std=c++17']
 )
 
-
 # Directories
 src_dir = 'src'
 inc_dir = 'include'
@@ -10,8 +9,8 @@ build_dir = 'build'
 bin_dir = 'bin'
 gfx_dir = 'assets'
 
-cflags = ['-O2', '-Wall', '-Wextra', '-g']
-ld_flags = ['-lmingw32','-lSDL2main', '-lSDL2', '-lsndfile', '-lgdi32']
+cflags = ['-O2', '-Wall', '-Wextra']
+ld_flags = ['-lSDL2', '-lSDL2_ttf', '-lsndfile']
 inc_dep = include_directories(inc_dir)
 
 sdl2_dep = dependency('sdl2', required: true)

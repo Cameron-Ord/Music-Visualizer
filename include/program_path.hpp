@@ -1,10 +1,9 @@
 #ifndef PROGRAM_PATH_HPP
 #define PROGRAM_PATH_HPP
-#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-
+#include <iostream>
 
 class ProgramPath {
 public:
@@ -13,8 +12,6 @@ public:
 
   bool create_music_source();
   bool create_log_directories();
-  bool make_directory(const std::string path);
-
   std::string get_home_path();
   std::string get_src_path();
   std::string get_platform_home();

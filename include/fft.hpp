@@ -2,9 +2,9 @@
 #define FFT_HPP
 #include "macdefs.hpp"
 #include <SDL2/SDL_rect.h>
-#include <iostream>
+#include <cmath>
 #include <complex>
-#include <cmath> 
+#include <iostream>
 
 struct FBuffers {
   float fft_in[DOUBLE_BUFF];

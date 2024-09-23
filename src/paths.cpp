@@ -58,10 +58,6 @@ std::string ProgramPath::get_platform_home() {
   return "NOT_SUPPORTED";
 }
 
-bool ProgramPath::make_directory(const std::string path) {
-  const char *path_c_str = path.c_str();
-}
-
 bool ProgramPath::create_music_source() {
   if (HOME_PATH == "NOT_SUPPORTED") {
     fprintf(stdout, "Platform not supported\n");
