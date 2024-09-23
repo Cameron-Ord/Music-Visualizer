@@ -3,7 +3,7 @@
 void SDL2Renderer::render_set_text_bg(const WIN_SIZE *sizes,
                                       const std::vector<Text> *text_vec,
                                       const size_t *cursor_index) {
-  int pixel_increment = sizes->HEIGHT / (text_vec->size() + 1);
+  int pixel_increment = sizes->HEIGHT / (static_cast<int>(text_vec->size()) + 1);
   int pixel_accumulate = pixel_increment;
 
   drawing_text_bg = false;
@@ -22,7 +22,7 @@ void SDL2Renderer::render_set_text_bg(const WIN_SIZE *sizes,
 
 void SDL2Renderer::render_set_text(const WIN_SIZE *sizes,
                                    std::vector<Text> *text_vec) {
-  int pixel_increment = sizes->HEIGHT / (text_vec->size() + 1);
+  int pixel_increment = sizes->HEIGHT / (static_cast<int>(text_vec->size()) + 1);
   int pixel_accumulate = pixel_increment;
 
   for (auto it = text_vec->begin(); it != text_vec->end(); it++) {

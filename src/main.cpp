@@ -150,6 +150,9 @@ int main(int argc, char **argv) {
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
+  rend.set_dir_index(0);
+  rend.set_song_index(0);
+
   while (sdl2.get_play_state()) {
     rend.render_bg(*rend.get_renderer(), themes.get_secondary());
     rend.render_clear(*rend.get_renderer());
@@ -194,28 +197,30 @@ int main(int argc, char **argv) {
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
-      rend.render_set_text(sdl2.get_stored_window_size(),
-                           fonts.get_dir_vec(rend.get_dir_index()));
-      rend.render_draw_text(*rend.get_renderer(),
+      if(fonts.get_dir_vec_size() > 0){
+        rend.render_set_text(sdl2.get_stored_window_size(),
                             fonts.get_dir_vec(rend.get_dir_index()));
-      rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              fonts.get_dir_vec(rend.get_dir_index()),
-                              key.get_cursor_index());
-      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+        rend.render_draw_text(*rend.get_renderer(),
+                              fonts.get_dir_vec(rend.get_dir_index()));
+        rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                                fonts.get_dir_vec(rend.get_dir_index()),
+                                key.get_cursor_index());
+        rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+      }
       break;
     }
 
     case AT_SONGS: {
-      rend.set_font_draw_limit(sdl2.get_stored_window_size()->HEIGHT);
-      rend.render_set_text(sdl2.get_stored_window_size(),
-                           fonts.get_song_vec(rend.get_song_index()));
-      rend.render_draw_text(*rend.get_renderer(),
+      if(fonts.get_song_vec_size() > 0){
+        rend.render_set_text(sdl2.get_stored_window_size(),
                             fonts.get_song_vec(rend.get_song_index()));
-      rend.render_set_text_bg(sdl2.get_stored_window_size(),
-                              fonts.get_song_vec(rend.get_song_index()),
-                              key.get_cursor_index());
-      rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+        rend.render_draw_text(*rend.get_renderer(),
+                              fonts.get_song_vec(rend.get_song_index()));
+        rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                                fonts.get_song_vec(rend.get_song_index()),
+                                key.get_cursor_index());
+        rend.render_draw_text_bg(*rend.get_renderer(), themes.get_textbg());
+      }
       break;
     }
 

@@ -3,7 +3,7 @@ working_dir=$(pwd)
 BUILD_DIR="build"
 SRC_DIR="src"
 INC_DIR="inc"
-CC="clang++ -std=c++17"
+CC="clang++ -std=c++20"
 LD_FLAGS=" -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm"
 CFLAGS=" -Wall -Wextra -g"
 BIN="bin"
