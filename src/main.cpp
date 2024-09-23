@@ -9,12 +9,10 @@
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
+#include <SDL2/SDL.h>
 
-#include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
   // instantiate classes
   bool err;
 
@@ -77,22 +75,14 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (!sdl2.initialize_sdl2_image()) {
-    fprintf(stderr, "Failed to initialize SDL2 image! -> EXIT\n");
-    SDL_Quit();
-    return 1;
-  }
-
   if (!sdl2.initialize_sdl2_ttf()) {
     fprintf(stderr, "Failed to initialize SDL2 ttf! -> EXIT\n");
-    IMG_Quit();
     SDL_Quit();
     return 1;
   }
 
   if (!fonts.open_font()) {
     fprintf(stderr, "Failed to open font! -> EXIT\n");
-    IMG_Quit();
     TTF_Quit();
     SDL_Quit();
     return 1;
@@ -105,7 +95,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Failed to create or acknowledge "
                     "existence of source "
                     "directories! -> EXIT\n");
-    IMG_Quit();
     TTF_Quit();
     SDL_Quit();
     return 1;
@@ -116,7 +105,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Failed to create or acknowledge "
                     "existence of logging "
                     "directories! -> EXIT\n");
-    IMG_Quit();
     TTF_Quit();
     SDL_Quit();
     return 1;
@@ -135,17 +123,21 @@ int main(int argc, char *argv[]) {
   const std::string log_file_concat =
       pathing.join_str(logging_src_path, "log.txt");
 
-  FILE *std_out_file = freopen(log_file_concat.c_str(), "a", stdout);
-  if (std_out_file == NULL) {
-    fprintf(stderr, "Could not redirect STDOUT! -> %s\n", strerror(errno));
+  FILE *std_out_file;
+  if (freopen_s(&std_out_file, log_file_concat.c_str(), "a", stdout) != 0) {
+    char msg[256];
+    strerror_s(msg, sizeof(msg), errno);
+    fprintf(stderr, "Could not redirect STDOUT! -> %s\n", msg);
   }
 
   const std::string errlog_file_concat =
       pathing.join_str(logging_src_path, "errlog.txt");
 
-  FILE *std_err_file = freopen(errlog_file_concat.c_str(), "a", stderr);
-  if (std_err_file == NULL) {
-    fprintf(stderr, "Could not redirect STDERR! -> %s\n", strerror(errno));
+  FILE *std_err_file;
+  if (freopen_s(&std_err_file, errlog_file_concat.c_str(), "a", stderr) != 0) {
+    char msg[256];
+    strerror_s(msg, sizeof(msg), errno);
+    fprintf(stderr, "Could not redirect STDERR! -> %s\n", msg);
   }
 
   const int ticks_per_frame = (1000.0 / 60);
@@ -513,7 +505,6 @@ int main(int argc, char *argv[]) {
 
   fonts.destroy_allocated_fonts();
 
-  IMG_Quit();
   TTF_Quit();
   SDL_Quit();
   return 0;

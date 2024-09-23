@@ -1,8 +1,7 @@
 #ifndef AUDIO_DEF_H
 #define AUDIO_DEF_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdint>
 
 struct AudioDataContainer {
   float *buffer;

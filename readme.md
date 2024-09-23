@@ -6,13 +6,13 @@
 ## Music Visualizer
 ![Image](example/example.png)
 
-## Releases
-I have builds for Windows on x64 architecture at the releases page.
-For Linux, go to the build section. Building is relatively easy.
-
 ## Usage Manual
 **For understanding on how to properly use the program please read the following**.
 ---
+
+## Releases
+
+This version of the program is only available for linux, I am working on builds for windows at the moment. If you want a windows version take a look at my releases and use those. Keep in mind that this is the old version of my program.
  
 The program relies on directories located in the **~/Music dir located in the home path**.
 
@@ -39,21 +39,11 @@ My program depends on these libs:
 3. SDL2_ttf-devel
 4. SDL2_image-devel
 
-For my windows binary, I use MingGW to compile.
-
-For linux I am mainly using clang... If you want to use GCC just change the CC in the build script.
+I am mainly using clang... If you want to use GCC just change the CC in the build script.
 
 > If you have the dependencies installed via your package manager you can simply run the build script.
 
 ```./build.sh```
-
-If you want to build for a windows target - there are a few steps.
-
-1. run ```fetch_win_resources.sh```
-> This fetches the libs and everything you will need to build. It sets everything up automatically.
-2. run ```make``` and then ```make install```
-> This will compile to a binary and move the DLLs to a directory named WINDOWS
-
 
 
 

@@ -1,7 +1,6 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
-#include <string>
-#include <utility>
+
 
 class SDL2Fonts;
 class SDL2Renderer;
@@ -12,8 +11,10 @@ class ProgramFiles;
 class SDL2Window;
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <cstdio>
+#include <cstdlib>
+
 
 typedef enum {
   WINDOW = 0,
@@ -47,7 +48,6 @@ public:
   bool initialize_sdl2_events();
   bool initialize_sdl2_audio();
   bool initialize_sdl2_ttf();
-  bool initialize_sdl2_image();
   bool get_play_state();
 
   const WIN_SIZE *get_stored_window_size();

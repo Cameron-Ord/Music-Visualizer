@@ -1,7 +1,6 @@
 #include "../include/audio.hpp"
 #include "../include/fft.hpp"
 #include "../include/macdefs.hpp"
-#include <SDL2/SDL_audio.h>
 
 SDL2Audio::SDL2Audio() {
   next_song_flag = 0;

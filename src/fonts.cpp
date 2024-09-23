@@ -1,6 +1,5 @@
 #include "../include/font_entity.hpp"
-#include <SDL2/SDL_error.h>
-#include <SDL2/SDL_render.h>
+
 
 SDL2Fonts::SDL2Fonts() {
   font = NULL;

@@ -2,9 +2,11 @@
 #define FILES_HPP
 
 #include "file_def.hpp"
-#include <dirent.h>
-#include <sys/stat.h>
+#include <iostream>
+#include <filesystem>
 #include <vector>
+#include <string>
+#include <system_error>
 
 class ProgramFiles {
 public:

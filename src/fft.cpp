@@ -1,7 +1,4 @@
 #include "../include/fft.hpp"
-#include <complex.h>
-#include <math.h>
-#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265359
@@ -26,7 +23,9 @@ FourierTransform::FourierTransform() {
 FData *FourierTransform::get_data() { return &data; }
 FBuffers *FourierTransform::get_bufs() { return &bufs; }
 
-void FourierTransform::fft_func(float *in, size_t stride, float _Complex *out,
+
+
+void FourierTransform::fft_func(float *in, size_t stride, std::complex<float> *out,
                                 size_t n) {
   if (n == 1) {
     out[0] = in[0];
@@ -41,8 +40,8 @@ void FourierTransform::fft_func(float *in, size_t stride, float _Complex *out,
   // out = e - o*x e + o*x e e| e + o*x o - o*x o o
   for (size_t k = 0; k < n / 2; ++k) {
     float t = (float)k / n;
-    float _Complex v = cexpf(-2 * I * M_PI * t) * out[k + half_n];
-    float _Complex e = out[k];
+    std::complex<float> v = std::exp(std::complex<float>(0, -2 * M_PI * t)) * out[k + half_n];
+    std::complex<float> e = out[k];
     out[k] = e + v;
     out[k + half_n] = e - v;
   }
@@ -115,10 +114,10 @@ void FourierTransform::squash_to_log(size_t size) {
   data.output_len = m;
 }
 
-float FourierTransform::amp(float _Complex z) {
-  float a = fabsf(crealf(z));
-  float b = fabsf(cimagf(z));
-  return logf(a * a + b * b);
+float FourierTransform::amp(std::complex<float> z) {
+  float a = std::fabsf(z.real());
+  float b = std::fabsf(z.imag());
+  return std::logf(a * a + b * b);
 } /*amp*/
 
 void FourierTransform::apply_smoothing() {

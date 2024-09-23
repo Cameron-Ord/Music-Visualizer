@@ -42,14 +42,6 @@ bool SDL2INTERNAL::initialize_sdl2_ttf() {
   return true;
 }
 
-bool SDL2INTERNAL::initialize_sdl2_image() {
-  if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
-    fprintf(stderr, "SDL2 IMG could not initialize -> %s\n", SDL_GetError());
-    return false;
-  }
-  return true;
-}
-
 const WIN_SIZE SDL2INTERNAL::get_current_window_size(SDL_Window *window) {
   int w, h;
   WIN_SIZE sizes;

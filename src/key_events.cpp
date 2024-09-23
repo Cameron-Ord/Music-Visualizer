@@ -1,6 +1,5 @@
 #include "../include/events.hpp"
-#include <algorithm>
-#include <list>
+
 
 SDL2KeyInputs::SDL2KeyInputs() { cursor_index = 0; }
 
