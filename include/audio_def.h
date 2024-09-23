@@ -2,6 +2,7 @@
 #define AUDIO_DEF_H
 
 #include <cstdint>
+#include <cstring>
 
 struct AudioDataContainer {
   float *buffer;

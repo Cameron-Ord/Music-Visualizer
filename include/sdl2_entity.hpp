@@ -1,7 +1,6 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
 
-
 class SDL2Fonts;
 class SDL2Renderer;
 class SDL2KeyInputs;
@@ -14,7 +13,8 @@ class SDL2Window;
 #include <SDL2/SDL_ttf.h>
 #include <cstdio>
 #include <cstdlib>
-
+#include <fstream>
+#include <iostream>
 
 typedef enum {
   WINDOW = 0,

@@ -55,9 +55,7 @@ bool AudioData::read_audio_file(std::string file_path) {
 
   a_data.buffer = (float *)realloc(a_data.buffer, a_data.bytes);
   if (!a_data.buffer) {
-    char msg[256];
-    strerror_s(msg, sizeof(msg), errno);
-    fprintf(stderr, "Could not allocate buffer! -> %s\n", msg);
+    fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
     return false;
   }

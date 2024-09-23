@@ -1,6 +1,5 @@
 #include "../include/font_entity.hpp"
 
-
 SDL2Fonts::SDL2Fonts() {
   font = NULL;
   font_path = "dogicapixel.ttf";

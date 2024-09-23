@@ -4,10 +4,7 @@
 ProgramPath::ProgramPath() {
   const std::string platform_home = get_platform_home();
   const char *home_to_char = platform_home.c_str();
-  char *home;
-  size_t size;
-  errno_t err;
-  _dupenv_s(&home,&size,home_to_char);
+  char *home = getenv(home_to_char);
   std::string home_env_str = "";
 
   size_t i = 0;
@@ -75,11 +72,20 @@ bool ProgramPath::create_music_source() {
   const std::string music_directory = "Music";
   const std::string music_path = HOME_PATH + slash + music_directory;
 
-//make a parent music path here for folders
+  if (!std::filesystem::exists(music_path)) {
+    if (!std::filesystem::create_directory(music_path)) {
+      std::cerr << "Failed to create directory!" << std::endl;
+      return false;
+    }
+  }
 
   const std::string music_source_path = music_path + slash + "MVSource";
-
-//create the source dir for folders containing audio files
+  if (!std::filesystem::exists(music_source_path)) {
+    if (!std::filesystem::create_directory(music_source_path)) {
+      std::cerr << "Failed to create directory!" << std::endl;
+      return false;
+    }
+  }
 
   SOURCE_PATH = music_source_path;
   return true;
@@ -95,11 +101,20 @@ bool ProgramPath::create_log_directories() {
   const std::string music_directory = "Music";
   const std::string music_path = HOME_PATH + slash + music_directory;
 
-//make a parent music path here for folders
+  if (!std::filesystem::exists(music_path)) {
+    if (!std::filesystem::create_directory(music_path)) {
+      std::cerr << "Failed to create directory!" << std::endl;
+      return false;
+    }
+  }
 
   const std::string program_log_path = music_path + slash + "MVLogs";
-
-//create the source dir for folders containing log files
+  if (!std::filesystem::exists(program_log_path)) {
+    if (!std::filesystem::create_directory(program_log_path)) {
+      std::cerr << "Failed to create directory!" << std::endl;
+      return false;
+    }
+  }
 
   LOG_PATH = program_log_path;
   return true;
