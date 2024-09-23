@@ -4,6 +4,7 @@
 #include <SDL2/SDL_rect.h>
 #include <cmath>
 #include <complex>
+#include <cstring>
 #include <iostream>
 
 struct FBuffers {

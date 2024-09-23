@@ -120,9 +120,9 @@ void FourierTransform::squash_to_log(size_t size) {
 }
 
 float FourierTransform::amp(std::complex<float> z) {
-  float a = std::fabsf(z.real());
-  float b = std::fabsf(z.imag());
-  return std::logf(a * a + b * b);
+  float a = fabsf(z.real());
+  float b = fabsf(z.imag());
+  return logf(a * a + b * b);
 } /*amp*/
 
 void FourierTransform::apply_smoothing() {
