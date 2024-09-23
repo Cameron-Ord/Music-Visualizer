@@ -45,7 +45,7 @@ void FourierTransform::fft_func(float *in, size_t stride,
   for (size_t k = 0; k < n / 2; ++k) {
     float t = (float)k / n;
     std::complex<float> v =
-        std::exp(std::complex<float>(0, -2 * M_PI * t)) * out[k + half_n];
+        std::exp(std::complex<float>(0, -2.0f * M_PI * t)) * out[k + half_n];
     std::complex<float> e = out[k];
     out[k] = e + v;
     out[k + half_n] = e - v;
