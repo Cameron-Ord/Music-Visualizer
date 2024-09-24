@@ -16,23 +16,35 @@ class SDL2Window;
 #include <fstream>
 #include <iostream>
 
-typedef enum { WINDOW = 0, FONT = 1, RENDERER = 2, KEY_INPUT = 3, THEMES = 4, FILES = 5, PATHS = 6 } CLASS_ENUM_MAP;
+typedef enum
+{
+    WINDOW = 0,
+    FONT = 1,
+    RENDERER = 2,
+    KEY_INPUT = 3,
+    THEMES = 4,
+    FILES = 5,
+    PATHS = 6
+} CLASS_ENUM_MAP;
 
-typedef enum {
+typedef enum
+{
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
     LISTENING = 2,
 } USER_STATE;
 
-struct WIN_SIZE {
+struct WIN_SIZE
+{
     int WIDTH;
     int HEIGHT;
 };
 
 typedef WIN_SIZE WIN_SIZE;
 
-class SDL2INTERNAL {
-   public:
+class SDL2INTERNAL
+{
+  public:
     ~SDL2INTERNAL();
     SDL2INTERNAL();
 
@@ -51,7 +63,7 @@ class SDL2INTERNAL {
     void set_window_size(WIN_SIZE);
     void set_play_state(bool state);
 
-   private:
+  private:
     int user_state;
     WIN_SIZE window_size_values;
     bool play_state;

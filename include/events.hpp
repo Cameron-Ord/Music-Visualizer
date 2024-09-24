@@ -8,7 +8,8 @@
 
 #include "font_def.hpp"
 
-typedef enum {
+typedef enum
+{
     Q = SDLK_q,
     UP = SDLK_UP,
     DOWN = SDLK_DOWN,
@@ -20,8 +21,9 @@ typedef enum {
     ESCAPE = SDLK_ESCAPE,
 } SDL_KEYCODES_ENUM;
 
-class SDL2KeyInputs {
-   public:
+class SDL2KeyInputs
+{
+  public:
     SDL2KeyInputs();
 
     void reset_cursor_index(size_t *cursor_index_ptr);
@@ -31,9 +33,10 @@ class SDL2KeyInputs {
     size_t *get_song_cursor_index();
     size_t *get_dir_cursor_index();
     void affirm_index();
-    std::string select_element(const std::vector<Text> *d, size_t *cursor_index_ptr);
+    std::string select_element(const std::vector<Text> *d,
+                               size_t *cursor_index_ptr);
 
-   private:
+  private:
     size_t cursor_index_dirs;
     size_t cursor_index_songs;
 };

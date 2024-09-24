@@ -5,8 +5,9 @@
 #include <filesystem>
 #include <iostream>
 
-class ProgramPath {
-   public:
+class ProgramPath
+{
+  public:
     ProgramPath();
     ~ProgramPath();
 
@@ -21,7 +22,7 @@ class ProgramPath {
     void set_opened_dir(std::string dir);
     std::string get_opened_dir();
 
-   private:
+  private:
     std::string OPENED_DIR;
     std::string HOME_PATH;
     std::string LOG_PATH;

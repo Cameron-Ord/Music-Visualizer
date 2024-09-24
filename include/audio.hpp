@@ -13,20 +13,22 @@
 
 void callback(void *data, uint8_t *stream, int len);
 
-class AudioData {
-   public:
+class AudioData
+{
+  public:
     AudioData();
     ~AudioData();
     void zero_values();
     bool read_audio_file(std::string file_path);
     AudioDataContainer *get_audio_data();
 
-   private:
+  private:
     AudioDataContainer a_data;
 };
 
-class SDL2Audio {
-   public:
+class SDL2Audio
+{
+  public:
     SDL2Audio();
     ~SDL2Audio();
     void set_audio_spec(USERDATA *userdata);
@@ -44,7 +46,7 @@ class SDL2Audio {
     SDL_AudioDeviceID *get_device();
     SDL_AudioSpec *get_spec();
 
-   private:
+  private:
     int next_song_flag;
     int audio_streaming;
     SDL_AudioSpec spec;

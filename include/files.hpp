@@ -8,8 +8,9 @@
 #include <string>
 #include <system_error>
 
-class ProgramFiles {
-   public:
+class ProgramFiles
+{
+  public:
     ProgramFiles();
     ~ProgramFiles();
 
@@ -21,7 +22,7 @@ class ProgramFiles {
     std::vector<Directory> *retrieve_directories();
     std::vector<Files> *retrieve_directory_files();
 
-   private:
+  private:
     int file_count;
     int dir_count;
     std::vector<Directory> directories;

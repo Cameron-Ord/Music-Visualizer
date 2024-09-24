@@ -4,13 +4,14 @@
 #include <cstdio>
 #include <cstdlib>
 
-class SDL2Window {
-   public:
+class SDL2Window
+{
+  public:
     SDL2Window();
     void *create_window(SDL_Window **w);
     SDL_Window **get_window();
 
-   private:
+  private:
     SDL_Window *w;
 };
 #endif
