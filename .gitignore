@@ -3,4 +3,4 @@ bin/
 WINDOWS/
 win_resources/
 *.zip
-.cache
+.cache/
