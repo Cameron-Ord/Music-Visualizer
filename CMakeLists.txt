@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/camer/Documents/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release)
 project(MVis VERSION 1.0)
 set(SRC_DIR "src")
 
@@ -27,7 +29,7 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SndFile REQUIRED)
 
-add_executable(MVis ${SOURCES})
+add_executable(MVis WIN32 ${SOURCES})
 
 target_include_directories(MVis PRIVATE 
     ${SDL2_INCLUDE_DIRS}
@@ -36,8 +38,8 @@ target_include_directories(MVis PRIVATE
 )
 
 target_link_libraries(MVis PRIVATE 
-    SDL2_ttf::SDL2_ttf
     SDL2::SDL2
     SDL2::SDL2main
+    SDL2_ttf::SDL2_ttf
     SndFile::sndfile
 )

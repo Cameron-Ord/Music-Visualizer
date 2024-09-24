@@ -9,30 +9,33 @@
 #include "font_def.hpp"
 
 typedef enum {
-  Q = SDLK_q,
-  UP = SDLK_UP,
-  DOWN = SDLK_DOWN,
-  LEFT = SDLK_LEFT,
-  RIGHT = SDLK_RIGHT,
-  ENTER = SDLK_RETURN,
-  BACKSPACE = SDLK_BACKSPACE,
-  SPACE = SDLK_SPACE,
-
+    Q = SDLK_q,
+    UP = SDLK_UP,
+    DOWN = SDLK_DOWN,
+    LEFT = SDLK_LEFT,
+    RIGHT = SDLK_RIGHT,
+    ENTER = SDLK_RETURN,
+    BACKSPACE = SDLK_BACKSPACE,
+    SPACE = SDLK_SPACE,
+    ESCAPE = SDLK_ESCAPE,
 } SDL_KEYCODES_ENUM;
 
 class SDL2KeyInputs {
-public:
-  SDL2KeyInputs();
+   public:
+    SDL2KeyInputs();
 
-  void reset_cursor_index();
-  std::pair<int, SDL_Keysym> poll_events();
-  void cycle_up_list(size_t max_length);
-  void cycle_down_list(size_t max_length);
-  const size_t *get_cursor_index();
-  std::string select_element(const std::vector<Text> *d);
+    void reset_cursor_index(size_t *cursor_index_ptr);
+    std::pair<int, SDL_Keysym> poll_events();
+    void cycle_up_list(size_t max_length, size_t *cursor_index_ptr);
+    void cycle_down_list(size_t max_length, size_t *cursor_index_ptr);
+    size_t *get_song_cursor_index();
+    size_t *get_dir_cursor_index();
+    void affirm_index();
+    std::string select_element(const std::vector<Text> *d, size_t *cursor_index_ptr);
 
-private:
-  size_t cursor_index;
+   private:
+    size_t cursor_index_dirs;
+    size_t cursor_index_songs;
 };
 
 #endif

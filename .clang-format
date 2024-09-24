@@ -1,22 +1,24 @@
-BasedOnStyle: GNU
-IndentWidth: 2
+BasedOnStyle: Google
+IndentWidth: 4
 UseTab: Never
-TabWidth: 8
-AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: false
-ColumnLimit: 110
-PointerAlignment: Left
-AccessModifierOffset: -2
-ConstructorInitializerIndentWidth: 2
-AlignConsecutiveDeclarations: true
-AlignConsecutiveAssignments: true
-AlignOperands: true
+ColumnLimit: 120
 BreakBeforeBraces: Attach
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
 SpaceBeforeParens: ControlStatements
-BreakAfterBinaryOperators: None
-BreakBeforeBinaryOperators: NonAssignment
-BinPackArguments: false
-BinPackParameters: false
-PenaltyBreakStringLiterals: 1000
-PenaltyExcessCharacter: 100
-PenaltyReturnTypeOnItsOwnLine: 60
+SpacesInParentheses: false
+SpacesInAngles: false
+SpaceAfterCStyleCast: true
+SpaceBeforeCaseColon: true
+SpacesInContainerLiterals: true
+Cpp11BracedListStyle: true
+SortIncludes: false
+IncludeCategories:
+  - Regex: '^<.*>'
+    Priority: 1
+  - Regex: '^".*'
+    Priority: 2
+  - Regex: '^.*'
+    Priority: 3

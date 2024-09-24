@@ -5,12 +5,12 @@
 #include <cstdlib>
 
 class SDL2Window {
-public:
-  SDL2Window();
-  void *create_window(SDL_Window **w);
-  SDL_Window **get_window();
+   public:
+    SDL2Window();
+    void *create_window(SDL_Window **w);
+    SDL_Window **get_window();
 
-private:
-  SDL_Window *w;
+   private:
+    SDL_Window *w;
 };
 #endif
