@@ -24,7 +24,7 @@ void SDL2Renderer::set_font_draw_limit(int h) {
     } else if (h > 300 && h < 760) {
         font_draw_limit = 4;
     } else if (h > 760 && h < 1280) {
-        font_draw_limit = 6; 
+        font_draw_limit = 6;
     } else {
         font_draw_limit = 8;
     }

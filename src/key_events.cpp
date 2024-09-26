@@ -17,37 +17,40 @@ size_t *SDL2KeyInputs::get_dir_cursor_index() {
     return &cursor_index_dirs;
 }
 
-void SDL2KeyInputs::cycle_up_list(size_t max_length, size_t *cursor_index_ptr) {
+std::string SDL2KeyInputs::cycle_up_list(size_t max_length,
+                                         size_t *cursor_index_ptr) {
     int tmp = static_cast<int>(*cursor_index_ptr);
     int length = static_cast<int>(max_length);
 
     if (length - 1 < 0) {
-        return;
+        return "<empty-vector>";
     }
 
     tmp -= 1;
     if (tmp < 0) {
-        tmp = length - 1;
+        return "min_reached";
     }
 
     *cursor_index_ptr = static_cast<size_t>(tmp);
+    return "success";
 }
 
-void SDL2KeyInputs::cycle_down_list(size_t max_length,
-                                    size_t *cursor_index_ptr) {
+std::string SDL2KeyInputs::cycle_down_list(size_t max_length,
+                                           size_t *cursor_index_ptr) {
     int tmp = static_cast<int>(*cursor_index_ptr);
     int length = static_cast<int>(max_length);
 
     if (length - 1 < 0) {
-        return;
+        return "<empty-vector>";
     }
 
     tmp += 1;
     if (tmp > length - 1) {
-        tmp = 0;
+        return "max_reached";
     }
 
     *cursor_index_ptr = static_cast<size_t>(tmp);
+    return "success";
 }
 
 std::string SDL2KeyInputs::select_element(const std::vector<Text> *d,

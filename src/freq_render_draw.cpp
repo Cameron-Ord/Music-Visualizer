@@ -6,11 +6,11 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
     const int cell_width = *win_width / *len;
     const int h = *win_height;
 
-    if(bar_end_coords.size() < (*len -1)){
+    if (bar_end_coords.size() < (*len - 1)) {
         bar_end_coords.resize(*len);
     }
 
-    if(bar_start_coords.size() < (*len -1)){
+    if (bar_start_coords.size() < (*len - 1)) {
         bar_start_coords.resize(*len);
     }
 
