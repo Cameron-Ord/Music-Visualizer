@@ -1,7 +1,6 @@
 #include "../include/theme.hpp"
 
-ProgramThemes::ProgramThemes()
-{
+ProgramThemes::ProgramThemes() {
     SDL_Color primary_nord = { 129, 161, 193, 255 };
     SDL_Color secondary_nord = { 46, 52, 64, 255 };
     SDL_Color tertiary_nord = { 136, 192, 208, 255 };
@@ -17,62 +16,49 @@ ProgramThemes::ProgramThemes()
 
 ProgramThemes::~ProgramThemes() {}
 
-SDL_Color *ProgramThemes::get_primary()
-{
+SDL_Color *ProgramThemes::get_primary() {
     return &primary;
 }
 
-SDL_Color *ProgramThemes::get_secondary()
-{
+SDL_Color *ProgramThemes::get_secondary() {
     return &secondary;
 }
 
-SDL_Color *ProgramThemes::get_tertiary()
-{
+SDL_Color *ProgramThemes::get_tertiary() {
     return &tertiary;
 }
 
-SDL_Color *ProgramThemes::get_text()
-{
+SDL_Color *ProgramThemes::get_text() {
     return &text;
 }
 
-SDL_Color *ProgramThemes::get_textbg()
-{
+SDL_Color *ProgramThemes::get_textbg() {
     return &text_bg;
 }
 
-void ProgramThemes::set_color(SDL_Color to_color, int TYPE)
-{
-    switch (TYPE)
-    {
-    case PRIMARY:
-    {
+void ProgramThemes::set_color(SDL_Color to_color, int TYPE) {
+    switch (TYPE) {
+    case PRIMARY: {
         primary = to_color;
         break;
     }
-    case SECONDARY:
-    {
+    case SECONDARY: {
         secondary = to_color;
         break;
     }
-    case TERTIARY:
-    {
+    case TERTIARY: {
         tertiary = to_color;
         break;
     }
-    case TEXT:
-    {
+    case TEXT: {
         text = to_color;
         break;
     }
-    case TEXT_BG:
-    {
+    case TEXT_BG: {
         text_bg = to_color;
         break;
     }
-    default:
-    {
+    default: {
         break;
     }
     }

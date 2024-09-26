@@ -7,6 +7,14 @@
 #include <stdbool.h>
 #include <vector>
 
+struct Coordinates{
+int x;
+int y;
+int height;
+SDL_Rect copy_rect;
+};
+
+typedef Coordinates Coordinates;
 class SDL2Renderer
 {
   public:
@@ -25,9 +33,9 @@ class SDL2Renderer
                             const size_t *cursor_index);
     void render_draw_text_bg(SDL_Renderer *r, const SDL_Color *rgba);
     void reset_vector_positions();
-    void render_draw_bars(size_t *len, float *smear, float *smooth,
-                          const int *win_height, const int *win_width,
+    void render_draw_bars(size_t *len,
                           SDL_Color *prim, SDL_Color *sec, SDL_Renderer *r);
+    void render_set_bars(const size_t *len, const int *win_height, const int *win_width, float *smear, float *smooth);
     void set_font_draw_limit(int h);
     const size_t *get_font_draw_limit();
 
@@ -44,6 +52,8 @@ class SDL2Renderer
     size_t font_draw_limit;
     size_t directories_index;
     size_t songs_index;
+    std::vector<Coordinates> bar_start_coords;
+    std::vector<Coordinates> bar_end_coords;
 };
 
 #endif

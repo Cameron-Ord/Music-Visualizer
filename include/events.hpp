@@ -19,6 +19,7 @@ typedef enum
     BACKSPACE = SDLK_BACKSPACE,
     SPACE = SDLK_SPACE,
     ESCAPE = SDLK_ESCAPE,
+    P_KEY = SDLK_p,
 } SDL_KEYCODES_ENUM;
 
 class SDL2KeyInputs
