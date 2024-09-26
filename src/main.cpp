@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    
+
     win.create_window(win.get_window());
     if (win.get_window() == NULL) {
         std::cerr << "Could not create window!" << std::endl;
@@ -375,12 +377,14 @@ int main(int argc, char **argv) {
                             fonts.get_dir_vec(rend.get_dir_index());
                         std::string dir_name =
                             key.select_element(d, key.get_dir_cursor_index());
+
                         if (dir_name != "<empty-vector>") {
                             pathing.set_opened_dir(dir_name);
                             bool result = files.fill_files(
                                 pathing.join_str(pathing.get_src_path(),
                                                  dir_name),
                                 pathing.return_slash());
+
                             if (files.retrieve_directory_files()->size() > 0 &&
                                 result) {
                                 key.reset_cursor_index(
@@ -400,9 +404,11 @@ int main(int argc, char **argv) {
                     case AT_SONGS: {
                         sdl2_ad.pause_audio();
                         sdl2_ad.close_audio_device();
+
                         const std::string file_name = key.select_element(
                             fonts.get_song_vec(rend.get_song_index()),
                             key.get_song_cursor_index());
+                       
                         if (file_name != "<empty-vector>") {
                             const std::string dir_path =
                                 pathing.join_str(pathing.get_src_path(),

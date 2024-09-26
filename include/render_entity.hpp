@@ -42,10 +42,19 @@ class SDL2Renderer
     size_t get_dir_index();
     size_t get_song_index();
 
+    SDL_Surface *render_create_surface();
+    SDL_Texture *render_create_texture();
+
     void set_dir_index(size_t i);
     void set_song_index(size_t i);
 
   private:
+    std::string START_TILE_PATH;
+    std::string END_TILE_PATH;
+    std::string MID_TILE_PATH;
+    SDL_Texture *mid_tile_tex;
+    SDL_Texture *end_tile_tex;
+    SDL_Texture *start_tile_tex;
     SDL_Renderer *r;
     SDL_Rect text_bg;
     bool drawing_text_bg;

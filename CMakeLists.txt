@@ -25,21 +25,26 @@ set(SOURCES
     ${SRC_DIR}/window.cpp
 )
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-find_package(SndFile REQUIRED)
+set(INCLUDE_DIR "C:/msys64/clang64/include")  
+set(LIB_DIR "C:/msys64/clang64/lib")
+
+find_library(SDL2_LIB NAMES SDL2 PATHS ${LIB_DIR} REQUIRED)
+find_library(SDL2MAIN_LIB NAMES SDL2main PATHS ${LIB_DIR} REQUIRED)
+find_library(SDL2_TTF_LIB NAMES SDL2_ttf PATHS ${LIB_DIR}  REQUIRED)
+find_library(SDL2_IMAGE_LIB NAMES SDL2_image PATHS ${LIB_DIR} REQUIRED)
+find_package(SndFile REQUIRED) 
 
 add_executable(MVis WIN32 ${SOURCES})
 
 target_include_directories(MVis PRIVATE 
-    ${SDL2_INCLUDE_DIRS}
-    ${SDL2_TTF_INCLUDE_DIRS}
-    ${SndFile_INCLUDE_DIRS}
+    ${INCLUDE_DIR}/SDL2
+    ${SndFile_INCLUDE_DIR}
 )
 
 target_link_libraries(MVis PRIVATE 
-    SDL2::SDL2
-    SDL2::SDL2main
-    SDL2_ttf::SDL2_ttf
+    ${SDL2_LIB}
+    ${SDL2MAIN_LIB}
+    ${SDL2_TTF_LIB}
+    ${SDL2_IMAGE_LIB} 
     SndFile::sndfile
 )

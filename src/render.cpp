@@ -7,6 +7,13 @@ SDL2Renderer::SDL2Renderer() {
     directories_index = 0;
     songs_index = 0;
     font_draw_limit = 8;
+    START_TILE_PATH = "start_tile.png";
+    MID_TILE_PATH = "mid_tile.png";
+    END_TILE_PATH = "end_tile.png";
+
+    mid_tile_tex = NULL;
+    end_tile_tex = NULL;
+    start_tile_tex = NULL;
 }
 
 SDL2Renderer::~SDL2Renderer() {}
