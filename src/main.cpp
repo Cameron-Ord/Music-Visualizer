@@ -36,6 +36,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    //do a fallback to sdl_renderfillrect later
+    if(!sdl2.initialize_sdl2_img()){
+        std::cerr << "Failed to initialize SDL2 video!" << std::endl;
+        return 1;
+    }
     
 
     win.create_window(win.get_window());

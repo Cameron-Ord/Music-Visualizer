@@ -14,6 +14,10 @@ void SDL2INTERNAL::set_current_user_state(int USER_STATE_ENUM_VALUE) {
     user_state = USER_STATE_ENUM_VALUE;
 }
 
+bool SDL2INTERNAL::initialize_sdl2_img(){
+    return false;
+}
+
 bool SDL2INTERNAL::initialize_sdl2_events() {
     if (SDL_Init(SDL_INIT_EVENTS) != 0) {
         fprintf(stderr, "SDL2 Could not initialize events -> %s\n",

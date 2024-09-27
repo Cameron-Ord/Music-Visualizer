@@ -11,6 +11,7 @@ class SDL2Window;
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -52,6 +53,7 @@ class SDL2INTERNAL
     bool initialize_sdl2_events();
     bool initialize_sdl2_audio();
     bool initialize_sdl2_ttf();
+    bool initialize_sdl2_img();
     bool get_play_state();
 
     const WIN_SIZE *get_stored_window_size();

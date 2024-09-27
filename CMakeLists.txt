@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release)
@@ -25,26 +24,10 @@ set(SOURCES
     ${SRC_DIR}/window.cpp
 )
 
-set(INCLUDE_DIR "C:/msys64/clang64/include")  
-set(LIB_DIR "C:/msys64/clang64/lib")
-
-find_library(SDL2_LIB NAMES SDL2 PATHS ${LIB_DIR} REQUIRED)
-find_library(SDL2MAIN_LIB NAMES SDL2main PATHS ${LIB_DIR} REQUIRED)
-find_library(SDL2_TTF_LIB NAMES SDL2_ttf PATHS ${LIB_DIR}  REQUIRED)
-find_library(SDL2_IMAGE_LIB NAMES SDL2_image PATHS ${LIB_DIR} REQUIRED)
-find_package(SndFile REQUIRED) 
-
 add_executable(MVis WIN32 ${SOURCES})
 
 target_include_directories(MVis PRIVATE 
-    ${INCLUDE_DIR}/SDL2
-    ${SndFile_INCLUDE_DIR}
 )
 
 target_link_libraries(MVis PRIVATE 
-    ${SDL2_LIB}
-    ${SDL2MAIN_LIB}
-    ${SDL2_TTF_LIB}
-    ${SDL2_IMAGE_LIB} 
-    SndFile::sndfile
 )
