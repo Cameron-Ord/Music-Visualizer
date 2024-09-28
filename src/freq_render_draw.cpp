@@ -87,7 +87,7 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
         if (fractional_start > 0.0) {
             int new_height = cell_width * fractional_start;
             SDL_Rect tmp = { .x = end_x_pos,
-                             .y = end_y_pos + accumulator,
+                             .y = end_y_pos + accumulator_start,
                              .w = cell_width,
                              .h = new_height };
             start_positions.copy_rect.push_back(tmp);
@@ -100,21 +100,30 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
                                     SDL_Color *sec, SDL_Renderer *r) {
 
-    SDL_Rect f = { 50, 50, 300, 300 };
-    SDL_RenderCopy(r, end_tile_tex, NULL, &f);
-
     for (size_t i = 0; i < *len; ++i) {
         size_t end_size = bar_end_coords[i].copy_rect.size();
         for (size_t g = 0; g < end_size; g++) {
-            SDL_RenderCopy(r, start_tile_tex, NULL,
+            if (g == 0) {
+                SDL_RenderCopy(r, end_tile_tex, NULL,
+                               &bar_end_coords[i].copy_rect[g]);
+                continue;
+            }
+
+            SDL_RenderCopy(r, mid_tile_tex, NULL,
                            &bar_end_coords[i].copy_rect[g]);
         }
-        // if (bar_end_coords[i].y > bar_start_coords[i].y) {
-        // size_t start_size = bar_start_coords[i].copy_rect.size();
-        // for (size_t d = 0; d < start_size; d++) {
-        // SDL_RenderCopy(r, end_tile_tex, NULL,
-        //&bar_start_coords[i].copy_rect[d]);
-        //}
-        //}
+        if (bar_end_coords[i].y > bar_start_coords[i].y) {
+            size_t start_size = bar_start_coords[i].copy_rect.size();
+            for (size_t d = 0; d < start_size; d++) {
+                if (d == 0) {
+                    SDL_RenderCopy(r, end_tile_tex, NULL,
+                                   &bar_start_coords[i].copy_rect[d]);
+                    continue;
+                }
+
+                SDL_RenderCopy(r, mid_tile_tex, NULL,
+                               &bar_start_coords[i].copy_rect[d]);
+            }
+        }
     }
 }

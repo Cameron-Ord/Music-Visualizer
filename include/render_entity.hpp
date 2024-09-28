@@ -49,6 +49,7 @@ class SDL2Renderer {
     void set_song_index(size_t i);
 
   private:
+    std::string SPRITESHEET;
     std::string START_TILE_PATH;
     std::string END_TILE_PATH;
     std::string MID_TILE_PATH;
