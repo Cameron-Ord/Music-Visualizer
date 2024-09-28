@@ -39,11 +39,37 @@ My program depends on these libs:
 3. SDL2_ttf-devel
 4. SDL2_image-devel
 
-I am mainly using clang... If you want to use GCC just change the CC in the build script.
+# OTHER REQUIREMENTS
+1. CMake
+2. MinGW(For windows)
 
-> If you have the dependencies installed via your package manager you can simply run the build script.
+> For windows the most painless option is to use MSYS2 and install all the related packages from there
 
-```./build.sh```
+Building is relatively painless. Just make sure you have the afforementioned libs installed so that **CMake** can search for them.
+
+## Build steps for linux
+```mkdir build```
+```cd build && cmake ..```
+```cmake --build .```
+
+## Build steps for windows
+You can simply run the **win64_make.sh** script inside the working directory of the project but I will give a rundown of what it does here.
+
+```
+    cmake -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
+        -DCMAKE_C_COMPILER=/c/msys64/mingw64/bin/gcc.exe \
+        -DCMAKE_CXX_COMPILER=/c/msys64/mingw64/bin/g++.exe \
+        -S. \
+        -B./build \
+        -G "MinGW Makefiles"
+```
+
+
+```cd build```
+```mingw32-make```
+
+
 
 
 

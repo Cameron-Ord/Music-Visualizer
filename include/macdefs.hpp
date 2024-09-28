@@ -4,6 +4,6 @@
 #define DOUBLE_BUFF (BUFF_SIZE * 2)
 #define HALF_BUFF (BUFF_SIZE / 2)
 #define HALF_DOUBLE (DOUBLE_BUFF / 2)
-#define MAX_PATH 4096
+#define MAX_PATH_ 4096
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif

@@ -10,6 +10,7 @@
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
 #include <cstdio>
+#include <SDL2/SDL.h>
 
 int main(int argc, char **argv) {
     // instantiate classes
@@ -73,7 +74,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // do a fallback to sdl_renderfillrect later
     if (!sdl2->initialize_sdl2_img()) {
         std::cerr << "Failed to initialize SDL2 image!" << std::endl;
         return 1;
@@ -145,9 +145,6 @@ int main(int argc, char **argv) {
 
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
-
-    rend.create_sprite_surface();
-    rend.create_sprite_texture();
 
     rend.set_dir_index(0);
     rend.set_song_index(0);

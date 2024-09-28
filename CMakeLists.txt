@@ -6,14 +6,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-set(CMAKE_REQUIRED_FLAGS "-lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile")
+
+if(WIN32)
+  set(CMAKE_REQUIRED_FLAGS "-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile")
+else()
+  set(CMAKE_REQUIRED_FLAGS "-lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile")
+endif()
 
 find_library(SDL2_LIBRARY NAMES SDL2)
+find_library(SDL2_LIBRARY_MAIN NAMES SDL2main)
 find_library(SDL2_TTF_LIBRARY NAMES SDL2_ttf)
 find_library(SDL2_IMAGE_LIBRARY NAMES SDL2_image)
 find_library(LIBSNDFILE_LIBRARY NAMES sndfile)
 
 message("")
+if(NOT SDL2_LIBRARY_MAIN)
+  message(WARNING "SDL2main not found!")
+else()
+  message(STATUS "SDL2main found at ${SDL2_LIBRARY_MAIN}")
+endif()
+
 if(NOT SDL2_LIBRARY)
   message(FATAL_ERROR "SDL2 not found, please install it via your package manager!")
 else()
@@ -41,8 +53,15 @@ message("")
 
 file(GLOB SOURCES "src/*.cpp")
 
-add_executable(Vis ${SOURCES})
+add_executable(Vis WIN32 ${SOURCES})
 
-target_link_libraries(Vis ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
+if(WIN32)
+  target_include_directories(Vis PUBLIC "C:/msys64/mingw64/include")
+  target_compile_definitions(Vis PUBLIC SDL_MAIN_HANDLED)
+  target_link_libraries(Vis ${SDL2_LIBRARY_MAIN} ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
+else()
+  target_link_libraries(Vis ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
+endif()
+
 
 

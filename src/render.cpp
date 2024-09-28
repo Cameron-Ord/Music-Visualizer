@@ -16,6 +16,7 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
+//not used at the moment, but not removing
 void SDL2Renderer::create_sprite_texture() {
     sprite_texture = SDL_CreateTextureFromSurface(r, sprite_surface);
     if (!sprite_texture) {
@@ -25,6 +26,7 @@ void SDL2Renderer::create_sprite_texture() {
     }
 }
 
+//not used at the moment, but not removing
 void SDL2Renderer::create_sprite_surface() {
     sprite_surface = IMG_Load(sprite_sheet_filename.c_str());
     if (!sprite_surface) {
