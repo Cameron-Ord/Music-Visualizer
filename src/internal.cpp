@@ -15,7 +15,7 @@ void SDL2INTERNAL::set_current_user_state(int USER_STATE_ENUM_VALUE) {
 }
 
 bool SDL2INTERNAL::initialize_sdl2_img(){
-    return false;
+    return true;
 }
 
 bool SDL2INTERNAL::initialize_sdl2_events() {

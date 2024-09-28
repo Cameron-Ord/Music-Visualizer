@@ -36,12 +36,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    //do a fallback to sdl_renderfillrect later
-    if(!sdl2.initialize_sdl2_img()){
-        std::cerr << "Failed to initialize SDL2 video!" << std::endl;
+    // do a fallback to sdl_renderfillrect later
+    if (!sdl2.initialize_sdl2_img()) {
+        std::cerr << "Failed to initialize SDL2 image!" << std::endl;
         return 1;
     }
-    
 
     win.create_window(win.get_window());
     if (win.get_window() == NULL) {
@@ -176,19 +175,21 @@ int main(int argc, char **argv) {
 
                 size_t current_index = rend.get_song_index();
                 size_t vec_size = fonts.get_song_vec_size();
-                size_t max_length =
-                    fonts.get_song_vec(rend.get_song_index())
-                        ->size();
-                size_t *cursor_ptr = key.get_song_cursor_index();
-                std::string return_str =
-                    key.cycle_down_list(max_length, cursor_ptr);
 
-                if (return_str == "max_reached") {
-                    if (vec_size - 1 > current_index) {
-                        rend.set_song_index(current_index + 1);
-                        *cursor_ptr = 0;
-                    } else {
-                        *cursor_ptr = 0;
+                if (vec_size > 0) {
+                    size_t max_length =
+                        fonts.get_song_vec(rend.get_song_index())->size();
+                    size_t *cursor_ptr = key.get_song_cursor_index();
+                    std::string return_str =
+                        key.cycle_down_list(max_length, cursor_ptr);
+
+                    if (return_str == "max_reached") {
+                        if (vec_size - 1 > current_index) {
+                            rend.set_song_index(current_index + 1);
+                            *cursor_ptr = 0;
+                        } else {
+                            *cursor_ptr = 0;
+                        }
                     }
                 }
 
@@ -378,29 +379,34 @@ int main(int argc, char **argv) {
                     }
 
                     case AT_DIRECTORIES: {
-                        const std::vector<Text> *d =
-                            fonts.get_dir_vec(rend.get_dir_index());
-                        std::string dir_name =
-                            key.select_element(d, key.get_dir_cursor_index());
+                        if (files.retrieve_directories()->size() > 0 &&
+                            fonts.get_dir_vec_size() > 0) {
+                            const std::vector<Text> *d =
+                                fonts.get_dir_vec(rend.get_dir_index());
+                            std::string dir_name = key.select_element(
+                                d, key.get_dir_cursor_index());
 
-                        if (dir_name != "<empty-vector>") {
-                            pathing.set_opened_dir(dir_name);
-                            bool result = files.fill_files(
-                                pathing.join_str(pathing.get_src_path(),
-                                                 dir_name),
-                                pathing.return_slash());
+                            if (dir_name != "<empty-vector>") {
+                                pathing.set_opened_dir(dir_name);
+                                bool result = files.fill_files(
+                                    pathing.join_str(pathing.get_src_path(),
+                                                     dir_name),
+                                    pathing.return_slash());
 
-                            if (files.retrieve_directory_files()->size() > 0 &&
-                                result) {
-                                key.reset_cursor_index(
-                                    key.get_song_cursor_index());
-                                rend.set_song_index(0);
-                                fonts.create_file_text(
-                                    *files.retrieve_directory_files(),
-                                    *rend.get_renderer(), *themes.get_text(),
-                                    fonts.get_font_ptr(),
-                                    rend.get_font_draw_limit());
-                                sdl2.set_current_user_state(AT_SONGS);
+                                if (files.retrieve_directory_files()->size() >
+                                        0 &&
+                                    result) {
+                                    key.reset_cursor_index(
+                                        key.get_song_cursor_index());
+                                    rend.set_song_index(0);
+                                    fonts.create_file_text(
+                                        *files.retrieve_directory_files(),
+                                        *rend.get_renderer(),
+                                        *themes.get_text(),
+                                        fonts.get_font_ptr(),
+                                        rend.get_font_draw_limit());
+                                    sdl2.set_current_user_state(AT_SONGS);
+                                }
                             }
                         }
                         break;
@@ -410,22 +416,26 @@ int main(int argc, char **argv) {
                         sdl2_ad.pause_audio();
                         sdl2_ad.close_audio_device();
 
-                        const std::string file_name = key.select_element(
-                            fonts.get_song_vec(rend.get_song_index()),
-                            key.get_song_cursor_index());
-                       
-                        if (file_name != "<empty-vector>") {
-                            const std::string dir_path =
-                                pathing.join_str(pathing.get_src_path(),
-                                                 pathing.get_opened_dir());
-                            if (ad.read_audio_file(
-                                    pathing.join_str(dir_path, file_name))) {
-                                sdl2_ad.set_audio_spec(&userdata);
-                                sdl2_ad.open_audio_device();
-                                sdl2_ad.resume_audio();
-                                sdl2.set_current_user_state(LISTENING);
+                        if (files.retrieve_directory_files()->size() > 0 &&
+                            fonts.get_song_vec_size() > 0) {
+                            const std::string file_name = key.select_element(
+                                fonts.get_song_vec(rend.get_song_index()),
+                                key.get_song_cursor_index());
+
+                            if (file_name != "<empty-vector>") {
+                                const std::string dir_path =
+                                    pathing.join_str(pathing.get_src_path(),
+                                                     pathing.get_opened_dir());
+                                if (ad.read_audio_file(pathing.join_str(
+                                        dir_path, file_name))) {
+                                    sdl2_ad.set_audio_spec(&userdata);
+                                    sdl2_ad.open_audio_device();
+                                    sdl2_ad.resume_audio();
+                                    sdl2.set_current_user_state(LISTENING);
+                                }
                             }
                         }
+
                         break;
                     }
                     }
@@ -499,20 +509,28 @@ int main(int argc, char **argv) {
                         } else {
                             size_t current_index = rend.get_dir_index();
                             size_t vec_size = fonts.get_dir_vec_size();
-                            size_t max_length =
-                                fonts.get_dir_vec(rend.get_dir_index())->size();
-                            size_t *cursor_ptr = key.get_dir_cursor_index();
 
-                            std::string return_str =
-                                key.cycle_up_list(max_length, cursor_ptr);
+                            if (vec_size > 0) {
+                                size_t max_length =
+                                    fonts.get_dir_vec(rend.get_dir_index())
+                                        ->size();
+                                size_t *cursor_ptr = key.get_dir_cursor_index();
 
-                            if (return_str == "min_reached") {
-                                if (current_index > 0) {
-                                    rend.set_dir_index(current_index - 1);
-                                    size_t new_max = fonts.get_dir_vec(rend.get_dir_index())->size();
-                                    *cursor_ptr = (new_max - 1);
-                                } else {
-                                    *cursor_ptr = (max_length - 1);
+                                std::string return_str =
+                                    key.cycle_up_list(max_length, cursor_ptr);
+
+                                if (return_str == "min_reached") {
+                                    if (current_index > 0) {
+                                        rend.set_dir_index(current_index - 1);
+                                        size_t new_max =
+                                            fonts
+                                                .get_dir_vec(
+                                                    rend.get_dir_index())
+                                                ->size();
+                                        *cursor_ptr = (new_max - 1);
+                                    } else {
+                                        *cursor_ptr = (max_length - 1);
+                                    }
                                 }
                             }
                         }
@@ -531,20 +549,28 @@ int main(int argc, char **argv) {
                         } else {
                             size_t current_index = rend.get_song_index();
                             size_t vec_size = fonts.get_song_vec_size();
-                            size_t max_length =
-                                fonts.get_song_vec(rend.get_song_index())
-                                    ->size();
-                            size_t *cursor_ptr = key.get_song_cursor_index();
-                            std::string return_str =
-                                key.cycle_up_list(max_length, cursor_ptr);
 
-                            if (return_str == "min_reached") {
-                                if (current_index > 0) {
-                                    rend.set_song_index(current_index - 1);
-                                    size_t new_max = fonts.get_song_vec(rend.get_song_index())->size();
-                                    *cursor_ptr = (new_max - 1);
-                                } else {
-                                    *cursor_ptr = (max_length - 1);
+                            if (vec_size > 0) {
+                                size_t max_length =
+                                    fonts.get_song_vec(rend.get_song_index())
+                                        ->size();
+                                size_t *cursor_ptr =
+                                    key.get_song_cursor_index();
+                                std::string return_str =
+                                    key.cycle_up_list(max_length, cursor_ptr);
+
+                                if (return_str == "min_reached") {
+                                    if (current_index > 0) {
+                                        rend.set_song_index(current_index - 1);
+                                        size_t new_max =
+                                            fonts
+                                                .get_song_vec(
+                                                    rend.get_song_index())
+                                                ->size();
+                                        *cursor_ptr = (new_max - 1);
+                                    } else {
+                                        *cursor_ptr = (max_length - 1);
+                                    }
                                 }
                             }
                         }
@@ -571,21 +597,24 @@ int main(int argc, char **argv) {
                         } else {
                             size_t current_index = rend.get_dir_index();
                             size_t vec_size = fonts.get_dir_vec_size();
-                            size_t max_length =
-                                fonts.get_dir_vec(rend.get_dir_index())->size();
-                            size_t *cursor_ptr = key.get_dir_cursor_index();
-                            std::string return_str =
-                                key.cycle_down_list(max_length, cursor_ptr);
 
-                            if (return_str == "max_reached") {
-                                if (vec_size - 1 > current_index) {
-                                    rend.set_dir_index(current_index + 1);
-                                    *cursor_ptr = 0;
-                                } else {
-                                    *cursor_ptr = 0;
+                            if (vec_size > 0) {
+                                size_t max_length =
+                                    fonts.get_dir_vec(rend.get_dir_index())
+                                        ->size();
+                                size_t *cursor_ptr = key.get_dir_cursor_index();
+                                std::string return_str =
+                                    key.cycle_down_list(max_length, cursor_ptr);
+
+                                if (return_str == "max_reached") {
+                                    if (vec_size - 1 > current_index) {
+                                        rend.set_dir_index(current_index + 1);
+                                        *cursor_ptr = 0;
+                                    } else {
+                                        *cursor_ptr = 0;
+                                    }
                                 }
                             }
-                                
                         }
 
                         break;
@@ -603,19 +632,23 @@ int main(int argc, char **argv) {
                         } else {
                             size_t current_index = rend.get_song_index();
                             size_t vec_size = fonts.get_song_vec_size();
-                            size_t max_length =
-                                fonts.get_song_vec(rend.get_song_index())
-                                    ->size();
-                            size_t *cursor_ptr = key.get_song_cursor_index();
-                            std::string return_str =
-                                key.cycle_down_list(max_length, cursor_ptr);
 
-                            if (return_str == "max_reached") {
-                                if (vec_size - 1 > current_index) {
-                                    rend.set_song_index(current_index + 1);
-                                    *cursor_ptr = 0;
-                                } else {
-                                    *cursor_ptr = 0;
+                            if (vec_size > 0) {
+                                size_t max_length =
+                                    fonts.get_song_vec(rend.get_song_index())
+                                        ->size();
+                                size_t *cursor_ptr =
+                                    key.get_song_cursor_index();
+                                std::string return_str =
+                                    key.cycle_down_list(max_length, cursor_ptr);
+
+                                if (return_str == "max_reached") {
+                                    if (vec_size - 1 > current_index) {
+                                        rend.set_song_index(current_index + 1);
+                                        *cursor_ptr = 0;
+                                    } else {
+                                        *cursor_ptr = 0;
+                                    }
                                 }
                             }
                         }
