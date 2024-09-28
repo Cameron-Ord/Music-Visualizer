@@ -9,6 +9,7 @@
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/window_entity.hpp"
+#include <cstdio>
 
 int main(int argc, char **argv) {
     // instantiate classes
@@ -121,28 +122,25 @@ int main(int argc, char **argv) {
                           rend.get_font_draw_limit());
 
     const std::string logging_src_path = pathing.get_logging_path();
+
     const std::string log_file_concat =
         pathing.join_str(logging_src_path, "log.txt");
 
-    std::ofstream stdout_file(log_file_concat.c_str());
-    if (!stdout_file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-    }
-
-    if (stdout_file.is_open()) {
-        std::cout.rdbuf(stdout_file.rdbuf());
+    FILE *stdout_file = NULL;
+    stdout_file = freopen(log_file_concat.c_str(), "a", stdout);
+    if (!stdout_file) {
+        std::cerr << "Could not open logging file for stdout! ->"
+                  << strerror(errno) << std::endl;
     }
 
     const std::string errlog_file_concat =
         pathing.join_str(logging_src_path, "errlog.txt");
 
-    std::ofstream stderr_file(errlog_file_concat.c_str());
-    if (!stderr_file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-    }
-
-    if (stderr_file.is_open()) {
-        std::cerr.rdbuf(stderr_file.rdbuf());
+    FILE *stderr_file = NULL;
+    stderr_file = freopen(errlog_file_concat.c_str(), "a", stderr);
+    if (!stderr_file) {
+        std::cerr << "Could not open logging file for stdout! ->"
+                  << strerror(errno) << std::endl;
     }
 
     const int ticks_per_frame = (1000.0 / 60);
@@ -679,15 +677,15 @@ int main(int argc, char **argv) {
         rend.render_present(*rend.get_renderer());
     }
 
-    if (stdout_file.is_open()) {
-        stdout_file.close();
-    }
-
-    if (stderr_file.is_open()) {
-        stderr_file.close();
-    }
-
     fonts.destroy_allocated_fonts();
+
+    if (stdout_file) {
+        fclose(stdout_file);
+    }
+
+    if (stderr_file) {
+        fclose(stderr_file);
+    }
 
     TTF_Quit();
     SDL_Quit();
