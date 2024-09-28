@@ -104,24 +104,26 @@ void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
         size_t end_size = bar_end_coords[i].copy_rect.size();
         for (size_t g = 0; g < end_size; g++) {
             if (g == 0) {
-                SDL_RenderCopy(r, end_tile_tex, NULL,
+                SDL_Rect src = {0,16,16,16};
+                SDL_RenderCopy(r, sprite_texture,&src,
                                &bar_end_coords[i].copy_rect[g]);
                 continue;
             }
-
-            SDL_RenderCopy(r, mid_tile_tex, NULL,
+            SDL_Rect src = {16,16,16,16};
+            SDL_RenderCopy(r, sprite_texture, &src,
                            &bar_end_coords[i].copy_rect[g]);
         }
         if (bar_end_coords[i].y > bar_start_coords[i].y) {
             size_t start_size = bar_start_coords[i].copy_rect.size();
             for (size_t d = 0; d < start_size; d++) {
                 if (d == 0) {
-                    SDL_RenderCopy(r, end_tile_tex, NULL,
+                    SDL_Rect src = {0,0,16,16};
+                    SDL_RenderCopy(r, sprite_texture, &src,
                                    &bar_start_coords[i].copy_rect[d]);
                     continue;
                 }
-
-                SDL_RenderCopy(r, mid_tile_tex, NULL,
+                SDL_Rect src = {16,0,16,16};
+                SDL_RenderCopy(r, sprite_texture, &src,
                                &bar_start_coords[i].copy_rect[d]);
             }
         }

@@ -11,7 +11,7 @@ struct Coordinates {
     int x;
     int y;
     int height;
-    std::vector<SDL_Rect> copy_rect;
+    std::vector<SDL_Rect> copy_rect; 
 };
 
 typedef Coordinates Coordinates;
@@ -23,8 +23,8 @@ class SDL2Renderer {
     SDL_Renderer **get_renderer();
     void *create_renderer(SDL_Window **w, SDL_Renderer **r);
 
-    void create_image_surfaces();
-    void create_image_textures();
+    void create_sprite_surface();
+    void create_sprite_texture();
     void render_clear(SDL_Renderer *r);
     void render_bg(SDL_Renderer *r, SDL_Color *rgba);
     void render_present(SDL_Renderer *r);
@@ -49,16 +49,9 @@ class SDL2Renderer {
     void set_song_index(size_t i);
 
   private:
-    std::string SPRITESHEET;
-    std::string START_TILE_PATH;
-    std::string END_TILE_PATH;
-    std::string MID_TILE_PATH;
-    SDL_Surface *start_tile_surf;
-    SDL_Surface *mid_tile_surf;
-    SDL_Surface *end_tile_surf;
-    SDL_Texture *mid_tile_tex;
-    SDL_Texture *end_tile_tex;
-    SDL_Texture *start_tile_tex;
+    std::string sprite_sheet_filename;
+    SDL_Texture *sprite_texture;
+    SDL_Surface *sprite_surface;
     SDL_Renderer *r;
     SDL_Rect text_bg;
     bool drawing_text_bg;

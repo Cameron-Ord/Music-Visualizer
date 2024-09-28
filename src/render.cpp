@@ -8,63 +8,25 @@ SDL2Renderer::SDL2Renderer() {
     directories_index = 0;
     songs_index = 0;
     font_draw_limit = 8;
-
-    SPRITESHEET = "spritesheet.png";
-
-    START_TILE_PATH = "start_tile.png";
-    MID_TILE_PATH = "mid_tile.png";
-    END_TILE_PATH = "end_tile.png";
-
-    mid_tile_surf = NULL;
-    end_tile_surf = NULL;
-    start_tile_surf = NULL;
-    mid_tile_tex = NULL;
-    end_tile_tex = NULL;
-    start_tile_tex = NULL;
+    sprite_sheet_filename = "sprites.png";
 }
 
 SDL2Renderer::~SDL2Renderer() {}
 
-void SDL2Renderer::create_image_textures() {
-    start_tile_tex = SDL_CreateTextureFromSurface(r, start_tile_surf);
-    if (!start_tile_tex) {
+void SDL2Renderer::create_sprite_texture() {
+    sprite_texture = SDL_CreateTextureFromSurface(r, sprite_surface);
+    if (!sprite_texture) {
         std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
                   << std::endl;
-        start_tile_tex = NULL;
-    }
-
-    mid_tile_tex = SDL_CreateTextureFromSurface(r, mid_tile_surf);
-    if (!mid_tile_tex) {
-        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
-                  << std::endl;
-        mid_tile_tex = NULL;
-    }
-
-    end_tile_tex = SDL_CreateTextureFromSurface(r, end_tile_surf);
-    if (!end_tile_tex) {
-        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
-                  << std::endl;
-        end_tile_tex = NULL;
+        sprite_texture = NULL;
     }
 }
 
-void SDL2Renderer::create_image_surfaces() {
-    start_tile_surf = IMG_Load(START_TILE_PATH.c_str());
-    if (!start_tile_surf) {
+void SDL2Renderer::create_sprite_surface() {
+    sprite_surface = IMG_Load(sprite_sheet_filename.c_str());
+    if (!sprite_surface) {
         std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
-        start_tile_surf = NULL;
-    }
-
-    mid_tile_surf = IMG_Load(MID_TILE_PATH.c_str());
-    if (!mid_tile_surf) {
-        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
-        mid_tile_surf = NULL;
-    }
-
-    end_tile_surf = IMG_Load(END_TILE_PATH.c_str());
-    if (!end_tile_surf) {
-        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
-        end_tile_surf = NULL;
+        sprite_surface = NULL;
     }
 }
 
