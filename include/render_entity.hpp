@@ -7,22 +7,24 @@
 #include <stdbool.h>
 #include <vector>
 
-struct Coordinates{
-int x;
-int y;
-int height;
-SDL_Rect copy_rect;
+struct Coordinates {
+    int x;
+    int y;
+    int height;
+    std::vector<SDL_Rect> copy_rect;
 };
 
 typedef Coordinates Coordinates;
-class SDL2Renderer
-{
+class SDL2Renderer {
   public:
     SDL2Renderer();
     ~SDL2Renderer();
 
     SDL_Renderer **get_renderer();
     void *create_renderer(SDL_Window **w, SDL_Renderer **r);
+
+    void create_image_surfaces();
+    void create_image_textures();
     void render_clear(SDL_Renderer *r);
     void render_bg(SDL_Renderer *r, SDL_Color *rgba);
     void render_present(SDL_Renderer *r);
@@ -33,17 +35,15 @@ class SDL2Renderer
                             const size_t *cursor_index);
     void render_draw_text_bg(SDL_Renderer *r, const SDL_Color *rgba);
     void reset_vector_positions();
-    void render_draw_bars(size_t *len,
-                          SDL_Color *prim, SDL_Color *sec, SDL_Renderer *r);
-    void render_set_bars(const size_t *len, const int *win_height, const int *win_width, float *smear, float *smooth);
+    void render_draw_bars(size_t *len, SDL_Color *prim, SDL_Color *sec,
+                          SDL_Renderer *r);
+    void render_set_bars(const size_t *len, const int *win_height,
+                         const int *win_width, float *smear, float *smooth);
     void set_font_draw_limit(int h);
     const size_t *get_font_draw_limit();
 
     size_t get_dir_index();
     size_t get_song_index();
-
-    SDL_Surface *render_create_surface();
-    SDL_Texture *render_create_texture();
 
     void set_dir_index(size_t i);
     void set_song_index(size_t i);
@@ -52,6 +52,9 @@ class SDL2Renderer
     std::string START_TILE_PATH;
     std::string END_TILE_PATH;
     std::string MID_TILE_PATH;
+    SDL_Surface *start_tile_surf;
+    SDL_Surface *mid_tile_surf;
+    SDL_Surface *end_tile_surf;
     SDL_Texture *mid_tile_tex;
     SDL_Texture *end_tile_tex;
     SDL_Texture *start_tile_tex;

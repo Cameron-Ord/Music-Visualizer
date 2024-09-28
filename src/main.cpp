@@ -15,9 +15,10 @@ int main(int argc, char **argv) {
     // instantiate classes
     bool err;
 
-    USERDATA userdata;
-    FourierTransform fft;
-    SDL2INTERNAL sdl2;
+    USERDATA *userdata = new USERDATA;
+    FourierTransform *fft = new FourierTransform;
+    SDL2INTERNAL *sdl2 = new SDL2INTERNAL;
+    SDL2Audio sdl2_ad;
     SDL2Renderer rend;
     SDL2Window win;
     SDL2KeyInputs key;
@@ -26,79 +27,15 @@ int main(int argc, char **argv) {
     ProgramFiles files;
     SDL2Fonts fonts;
     AudioData ad;
-    SDL2Audio sdl2_ad;
 
-    userdata.ad = &ad;
-    userdata.sdl2_ad = &sdl2_ad;
-    userdata.fft = &fft;
-
-    if (!sdl2.initialize_sdl2_video()) {
-        std::cerr << "Failed to initialize SDL2 video!" << std::endl;
-        return 1;
-    }
-
-    // do a fallback to sdl_renderfillrect later
-    if (!sdl2.initialize_sdl2_img()) {
-        std::cerr << "Failed to initialize SDL2 image!" << std::endl;
-        return 1;
-    }
-
-    win.create_window(win.get_window());
-    if (win.get_window() == NULL) {
-        std::cerr << "Could not create window!" << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    WIN_SIZE sizes = sdl2.get_current_window_size(*win.get_window());
-    sdl2.set_window_size(sizes);
-
-    rend.set_font_draw_limit(sizes.HEIGHT);
-    fonts.set_char_limit(sizes.WIDTH);
-
-    rend.create_renderer(win.get_window(), rend.get_renderer());
-    if (*rend.get_renderer() == NULL) {
-        std::cerr << "Could not create renderer! -> EXIT" << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
-    SDL_EnableScreenSaver();
-
-    if (!sdl2.initialize_sdl2_events()) {
-        std::cerr << "Failed to initialize SDL2 inputs! -> EXIT" << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    if (!sdl2.initialize_sdl2_audio()) {
-        std::cerr << "Failed to initialize SDL2 audio! -> EXIT" << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    if (!sdl2.initialize_sdl2_ttf()) {
-        std::cerr << "Failed to initialize SDL2 TTF! -> EXIT" << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    if (!fonts.open_font()) {
-        std::cerr << "Failed to open font! -> EXIT" << std::endl;
-        TTF_Quit();
-        SDL_Quit();
-        return 1;
-    }
-
-    fonts.approximate_size_utf8();
+    userdata->ad = &ad;
+    userdata->sdl2_ad = &sdl2_ad;
+    userdata->fft = fft;
 
     err = pathing.create_music_source();
     if (!err) {
         std::cerr << "Could not create/confirm directories! -> EXIT"
                   << std::endl;
-        TTF_Quit();
-        SDL_Quit();
         return 1;
     }
 
@@ -106,20 +43,8 @@ int main(int argc, char **argv) {
     if (!err) {
         std::cerr << "Could not create/confirm logging directories! -> EXIT"
                   << std::endl;
-        TTF_Quit();
-        SDL_Quit();
         return 1;
     }
-
-    err =
-        files.fill_directories(pathing.get_src_path(), pathing.return_slash());
-    if (!err) {
-        std::cout << "No directories" << std::endl;
-    }
-
-    fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(),
-                          *themes.get_text(), fonts.get_font_ptr(),
-                          rend.get_font_draw_limit());
 
     const std::string logging_src_path = pathing.get_logging_path();
 
@@ -143,17 +68,91 @@ int main(int argc, char **argv) {
                   << strerror(errno) << std::endl;
     }
 
+    if (!sdl2->initialize_sdl2_video()) {
+        std::cerr << "Failed to initialize SDL2 video!" << std::endl;
+        return 1;
+    }
+
+    // do a fallback to sdl_renderfillrect later
+    if (!sdl2->initialize_sdl2_img()) {
+        std::cerr << "Failed to initialize SDL2 image!" << std::endl;
+        return 1;
+    }
+
+    win.create_window(win.get_window());
+    if (win.get_window() == NULL) {
+        std::cerr << "Could not create window!" << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    WIN_SIZE sizes = sdl2->get_current_window_size(*win.get_window());
+    sdl2->set_window_size(sizes);
+
+    rend.set_font_draw_limit(sizes.HEIGHT);
+    fonts.set_char_limit(sizes.WIDTH);
+
+    rend.create_renderer(win.get_window(), rend.get_renderer());
+    if (*rend.get_renderer() == NULL) {
+        std::cerr << "Could not create renderer! -> EXIT" << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
+    SDL_EnableScreenSaver();
+
+    if (!sdl2->initialize_sdl2_events()) {
+        std::cerr << "Failed to initialize SDL2 inputs! -> EXIT" << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    if (!sdl2->initialize_sdl2_audio()) {
+        std::cerr << "Failed to initialize SDL2 audio! -> EXIT" << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    if (!sdl2->initialize_sdl2_ttf()) {
+        std::cerr << "Failed to initialize SDL2 TTF! -> EXIT" << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    if (!fonts.open_font()) {
+        std::cerr << "Failed to open font! -> EXIT" << std::endl;
+        TTF_Quit();
+        SDL_Quit();
+        return 1;
+    }
+
+    fonts.approximate_size_utf8();
+
+    err =
+        files.fill_directories(pathing.get_src_path(), pathing.return_slash());
+    if (!err) {
+        std::cout << "No directories" << std::endl;
+    }
+
+    fonts.create_dir_text(*files.retrieve_directories(), *rend.get_renderer(),
+                          *themes.get_text(), fonts.get_font_ptr(),
+                          rend.get_font_draw_limit());
+
     const int ticks_per_frame = (1000.0 / 60);
     uint64_t frame_start;
     int frame_time;
 
-    sdl2.set_play_state(true);
-    sdl2.set_current_user_state(AT_DIRECTORIES);
+    sdl2->set_play_state(true);
+    sdl2->set_current_user_state(AT_DIRECTORIES);
+
+    rend.create_image_surfaces();
+    rend.create_image_textures();
 
     rend.set_dir_index(0);
     rend.set_song_index(0);
 
-    while (sdl2.get_play_state()) {
+    while (sdl2->get_play_state()) {
         rend.render_bg(*rend.get_renderer(), themes.get_secondary());
         rend.render_clear(*rend.get_renderer());
 
@@ -164,7 +163,7 @@ int main(int argc, char **argv) {
         case 1: {
             switch (*sdl2_ad.get_next_song_flag()) {
             case 0: {
-                fft.generate_visual();
+                fft->generate_visual();
                 break;
             }
 
@@ -206,10 +205,10 @@ int main(int argc, char **argv) {
                         pathing.join_str(dir_path, file_name);
                     bool result = ad.read_audio_file(file_path);
                     if (result) {
-                        sdl2_ad.set_audio_spec(&userdata);
+                        sdl2_ad.set_audio_spec(userdata);
                         sdl2_ad.open_audio_device();
                         sdl2_ad.resume_audio();
-                        sdl2.set_current_user_state(LISTENING);
+                        sdl2->set_current_user_state(LISTENING);
                     }
                 }
                 break;
@@ -222,14 +221,14 @@ int main(int argc, char **argv) {
         }
         }
 
-        switch (sdl2.get_current_user_state()) {
+        switch (sdl2->get_current_user_state()) {
         case AT_DIRECTORIES: {
             if (fonts.get_dir_vec_size() > 0) {
-                rend.render_set_text(sdl2.get_stored_window_size(),
+                rend.render_set_text(sdl2->get_stored_window_size(),
                                      fonts.get_dir_vec(rend.get_dir_index()));
                 rend.render_draw_text(*rend.get_renderer(),
                                       fonts.get_dir_vec(rend.get_dir_index()));
-                rend.render_set_text_bg(sdl2.get_stored_window_size(),
+                rend.render_set_text_bg(sdl2->get_stored_window_size(),
                                         fonts.get_dir_vec(rend.get_dir_index()),
                                         key.get_dir_cursor_index());
                 rend.render_draw_text_bg(*rend.get_renderer(),
@@ -240,13 +239,13 @@ int main(int argc, char **argv) {
 
         case AT_SONGS: {
             if (fonts.get_song_vec_size() > 0) {
-                rend.render_set_text(sdl2.get_stored_window_size(),
+                rend.render_set_text(sdl2->get_stored_window_size(),
                                      fonts.get_song_vec(rend.get_song_index()));
                 rend.render_draw_text(
                     *rend.get_renderer(),
                     fonts.get_song_vec(rend.get_song_index()));
                 rend.render_set_text_bg(
-                    sdl2.get_stored_window_size(),
+                    sdl2->get_stored_window_size(),
                     fonts.get_song_vec(rend.get_song_index()),
                     key.get_song_cursor_index());
                 rend.render_draw_text_bg(*rend.get_renderer(),
@@ -256,11 +255,11 @@ int main(int argc, char **argv) {
         }
 
         case LISTENING: {
-            const WIN_SIZE *sizes = sdl2.get_stored_window_size();
-            rend.render_set_bars(&fft.get_data()->output_len, &sizes->HEIGHT,
-                                 &sizes->WIDTH, fft.get_bufs()->smear,
-                                 fft.get_bufs()->smoothed);
-            rend.render_draw_bars(&fft.get_data()->output_len,
+            const WIN_SIZE *sizes = sdl2->get_stored_window_size();
+            rend.render_set_bars(&fft->get_data()->output_len, &sizes->HEIGHT,
+                                 &sizes->WIDTH, fft->get_bufs()->smear,
+                                 fft->get_bufs()->smoothed);
+            rend.render_draw_bars(&fft->get_data()->output_len,
                                   themes.get_primary(), themes.get_textbg(),
                                   *rend.get_renderer());
             break;
@@ -285,8 +284,8 @@ int main(int argc, char **argv) {
                 }
                 case SDL_WINDOWEVENT_RESIZED: {
                     WIN_SIZE ws =
-                        sdl2.get_current_window_size(*win.get_window());
-                    sdl2.set_window_size(ws);
+                        sdl2->get_current_window_size(*win.get_window());
+                    sdl2->set_window_size(ws);
                     rend.set_font_draw_limit(ws.HEIGHT);
                     fonts.set_char_limit(ws.WIDTH);
 
@@ -309,8 +308,8 @@ int main(int argc, char **argv) {
 
                 case SDL_WINDOWEVENT_SIZE_CHANGED: {
                     WIN_SIZE ws =
-                        sdl2.get_current_window_size(*win.get_window());
-                    sdl2.set_window_size(ws);
+                        sdl2->get_current_window_size(*win.get_window());
+                    sdl2->set_window_size(ws);
                     rend.set_font_draw_limit(ws.HEIGHT);
                     fonts.set_char_limit(ws.WIDTH);
 
@@ -352,17 +351,17 @@ int main(int argc, char **argv) {
                 }
 
                 case ESCAPE: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     case AT_SONGS: {
                         if (sdl2_ad.get_stream_flag() == 1) {
-                            sdl2.set_current_user_state(LISTENING);
+                            sdl2->set_current_user_state(LISTENING);
                         }
                         break;
                     }
 
                     case AT_DIRECTORIES: {
                         if (sdl2_ad.get_stream_flag() == 1) {
-                            sdl2.set_current_user_state(LISTENING);
+                            sdl2->set_current_user_state(LISTENING);
                         }
                         break;
                     }
@@ -371,7 +370,7 @@ int main(int argc, char **argv) {
                 }
 
                 case SPACE: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     default: {
                         break;
                     }
@@ -403,7 +402,7 @@ int main(int argc, char **argv) {
                                         *themes.get_text(),
                                         fonts.get_font_ptr(),
                                         rend.get_font_draw_limit());
-                                    sdl2.set_current_user_state(AT_SONGS);
+                                    sdl2->set_current_user_state(AT_SONGS);
                                 }
                             }
                         }
@@ -426,10 +425,10 @@ int main(int argc, char **argv) {
                                                      pathing.get_opened_dir());
                                 if (ad.read_audio_file(pathing.join_str(
                                         dir_path, file_name))) {
-                                    sdl2_ad.set_audio_spec(&userdata);
+                                    sdl2_ad.set_audio_spec(userdata);
                                     sdl2_ad.open_audio_device();
                                     sdl2_ad.resume_audio();
-                                    sdl2.set_current_user_state(LISTENING);
+                                    sdl2->set_current_user_state(LISTENING);
                                 }
                             }
                         }
@@ -441,22 +440,22 @@ int main(int argc, char **argv) {
                 }
 
                 case LEFT: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     default: {
                         break;
                     }
                     case AT_DIRECTORIES: {
                         if (sdl2_ad.get_stream_flag() == 1) {
-                            sdl2.set_current_user_state(LISTENING);
+                            sdl2->set_current_user_state(LISTENING);
                         }
                         break;
                     }
                     case AT_SONGS: {
-                        sdl2.set_current_user_state(AT_DIRECTORIES);
+                        sdl2->set_current_user_state(AT_DIRECTORIES);
                         break;
                     }
                     case LISTENING: {
-                        sdl2.set_current_user_state(AT_SONGS);
+                        sdl2->set_current_user_state(AT_SONGS);
                         break;
                     }
                     }
@@ -464,25 +463,25 @@ int main(int argc, char **argv) {
                 }
 
                 case RIGHT: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     default: {
                         break;
                     }
                     case AT_DIRECTORIES: {
                         if (fonts.get_song_vec_size() > 0 &&
                             files.retrieve_directory_files()->size() > 0) {
-                            sdl2.set_current_user_state(AT_SONGS);
+                            sdl2->set_current_user_state(AT_SONGS);
                         }
                         break;
                     }
                     case AT_SONGS: {
                         if (sdl2_ad.get_stream_flag() == 1) {
-                            sdl2.set_current_user_state(LISTENING);
+                            sdl2->set_current_user_state(LISTENING);
                         }
                         break;
                     }
                     case LISTENING: {
-                        sdl2.set_current_user_state(AT_DIRECTORIES);
+                        sdl2->set_current_user_state(AT_DIRECTORIES);
                         break;
                     }
                     }
@@ -490,7 +489,7 @@ int main(int argc, char **argv) {
                 }
 
                 case UP: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     default: {
                         break;
                     }
@@ -578,7 +577,7 @@ int main(int argc, char **argv) {
                     break;
                 }
                 case DOWN: {
-                    switch (sdl2.get_current_user_state()) {
+                    switch (sdl2->get_current_user_state()) {
                     default: {
                         break;
                     }
@@ -661,7 +660,7 @@ int main(int argc, char **argv) {
             }
 
             case SDL_QUIT: {
-                sdl2.set_play_state(false);
+                sdl2->set_play_state(false);
                 break;
             }
             }
@@ -678,6 +677,12 @@ int main(int argc, char **argv) {
     }
 
     fonts.destroy_allocated_fonts();
+
+    free(ad.get_audio_data()->buffer);
+    delete ad.get_audio_data();
+    delete userdata;
+    delete sdl2;
+    delete fft;
 
     if (stdout_file) {
         fclose(stdout_file);

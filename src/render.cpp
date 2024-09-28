@@ -1,4 +1,5 @@
 #include "../include/render_entity.hpp"
+#include <ostream>
 
 SDL2Renderer::SDL2Renderer() {
     r = NULL;
@@ -11,12 +12,58 @@ SDL2Renderer::SDL2Renderer() {
     MID_TILE_PATH = "mid_tile.png";
     END_TILE_PATH = "end_tile.png";
 
+    mid_tile_surf = NULL;
+    end_tile_surf = NULL;
+    start_tile_surf = NULL;
     mid_tile_tex = NULL;
     end_tile_tex = NULL;
     start_tile_tex = NULL;
 }
 
 SDL2Renderer::~SDL2Renderer() {}
+
+void SDL2Renderer::create_image_textures() {
+    start_tile_tex = SDL_CreateTextureFromSurface(r, start_tile_surf);
+    if (!start_tile_tex) {
+        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
+                  << std::endl;
+        start_tile_tex = NULL;
+    }
+
+    mid_tile_tex = SDL_CreateTextureFromSurface(r, mid_tile_surf);
+    if (!mid_tile_tex) {
+        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
+                  << std::endl;
+        mid_tile_tex = NULL;
+    }
+
+    end_tile_tex = SDL_CreateTextureFromSurface(r, end_tile_surf);
+    if (!end_tile_tex) {
+        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
+                  << std::endl;
+        end_tile_tex = NULL;
+    }
+}
+
+void SDL2Renderer::create_image_surfaces() {
+    start_tile_surf = IMG_Load(START_TILE_PATH.c_str());
+    if (!start_tile_surf) {
+        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
+        start_tile_surf = NULL;
+    }
+
+    mid_tile_surf = IMG_Load(MID_TILE_PATH.c_str());
+    if (!mid_tile_surf) {
+        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
+        mid_tile_surf = NULL;
+    }
+
+    end_tile_surf = IMG_Load(END_TILE_PATH.c_str());
+    if (!end_tile_surf) {
+        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
+        end_tile_surf = NULL;
+    }
+}
 
 void SDL2Renderer::reset_vector_positions() {}
 

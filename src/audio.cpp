@@ -8,25 +8,24 @@ SDL2Audio::SDL2Audio() {
 }
 
 void callback(void *data, uint8_t *stream, int len) {
-    USERDATA *userdata = (USERDATA *) data;
+    USERDATA *userdata = static_cast<USERDATA *>(data);
 
-    uint32_t length = userdata->ad->get_audio_data()->length;
+    const uint32_t length = userdata->ad->get_audio_data()->length;
     uint32_t *pos = &userdata->ad->get_audio_data()->position;
 
-    uint32_t remaining = (length - *pos);
-    uint32_t copy = ((uint32_t) len / sizeof(float) < remaining)
-                        ? (uint32_t) len / sizeof(float)
-                        : remaining;
+    const uint32_t uint32_len = static_cast<uint32_t>(len);
+    const uint32_t samples = uint32_len / sizeof(float);
+    const uint32_t remaining = (length - *pos);
 
-    float *f32_stream = (float *) stream;
+    const uint32_t copy = (samples < remaining) ? samples : remaining;
 
+    float *f32_stream = reinterpret_cast<float *>(stream);
     for (uint32_t i = 0; i < copy; i++) {
         f32_stream[i] = userdata->ad->get_audio_data()->buffer[i + *pos] * 1.0;
     }
 
     userdata->fft->fft_push(*pos, userdata->ad->get_audio_data()->buffer,
                             copy * sizeof(float));
-
     *pos += copy;
 
     if (*pos >= length) {

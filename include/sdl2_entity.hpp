@@ -11,14 +11,14 @@ class SDL2Window;
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 
-typedef enum
-{
+typedef enum {
     WINDOW = 0,
     FONT = 1,
     RENDERER = 2,
@@ -28,23 +28,20 @@ typedef enum
     PATHS = 6
 } CLASS_ENUM_MAP;
 
-typedef enum
-{
+typedef enum {
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
     LISTENING = 2,
 } USER_STATE;
 
-struct WIN_SIZE
-{
+struct WIN_SIZE {
     int WIDTH;
     int HEIGHT;
 };
 
 typedef WIN_SIZE WIN_SIZE;
 
-class SDL2INTERNAL
-{
+class SDL2INTERNAL {
   public:
     ~SDL2INTERNAL();
     SDL2INTERNAL();

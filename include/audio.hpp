@@ -13,8 +13,7 @@
 
 void callback(void *data, uint8_t *stream, int len);
 
-class AudioData
-{
+class AudioData {
   public:
     AudioData();
     ~AudioData();
@@ -23,11 +22,10 @@ class AudioData
     AudioDataContainer *get_audio_data();
 
   private:
-    AudioDataContainer a_data;
+    AudioDataContainer *a_data;
 };
 
-class SDL2Audio
-{
+class SDL2Audio {
   public:
     SDL2Audio();
     ~SDL2Audio();

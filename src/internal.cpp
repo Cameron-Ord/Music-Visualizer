@@ -1,4 +1,5 @@
 #include "../include/sdl2_entity.hpp"
+#include <SDL2/SDL_image.h>
 
 SDL2INTERNAL::SDL2INTERNAL() {
     play_state = 1;
@@ -14,7 +15,12 @@ void SDL2INTERNAL::set_current_user_state(int USER_STATE_ENUM_VALUE) {
     user_state = USER_STATE_ENUM_VALUE;
 }
 
-bool SDL2INTERNAL::initialize_sdl2_img(){
+bool SDL2INTERNAL::initialize_sdl2_img() {
+    if (IMG_Init(IMG_INIT_PNG) == 0) {
+        std::cerr << "Could not initialize SDL2 image ->" << SDL_GetError()
+                  << std::endl;
+        return false;
+    }
     return true;
 }
 
