@@ -1,4 +1,5 @@
 #include "../include/font_entity.hpp"
+#include <iostream>
 
 SDL2Fonts::SDL2Fonts() {
     font = NULL;
@@ -105,22 +106,23 @@ void SDL2Fonts::create_dir_text(const std::vector<Directory> d, SDL_Renderer *r,
 
     dir_text_vec.clear();
 
-    std::vector<Text> TMP_TXT_VEC;
-    size_t id = 0;
-    for (Directory dir : d) {
-        Text tmp = create_text(dir.directory_name, font, r, id, color);
-
-        if (tmp.is_valid && TMP_TXT_VEC.size() < *text_limit) {
-            TMP_TXT_VEC.push_back(tmp);
-            id++;
-        } else if (tmp.is_valid && TMP_TXT_VEC.size() == *text_limit) {
-            dir_text_vec.push_back(TMP_TXT_VEC);
-            id = 0;
-            TMP_TXT_VEC.clear();
+    std::vector<Text> tmp_vector;
+    for (size_t i = 0; i < d.size(); i++) {
+        int id = i % *text_limit;
+        Text tmp = create_text(d[i].directory_name, font, r, id, color);
+        if (tmp.is_valid) {
+            if (tmp_vector.size() < *text_limit) {
+                tmp_vector.push_back(tmp);
+            } else {
+                dir_text_vec.push_back(tmp_vector);
+                tmp_vector.clear();
+                tmp_vector.push_back(tmp);
+            }
         }
     }
-    if (TMP_TXT_VEC.size() != 0) {
-        dir_text_vec.push_back(TMP_TXT_VEC);
+
+    if (tmp_vector.size() != 0) {
+        dir_text_vec.push_back(tmp_vector);
     }
 }
 
@@ -133,23 +135,23 @@ void SDL2Fonts::create_file_text(const std::vector<Files> f, SDL_Renderer *r,
 
     song_text_vec.clear();
 
-    std::vector<Text> TMP_TXT_VEC;
-    size_t id = 0;
-    for (Files file : f) {
-        Text tmp = create_text(file.file_name, font, r, id, color);
-
-        if (tmp.is_valid && TMP_TXT_VEC.size() < *text_limit) {
-            TMP_TXT_VEC.push_back(tmp);
-            id++;
-        } else if (tmp.is_valid && TMP_TXT_VEC.size() == *text_limit) {
-            song_text_vec.push_back(TMP_TXT_VEC);
-            id = 0;
-            TMP_TXT_VEC.clear();
+    std::vector<Text> tmp_vector;
+    for (size_t i = 0; i < f.size(); i++) {
+        int id = i % *text_limit;
+        Text tmp = create_text(f[i].file_name, font, r, id, color);
+        if (tmp.is_valid) {
+            if (tmp_vector.size() < *text_limit) {
+                tmp_vector.push_back(tmp);
+            } else {
+                song_text_vec.push_back(tmp_vector);
+                tmp_vector.clear();
+                tmp_vector.push_back(tmp);
+            }
         }
     }
 
-    if (TMP_TXT_VEC.size() != 0) {
-        song_text_vec.push_back(TMP_TXT_VEC);
+    if (tmp_vector.size() != 0) {
+        song_text_vec.push_back(tmp_vector);
     }
 }
 

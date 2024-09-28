@@ -156,6 +156,11 @@ int main(int argc, char **argv) {
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
+    WIN_SIZE ws = sdl2->get_current_window_size(*win.get_window());
+    sdl2->set_window_size(ws);
+    rend.set_font_draw_limit(ws.HEIGHT);
+    fonts.set_char_limit(ws.WIDTH);
+
     rend.set_dir_index(0);
     rend.set_song_index(0);
 
@@ -485,7 +490,13 @@ int main(int argc, char **argv) {
                                                 ->size();
                                         *cursor_ptr = (new_max - 1);
                                     } else {
-                                        *cursor_ptr = (max_length - 1);
+                                        rend.set_dir_index(vec_size - 1);
+                                        size_t new_max =
+                                            fonts
+                                                .get_dir_vec(
+                                                    rend.get_dir_index())
+                                                ->size();
+                                        *cursor_ptr = (new_max - 1);
                                     }
                                 }
                             }
@@ -525,7 +536,13 @@ int main(int argc, char **argv) {
                                                 ->size();
                                         *cursor_ptr = (new_max - 1);
                                     } else {
-                                        *cursor_ptr = (max_length - 1);
+                                        rend.set_song_index(vec_size - 1);
+                                        size_t new_max =
+                                            fonts
+                                                .get_song_vec(
+                                                    rend.get_song_index())
+                                                ->size();
+                                        *cursor_ptr = (new_max - 1);
                                     }
                                 }
                             }
