@@ -1,6 +1,4 @@
 #include "../include/render_entity.hpp"
-#include <cstddef>
-#include <ostream>
 
 SDL2Renderer::SDL2Renderer() {
     r = NULL;

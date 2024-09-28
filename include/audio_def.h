@@ -1,6 +1,9 @@
 #ifndef AUDIO_DEF_H
 #define AUDIO_DEF_H
 
+typedef enum {STOPPED = 0, PLAYING = 1, PAUSED = 2} STREAM_FLAGS;
+typedef enum {WAITING= 0, NEXT = 1} PB_FLAGS;
+
 #include <cstdint>
 #include <cstring>
 

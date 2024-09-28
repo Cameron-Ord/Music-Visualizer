@@ -1,9 +1,12 @@
 #ifndef RENDER_ENTITY_HPP
 #define RENDER_ENTITY_HPP
 
+#include "structdef.h"
 #include "font_def.hpp"
-#include "sdl2_entity.hpp"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <cstddef>
+#include <iostream>
 #include <stdbool.h>
 #include <vector>
 

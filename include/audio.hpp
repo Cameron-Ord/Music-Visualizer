@@ -39,7 +39,7 @@ class SDL2Audio {
 
     void set_flag(int flag, int *mutable_flag);
     int *get_next_song_flag();
-    int get_stream_flag();
+    int *get_stream_flag();
 
     SDL_AudioDeviceID *get_device();
     SDL_AudioSpec *get_spec();

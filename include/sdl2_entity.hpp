@@ -1,14 +1,8 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
-
-class SDL2Fonts;
-class SDL2Renderer;
-class SDL2KeyInputs;
-class ProgramThemes;
-class ProgramPath;
-class ProgramFiles;
-class SDL2Window;
-
+#include "structdef.h"
+#include "render_entity.hpp"
+#include "window_entity.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
@@ -19,27 +13,11 @@ class SDL2Window;
 #include <iostream>
 
 typedef enum {
-    WINDOW = 0,
-    FONT = 1,
-    RENDERER = 2,
-    KEY_INPUT = 3,
-    THEMES = 4,
-    FILES = 5,
-    PATHS = 6
-} CLASS_ENUM_MAP;
-
-typedef enum {
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
     LISTENING = 2,
 } USER_STATE;
 
-struct WIN_SIZE {
-    int WIDTH;
-    int HEIGHT;
-};
-
-typedef WIN_SIZE WIN_SIZE;
 
 class SDL2INTERNAL {
   public:

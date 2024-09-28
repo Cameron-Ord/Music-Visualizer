@@ -29,7 +29,8 @@ void callback(void *data, uint8_t *stream, int len) {
     *pos += copy;
 
     if (*pos >= length) {
-        userdata->sdl2_ad->set_flag(1, userdata->sdl2_ad->get_next_song_flag());
+        userdata->sdl2_ad->set_flag(NEXT,
+                                    userdata->sdl2_ad->get_next_song_flag());
     }
 }
 
@@ -79,8 +80,8 @@ int *SDL2Audio::get_next_song_flag() {
     return &next_song_flag;
 }
 
-int SDL2Audio::get_stream_flag() {
-    return audio_streaming;
+int *SDL2Audio::get_stream_flag() {
+    return &audio_streaming;
 }
 
 SDL_AudioDeviceID *SDL2Audio::get_device() {

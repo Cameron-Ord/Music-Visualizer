@@ -3,23 +3,21 @@
 #include "../include/fft.hpp"
 #include "../include/files.hpp"
 #include "../include/font_entity.hpp"
-#include "../include/macdefs.hpp"
+#include "../include/switch.hpp"
 #include "../include/program_path.hpp"
-#include "../include/render_entity.hpp"
 #include "../include/sdl2_entity.hpp"
 #include "../include/theme.hpp"
-#include "../include/window_entity.hpp"
 #include <cstdio>
 #include <SDL2/SDL.h>
 
 int main(int argc, char **argv) {
-    // instantiate classes
     bool err;
 
     USERDATA *userdata = new USERDATA;
     FourierTransform *fft = new FourierTransform;
     SDL2INTERNAL *sdl2 = new SDL2INTERNAL;
     SDL2Audio sdl2_ad;
+    AudioData *ad = new AudioData;
     SDL2Renderer rend;
     SDL2Window win;
     SDL2KeyInputs key;
@@ -27,9 +25,21 @@ int main(int argc, char **argv) {
     ProgramPath pathing;
     ProgramFiles files;
     SDL2Fonts fonts;
-    AudioData ad;
 
-    userdata->ad = &ad;
+    StdClassWrapper std = { .ad = ad,
+                            .pathing = &pathing,
+                            .files = &files,
+                            .fft = fft,
+                            .themes = &themes };
+
+    SDL2Wrapper sdl2_w = { .sdl2 = sdl2,
+                           .sdl2_ad = &sdl2_ad,
+                           .rend = &rend,
+                           .win = &win,
+                           .key = &key,
+                           .fonts = &fonts };
+
+    userdata->ad = ad;
     userdata->sdl2_ad = &sdl2_ad;
     userdata->fft = fft;
 
@@ -153,19 +163,19 @@ int main(int argc, char **argv) {
         rend.render_bg(*rend.get_renderer(), themes.get_secondary());
         rend.render_clear(*rend.get_renderer());
 
-        switch (sdl2_ad.get_stream_flag()) {
+        switch (*sdl2_ad.get_stream_flag()) {
         default: {
             break;
         }
-        case 1: {
+        case PLAYING: {
             switch (*sdl2_ad.get_next_song_flag()) {
-            case 0: {
+            case WAITING: {
                 fft->generate_visual();
                 break;
             }
 
-            case 1: {
-                sdl2_ad.set_flag(0, sdl2_ad.get_next_song_flag());
+            case NEXT: {
+                sdl2_ad.set_flag(WAITING, sdl2_ad.get_next_song_flag());
 
                 size_t current_index = rend.get_song_index();
                 size_t vec_size = fonts.get_song_vec_size();
@@ -182,6 +192,7 @@ int main(int argc, char **argv) {
                             rend.set_song_index(current_index + 1);
                             *cursor_ptr = 0;
                         } else {
+                            rend.set_song_index(0);
                             *cursor_ptr = 0;
                         }
                     }
@@ -200,7 +211,7 @@ int main(int argc, char **argv) {
                         pathing.get_src_path(), pathing.get_opened_dir());
                     const std::string file_path =
                         pathing.join_str(dir_path, file_name);
-                    bool result = ad.read_audio_file(file_path);
+                    bool result = ad->read_audio_file(file_path);
                     if (result) {
                         sdl2_ad.set_audio_spec(userdata);
                         sdl2_ad.open_audio_device();
@@ -275,58 +286,7 @@ int main(int argc, char **argv) {
             }
 
             case SDL_WINDOWEVENT: {
-                switch (e.window.event) {
-                default: {
-                    break;
-                }
-                case SDL_WINDOWEVENT_RESIZED: {
-                    WIN_SIZE ws =
-                        sdl2->get_current_window_size(*win.get_window());
-                    sdl2->set_window_size(ws);
-                    rend.set_font_draw_limit(ws.HEIGHT);
-                    fonts.set_char_limit(ws.WIDTH);
-
-                    if (files.retrieve_directory_files()->size() > 0) {
-                        fonts.create_file_text(
-                            *files.retrieve_directory_files(),
-                            *rend.get_renderer(), *themes.get_text(),
-                            fonts.get_font_ptr(), rend.get_font_draw_limit());
-                    }
-
-                    if (files.retrieve_directories()->size() > 0) {
-                        fonts.create_dir_text(
-                            *files.retrieve_directories(), *rend.get_renderer(),
-                            *themes.get_text(), fonts.get_font_ptr(),
-                            rend.get_font_draw_limit());
-                    }
-
-                    break;
-                }
-
-                case SDL_WINDOWEVENT_SIZE_CHANGED: {
-                    WIN_SIZE ws =
-                        sdl2->get_current_window_size(*win.get_window());
-                    sdl2->set_window_size(ws);
-                    rend.set_font_draw_limit(ws.HEIGHT);
-                    fonts.set_char_limit(ws.WIDTH);
-
-                    if (files.retrieve_directory_files()->size() > 0) {
-                        fonts.create_file_text(
-                            *files.retrieve_directory_files(),
-                            *rend.get_renderer(), *themes.get_text(),
-                            fonts.get_font_ptr(), rend.get_font_draw_limit());
-                    }
-
-                    if (files.retrieve_directories()->size() > 0) {
-                        fonts.create_dir_text(
-                            *files.retrieve_directories(), *rend.get_renderer(),
-                            *themes.get_text(), fonts.get_font_ptr(),
-                            rend.get_font_draw_limit());
-                    }
-
-                    break;
-                }
-                }
+                handle_window_event(e.window.event, &std, &sdl2_w);
                 break;
             }
 
@@ -337,10 +297,10 @@ int main(int argc, char **argv) {
                 }
 
                 case P_KEY: {
-                    if (sdl2_ad.get_stream_flag() == 1) {
+                    if (*sdl2_ad.get_stream_flag() == PLAYING) {
                         std::cout << "Paused" << std::endl;
                         sdl2_ad.pause_audio();
-                    } else {
+                    } else if (*sdl2_ad.get_stream_flag() == PAUSED) {
                         std::cout << "Playing" << std::endl;
                         sdl2_ad.resume_audio();
                     }
@@ -350,14 +310,14 @@ int main(int argc, char **argv) {
                 case ESCAPE: {
                     switch (sdl2->get_current_user_state()) {
                     case AT_SONGS: {
-                        if (sdl2_ad.get_stream_flag() == 1) {
+                        if (*sdl2_ad.get_stream_flag() == PLAYING) {
                             sdl2->set_current_user_state(LISTENING);
                         }
                         break;
                     }
 
                     case AT_DIRECTORIES: {
-                        if (sdl2_ad.get_stream_flag() == 1) {
+                        if (*sdl2_ad.get_stream_flag() == PLAYING) {
                             sdl2->set_current_user_state(LISTENING);
                         }
                         break;
@@ -420,7 +380,7 @@ int main(int argc, char **argv) {
                                 const std::string dir_path =
                                     pathing.join_str(pathing.get_src_path(),
                                                      pathing.get_opened_dir());
-                                if (ad.read_audio_file(pathing.join_str(
+                                if (ad->read_audio_file(pathing.join_str(
                                         dir_path, file_name))) {
                                     sdl2_ad.set_audio_spec(userdata);
                                     sdl2_ad.open_audio_device();
@@ -442,7 +402,8 @@ int main(int argc, char **argv) {
                         break;
                     }
                     case AT_DIRECTORIES: {
-                        if (sdl2_ad.get_stream_flag() == 1) {
+                        if (*sdl2_ad.get_stream_flag() == PLAYING ||
+                            *sdl2_ad.get_stream_flag() == PAUSED) {
                             sdl2->set_current_user_state(LISTENING);
                         }
                         break;
@@ -472,7 +433,8 @@ int main(int argc, char **argv) {
                         break;
                     }
                     case AT_SONGS: {
-                        if (sdl2_ad.get_stream_flag() == 1) {
+                        if (*sdl2_ad.get_stream_flag() == PLAYING ||
+                            *sdl2_ad.get_stream_flag() == PAUSED) {
                             sdl2->set_current_user_state(LISTENING);
                         }
                         break;
@@ -605,6 +567,7 @@ int main(int argc, char **argv) {
                                         rend.set_dir_index(current_index + 1);
                                         *cursor_ptr = 0;
                                     } else {
+                                        rend.set_dir_index(0);
                                         *cursor_ptr = 0;
                                     }
                                 }
@@ -641,6 +604,7 @@ int main(int argc, char **argv) {
                                         rend.set_song_index(current_index + 1);
                                         *cursor_ptr = 0;
                                     } else {
+                                        rend.set_song_index(0);
                                         *cursor_ptr = 0;
                                     }
                                 }
@@ -675,8 +639,9 @@ int main(int argc, char **argv) {
 
     fonts.destroy_allocated_fonts();
 
-    free(ad.get_audio_data()->buffer);
-    delete ad.get_audio_data();
+    free(ad->get_audio_data()->buffer);
+    delete ad->get_audio_data();
+    delete ad;
     delete userdata;
     delete sdl2;
     delete fft;
