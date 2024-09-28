@@ -1,4 +1,5 @@
 #include "../include/render_entity.hpp"
+#include <cstddef>
 #include <ostream>
 
 SDL2Renderer::SDL2Renderer() {
@@ -9,6 +10,8 @@ SDL2Renderer::SDL2Renderer() {
     songs_index = 0;
     font_draw_limit = 8;
     sprite_sheet_filename = "sprites.png";
+    sprite_surface = NULL;
+    sprite_texture = NULL;
 }
 
 SDL2Renderer::~SDL2Renderer() {}

@@ -46,7 +46,3 @@ add_executable(Vis ${SOURCES})
 target_link_libraries(Vis ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
 
 
-execute_process(
-    COMMAND bash -c "cp -r ${CMAKE_CURRENT_SOURCE_DIR}/assets/* ${CMAKE_CURRENT_SOURCE_DIR}/bin"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)

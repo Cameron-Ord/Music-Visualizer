@@ -146,8 +146,8 @@ int main(int argc, char **argv) {
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
-    rend.create_image_surfaces();
-    rend.create_image_textures();
+    rend.create_sprite_surface();
+    rend.create_sprite_texture();
 
     rend.set_dir_index(0);
     rend.set_song_index(0);

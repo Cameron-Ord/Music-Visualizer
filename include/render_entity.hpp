@@ -11,7 +11,7 @@ struct Coordinates {
     int x;
     int y;
     int height;
-    std::vector<SDL_Rect> copy_rect; 
+    std::vector<SDL_Rect> copy_rect;
 };
 
 typedef Coordinates Coordinates;
