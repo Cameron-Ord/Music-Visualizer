@@ -7,8 +7,7 @@
 #include <cstring>
 #include <iostream>
 
-struct FBuffers
-{
+struct FBuffers {
     float fft_in[DOUBLE_BUFF];
     float in_cpy[DOUBLE_BUFF];
     float pre_raw[BUFF_SIZE];
@@ -19,8 +18,7 @@ struct FBuffers
     float smear[HALF_BUFF];
 };
 
-struct FData
-{
+struct FData {
     int cell_width;
     size_t output_len;
     float max_ampl;
@@ -28,8 +26,7 @@ struct FData
     float hamming_values[BUFF_SIZE];
 };
 
-class FourierTransform
-{
+class FourierTransform {
   public:
     FourierTransform();
     void fft_push(uint32_t pos, float *audio_data_buffer, int bytes);

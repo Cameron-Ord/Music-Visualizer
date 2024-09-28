@@ -8,8 +8,7 @@
 #include <string>
 #include <system_error>
 
-class ProgramFiles
-{
+class ProgramFiles {
   public:
     ProgramFiles();
     ~ProgramFiles();

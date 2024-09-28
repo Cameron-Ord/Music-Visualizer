@@ -8,8 +8,7 @@
 
 #include "font_def.hpp"
 
-typedef enum
-{
+typedef enum {
     Q = SDLK_q,
     UP = SDLK_UP,
     DOWN = SDLK_DOWN,
@@ -22,8 +21,7 @@ typedef enum
     P_KEY = SDLK_p,
 } SDL_KEYCODES_ENUM;
 
-class SDL2KeyInputs
-{
+class SDL2KeyInputs {
   public:
     SDL2KeyInputs();
 

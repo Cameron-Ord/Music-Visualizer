@@ -21,29 +21,30 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
         const float end = smooth[i];
 
         const int space = cell_width + cell_width / 2;
-        
+
         const int end_x_pos = i * space;
         const int end_y_pos = h - static_cast<int>((end * h));
         const int end_bar_height = static_cast<int>(end * h);
 
         SDL_Rect box;
-        
-        box = {end_x_pos, end_y_pos, cell_width, end_bar_height};
+
+        box = { end_x_pos, end_y_pos, cell_width, end_bar_height };
 
         Coordinates end_positions = { .x = end_x_pos,
                                       .y = end_y_pos,
-                                      .height = end_bar_height, .copy_rect = box };
+                                      .height = end_bar_height,
+                                      .copy_rect = box };
 
         const int start_x_pos = (i * space);
         const int start_y_pos = h - static_cast<int>(start * h);
         const int start_bar_height = end_y_pos - start_y_pos;
 
-        box = {start_x_pos, start_y_pos, cell_width, start_bar_height};
+        box = { start_x_pos, start_y_pos, cell_width, start_bar_height };
 
         Coordinates start_positions = { .x = start_x_pos,
                                         .y = start_y_pos,
-                                        .height = start_bar_height, .copy_rect = box };
-
+                                        .height = start_bar_height,
+                                        .copy_rect = box };
 
         bar_end_coords[i] = end_positions;
         bar_start_coords[i] = start_positions;

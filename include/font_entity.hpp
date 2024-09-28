@@ -7,8 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <vector>
 
-class SDL2Fonts
-{
+class SDL2Fonts {
   public:
     SDL2Fonts();
     ~SDL2Fonts();

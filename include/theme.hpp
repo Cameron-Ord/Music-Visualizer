@@ -2,8 +2,7 @@
 #define THEME_HPP
 #include <SDL2/SDL_pixels.h>
 
-typedef enum
-{
+typedef enum {
     PRIMARY = 0,
     SECONDARY = 1,
     TERTIARY = 2,
@@ -12,8 +11,7 @@ typedef enum
     BG = 5
 } STRING_ENUM_REF;
 
-class ProgramThemes
-{
+class ProgramThemes {
   public:
     ProgramThemes();
     ~ProgramThemes();

@@ -4,8 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-class SDL2Window
-{
+class SDL2Window {
   public:
     SDL2Window();
     void *create_window(SDL_Window **w);

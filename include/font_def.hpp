@@ -4,8 +4,7 @@
 #include <SDL2/SDL_render.h>
 #include <string>
 
-struct Text
-{
+struct Text {
     SDL_Texture *tex;
     SDL_Surface *surf;
     SDL_Rect rect;

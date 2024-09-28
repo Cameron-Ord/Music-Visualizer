@@ -5,8 +5,7 @@
 #include <filesystem>
 #include <iostream>
 
-class ProgramPath
-{
+class ProgramPath {
   public:
     ProgramPath();
     ~ProgramPath();
