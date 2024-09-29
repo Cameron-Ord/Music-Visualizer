@@ -97,10 +97,13 @@ void FourierTransform::hamming_window() {
 }
 
 // time domain pre emphasis to accentuate rapid changes in the signal
-// 
+// Im keeping it pretty light here but will implement options to change these values in program in the future
+// if the alpha is too extreme then alot of the channel is lost so I'd rather just apply a little then reduce frequencies under 1000 afterward
+// Hence am also doing a 20% high pass later in the code.
+// Formula
 // Y[n]=X[n]−0.90⋅X[n−1]
 void FourierTransform::pre_emphasis(){
-    const float alpha = 0.85;
+    const float alpha = 0.25;
     for(int i = BUFF_SIZE - 1; i > 0; --i){
         float *input = &bufs.pre_raw[i];
         const float last_input = bufs.pre_raw[i - 1];
@@ -121,7 +124,7 @@ void FourierTransform::high_pass_filter(int SR, float cutoff_freq){
     int cutoff_bin = cutoff_freq / freq_bin_size;
 
     for(int i = 0; i < cutoff_bin; ++i){
-        bufs.extracted[i]*= 0.90;
+        bufs.extracted[i]*= 0.80;
     }
 }
 
