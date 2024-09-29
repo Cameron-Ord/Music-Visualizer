@@ -16,7 +16,6 @@ FourierTransform::FourierTransform() {
     memset(bufs.smoothed, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smear, 0, HALF_BUFF * sizeof(float));
 
-
     for (size_t i = 0; i < BUFF_SIZE; i++) {
         bufs.out_raw[i] = std::complex<float>(0.0f, 0.0f);
     }
@@ -97,34 +96,35 @@ void FourierTransform::hamming_window() {
 }
 
 // time domain pre emphasis to accentuate rapid changes in the signal
-// Im keeping it pretty light here but will implement options to change these values in program in the future
-// if the alpha is too extreme then alot of the channel is lost so I'd rather just apply a little then reduce frequencies under 1000 afterward
-// Hence am also doing a 20% high pass later in the code.
+// Im keeping it pretty light here but will implement options to change these
+// values in program in the future if the alpha is too extreme then alot of the
+// channel is lost so I'd rather just apply a little then reduce frequencies
+// under 1000 afterward Hence am also doing a 20% high pass later in the code.
 // Formula
 // Y[n]=X[n]−0.90⋅X[n−1]
-void FourierTransform::pre_emphasis(){
+void FourierTransform::pre_emphasis() {
     const float alpha = 0.25;
-    for(int i = BUFF_SIZE - 1; i > 0; --i){
+    for (int i = BUFF_SIZE - 1; i > 0; --i) {
         float *input = &bufs.pre_raw[i];
         const float last_input = bufs.pre_raw[i - 1];
         *input = *input - alpha * last_input;
     }
 }
 
-void FourierTransform::extract_frequencies(){
-    for(int i = 0; i < BUFF_SIZE; ++i){
+void FourierTransform::extract_frequencies() {
+    for (int i = 0; i < BUFF_SIZE; ++i) {
         float real = bufs.out_raw[i].real();
         float imag = bufs.out_raw[i].imag();
-        bufs.extracted[i] = sqrt(real*real + imag*imag);
+        bufs.extracted[i] = sqrt(real * real + imag * imag);
     }
 }
 
-void FourierTransform::high_pass_filter(int SR, float cutoff_freq){
+void FourierTransform::high_pass_filter(int SR, float cutoff_freq) {
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
     int cutoff_bin = cutoff_freq / freq_bin_size;
 
-    for(int i = 0; i < cutoff_bin; ++i){
-        bufs.extracted[i]*= 0.80;
+    for (int i = 0; i < cutoff_bin; ++i) {
+        bufs.extracted[i] *= 0.80;
     }
 }
 

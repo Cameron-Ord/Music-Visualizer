@@ -1,4 +1,5 @@
 #include "../include/window_entity.hpp"
+#include <cstdio>
 
 void *SDL2Window::create_window(SDL_Window **w) {
     *w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED,

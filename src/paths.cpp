@@ -1,4 +1,3 @@
-#include "../include/macdefs.hpp"
 #include "../include/program_path.hpp"
 
 ProgramPath::ProgramPath() {

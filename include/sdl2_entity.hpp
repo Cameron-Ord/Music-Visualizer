@@ -1,23 +1,6 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
-#include "structdef.h"
-#include "render_entity.hpp"
-#include "window_entity.hpp"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-
-typedef enum {
-    AT_DIRECTORIES = 0,
-    AT_SONGS = 1,
-    LISTENING = 2,
-} USER_STATE;
-
+#include "defines.hpp"
 
 class SDL2INTERNAL {
   public:

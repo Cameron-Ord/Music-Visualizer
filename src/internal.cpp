@@ -1,5 +1,4 @@
 #include "../include/sdl2_entity.hpp"
-#include <SDL2/SDL_image.h>
 
 SDL2INTERNAL::SDL2INTERNAL() {
     play_state = 1;

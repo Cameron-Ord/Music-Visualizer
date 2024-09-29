@@ -35,11 +35,12 @@ bool AudioData::read_audio_file(std::string file_path) {
     SNDFILE *sndfile = NULL;
     SF_INFO sfinfo;
 
-    fprintf(stdout, "Reading file -> %s\n", file_path.c_str()); 
+    fprintf(stdout, "Reading file -> %s\n", file_path.c_str());
 
     sndfile = sf_open(file_path.c_str(), SFM_READ, &sfinfo);
     if (!sndfile) {
-        fprintf(stderr, "Could not open file: %s -> %s\n", file_path.c_str(), sf_strerror(NULL));
+        fprintf(stderr, "Could not open file: %s -> %s\n", file_path.c_str(),
+                sf_strerror(NULL));
         return false;
     }
 

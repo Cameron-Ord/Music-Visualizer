@@ -1,25 +1,7 @@
 #ifndef EVENTS_HPP
 #define EVENTS_HPP
+#include "defines.hpp"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_keycode.h>
-#include <string>
-#include <vector>
-
-#include "font_def.hpp"
-
-typedef enum {
-    Q = SDLK_q,
-    UP = SDLK_UP,
-    DOWN = SDLK_DOWN,
-    LEFT = SDLK_LEFT,
-    RIGHT = SDLK_RIGHT,
-    ENTER = SDLK_RETURN,
-    BACKSPACE = SDLK_BACKSPACE,
-    SPACE = SDLK_SPACE,
-    ESCAPE = SDLK_ESCAPE,
-    P_KEY = SDLK_p,
-} SDL_KEYCODES_ENUM;
 
 class SDL2KeyInputs {
   public:
@@ -27,17 +9,43 @@ class SDL2KeyInputs {
 
     void reset_cursor_index(size_t *cursor_index_ptr);
     std::pair<int, SDL_Keysym> poll_events();
-    std::string cycle_up_list(size_t max_length, size_t *cursor_index_ptr);
-    std::string cycle_down_list(size_t max_length, size_t *cursor_index_ptr);
-    size_t *get_song_cursor_index();
-    size_t *get_dir_cursor_index();
+    std::string check_cursor_move(size_t vec_size, const size_t *cursor_ptr, std::string direction);
     void affirm_index();
     std::string select_element(const std::vector<Text> *d,
-                               size_t *cursor_index_ptr);
+                                          const size_t *cursor_index_ptr);
+    const size_t *get_dir_index();
+    const size_t *get_song_index();
+    const size_t *get_vsong_index();
+    const size_t *get_vdir_index();
+    void set_dir_index(size_t i);
+    void set_song_index(size_t i);
+    void set_vdir_index(size_t i);
+    void set_vsong_index(size_t i);
+
+    const size_t *get_song_cursor_index();
+    const size_t *get_vsong_cursor_index();
+    const size_t *get_dir_cursor_index();
+    const size_t *get_vdir_cursor_index();
+    void set_song_cursor_index(size_t i);
+    void set_dir_cursor_index(size_t i);
+    void set_vsong_cursor_index(size_t i);
+    void set_vdir_cursor_index(size_t i);
+
+
 
   private:
+    size_t virtual_dvec_index;
+    size_t virtual_svec_index;
+
+    size_t virtual_cursor_dindex;
+    size_t virtual_cursor_sindex;
+    
+    size_t directories_vec_index;
+    size_t songs_vec_index;
+    
     size_t cursor_index_dirs;
     size_t cursor_index_songs;
+
 };
 
 #endif

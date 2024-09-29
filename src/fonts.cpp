@@ -19,23 +19,42 @@ bool SDL2Fonts::open_font() {
     return true;
 }
 
-void SDL2Fonts::approximate_size_utf8() {
-    const char *character = "A";
-    int w, h;
-    TTF_SizeUTF8(font, character, &w, &h);
-    aprx_h = h;
-    aprx_w = w;
+std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
+                                          const size_t *index,
+                                          std::string direction) {
+    int signed_size = static_cast<int>(ttl_vec_size);
+    int signed_index = static_cast<int>(*index);
+
+    if (ttl_vec_size - 1 < 0) {
+        return "EMPTY";
+    }
+
+    if (direction == "UP") {
+        signed_index -= 1;
+        if (signed_index < 0) {
+            return "MIN";
+        }
+        return "SAFE";
+    } else if (direction == "DOWN") {
+        signed_index += 1;
+        if (signed_index > ttl_vec_size - 1) {
+            return "MAX";
+        }
+        return "SAFE";
+    }
+
+    return "INVALID";
 }
 
 TTF_Font *SDL2Fonts::get_font_ptr() {
     return font;
 }
 
-std::vector<Text> *SDL2Fonts::get_dir_vec(size_t index) {
+std::vector<Text> *SDL2Fonts::retrieve_indexed_dir_textvector(size_t index) {
     return &dir_text_vec[index];
 }
 
-std::vector<Text> *SDL2Fonts::get_song_vec(size_t index) {
+std::vector<Text> *SDL2Fonts::retrieve_indexed_song_textvector(size_t index) {
     return &song_text_vec[index];
 }
 

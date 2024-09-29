@@ -1,14 +1,7 @@
 #ifndef RENDER_ENTITY_HPP
 #define RENDER_ENTITY_HPP
+#include "defines.hpp"
 
-#include "structdef.h"
-#include "font_def.hpp"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <cstddef>
-#include <iostream>
-#include <stdbool.h>
-#include <vector>
 
 struct Coordinates {
     int x;
@@ -45,12 +38,6 @@ class SDL2Renderer {
     void set_font_draw_limit(int h);
     const size_t *get_font_draw_limit();
 
-    size_t get_dir_index();
-    size_t get_song_index();
-
-    void set_dir_index(size_t i);
-    void set_song_index(size_t i);
-
   private:
     std::string sprite_sheet_filename;
     SDL_Texture *sprite_texture;
@@ -59,8 +46,6 @@ class SDL2Renderer {
     SDL_Rect text_bg;
     bool drawing_text_bg;
     size_t font_draw_limit;
-    size_t directories_index;
-    size_t songs_index;
     std::vector<Coordinates> bar_start_coords;
     std::vector<Coordinates> bar_end_coords;
 };

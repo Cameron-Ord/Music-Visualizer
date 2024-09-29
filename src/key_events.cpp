@@ -3,69 +3,111 @@
 SDL2KeyInputs::SDL2KeyInputs() {
     cursor_index_dirs = 0;
     cursor_index_songs = 0;
+    directories_vec_index = 0;
+    songs_vec_index = 0;
+    virtual_dvec_index = 0;
+    virtual_svec_index = 0;
+    virtual_cursor_dindex = 0;
+    virtual_cursor_sindex = 0;
+}
+
+void SDL2KeyInputs::set_vsong_index(size_t i) {
+    virtual_svec_index = i;
+}
+
+void SDL2KeyInputs::set_vdir_index(size_t i) {
+    virtual_dvec_index = i;
+}
+
+void SDL2KeyInputs::set_vsong_cursor_index(size_t i) {
+    virtual_cursor_sindex = i;
+}
+
+void SDL2KeyInputs::set_vdir_cursor_index(size_t i) {
+    virtual_cursor_dindex = i;
+}
+
+const size_t *SDL2KeyInputs::get_vdir_index() {
+    return &virtual_dvec_index;
+}
+
+const size_t *SDL2KeyInputs::get_vsong_index() {
+    return &virtual_svec_index;
+}
+
+const size_t *SDL2KeyInputs::get_vsong_cursor_index() {
+    return &virtual_cursor_sindex;
+}
+
+const size_t *SDL2KeyInputs::get_vdir_cursor_index() {
+    return &virtual_cursor_dindex;
+}
+
+void SDL2KeyInputs::set_song_index(size_t i) {
+    songs_vec_index = i;
+}
+
+void SDL2KeyInputs::set_dir_index(size_t i) {
+    directories_vec_index = i;
+}
+
+void SDL2KeyInputs::set_song_cursor_index(size_t i) {
+    cursor_index_songs = i;
+}
+
+void SDL2KeyInputs::set_dir_cursor_index(size_t i) {
+    cursor_index_dirs = i;
+}
+
+const size_t *SDL2KeyInputs::get_dir_index() {
+    return &directories_vec_index;
+}
+
+const size_t *SDL2KeyInputs::get_song_index() {
+    return &songs_vec_index;
+}
+
+const size_t *SDL2KeyInputs::get_song_cursor_index() {
+    return &cursor_index_songs;
+}
+
+const size_t *SDL2KeyInputs::get_dir_cursor_index() {
+    return &cursor_index_dirs;
 }
 
 void SDL2KeyInputs::reset_cursor_index(size_t *cursor_index_ptr) {
     *cursor_index_ptr = 0;
 }
 
-size_t *SDL2KeyInputs::get_song_cursor_index() {
-    return &cursor_index_songs;
-}
+std::string SDL2KeyInputs::check_cursor_move(size_t vec_size,
+                                             const size_t *cursor_ptr,
+                                             std::string direction) {
+    int signed_size = static_cast<int>(vec_size);
+    int signed_cursor = static_cast<int>(*cursor_ptr);
 
-size_t *SDL2KeyInputs::get_dir_cursor_index() {
-    return &cursor_index_dirs;
-}
-
-std::string SDL2KeyInputs::cycle_up_list(size_t max_length,
-                                         size_t *cursor_index_ptr) {
-    int tmp = static_cast<int>(*cursor_index_ptr);
-    int length = static_cast<int>(max_length);
-
-    if (length - 1 < 0) {
-        return "<empty-vector>";
+    if (signed_size - 1 < 0) {
+        return "EMPTY";
     }
 
-    tmp -= 1;
-    if (tmp < 0) {
-        return "min_reached";
+    if (direction == "UP") {
+        signed_cursor -= 1;
+        if (signed_cursor < 0) {
+            return "MIN";
+        }
+        return "SAFE";
+
+    } else if (direction == "DOWN") {
+        signed_cursor += 1;
+        if (signed_cursor > vec_size - 1) {
+            return "MAX";
+        }
+        return "SAFE";
     }
 
-    *cursor_index_ptr = static_cast<size_t>(tmp);
-    return "success";
-}
-
-std::string SDL2KeyInputs::cycle_down_list(size_t max_length,
-                                           size_t *cursor_index_ptr) {
-    int tmp = static_cast<int>(*cursor_index_ptr);
-    int length = static_cast<int>(max_length);
-
-    if (length - 1 < 0) {
-        return "<empty-vector>";
-    }
-
-    tmp += 1;
-    if (tmp > length - 1) {
-        return "max_reached";
-    }
-
-    *cursor_index_ptr = static_cast<size_t>(tmp);
-    return "success";
+    return "INVALID";
 }
 
 std::string SDL2KeyInputs::select_element(const std::vector<Text> *d,
-                                          size_t *cursor_index_ptr) {
-    size_t vec_size = d->size() - 1;
-
-    if (vec_size < 0) {
-        return "<empty-vector>";
-    }
-
-    if (*cursor_index_ptr > vec_size) {
-        *cursor_index_ptr = vec_size;
-    }
-
-    // Since type is size_t, it can't go below 0.
-
+                                          const size_t *cursor_index_ptr) {
     return (*d)[*cursor_index_ptr].name;
 }

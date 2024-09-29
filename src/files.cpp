@@ -28,11 +28,13 @@ bool ProgramFiles::fill_files(std::string src_path, std::string slash) {
                 const std::string const_entry_path = entry.path().string();
                 std::string entry_path = entry.path().string();
                 std::string entry_name = entry.path().filename().string();
-                //Non ascii characters were causing issues so this is just how I am dealing with it for now
-                for(size_t i = 0; i < entry_path.size(); i++){
-                    for(size_t j = 0; j < entry_name.size(); j++){
-                        if(entry_path[i] == entry_name[j]){
-                            if(static_cast<unsigned char>(entry_path[i]) > 127){
+                // Non ascii characters were causing issues so this is just how
+                // I am dealing with it for now
+                for (size_t i = 0; i < entry_path.size(); i++) {
+                    for (size_t j = 0; j < entry_name.size(); j++) {
+                        if (entry_path[i] == entry_name[j]) {
+                            if (static_cast<unsigned char>(entry_path[i]) >
+                                127) {
                                 entry_path[i] = '_';
                                 entry_name[j] = '_';
                             }
@@ -40,9 +42,9 @@ bool ProgramFiles::fill_files(std::string src_path, std::string slash) {
                     }
                 }
 
-                std::filesystem::rename(const_entry_path.c_str(), entry_path.c_str());
-                Files tmp = { entry_name,
-                              file_accumulator };
+                std::filesystem::rename(const_entry_path.c_str(),
+                                        entry_path.c_str());
+                Files tmp = { entry_name, file_accumulator };
                 files.push_back(tmp);
                 file_accumulator++;
             }
@@ -68,20 +70,22 @@ bool ProgramFiles::fill_directories(std::string src_path, std::string slash) {
                 const std::string const_entry_path = entry.path().string();
                 std::string entry_path = entry.path().string();
                 std::string entry_name = entry.path().filename().string();
-                //Non ascii characters were causing issues so this is just how I am dealing with it for now
-                for(size_t i = 0; i < entry_path.size(); i++){
-                    for(size_t j = 0; j < entry_name.size(); j++){
-                        if(entry_path[i] == entry_name[j]){
-                            if(static_cast<unsigned char>(entry_path[i]) > 127){
+                // Non ascii characters were causing issues so this is just how
+                // I am dealing with it for now
+                for (size_t i = 0; i < entry_path.size(); i++) {
+                    for (size_t j = 0; j < entry_name.size(); j++) {
+                        if (entry_path[i] == entry_name[j]) {
+                            if (static_cast<unsigned char>(entry_path[i]) >
+                                127) {
                                 entry_path[i] = '_';
                                 entry_name[j] = '_';
                             }
                         }
                     }
                 }
-                std::filesystem::rename(const_entry_path.c_str(), entry_path.c_str());
-                Directory tmp = { entry_name,
-                                  dir_accumulator };
+                std::filesystem::rename(const_entry_path.c_str(),
+                                        entry_path.c_str());
+                Directory tmp = { entry_name, dir_accumulator };
                 directories.push_back(tmp);
                 dir_accumulator++;
             }

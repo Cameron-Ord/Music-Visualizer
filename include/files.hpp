@@ -1,12 +1,8 @@
 #ifndef FILES_HPP
 #define FILES_HPP
 
-#include "file_def.hpp"
-#include <iostream>
-#include <filesystem>
-#include <vector>
-#include <string>
-#include <system_error>
+#include "defines.hpp"
+
 
 class ProgramFiles {
   public:

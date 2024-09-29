@@ -1,32 +1,6 @@
 #ifndef FFT_HPP
 #define FFT_HPP
-#include "audio_def.h"
-#include "macdefs.hpp"
-#include <SDL2/SDL_rect.h>
-#include <cmath>
-#include <complex>
-#include <cstring>
-#include <iostream>
-
-struct FBuffers {
-    float fft_in[DOUBLE_BUFF];
-    float in_cpy[DOUBLE_BUFF];
-    float pre_raw[BUFF_SIZE];
-    std::complex<float> out_raw[BUFF_SIZE];
-    std::complex<float> post_raw[BUFF_SIZE];
-    float extracted[BUFF_SIZE];
-    float processed[HALF_BUFF];
-    float smoothed[HALF_BUFF];
-    float smear[HALF_BUFF];
-};
-
-struct FData {
-    int cell_width;
-    size_t output_len;
-    float max_ampl;
-    SDL_Rect *rect_buff;
-    float hamming_values[BUFF_SIZE];
-};
+#include "defines.hpp"
 
 struct AudioDataContainer;
 

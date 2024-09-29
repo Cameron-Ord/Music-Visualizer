@@ -4,8 +4,6 @@ SDL2Renderer::SDL2Renderer() {
     r = NULL;
     bar_end_coords.clear();
     bar_start_coords.clear();
-    directories_index = 0;
-    songs_index = 0;
     font_draw_limit = 8;
     sprite_sheet_filename = "sprites.png";
     sprite_surface = NULL;
@@ -54,22 +52,6 @@ void SDL2Renderer::set_font_draw_limit(int h) {
 
 const size_t *SDL2Renderer::get_font_draw_limit() {
     return &font_draw_limit;
-}
-
-void SDL2Renderer::set_song_index(size_t i) {
-    songs_index = i;
-}
-
-void SDL2Renderer::set_dir_index(size_t i) {
-    directories_index = i;
-}
-
-size_t SDL2Renderer::get_dir_index() {
-    return directories_index;
-}
-
-size_t SDL2Renderer::get_song_index() {
-    return songs_index;
 }
 
 void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {

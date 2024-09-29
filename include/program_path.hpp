@@ -1,9 +1,7 @@
 #ifndef PROGRAM_PATH_HPP
 #define PROGRAM_PATH_HPP
-#include <cstdio>
-#include <cstdlib>
-#include <filesystem>
-#include <iostream>
+#include "defines.hpp"
+
 
 class ProgramPath {
   public:

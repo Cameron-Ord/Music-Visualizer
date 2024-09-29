@@ -1,17 +1,10 @@
 #ifndef AUDIO_HPP
 #define AUDIO_HPP
 
-#include "audio_def.h"
-#include "userdata_def.h"
-#include <SDL2/SDL_audio.h>
-#include <cstring>
+#include "defines.hpp"
 #include <sndfile.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstdint>
-#include <string>
 
-void callback(void *data, uint8_t *stream, int len);
+
 
 class AudioData {
   public:
