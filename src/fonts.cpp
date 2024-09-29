@@ -5,8 +5,8 @@ SDL2Fonts::SDL2Fonts() {
     font_path = "dogicapixel.ttf";
     font_size = 16;
     character_limit = 50;
-    setting_names = { "Smoothing", "Smears", "Pre-Emphasis",
-                      "Highpass Filtering" };
+    setting_names = { "Smoothing", "Smears", "Low Range Filtering",
+                      "Mid Range Filtering", "High Range Filtering" };
 }
 
 SDL2Fonts::~SDL2Fonts() {}
@@ -215,10 +215,12 @@ void SDL2Fonts::create_settings_text(const SDL_Color color, TTF_Font *font,
         &fft_settings->smoothing_amount, &fft_settings->smearing_amount
     };
     const std::vector<std::string> float_setting_names = {
-        "Pre-Emphasis", "Highpass Filtering"
+        "Low Range Filtering", "Mid Range Filtering", "High Range Filtering"
     };
     const std::vector<const float *> float_setting_ptrs = {
-        &fft_settings->filter_alpha, &fft_settings->filter_coeff
+        &fft_settings->filter_coeffs[0],
+        &fft_settings->filter_coeffs[1], 
+        &fft_settings->filter_coeffs[2]
     };
 
     for (size_t i = 0; i < int_setting_names.size(); i++) {

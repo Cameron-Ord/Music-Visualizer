@@ -16,12 +16,9 @@ class FourierTransform {
     FData *get_data();
     FBuffers *get_bufs();
     void fft_func(float *in, size_t stride, std::complex<float> *out, size_t n);
-    void pre_emphasis();
     void extract_frequencies();
-    void high_pass_filter(int SR, float cutoff_freq);
-
-    void set_alpha(float amount);
-    void set_filter(float amount);
+    void multi_band_stop(int SR);
+    void set_filter_coeff(size_t i, float amount);
     void set_smoothing(int amount);
     void set_smear(int amount);
 
@@ -31,5 +28,8 @@ class FourierTransform {
     FData data;
     FBuffers bufs;
     FFTSettings settings;
+    std::vector<float> low_cutoffs;
+    std::vector<float> high_cutoffs;
+
 };
 #endif

@@ -100,20 +100,14 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                     fonts->get_float_settings_vec();
                 float mutable_value =
                     *(*f)[*key->get_settings_cursor()].setting_value_ptr;
-                mutable_value += 0.01;
+                mutable_value += 0.025;
 
                 if (mutable_value > FLOAT_SETTING_MAX) {
                     mutable_value = FLOAT_SETTING_MAX;
                 }
 
-                std::string setting_name =
-                    (*f)[*key->get_settings_cursor()].setting_text.name;
+                fft->set_filter_coeff(*key->get_settings_cursor(), mutable_value);
 
-                if (setting_name == "Highpass Filtering") {
-                    fft->set_filter(mutable_value);
-                } else if (setting_name == "Pre-Emphasis") {
-                    fft->set_alpha(mutable_value);
-                }
             } else {
                 int signed_index =
                     static_cast<int>(*key->get_settings_cursor());
@@ -179,20 +173,13 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                     fonts->get_float_settings_vec();
                 float mutable_value =
                     *(*f)[*key->get_settings_cursor()].setting_value_ptr;
-                mutable_value -= 0.01;
+                mutable_value -= 0.025;
 
                 if (mutable_value < FLOAT_SETTING_MIN) {
                     mutable_value = FLOAT_SETTING_MIN;
                 }
 
-                std::string setting_name =
-                    (*f)[*key->get_settings_cursor()].setting_text.name;
-
-                if (setting_name == "Highpass Filtering") {
-                    fft->set_filter(mutable_value);
-                } else if (setting_name == "Pre-Emphasis") {
-                    fft->set_alpha(mutable_value);
-                }
+                fft->set_filter_coeff(*key->get_settings_cursor(), mutable_value);
             } else {
 
                 int size =

@@ -92,6 +92,7 @@ struct FBuffers {
     std::complex<float> out_raw[BUFF_SIZE];
     std::complex<float> post_raw[BUFF_SIZE];
     float extracted[BUFF_SIZE];
+    float phases[BUFF_SIZE];
     float processed[HALF_BUFF];
     float smoothed[HALF_BUFF];
     float smear[HALF_BUFF];
@@ -148,8 +149,7 @@ struct Text {
 struct FFTSettings {
     int smoothing_amount;
     int smearing_amount;
-    float filter_coeff;
-    float filter_alpha;
+    float filter_coeffs[3];
 };
 
 struct SettingTextInt{

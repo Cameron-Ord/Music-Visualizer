@@ -10,13 +10,19 @@ FourierTransform::FourierTransform() {
 
     settings.smoothing_amount = 7;
     settings.smearing_amount = 5;
-    settings.filter_coeff = 0.75;
-    settings.filter_alpha = 0.25;
+
+    for(size_t i = 0; i < sizeof(settings.filter_coeffs) / sizeof(settings.filter_coeffs[0]); i++){
+        settings.filter_coeffs[i] = 1.0f;
+    }
+
+    low_cutoffs = {60.0f, 250.0f, 2000.0f };
+    high_cutoffs = {250.0f, 2000.0f, 5000.0f};
 
     memset(data.hamming_values, 0, sizeof(float) * BUFF_SIZE);
     memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.pre_raw, 0, BUFF_SIZE * sizeof(float));
+    memset(bufs.phases, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.extracted, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.processed, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smoothed, 0, HALF_BUFF * sizeof(float));
@@ -33,12 +39,8 @@ FourierTransform::FourierTransform() {
     calculate_window();
 }
 
-void FourierTransform::set_alpha(float amount) {
-    settings.filter_alpha = amount;
-}
-
-void FourierTransform::set_filter(float amount) {
-    settings.filter_coeff = amount;
+void FourierTransform::set_filter_coeff(size_t i, float amount) {
+    settings.filter_coeffs[i] = amount;
 }
 
 void FourierTransform::set_smear(int amount) {
@@ -93,10 +95,9 @@ void FourierTransform::fft_push(uint32_t pos, float *audio_data_buffer,
 void FourierTransform::generate_visual(AudioDataContainer *ad) {
     memcpy(bufs.in_cpy, bufs.fft_in, sizeof(float) * DOUBLE_BUFF);
     hamming_window();
-    pre_emphasis();
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
     extract_frequencies();
-    high_pass_filter(ad->SR, 600.0f);
+    multi_band_stop(ad->SR);
     squash_to_log(HALF_BUFF);
     apply_smoothing();
     apply_smear();
@@ -121,35 +122,33 @@ void FourierTransform::hamming_window() {
     }
 }
 
-// time domain pre emphasis to accentuate rapid changes in the signal
-// Im keeping it pretty light here but will implement options to change these
-// values in program in the future if the alpha is too extreme then alot of the
-// channel is lost so I'd rather just apply a little then reduce frequencies
-// under 1000 afterward Hence am also doing a 20% high pass later in the code.
-// Formula
+
 // Y[n]=X[n]−0.90⋅X[n−1]
-void FourierTransform::pre_emphasis() {
-    for (int i = BUFF_SIZE - 1; i > 0; --i) {
-        float *input = &bufs.pre_raw[i];
-        const float last_input = bufs.pre_raw[i - 1];
-        *input = *input - settings.filter_alpha * last_input;
-    }
-}
+//void FourierTransform::pre_emphasis() {
+  //  for (int i = BUFF_SIZE - 1; i > 0; --i) {
+//        float *input = &bufs.pre_raw[i];
+  //      const float last_input = bufs.pre_raw[i - 1];
+   //     *input = *input - settings.filter_alpha * last_input;
+    //}
+//}
 
 void FourierTransform::extract_frequencies() {
     for (int i = 0; i < BUFF_SIZE; ++i) {
         float real = bufs.out_raw[i].real();
         float imag = bufs.out_raw[i].imag();
         bufs.extracted[i] = sqrt(real * real + imag * imag);
+        bufs.phases[i] = atan2(imag, real);
     }
 }
 
-void FourierTransform::high_pass_filter(int SR, float cutoff_freq) {
+void FourierTransform::multi_band_stop(int SR) {
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
-    int cutoff_bin = cutoff_freq / freq_bin_size;
-
-    for (int i = 0; i < cutoff_bin; ++i) {
-        bufs.extracted[i] *= settings.filter_coeff;
+    for(size_t filer_index = 0; filer_index < low_cutoffs.size(); ++filer_index){
+        int low_bin = low_cutoffs[filer_index] / freq_bin_size;
+        int high_bin = high_cutoffs[filer_index] / freq_bin_size;
+        for(int i = low_bin; i < high_bin; i++){
+            bufs.extracted[i] *= settings.filter_coeffs[filer_index];
+        }
     }
 }
 
