@@ -202,6 +202,7 @@ int main(int argc, char **argv) {
                         }
                     }
                 }
+                sdl2_ad.set_flag(PAUSED, sdl2_ad.get_stream_flag());
 
                 sdl2_ad.pause_audio();
                 sdl2_ad.close_audio_device();
@@ -221,6 +222,7 @@ int main(int argc, char **argv) {
                         sdl2_ad.set_audio_spec(userdata);
                         sdl2_ad.open_audio_device();
                         sdl2_ad.resume_audio();
+                        sdl2_ad.set_flag(PLAYING, sdl2_ad.get_stream_flag());
                         sdl2->set_current_user_state(LISTENING);
                     }
                 }
@@ -305,9 +307,11 @@ int main(int argc, char **argv) {
                     if (*sdl2_ad.get_stream_flag() == PLAYING) {
                         std::cout << "Paused" << std::endl;
                         sdl2_ad.pause_audio();
+                        sdl2_ad.set_flag(PAUSED, sdl2_ad.get_stream_flag());
                     } else if (*sdl2_ad.get_stream_flag() == PAUSED) {
                         std::cout << "Playing" << std::endl;
                         sdl2_ad.resume_audio();
+                        sdl2_ad.set_flag(PLAYING, sdl2_ad.get_stream_flag());
                     }
                     break;
                 }
@@ -372,6 +376,7 @@ int main(int argc, char **argv) {
                     }
 
                     case AT_SONGS: {
+                        sdl2_ad.set_flag(PAUSED, sdl2_ad.get_stream_flag());
                         sdl2_ad.pause_audio();
                         sdl2_ad.close_audio_device();
 
@@ -390,6 +395,7 @@ int main(int argc, char **argv) {
                                     sdl2_ad.set_audio_spec(userdata);
                                     sdl2_ad.open_audio_device();
                                     sdl2_ad.resume_audio();
+                                    sdl2_ad.set_flag(PLAYING, sdl2_ad.get_stream_flag());
                                     sdl2->set_current_user_state(LISTENING);
                                 }
                             }

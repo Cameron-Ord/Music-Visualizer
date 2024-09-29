@@ -45,7 +45,7 @@ void SDL2Audio::set_audio_spec(USERDATA *userdata) {
 
 bool SDL2Audio::open_audio_device() {
     dev = SDL_OpenAudioDevice(NULL, 0, &spec, NULL, 0);
-    if (!dev) {
+    if (!dev) { 
         fprintf(stderr, "Could not open audio device! -> %s\n", SDL_GetError());
         return false;
     }
