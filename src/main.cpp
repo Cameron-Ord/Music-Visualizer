@@ -175,7 +175,7 @@ int main(int argc, char **argv) {
         case PLAYING: {
             switch (*sdl2_ad.get_next_song_flag()) {
             case WAITING: {
-                fft->generate_visual();
+                fft->generate_visual(ad->get_audio_data());
                 break;
             }
 

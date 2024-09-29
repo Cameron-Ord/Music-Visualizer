@@ -11,9 +11,11 @@ FourierTransform::FourierTransform() {
     memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.pre_raw, 0, BUFF_SIZE * sizeof(float));
+    memset(bufs.extracted, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.processed, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smoothed, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smear, 0, HALF_BUFF * sizeof(float));
+
 
     for (size_t i = 0; i < BUFF_SIZE; i++) {
         bufs.out_raw[i] = std::complex<float>(0.0f, 0.0f);
@@ -63,10 +65,13 @@ void FourierTransform::fft_push(uint32_t pos, float *audio_data_buffer,
     memcpy(bufs.fft_in, audio_data_buffer + pos, bytes);
 }
 
-void FourierTransform::generate_visual() {
+void FourierTransform::generate_visual(AudioDataContainer *ad) {
     memcpy(bufs.in_cpy, bufs.fft_in, sizeof(float) * DOUBLE_BUFF);
     hamming_window();
+    pre_emphasis();
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
+    extract_frequencies();
+    high_pass_filter(ad->SR, 1000.0f);
     squash_to_log(HALF_BUFF);
     apply_smoothing();
     apply_smear();
@@ -91,11 +96,36 @@ void FourierTransform::hamming_window() {
     }
 }
 
-void FourierTransform::squash_to_log(size_t size) {
-    // f32 delta_f = (f32)SR / size;
-    //  f32 bin_low  = (f32)(1000.0f / delta_f);
-    //  f32 bin_high = (f32)(5000.0f / delta_f);
+// time domain pre emphasis to accentuate rapid changes in the signal
+// 
+// Y[n]=X[n]−0.90⋅X[n−1]
+void FourierTransform::pre_emphasis(){
+    const float alpha = 0.85;
+    for(int i = BUFF_SIZE - 1; i > 0; --i){
+        float *input = &bufs.pre_raw[i];
+        const float last_input = bufs.pre_raw[i - 1];
+        *input = *input - alpha * last_input;
+    }
+}
 
+void FourierTransform::extract_frequencies(){
+    for(int i = 0; i < BUFF_SIZE; ++i){
+        float real = bufs.out_raw[i].real();
+        float imag = bufs.out_raw[i].imag();
+        bufs.extracted[i] = sqrt(real*real + imag*imag);
+    }
+}
+
+void FourierTransform::high_pass_filter(int SR, float cutoff_freq){
+    float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
+    int cutoff_bin = cutoff_freq / freq_bin_size;
+
+    for(int i = 0; i < cutoff_bin; ++i){
+        bufs.extracted[i]*= 0.90;
+    }
+}
+
+void FourierTransform::squash_to_log(size_t size) {
     float step = 1.06f;
     float lowf = 1.0f;
     size_t m = 0;
@@ -106,7 +136,7 @@ void FourierTransform::squash_to_log(size_t size) {
         float a = 0.0f;
 
         for (size_t q = (size_t) f; q < size && q < (size_t) fs; ++q) {
-            float b = amp(bufs.out_raw[q]);
+            float b = amp(bufs.extracted[q]);
             if (b > a) {
                 a = b;
             }
@@ -122,10 +152,8 @@ void FourierTransform::squash_to_log(size_t size) {
     data.output_len = m;
 }
 
-float FourierTransform::amp(std::complex<float> z) {
-    float a = fabsf(z.real());
-    float b = fabsf(z.imag());
-    return logf(a * a + b * b);
+float FourierTransform::amp(float z) {
+    return logf(z);
 } /*amp*/
 
 void FourierTransform::apply_smoothing() {
