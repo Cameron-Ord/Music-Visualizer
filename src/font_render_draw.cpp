@@ -14,10 +14,3 @@ void SDL2Renderer::render_draw_text_bg(const SDL_Color *rgba) {
         SDL_RenderFillRect(r, &text_bg);
     }
 }
-
-void SDL2Renderer::render_draw_settings_text(std::vector<Text> *text,
-                                             const size_t *index) {
-    if ((*text)[*index].is_valid) {
-        SDL_RenderCopy(r, (*text)[*index].tex, NULL, &(*text)[*index].rect);
-    }
-}

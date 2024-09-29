@@ -33,24 +33,23 @@ FourierTransform::FourierTransform() {
     calculate_window();
 }
 
-void FourierTransform::set_alpha(float amount){
+void FourierTransform::set_alpha(float amount) {
     settings.filter_alpha = amount;
 }
 
-void FourierTransform::set_filter(float amount){
+void FourierTransform::set_filter(float amount) {
     settings.filter_coeff = amount;
-
 }
 
-void FourierTransform::set_smear(int amount){
+void FourierTransform::set_smear(int amount) {
     settings.smearing_amount = amount;
 }
 
-void FourierTransform::set_smoothing(int amount){
+void FourierTransform::set_smoothing(int amount) {
     settings.smoothing_amount = amount;
 }
 
-const FFTSettings *FourierTransform::get_settings(){
+const FFTSettings *FourierTransform::get_settings() {
     return &settings;
 }
 

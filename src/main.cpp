@@ -140,7 +140,13 @@ int main(int argc, char **argv) {
                           rend.get_font_draw_limit());
 
     fonts.create_settings_text(*themes.get_text(), fonts.get_font_ptr(),
-                               *rend.get_renderer());
+                               *rend.get_renderer(), fft->get_settings());
+
+    fonts.create_float_number_text(*themes.get_text(), fonts.get_font_ptr(),
+                                   *rend.get_renderer());
+
+    fonts.create_integer_number_text(*themes.get_text(), fonts.get_font_ptr(),
+                                     *rend.get_renderer());
 
     const int ticks_per_frame = (1000.0 / 60);
     uint64_t frame_start;
@@ -220,15 +226,26 @@ int main(int argc, char **argv) {
         }
 
         case AT_SETTINGS: {
-            if (fonts.get_settings_vec_size() > 0) {
-                rend.render_set_settings_text(sdl2->get_stored_window_size(),
-                                              fonts.get_settings_vec(),
-                                              key.get_settings_cursor());
-                rend.render_draw_settings_text(fonts.get_settings_vec(),
-                                               key.get_settings_cursor());
+            switch (*rend.get_setting_render_mode()) {
+            default: {
+                break;
+            }
 
-                rend.render_set_option_values(sdl2->get_stored_window_size(), fonts.get_settings_vec(), key.get_settings_cursor(), fft->get_settings());
-                rend.render_draw_option_value(themes.get_primary());
+            case FLOATS: {
+                rend.render_draw_float_settings(
+                    fonts.get_float_settings_vec(),
+                    sdl2->get_stored_window_size(), themes.get_tertiary(),
+                    themes.get_textbg(), key.get_settings_cursor());
+                break;
+            }
+
+            case INTS: {
+                rend.render_draw_int_settings(
+                    fonts.get_int_settings_vec(),
+                    sdl2->get_stored_window_size(), themes.get_tertiary(),
+                    themes.get_textbg(), key.get_settings_cursor());
+                break;
+            }
             }
         }
 

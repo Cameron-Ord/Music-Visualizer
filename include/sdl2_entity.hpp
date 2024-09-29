@@ -1,7 +1,6 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
 #include "defines.hpp"
-
 class SDL2INTERNAL {
   public:
     ~SDL2INTERNAL();

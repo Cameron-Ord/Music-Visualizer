@@ -5,7 +5,8 @@ SDL2Fonts::SDL2Fonts() {
     font_path = "dogicapixel.ttf";
     font_size = 16;
     character_limit = 50;
-    setting_names = {"Smoothing", "Smears", "Pre-Emphasis", "Highpass Filtering"};
+    setting_names = { "Smoothing", "Smears", "Pre-Emphasis",
+                      "Highpass Filtering" };
 }
 
 SDL2Fonts::~SDL2Fonts() {}
@@ -17,6 +18,26 @@ bool SDL2Fonts::open_font() {
         return false;
     }
     return true;
+}
+
+Text *SDL2Fonts::find_integer_font(int setting_num) {
+    for (size_t i = 0; i < int_nums.size(); i++) {
+        const int from_str = std::stoi(int_nums[i].name);
+        if (from_str == setting_num) {
+            return &int_nums[i];
+        }
+    }
+    return NULL;
+}
+
+Text *SDL2Fonts::find_float_font(float setting_num) {
+    for (size_t i = 0; i < float_nums.size(); i++) {
+        const float from_str = std::stof(float_nums[i].name);
+        if (from_str == setting_num) {
+            return &float_nums[i];
+        }
+    }
+    return NULL;
 }
 
 std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
@@ -113,49 +134,124 @@ void SDL2Fonts::destroy_allocated_fonts() {
         destroy_file_text(it);
     }
 
-
     song_text_vec.clear();
 
-    for(auto it = settings_text_vec.begin(); it != settings_text_vec.end(); it++){
-         it->tex = destroy_text_texture(it->tex);
+    for (auto it = int_settings_vec.begin(); it != int_settings_vec.end();
+         it++) {
+        it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
     }
-    settings_text_vec.clear();
+
+    int_settings_vec.clear();
+
+    for (auto it = float_settings_vec.begin(); it != float_settings_vec.end();
+         it++) {
+        it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    }
+
+    float_settings_vec.clear();
+
+    for (auto it = float_nums.begin(); it != float_nums.end(); it++) {
+        it->tex = destroy_text_texture(it->tex);
+    }
+    float_nums.clear();
+
+    for (auto it = int_nums.begin(); it != int_nums.end(); it++) {
+        it->tex = destroy_text_texture(it->tex);
+    }
+    int_nums.clear();
 }
 
-void SDL2Fonts::create_float_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
-    for(auto it = float_nums.begin(); it != float_nums.end(); it++){
-         it->tex = destroy_text_texture(it->tex);
+void SDL2Fonts::create_float_number_text(const SDL_Color color, TTF_Font *font,
+                                         SDL_Renderer *r) {
+    for (auto it = float_nums.begin(); it != float_nums.end(); it++) {
+        it->tex = destroy_text_texture(it->tex);
+    }
+    float_nums.clear();
+
+    int id = 0;
+    for (float i = 0.0f; i < 1.0f; i += 0.01) {
+        Text tmp = create_text(std::to_string(i), font, r, id, color);
+        if (tmp.is_valid) {
+            float_nums.push_back(tmp);
+        }
+        id++;
     }
 }
 
-void SDL2Fonts::create_integer_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
-    for(auto it = float_nums.begin(); it != float_nums.end(); it++){
-         it->tex = destroy_text_texture(it->tex);
+void SDL2Fonts::create_integer_number_text(const SDL_Color color,
+                                           TTF_Font *font, SDL_Renderer *r) {
+    for (auto it = int_nums.begin(); it != int_nums.end(); it++) {
+        it->tex = destroy_text_texture(it->tex);
     }
-}
+    int_nums.clear();
 
-void SDL2Fonts::create_settings_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
-    for(auto it = settings_text_vec.begin(); it != settings_text_vec.end(); it++){
-         it->tex = destroy_text_texture(it->tex);
-    }
-
-    settings_text_vec.clear();
-
-    for(size_t i = 0; i < setting_names.size(); i++){
-        size_t id = i;
-        Text tmp = create_text(setting_names[i], font, r, id, color);
-        if(tmp.is_valid){
-            settings_text_vec.push_back(tmp);
+    for (int i = 0; i < 20; i++) {
+        Text tmp = create_text(std::to_string(i), font, r, i, color);
+        if (tmp.is_valid) {
+            int_nums.push_back(tmp);
         }
     }
 }
 
-std::vector<Text> *SDL2Fonts::get_settings_vec(){
-    return &settings_text_vec;
+void SDL2Fonts::create_settings_text(const SDL_Color color, TTF_Font *font,
+                                     SDL_Renderer *r,
+                                     const FFTSettings *fft_settings) {
+    for (auto it = int_settings_vec.begin(); it != int_settings_vec.end();
+         it++) {
+        it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    }
+
+    for (auto it = float_settings_vec.begin(); it != float_settings_vec.end();
+         it++) {
+        it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    }
+
+    int_settings_vec.clear();
+    float_settings_vec.clear();
+
+    const std::vector<std::string> int_setting_names = { "Smoothing",
+                                                         "Smears" };
+    const std::vector<const int *> int_setting_ptrs = {
+        &fft_settings->smoothing_amount, &fft_settings->smearing_amount
+    };
+    const std::vector<std::string> float_setting_names = {
+        "Pre-Emphasis", "Highpass Filtering"
+    };
+    const std::vector<const float *> float_setting_ptrs = {
+        &fft_settings->filter_alpha, &fft_settings->filter_coeff
+    };
+
+    for (size_t i = 0; i < int_setting_names.size(); i++) {
+        size_t id = i;
+        Text tmp = create_text(int_setting_names[i], font, r, id, color);
+        SettingTextInt tmp_int;
+        if (tmp.is_valid) {
+            tmp_int.setting_text = tmp;
+            tmp_int.setting_value_ptr = int_setting_ptrs[i];
+            tmp_int.setting_value_rect = { 0, 0, 0, 0 };
+            int_settings_vec.push_back(tmp_int);
+        }
+    }
+
+    for (size_t i = 0; i < float_setting_names.size(); i++) {
+        size_t id = i;
+        Text tmp = create_text(float_setting_names[i], font, r, id, color);
+        SettingTextFloat tmp_float;
+        if (tmp.is_valid) {
+            tmp_float.setting_text = tmp;
+            tmp_float.setting_value_ptr = float_setting_ptrs[i];
+            tmp_float.setting_value_rect = { 0, 0, 0, 0 };
+            float_settings_vec.push_back(tmp_float);
+        }
+    }
 }
 
-size_t SDL2Fonts::get_settings_vec_size(){
-    return settings_text_vec.size();
+std::vector<SettingTextInt> *SDL2Fonts::get_int_settings_vec() {
+    return &int_settings_vec;
+}
+
+std::vector<SettingTextFloat> *SDL2Fonts::get_float_settings_vec() {
+    return &float_settings_vec;
 }
 
 void SDL2Fonts::create_dir_text(const std::vector<Directory> d, SDL_Renderer *r,
@@ -270,14 +366,7 @@ Text SDL2Fonts::create_text(const std::string text, TTF_Font *font,
                             SDL_Renderer *r, const size_t text_id,
                             const SDL_Color color) {
     Text text_entity = {
-         NULL,
-         NULL,
-         { 0, 0, 0, 0 },
-         0,
-         0,
-        text_id,
-        false,
-        text,
+        NULL, NULL, { 0, 0, 0, 0 }, 0, 0, text_id, false, text,
     };
 
     std::string text_cpy = text;
@@ -296,7 +385,7 @@ Text SDL2Fonts::create_text(const std::string text, TTF_Font *font,
         return text_entity;
     }
 
-    SDL_Rect tmp = { 0,  0, surf_ptr->w, surf_ptr->h };
+    SDL_Rect tmp = { 0, 0, surf_ptr->w, surf_ptr->h };
 
     text_entity.rect = tmp;
     text_entity.tex = tex_ptr;

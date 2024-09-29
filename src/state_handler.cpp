@@ -45,7 +45,8 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     SDL2KeyInputs *key = sdl2_w->key;
     SDL2Fonts *fonts = sdl2_w->fonts;
-    FourierTransform* fft = std->fft;
+    SDL2Renderer *rend = sdl2_w->rend;
+    FourierTransform *fft = std->fft;
 
     switch (sym) {
     default: {
@@ -53,191 +54,210 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
     }
 
     case UP: {
-        const std::vector<Text> *setting_text_vec = fonts->get_settings_vec();
-        const std::string setting_name = (*setting_text_vec)[*key->get_settings_cursor()].name;
 
-        if(setting_name == "Smoothing"){
-            const int current = fft->get_settings()->smoothing_amount;
-            int mut_current = current;
-            mut_current += 1;
-
-            if(mut_current > MAX_SMOOTHING){
-                mut_current = MAX_SMOOTHING;
-            }
-
-            if(mut_current < MIN_SMOOTHING){
-                mut_current = MIN_SMOOTHING;
-            }
-
-            fft->set_smoothing(mut_current);
+        switch (*rend->get_setting_render_mode()) {
+        default: {
             break;
         }
 
-        if(setting_name == "Smears"){
-            const int current = fft->get_settings()->smearing_amount;
-            int mut_current = current;
-            mut_current += 1;
+        case INTS: {
+            if (SDL_Keymod(mod & KMOD_SHIFT)) {
+                std::vector<SettingTextInt> *i = fonts->get_int_settings_vec();
+                int mutable_value =
+                    *(*i)[*key->get_settings_cursor()].setting_value_ptr;
+                mutable_value += 1;
 
-            if(mut_current > MAX_SMEARS){
-                mut_current = MAX_SMEARS;
+                if (mutable_value > INT_SETTING_MAX) {
+                    mutable_value = INT_SETTING_MAX;
+                }
+
+                std::string setting_name =
+                    (*i)[*key->get_settings_cursor()].setting_text.name;
+
+                if (setting_name == "Smoothing") {
+                    fft->set_smoothing(mutable_value);
+                } else if (setting_name == "Smears") {
+                    fft->set_smear(mutable_value);
+                }
+
+            } else {
+                int signed_index =
+                    static_cast<int>(*key->get_settings_cursor());
+
+                signed_index -= 1;
+                if (signed_index < 0) {
+                    signed_index = 0;
+                }
+
+                key->set_settings_cursor(static_cast<size_t>(signed_index));
             }
-
-            if(mut_current < MIN_SMEARS){
-                mut_current = MIN_SMEARS;
-            }
-
-            fft->set_smear(mut_current);
             break;
         }
 
-        if(setting_name == "Pre-Emphasis"){
-            const float current = fft->get_settings()->filter_alpha;
-            float mut_current = current;
-            mut_current += 0.05;
+        case FLOATS: {
+            if (SDL_Keymod(mod & KMOD_SHIFT)) {
+                std::vector<SettingTextFloat> *f =
+                    fonts->get_float_settings_vec();
+                float mutable_value =
+                    *(*f)[*key->get_settings_cursor()].setting_value_ptr;
+                mutable_value += 0.01;
 
-            if(mut_current > 1.0){
-                mut_current = 1.0;
+                if (mutable_value > FLOAT_SETTING_MAX) {
+                    mutable_value = FLOAT_SETTING_MAX;
+                }
+
+                std::string setting_name =
+                    (*f)[*key->get_settings_cursor()].setting_text.name;
+
+                if (setting_name == "Highpass Filtering") {
+                    fft->set_filter(mutable_value);
+                } else if (setting_name == "Pre-Emphasis") {
+                    fft->set_alpha(mutable_value);
+                }
+            } else {
+                int signed_index =
+                    static_cast<int>(*key->get_settings_cursor());
+
+                signed_index -= 1;
+                if (signed_index < 0) {
+                    signed_index = 0;
+                }
+
+                key->set_settings_cursor(static_cast<size_t>(signed_index));
             }
-
-            if(mut_current < 0.0){
-                mut_current = 0.0;
-            }
-
-            fft->set_alpha(mut_current);
             break;
         }
-
-        if(setting_name == "Highpass Filtering"){
-            const float current = fft->get_settings()->filter_coeff;
-            float mut_current = current;
-            mut_current += 0.05;
-
-            if(mut_current > 1.0){
-                mut_current = 1.0;
-            }
-
-            if(mut_current < 0.0){
-                mut_current = 0.0;
-            }
-
-            fft->set_filter(mut_current);
-            break;
         }
-
         break;
     }
 
     case DOWN: {
-        const std::vector<Text> *setting_text_vec = fonts->get_settings_vec();
-        const std::string setting_name = (*setting_text_vec)[*key->get_settings_cursor()].name;
-
-        if(setting_name == "Smoothing"){
-            const int current = fft->get_settings()->smoothing_amount;
-            int mut_current = current;
-            mut_current -= 1;
-
-            if(mut_current > MAX_SMOOTHING){
-                mut_current = MAX_SMOOTHING;
-            }
-
-            if(mut_current < MIN_SMOOTHING){
-                mut_current = MIN_SMOOTHING;
-            }
-
-            fft->set_smoothing(mut_current);
+        switch (*rend->get_setting_render_mode()) {
+        default: {
             break;
         }
 
-        if(setting_name == "Smears"){
-            const int current = fft->get_settings()->smearing_amount;
-            int mut_current = current;
-            mut_current -= 1;
+        case INTS: {
+            if (SDL_Keymod(mod & KMOD_SHIFT)) {
+                std::vector<SettingTextInt> *i = fonts->get_int_settings_vec();
+                int mutable_value =
+                    *(*i)[*key->get_settings_cursor()].setting_value_ptr;
+                mutable_value -= 1;
 
-            if(mut_current > MAX_SMEARS){
-                mut_current = MAX_SMEARS;
+                if (mutable_value < INT_SETTING_MIN) {
+                    mutable_value = INT_SETTING_MIN;
+                }
+
+                std::string setting_name =
+                    (*i)[*key->get_settings_cursor()].setting_text.name;
+
+                if (setting_name == "Smoothing") {
+                    fft->set_smoothing(mutable_value);
+                } else if (setting_name == "Smears") {
+                    fft->set_smear(mutable_value);
+                }
+            } else {
+
+                int size =
+                    static_cast<int>(fonts->get_int_settings_vec()->size());
+                int signed_index =
+                    static_cast<int>(*key->get_settings_cursor());
+
+                signed_index += 1;
+                if (signed_index > size - 1) {
+                    signed_index = size - 1;
+                }
+
+                key->set_settings_cursor(static_cast<size_t>(signed_index));
             }
-
-            if(mut_current < MIN_SMEARS){
-                mut_current = MIN_SMEARS;
-            }
-
-            fft->set_smear(mut_current);
             break;
         }
 
-        if(setting_name == "Pre-Emphasis"){
-            const float current = fft->get_settings()->filter_alpha;
-            float mut_current = current;
-            mut_current -= 0.05;
+        case FLOATS: {
+            if (SDL_Keymod(mod & KMOD_SHIFT)) {
+                std::vector<SettingTextFloat> *f =
+                    fonts->get_float_settings_vec();
+                float mutable_value =
+                    *(*f)[*key->get_settings_cursor()].setting_value_ptr;
+                mutable_value -= 0.01;
 
-            if(mut_current > 1.0){
-                mut_current = 1.0;
+                if (mutable_value < FLOAT_SETTING_MIN) {
+                    mutable_value = FLOAT_SETTING_MIN;
+                }
+
+                std::string setting_name =
+                    (*f)[*key->get_settings_cursor()].setting_text.name;
+
+                if (setting_name == "Highpass Filtering") {
+                    fft->set_filter(mutable_value);
+                } else if (setting_name == "Pre-Emphasis") {
+                    fft->set_alpha(mutable_value);
+                }
+            } else {
+
+                int size =
+                    static_cast<int>(fonts->get_float_settings_vec()->size());
+                int signed_index =
+                    static_cast<int>(*key->get_settings_cursor());
+
+                signed_index += 1;
+                if (signed_index > size - 1) {
+                    signed_index = size - 1;
+                }
+
+                key->set_settings_cursor(static_cast<size_t>(signed_index));
             }
-
-            if(mut_current < 0.0){
-                mut_current = 0.0;
-            }
-
-            fft->set_alpha(mut_current);
             break;
         }
-
-        if(setting_name == "Highpass Filtering"){
-            const float current = fft->get_settings()->filter_coeff;
-            float mut_current = current;
-            mut_current -= 0.05;
-
-            if(mut_current > 1.0){
-                mut_current = 1.0;
-            }
-
-            if(mut_current < 0.0){
-                mut_current = 0.0;
-            }
-
-            fft->set_filter(mut_current);
-            break;
         }
         break;
     }
 
     case LEFT: {
         if (SDL_Keymod(mod & KMOD_SHIFT)) {
-            const size_t length = fonts->get_settings_vec_size();
-            const size_t *settings_cursor = key->get_settings_cursor();
-            int signed_index = static_cast<int>(*settings_cursor);
-
-            signed_index -= 1;
-            if (signed_index < 0) {
-                signed_index = static_cast<int>(length) - 1;
+            switch (*rend->get_setting_render_mode()) {
+            default: {
+                break;
+            }
+            case INTS: {
+                rend->set_setting_render_mode(FLOATS);
+                break;
             }
 
-            key->set_settings_cursor(static_cast<size_t>(signed_index));
-            break;
-        }
-
-        if (*sdl2_ad->get_stream_flag() == PLAYING ||
-            *sdl2_ad->get_stream_flag() == PAUSED) {
-            sdl2->set_current_user_state(LISTENING);
+            case FLOATS: {
+                rend->set_setting_render_mode(INTS);
+                break;
+            }
+            }
+        } else {
+            if (*sdl2_ad->get_stream_flag() == PLAYING ||
+                *sdl2_ad->get_stream_flag() == PAUSED) {
+                sdl2->set_current_user_state(LISTENING);
+            }
         }
         break;
     }
 
     case RIGHT: {
         if (SDL_Keymod(mod & KMOD_SHIFT)) {
-            const size_t length = fonts->get_settings_vec_size();
-            const size_t *settings_cursor = key->get_settings_cursor();
-            int signed_index = static_cast<int>(*settings_cursor);
-
-            signed_index += 1;
-            if (signed_index > static_cast<int>(length) - 1) {
-                signed_index = 0;
+            switch (*rend->get_setting_render_mode()) {
+            default: {
+                break;
             }
 
-            key->set_settings_cursor(static_cast<size_t>(signed_index));
-            break;
+            case INTS: {
+                rend->set_setting_render_mode(FLOATS);
+                break;
+            }
+
+            case FLOATS: {
+                rend->set_setting_render_mode(INTS);
+                break;
+            }
+            }
+        } else {
+            sdl2->set_current_user_state(AT_DIRECTORIES);
         }
-        sdl2->set_current_user_state(AT_DIRECTORIES);
         break;
     }
     }

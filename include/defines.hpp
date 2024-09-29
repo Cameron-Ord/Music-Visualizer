@@ -55,6 +55,11 @@ struct WIN_SIZE {
     int HEIGHT;
 };
 
+typedef enum{
+    FLOATS = 0,
+    INTS = 1,
+} SETTING_RENDER_MODE;
+
 typedef enum {
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
@@ -145,6 +150,19 @@ struct FFTSettings {
     int smearing_amount;
     float filter_coeff;
     float filter_alpha;
+};
+
+struct SettingTextInt{
+    Text setting_text;
+    const int *setting_value_ptr;
+    SDL_Rect setting_value_rect;
+};
+
+
+struct SettingTextFloat{
+    Text setting_text;
+    const float *setting_value_ptr;
+    SDL_Rect setting_value_rect;
 };
 
 typedef Icon Icon;

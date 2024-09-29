@@ -38,15 +38,19 @@ class SDL2Fonts {
 
     void create_float_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
     void create_integer_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
-    void create_settings_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
-    std::vector<Text> *get_settings_vec();
-    size_t get_settings_vec_size(); 
+    void create_settings_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r, const FFTSettings *fft_settings);
+    
+    std::vector<SettingTextInt> *get_int_settings_vec();
+    std::vector<SettingTextFloat> *get_float_settings_vec(); 
+    Text* find_integer_font(int setting_num);
+    Text* find_float_font(float setting_num);
 
   private:
     std::vector<Text>float_nums;
     std::vector<Text>int_nums;
     std::vector<std::string> setting_names;
-    std::vector<Text> settings_text_vec;
+    std::vector<SettingTextInt> int_settings_vec;
+    std::vector<SettingTextFloat> float_settings_vec;
     std::vector<std::vector<Text>> dir_text_vec;
     std::vector<std::vector<Text>> song_text_vec;
     std::string font_path;
