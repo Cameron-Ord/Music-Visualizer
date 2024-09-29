@@ -55,6 +55,10 @@ file(GLOB SOURCES "src/*.cpp")
 
 add_executable(Vis WIN32 ${SOURCES})
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(Vis PRIVATE -Wall -Wextra -pedantic)
+endif()
+
 if(WIN32)
   target_include_directories(Vis PUBLIC "C:/msys64/mingw64/include")
   target_compile_definitions(Vis PUBLIC SDL_MAIN_HANDLED)

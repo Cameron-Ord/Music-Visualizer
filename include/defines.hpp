@@ -27,23 +27,21 @@ class ProgramFiles;
 class FourierTransform;
 class ProgramThemes;
 
-
 struct USERDATA {
-  class SDL2Audio *sdl2_ad;
-  class AudioData *ad;
-  class FourierTransform *fft;
+    class SDL2Audio *sdl2_ad;
+    class AudioData *ad;
+    class FourierTransform *fft;
 };
 
-struct StdClassWrapper{
- AudioData *ad;
- ProgramPath *pathing;
- ProgramFiles *files;
- FourierTransform *fft;
- ProgramThemes *themes;
-
+struct StdClassWrapper {
+    AudioData *ad;
+    ProgramPath *pathing;
+    ProgramFiles *files;
+    FourierTransform *fft;
+    ProgramThemes *themes;
 };
 
-struct SDL2Wrapper{
+struct SDL2Wrapper {
     SDL2INTERNAL *sdl2;
     SDL2Audio *sdl2_ad;
     SDL2Renderer *rend;
@@ -57,20 +55,18 @@ struct WIN_SIZE {
     int HEIGHT;
 };
 
-
 typedef enum {
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
     LISTENING = 2,
 } USER_STATE;
 
-
 typedef enum {
     Q = SDLK_q,
     UP = SDLK_UP,
     DOWN = SDLK_DOWN,
     LEFT = SDLK_LEFT,
-    RIGHT = SDLK_RIGHT,  
+    RIGHT = SDLK_RIGHT,
     ENTER = SDLK_RETURN,
     BACKSPACE = SDLK_BACKSPACE,
     SPACE = SDLK_SPACE,
@@ -78,9 +74,8 @@ typedef enum {
     P_KEY = SDLK_p,
 } SDL_KEYCODES_ENUM;
 
-typedef enum {STOPPED = 0, PLAYING = 1, PAUSED = 2} STREAM_FLAGS;
-typedef enum {WAITING= 0, NEXT = 1} PB_FLAGS;
-
+typedef enum { STOPPED = 0, PLAYING = 1, PAUSED = 2 } STREAM_FLAGS;
+typedef enum { WAITING = 0, NEXT = 1 } PB_FLAGS;
 
 void callback(void *data, uint8_t *stream, int len);
 
@@ -105,15 +100,15 @@ struct FData {
 };
 
 struct AudioDataContainer {
-  float *buffer;
-  uint32_t length;
-  uint32_t position;
-  size_t samples;
-  size_t bytes;
-  int channels;
-  int SR;
-  int format;
-  float volume;
+    float *buffer;
+    uint32_t length;
+    uint32_t position;
+    size_t samples;
+    size_t bytes;
+    int channels;
+    int SR;
+    int format;
+    float volume;
 };
 
 struct Icon {

@@ -98,7 +98,7 @@ std::string SDL2KeyInputs::check_cursor_move(size_t vec_size,
 
     } else if (direction == "DOWN") {
         signed_cursor += 1;
-        if (signed_cursor > vec_size - 1) {
+        if (signed_cursor > signed_size - 1) {
             return "MAX";
         }
         return "SAFE";

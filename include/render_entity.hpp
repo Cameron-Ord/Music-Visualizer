@@ -2,7 +2,6 @@
 #define RENDER_ENTITY_HPP
 #include "defines.hpp"
 
-
 struct Coordinates {
     int x;
     int y;

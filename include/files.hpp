@@ -3,7 +3,6 @@
 
 #include "defines.hpp"
 
-
 class ProgramFiles {
   public:
     ProgramFiles();

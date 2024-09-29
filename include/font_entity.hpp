@@ -3,7 +3,6 @@
 
 #include "defines.hpp"
 
-
 class SDL2Fonts {
   public:
     SDL2Fonts();
@@ -33,7 +32,8 @@ class SDL2Fonts {
     size_t get_song_vec_size();
     std::vector<Text> *retrieve_indexed_dir_textvector(size_t index);
     std::vector<Text> *retrieve_indexed_song_textvector(size_t index);
-    std::string check_vector_index(size_t ttl_vec_size, const size_t *index, std::string direction);
+    std::string check_vector_index(size_t ttl_vec_size, const size_t *index,
+                                   std::string direction);
 
   private:
     std::vector<std::vector<Text>> dir_text_vec;

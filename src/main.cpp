@@ -28,18 +28,9 @@ int main(int argc, char **argv) {
     ProgramFiles files;
     SDL2Fonts fonts;
 
-    StdClassWrapper std = { .ad = ad,
-                            .pathing = &pathing,
-                            .files = &files,
-                            .fft = fft,
-                            .themes = &themes };
+    StdClassWrapper std = { ad, &pathing, &files, fft, &themes };
 
-    SDL2Wrapper sdl2_w = { .sdl2 = sdl2,
-                           .sdl2_ad = &sdl2_ad,
-                           .rend = &rend,
-                           .win = &win,
-                           .key = &key,
-                           .fonts = &fonts };
+    SDL2Wrapper sdl2_w = { sdl2, &sdl2_ad, &rend, &win, &key, &fonts };
 
     userdata->ad = ad;
     userdata->sdl2_ad = &sdl2_ad;

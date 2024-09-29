@@ -2,7 +2,6 @@
 #include "../include/render_entity.hpp"
 #include "../include/window_entity.hpp"
 #include "../include/events.hpp"
-#include "../include/fft.hpp"
 #include "../include/files.hpp"
 #include "../include/font_entity.hpp"
 #include "../include/switch.hpp"
@@ -42,11 +41,8 @@ void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std,
     ProgramPath *pathing = std->pathing;
     SDL2KeyInputs *key = sdl2_w->key;
     AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
-    SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
-    ProgramThemes *themes = std->themes;
 
     sdl2_ad->set_flag(WAITING, sdl2_ad->get_next_song_flag());
     sdl2_ad->set_flag(PAUSED, sdl2_ad->get_stream_flag());
@@ -87,8 +83,6 @@ void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std,
     if (font_song_vec_size > 0 && files_size > 0) {
         if (*r_song_vec_index > font_song_vec_size) {
             return;
-        } else if (*r_song_vec_index < 0) {
-            return;
         }
 
         std::string filename;
@@ -114,11 +108,8 @@ void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std,
 
 void select_directory(StdClassWrapper *std, SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
-    SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     ProgramPath *pathing = std->pathing;
     SDL2KeyInputs *key = sdl2_w->key;
-    AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
     SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
@@ -131,8 +122,6 @@ void select_directory(StdClassWrapper *std, SDL2Wrapper *sdl2_w) {
 
     if (font_dir_vec_size > 0 && directories_size > 0) {
         if (*virt_dir_vec_index > font_dir_vec_size) {
-            return;
-        } else if (*virt_dir_vec_index < 0) {
             return;
         }
 
@@ -172,11 +161,8 @@ void select_song(StdClassWrapper *std, SDL2Wrapper *sdl2_w,
     ProgramPath *pathing = std->pathing;
     SDL2KeyInputs *key = sdl2_w->key;
     AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
-    SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
-    ProgramThemes *themes = std->themes;
 
     sdl2_ad->set_flag(PAUSED, sdl2_ad->get_stream_flag());
     sdl2_ad->pause_audio();
@@ -189,8 +175,6 @@ void select_song(StdClassWrapper *std, SDL2Wrapper *sdl2_w,
 
     if (font_song_vec_size > 0 && files_size > 0) {
         if (*virt_song_vec_index > font_song_vec_size) {
-            return;
-        } else if (*virt_song_vec_index < 0) {
             return;
         }
 
@@ -222,14 +206,10 @@ void directory_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
 
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
-    ProgramPath *pathing = std->pathing;
     SDL2KeyInputs *key = sdl2_w->key;
-    AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
-    SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
-    ProgramThemes *themes = std->themes;
+
     switch (sym) {
     default: {
         break;
@@ -338,14 +318,8 @@ void song_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
                           SDL2Wrapper *sdl2_w, USERDATA *userdata) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
-    ProgramPath *pathing = std->pathing;
     SDL2KeyInputs *key = sdl2_w->key;
-    AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
-    SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;
-    ProgramFiles *files = std->files;
-    ProgramThemes *themes = std->themes;
 
     switch (sym) {
     default: {
@@ -451,14 +425,6 @@ void playback_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
                               SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
-    ProgramPath *pathing = std->pathing;
-    SDL2KeyInputs *key = sdl2_w->key;
-    AudioData *ad = std->ad;
-    SDL2Window *win = sdl2_w->win;
-    SDL2Renderer *rend = sdl2_w->rend;
-    SDL2Fonts *fonts = sdl2_w->fonts;
-    ProgramFiles *files = std->files;
-    ProgramThemes *themes = std->themes;
     switch (sym) {
     default: {
         break;
@@ -494,10 +460,6 @@ void playback_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
 void handle_window_event(std::uint8_t event, StdClassWrapper *std,
                          SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
-    SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
-    ProgramPath *pathing = std->pathing;
-    SDL2KeyInputs *key = sdl2_w->key;
-    AudioData *ad = std->ad;
     SDL2Window *win = sdl2_w->win;
     SDL2Renderer *rend = sdl2_w->rend;
     SDL2Fonts *fonts = sdl2_w->fonts;

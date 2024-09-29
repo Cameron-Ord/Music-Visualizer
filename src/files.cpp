@@ -7,10 +7,10 @@ ProgramFiles::ProgramFiles() {
     };
 
     for (std::string file_name_str : gfx_file_names) {
-        Icon tmp = { .file_name = file_name_str,
-                     .texture = NULL,
-                     .surface = NULL,
-                     .is_valid = 0 };
+        Icon tmp = { file_name_str,
+                      NULL,
+                      NULL,
+                      0 };
         icons_vec.push_back(tmp);
     }
 }

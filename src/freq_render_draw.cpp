@@ -6,8 +6,6 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
     const int cell_width = *win_width / *len;
     const int h = *win_height;
 
-    SDL_Rect base_tile_rect = { 0, 0, cell_width, cell_width };
-
     if (bar_end_coords.size() < (*len - 1)) {
         bar_end_coords.resize(*len);
     }
@@ -30,10 +28,10 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 
         box = { end_x_pos, end_y_pos, cell_width, end_bar_height };
 
-        Coordinates end_positions = { .x = end_x_pos,
-                                      .y = end_y_pos,
-                                      .height = end_bar_height,
-                                      .copy_rect = box };
+        Coordinates end_positions = {  end_x_pos,
+                                      end_y_pos,
+                                       end_bar_height,
+                                       box };
 
         const int start_x_pos = (i * space);
         const int start_y_pos = h - static_cast<int>(start * h);
@@ -41,10 +39,10 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 
         box = { start_x_pos, start_y_pos, cell_width, start_bar_height };
 
-        Coordinates start_positions = { .x = start_x_pos,
-                                        .y = start_y_pos,
-                                        .height = start_bar_height,
-                                        .copy_rect = box };
+        Coordinates start_positions = { start_x_pos,
+                                        start_y_pos,
+                                        start_bar_height,
+                                        box };
 
         bar_end_coords[i] = end_positions;
         bar_start_coords[i] = start_positions;

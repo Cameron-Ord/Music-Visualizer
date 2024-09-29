@@ -1,5 +1,4 @@
 #include "../include/font_entity.hpp"
-#include <iostream>
 
 SDL2Fonts::SDL2Fonts() {
     font = NULL;
@@ -25,7 +24,7 @@ std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
     int signed_size = static_cast<int>(ttl_vec_size);
     int signed_index = static_cast<int>(*index);
 
-    if (ttl_vec_size - 1 < 0) {
+    if (signed_size - 1 < 0) {
         return "EMPTY";
     }
 
@@ -37,7 +36,7 @@ std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
         return "SAFE";
     } else if (direction == "DOWN") {
         signed_index += 1;
-        if (signed_index > ttl_vec_size - 1) {
+        if (signed_index > signed_size - 1) {
             return "MAX";
         }
         return "SAFE";
@@ -228,14 +227,14 @@ Text SDL2Fonts::create_text(const std::string text, TTF_Font *font,
                             SDL_Renderer *r, const size_t text_id,
                             const SDL_Color color) {
     Text text_entity = {
-        .tex = NULL,
-        .surf = NULL,
-        .rect = { 0, 0, 0, 0 },
-        .width = 0,
-        .height = 0,
-        .id = text_id,
-        .is_valid = false,
-        .name = text,
+         NULL,
+         NULL,
+         { 0, 0, 0, 0 },
+         0,
+         0,
+        text_id,
+        false,
+        text,
     };
 
     std::string text_cpy = text;
@@ -254,7 +253,7 @@ Text SDL2Fonts::create_text(const std::string text, TTF_Font *font,
         return text_entity;
     }
 
-    SDL_Rect tmp = { .x = 0, .y = 0, .w = surf_ptr->w, .h = surf_ptr->h };
+    SDL_Rect tmp = { 0,  0, surf_ptr->w, surf_ptr->h };
 
     text_entity.rect = tmp;
     text_entity.tex = tex_ptr;

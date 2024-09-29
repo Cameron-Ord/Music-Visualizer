@@ -2,7 +2,6 @@
 #define PROGRAM_PATH_HPP
 #include "defines.hpp"
 
-
 class ProgramPath {
   public:
     ProgramPath();

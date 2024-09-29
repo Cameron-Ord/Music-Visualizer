@@ -2,7 +2,6 @@
 #define WINDOW_ENTITY_HPP
 #include <SDL2/SDL.h>
 
-
 class SDL2Window {
   public:
     SDL2Window();

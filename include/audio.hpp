@@ -4,8 +4,6 @@
 #include "defines.hpp"
 #include <sndfile.h>
 
-
-
 class AudioData {
   public:
     AudioData();
