@@ -10,4 +10,4 @@ if [ -e "/c/msys64/mingw64/bin/g++.exe" ]; then
 fi
 
 cd build
-mingw32-make
+mingw32-make -j8

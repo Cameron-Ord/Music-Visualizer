@@ -96,7 +96,7 @@ void FourierTransform::generate_visual(AudioDataContainer *ad) {
     pre_emphasis();
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
     extract_frequencies();
-    high_pass_filter(ad->SR, 1000.0f);
+    high_pass_filter(ad->SR, 600.0f);
     squash_to_log(HALF_BUFF);
     apply_smoothing();
     apply_smear();
