@@ -218,8 +218,7 @@ void SDL2Fonts::create_settings_text(const SDL_Color color, TTF_Font *font,
         "Low Range Filtering", "Mid Range Filtering", "High Range Filtering"
     };
     const std::vector<const float *> float_setting_ptrs = {
-        &fft_settings->filter_coeffs[0],
-        &fft_settings->filter_coeffs[1], 
+        &fft_settings->filter_coeffs[0], &fft_settings->filter_coeffs[1],
         &fft_settings->filter_coeffs[2]
     };
 

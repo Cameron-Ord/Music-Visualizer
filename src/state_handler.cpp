@@ -106,7 +106,8 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                     mutable_value = FLOAT_SETTING_MAX;
                 }
 
-                fft->set_filter_coeff(*key->get_settings_cursor(), mutable_value);
+                fft->set_filter_coeff(*key->get_settings_cursor(),
+                                      mutable_value);
 
             } else {
                 int signed_index =
@@ -179,7 +180,8 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                     mutable_value = FLOAT_SETTING_MIN;
                 }
 
-                fft->set_filter_coeff(*key->get_settings_cursor(), mutable_value);
+                fft->set_filter_coeff(*key->get_settings_cursor(),
+                                      mutable_value);
             } else {
 
                 int size =

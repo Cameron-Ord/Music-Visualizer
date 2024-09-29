@@ -1,17 +1,17 @@
 #include "../include/theme.hpp"
 
 ProgramThemes::ProgramThemes() {
-    SDL_Color primary_nord = { 129, 161, 193, 255 };
-    SDL_Color secondary_nord = { 46, 52, 64, 255 };
-    SDL_Color tertiary_nord = { 136, 192, 208, 255 };
-    SDL_Color text_nord = { 216, 222, 233, 255 };
-    SDL_Color text_bg_nord = { 94, 129, 172, 255 };
+    SDL_Color primary = { 189, 147, 249, 255 };
+    SDL_Color background = { 40 ,42 ,54, 255 };
+    SDL_Color tertiary = { 255 ,121 ,198 , 255 };
+    SDL_Color text = { 80, 250, 123, 255 };
+    SDL_Color text_bg = { 68, 71, 90 , 255 };
 
-    set_color(primary_nord, PRIMARY);
-    set_color(secondary_nord, SECONDARY);
-    set_color(tertiary_nord, TERTIARY);
-    set_color(text_nord, TEXT);
-    set_color(text_bg_nord, TEXT_BG);
+    set_color(primary, PRIMARY);
+    set_color(background, SECONDARY);
+    set_color(tertiary, TERTIARY);
+    set_color(text, TEXT);
+    set_color(text_bg, TEXT_BG);
 }
 
 ProgramThemes::~ProgramThemes() {}

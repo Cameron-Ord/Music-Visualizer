@@ -94,6 +94,7 @@ struct FBuffers {
     float extracted[BUFF_SIZE];
     float phases[BUFF_SIZE];
     float processed[HALF_BUFF];
+    float processed_phases[HALF_BUFF];
     float smoothed[HALF_BUFF];
     float smear[HALF_BUFF];
 };
@@ -102,6 +103,7 @@ struct FData {
     int cell_width;
     size_t output_len;
     float max_ampl;
+    float max_phase;
     SDL_Rect *rect_buff;
     float hamming_values[BUFF_SIZE];
 };

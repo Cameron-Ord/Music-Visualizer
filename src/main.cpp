@@ -219,9 +219,11 @@ int main(int argc, char **argv) {
             const WIN_SIZE *sizes = sdl2->get_stored_window_size();
             rend.render_set_bars(&fft->get_data()->output_len, &sizes->HEIGHT,
                                  &sizes->WIDTH, fft->get_bufs()->smear,
-                                 fft->get_bufs()->smoothed);
+                                 fft->get_bufs()->smoothed,
+                                 fft->get_bufs()->processed_phases);
             rend.render_draw_bars(&fft->get_data()->output_len,
-                                  themes.get_primary(), themes.get_textbg());
+                                  themes.get_primary(), themes.get_tertiary(),
+                                  fft->get_bufs()->processed_phases);
             break;
         }
 
@@ -234,16 +236,16 @@ int main(int argc, char **argv) {
             case FLOATS: {
                 rend.render_draw_float_settings(
                     fonts.get_float_settings_vec(),
-                    sdl2->get_stored_window_size(), themes.get_tertiary(),
-                    themes.get_textbg(), key.get_settings_cursor());
+                    sdl2->get_stored_window_size(), themes.get_primary(),
+                    themes.get_tertiary(), key.get_settings_cursor());
                 break;
             }
 
             case INTS: {
                 rend.render_draw_int_settings(
                     fonts.get_int_settings_vec(),
-                    sdl2->get_stored_window_size(), themes.get_tertiary(),
-                    themes.get_textbg(), key.get_settings_cursor());
+                    sdl2->get_stored_window_size(), themes.get_primary(),
+                    themes.get_tertiary(), key.get_settings_cursor());
                 break;
             }
             }

@@ -30,9 +30,9 @@ class SDL2Renderer {
                             const size_t *cursor_index);
     void render_draw_text_bg(const SDL_Color *rgba);
     void reset_vector_positions();
-    void render_draw_bars(size_t *len, SDL_Color *prim, SDL_Color *sec);
+    void render_draw_bars(size_t *len, SDL_Color *prim, SDL_Color *sec,  float* processed_phases);
     void render_set_bars(const size_t *len, const int *win_height,
-                         const int *win_width, float *smear, float *smooth);
+                         const int *win_width, float *smear, float *smooth, float* processed_phases);
     void set_font_draw_limit(int h);
     const size_t *get_font_draw_limit();
     

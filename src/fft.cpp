@@ -11,12 +11,14 @@ FourierTransform::FourierTransform() {
     settings.smoothing_amount = 7;
     settings.smearing_amount = 5;
 
-    for(size_t i = 0; i < sizeof(settings.filter_coeffs) / sizeof(settings.filter_coeffs[0]); i++){
+    for (size_t i = 0;
+         i < sizeof(settings.filter_coeffs) / sizeof(settings.filter_coeffs[0]);
+         i++) {
         settings.filter_coeffs[i] = 1.0f;
     }
 
-    low_cutoffs = {60.0f, 250.0f, 2000.0f };
-    high_cutoffs = {250.0f, 2000.0f, 5000.0f};
+    low_cutoffs = { 60.0f, 250.0f, 2000.0f };
+    high_cutoffs = { 250.0f, 2000.0f, 5000.0f };
 
     memset(data.hamming_values, 0, sizeof(float) * BUFF_SIZE);
     memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
@@ -25,6 +27,7 @@ FourierTransform::FourierTransform() {
     memset(bufs.phases, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.extracted, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.processed, 0, HALF_BUFF * sizeof(float));
+    memset(bufs.processed_phases, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smoothed, 0, HALF_BUFF * sizeof(float));
     memset(bufs.smear, 0, HALF_BUFF * sizeof(float));
 
@@ -122,14 +125,13 @@ void FourierTransform::hamming_window() {
     }
 }
 
-
 // Y[n]=X[n]−0.90⋅X[n−1]
-//void FourierTransform::pre_emphasis() {
-  //  for (int i = BUFF_SIZE - 1; i > 0; --i) {
+// void FourierTransform::pre_emphasis() {
+//  for (int i = BUFF_SIZE - 1; i > 0; --i) {
 //        float *input = &bufs.pre_raw[i];
-  //      const float last_input = bufs.pre_raw[i - 1];
-   //     *input = *input - settings.filter_alpha * last_input;
-    //}
+//      const float last_input = bufs.pre_raw[i - 1];
+//     *input = *input - settings.filter_alpha * last_input;
+//}
 //}
 
 void FourierTransform::extract_frequencies() {
@@ -143,10 +145,11 @@ void FourierTransform::extract_frequencies() {
 
 void FourierTransform::multi_band_stop(int SR) {
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
-    for(size_t filer_index = 0; filer_index < low_cutoffs.size(); ++filer_index){
+    for (size_t filer_index = 0; filer_index < low_cutoffs.size();
+         ++filer_index) {
         int low_bin = low_cutoffs[filer_index] / freq_bin_size;
         int high_bin = high_cutoffs[filer_index] / freq_bin_size;
-        for(int i = low_bin; i < high_bin; i++){
+        for (int i = low_bin; i < high_bin; i++) {
             bufs.extracted[i] *= settings.filter_coeffs[filer_index];
         }
     }
@@ -156,16 +159,24 @@ void FourierTransform::squash_to_log(size_t size) {
     float step = 1.06f;
     float lowf = 1.0f;
     size_t m = 0;
+    size_t y = 0;
     data.max_ampl = 1.0f;
+    data.max_phase = 1.0f;
 
     for (float f = lowf; (size_t) f < size; f = ceilf(f * step)) {
         float fs = ceilf(f * step);
         float a = 0.0f;
+        float p = 0.0f;
 
         for (size_t q = (size_t) f; q < size && q < (size_t) fs; ++q) {
             float b = amp(bufs.extracted[q]);
             if (b > a) {
                 a = b;
+            }
+
+            float ph = bufs.phases[q];
+            if (ph > p) {
+                p = ph;
             }
         }
 
@@ -173,7 +184,12 @@ void FourierTransform::squash_to_log(size_t size) {
             data.max_ampl = a;
         }
 
+        if (data.max_phase < p) {
+            data.max_phase = p;
+        }
+
         bufs.processed[m++] = a;
+        bufs.processed_phases[y++] = p;
     }
 
     data.output_len = m;
@@ -187,6 +203,7 @@ void FourierTransform::apply_smoothing() {
     const int FPS = 60;
     /*Linear smoothing*/
     for (size_t i = 0; i < data.output_len; ++i) {
+        bufs.processed_phases[i] /= data.max_phase;
         bufs.processed[i] /= data.max_ampl;
         bufs.smoothed[i] += (bufs.processed[i] - bufs.smoothed[i]) *
                             settings.smoothing_amount * (1.0 / FPS);
