@@ -49,7 +49,7 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
                                     SDL_Color *sec, float *processed_phases) {
     for (size_t i = 0; i < *len; ++i) {
-        float hue = 225.0f + (processed_phases[i] * 10.0) - 5.0;
+        float hue = 225.0f + (processed_phases[i] * 15.0) - 5.0;
         hue = fmod(hue, 360.0);
 
         float C = 0.35f; 
