@@ -12,6 +12,48 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
+//   "Smoothing", "Smears", "Pre-Emphasis", "Highpass Filtering"
+//
+void SDL2Renderer::render_set_option_values(const WIN_SIZE *sizes,
+                                            std::vector<Text> *text,
+                                            const size_t *index,
+                                            const FFTSettings *fft_settings) {
+    std::string setting_name = (*text)[*index].name;
+    int font_y = sizes->HEIGHT * 0.6;
+    settings_box = { 0, 0, 0, 0 };
+
+    if (setting_name == "Smoothing") {
+        const float smoothing =
+            static_cast<float>(fft_settings->smoothing_amount) / MAX_SMOOTHING;
+        int font_x = static_cast<int>(smoothing * sizes->WIDTH);
+        settings_box = { font_x- (16 / 2), font_y- (16 / 2), 16, 16 };
+    }
+
+    if (setting_name == "Smears") {
+        const float smears =
+            static_cast<float>(fft_settings->smearing_amount) / MAX_SMEARS;
+        int font_x = static_cast<int>(smears * sizes->WIDTH);
+        settings_box = { font_x- (16 / 2), font_y- (16 / 2), 16, 16 };
+    }
+
+    if (setting_name == "Pre-Emphasis") {
+        const float pre_emph = fft_settings->filter_alpha;
+        int font_x = static_cast<int>(pre_emph * sizes->WIDTH);
+        settings_box = { font_x- (16 / 2), font_y- (16 / 2), 16, 16 };
+    }
+
+    if (setting_name == "Highpass Filtering") {
+        const float highpass = fft_settings->filter_coeff;
+        int font_x = static_cast<int>(highpass * sizes->WIDTH);
+        settings_box = { font_x- (16 / 2), font_y - (16 / 2), 16, 16 };
+    }
+}
+
+void SDL2Renderer::render_draw_option_value(const SDL_Color *rgba) {
+    SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
+    SDL_RenderFillRect(r, &settings_box);
+}
+
 // not used at the moment, but not removing
 void SDL2Renderer::create_sprite_texture() {
     sprite_texture = SDL_CreateTextureFromSurface(r, sprite_surface);
@@ -66,13 +108,13 @@ void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {
     return *r;
 }
 
-void SDL2Renderer::render_clear(SDL_Renderer *r) {
+void SDL2Renderer::render_clear() {
     SDL_RenderClear(r);
 }
-void SDL2Renderer::render_present(SDL_Renderer *r) {
+void SDL2Renderer::render_present() {
     SDL_RenderPresent(r);
 }
-void SDL2Renderer::render_bg(SDL_Renderer *r, SDL_Color *rgba) {
+void SDL2Renderer::render_bg(SDL_Color *rgba) {
     SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
 }
 SDL_Renderer **SDL2Renderer::get_renderer() {

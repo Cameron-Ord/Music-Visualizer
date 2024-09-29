@@ -31,6 +31,9 @@ class SDL2KeyInputs {
     void set_vsong_cursor_index(size_t i);
     void set_vdir_cursor_index(size_t i);
 
+    void set_settings_cursor(size_t i);
+    const size_t *get_settings_cursor();
+
   private:
     size_t virtual_dvec_index;
     size_t virtual_svec_index;
@@ -43,6 +46,8 @@ class SDL2KeyInputs {
 
     size_t cursor_index_dirs;
     size_t cursor_index_songs;
+
+    size_t settings_cursor;
 };
 
 #endif

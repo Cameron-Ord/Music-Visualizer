@@ -5,6 +5,7 @@ SDL2Fonts::SDL2Fonts() {
     font_path = "dogicapixel.ttf";
     font_size = 16;
     character_limit = 50;
+    setting_names = {"Smoothing", "Smears", "Pre-Emphasis", "Highpass Filtering"};
 }
 
 SDL2Fonts::~SDL2Fonts() {}
@@ -112,7 +113,49 @@ void SDL2Fonts::destroy_allocated_fonts() {
         destroy_file_text(it);
     }
 
+
     song_text_vec.clear();
+
+    for(auto it = settings_text_vec.begin(); it != settings_text_vec.end(); it++){
+         it->tex = destroy_text_texture(it->tex);
+    }
+    settings_text_vec.clear();
+}
+
+void SDL2Fonts::create_float_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
+    for(auto it = float_nums.begin(); it != float_nums.end(); it++){
+         it->tex = destroy_text_texture(it->tex);
+    }
+}
+
+void SDL2Fonts::create_integer_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
+    for(auto it = float_nums.begin(); it != float_nums.end(); it++){
+         it->tex = destroy_text_texture(it->tex);
+    }
+}
+
+void SDL2Fonts::create_settings_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r){
+    for(auto it = settings_text_vec.begin(); it != settings_text_vec.end(); it++){
+         it->tex = destroy_text_texture(it->tex);
+    }
+
+    settings_text_vec.clear();
+
+    for(size_t i = 0; i < setting_names.size(); i++){
+        size_t id = i;
+        Text tmp = create_text(setting_names[i], font, r, id, color);
+        if(tmp.is_valid){
+            settings_text_vec.push_back(tmp);
+        }
+    }
+}
+
+std::vector<Text> *SDL2Fonts::get_settings_vec(){
+    return &settings_text_vec;
+}
+
+size_t SDL2Fonts::get_settings_vec_size(){
+    return settings_text_vec.size();
 }
 
 void SDL2Fonts::create_dir_text(const std::vector<Directory> d, SDL_Renderer *r,

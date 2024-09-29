@@ -59,6 +59,7 @@ typedef enum {
     AT_DIRECTORIES = 0,
     AT_SONGS = 1,
     LISTENING = 2,
+    AT_SETTINGS = 3,
 } USER_STATE;
 
 typedef enum {
@@ -137,6 +138,13 @@ struct Text {
     size_t id;
     bool is_valid;
     std::string name;
+};
+
+struct FFTSettings {
+    int smoothing_amount;
+    int smearing_amount;
+    float filter_coeff;
+    float filter_alpha;
 };
 
 typedef Icon Icon;

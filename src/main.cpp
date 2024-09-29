@@ -139,6 +139,9 @@ int main(int argc, char **argv) {
                           *themes.get_text(), fonts.get_font_ptr(),
                           rend.get_font_draw_limit());
 
+    fonts.create_settings_text(*themes.get_text(), fonts.get_font_ptr(),
+                               *rend.get_renderer());
+
     const int ticks_per_frame = (1000.0 / 60);
     uint64_t frame_start;
     int frame_time;
@@ -147,8 +150,8 @@ int main(int argc, char **argv) {
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
     while (sdl2->get_play_state()) {
-        rend.render_bg(*rend.get_renderer(), themes.get_secondary());
-        rend.render_clear(*rend.get_renderer());
+        rend.render_bg(themes.get_secondary());
+        rend.render_clear();
 
         switch (*sdl2_ad.get_stream_flag()) {
         default: {
@@ -179,15 +182,13 @@ int main(int argc, char **argv) {
                 rend.render_set_text(sdl2->get_stored_window_size(),
                                      fonts.retrieve_indexed_dir_textvector(
                                          *key.get_vdir_index()));
-                rend.render_draw_text(*rend.get_renderer(),
-                                      fonts.retrieve_indexed_dir_textvector(
-                                          *key.get_vdir_index()));
+                rend.render_draw_text(fonts.retrieve_indexed_dir_textvector(
+                    *key.get_vdir_index()));
                 rend.render_set_text_bg(sdl2->get_stored_window_size(),
                                         fonts.retrieve_indexed_dir_textvector(
                                             *key.get_vdir_index()),
                                         key.get_vdir_cursor_index());
-                rend.render_draw_text_bg(*rend.get_renderer(),
-                                         themes.get_textbg());
+                rend.render_draw_text_bg(themes.get_textbg());
             }
             break;
         }
@@ -197,15 +198,13 @@ int main(int argc, char **argv) {
                 rend.render_set_text(sdl2->get_stored_window_size(),
                                      fonts.retrieve_indexed_song_textvector(
                                          *key.get_vsong_index()));
-                rend.render_draw_text(*rend.get_renderer(),
-                                      fonts.retrieve_indexed_song_textvector(
-                                          *key.get_vsong_index()));
+                rend.render_draw_text(fonts.retrieve_indexed_song_textvector(
+                    *key.get_vsong_index()));
                 rend.render_set_text_bg(sdl2->get_stored_window_size(),
                                         fonts.retrieve_indexed_song_textvector(
                                             *key.get_vsong_index()),
                                         key.get_vsong_cursor_index());
-                rend.render_draw_text_bg(*rend.get_renderer(),
-                                         themes.get_textbg());
+                rend.render_draw_text_bg(themes.get_textbg());
             }
             break;
         }
@@ -216,9 +215,21 @@ int main(int argc, char **argv) {
                                  &sizes->WIDTH, fft->get_bufs()->smear,
                                  fft->get_bufs()->smoothed);
             rend.render_draw_bars(&fft->get_data()->output_len,
-                                  themes.get_primary(), themes.get_textbg(),
-                                  *rend.get_renderer());
+                                  themes.get_primary(), themes.get_textbg());
             break;
+        }
+
+        case AT_SETTINGS: {
+            if (fonts.get_settings_vec_size() > 0) {
+                rend.render_set_settings_text(sdl2->get_stored_window_size(),
+                                              fonts.get_settings_vec(),
+                                              key.get_settings_cursor());
+                rend.render_draw_settings_text(fonts.get_settings_vec(),
+                                               key.get_settings_cursor());
+
+                rend.render_set_option_values(sdl2->get_stored_window_size(), fonts.get_settings_vec(), key.get_settings_cursor(), fft->get_settings());
+                rend.render_draw_option_value(themes.get_primary());
+            }
         }
 
         default: {
@@ -240,7 +251,7 @@ int main(int argc, char **argv) {
 
             case SDL_KEYDOWN: {
                 keydown_handle_state(sdl2->get_current_user_state(),
-                                     e.key.keysym.sym, &std, &sdl2_w, userdata);
+                                     e.key.keysym, &std, &sdl2_w, userdata);
                 break;
             }
 
@@ -258,7 +269,7 @@ int main(int argc, char **argv) {
             SDL_Delay(ticks_per_frame - frame_time);
         }
 
-        rend.render_present(*rend.get_renderer());
+        rend.render_present();
     }
 
     fonts.destroy_allocated_fonts();

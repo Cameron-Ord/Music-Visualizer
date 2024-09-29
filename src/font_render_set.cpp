@@ -35,3 +35,13 @@ void SDL2Renderer::render_set_text(const WIN_SIZE *sizes,
         pixel_accumulate += pixel_increment;
     }
 }
+
+void SDL2Renderer::render_set_settings_text(const WIN_SIZE *sizes,
+                                            std::vector<Text> *text,
+                                            const size_t *index) {
+    int font_y = sizes->HEIGHT * 0.4;
+    int font_x = sizes->WIDTH * 0.5;
+
+    (*text)[*index].rect.x = font_x - ((*text)[*index].width / 2);
+    (*text)[*index].rect.y = font_y - ((*text)[*index].height / 2);
+}

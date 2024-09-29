@@ -2,6 +2,7 @@
 #define SDL2_TTF_HPP
 
 #include "defines.hpp"
+#include <vector>
 
 class SDL2Fonts {
   public:
@@ -35,7 +36,17 @@ class SDL2Fonts {
     std::string check_vector_index(size_t ttl_vec_size, const size_t *index,
                                    std::string direction);
 
+    void create_float_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
+    void create_integer_number_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
+    void create_settings_text(const SDL_Color color, TTF_Font *font, SDL_Renderer *r);
+    std::vector<Text> *get_settings_vec();
+    size_t get_settings_vec_size(); 
+
   private:
+    std::vector<Text>float_nums;
+    std::vector<Text>int_nums;
+    std::vector<std::string> setting_names;
+    std::vector<Text> settings_text_vec;
     std::vector<std::vector<Text>> dir_text_vec;
     std::vector<std::vector<Text>> song_text_vec;
     std::string font_path;

@@ -7,6 +7,12 @@
 FourierTransform::FourierTransform() {
     data.max_ampl = 1.0;
     data.output_len = 0;
+
+    settings.smoothing_amount = 7;
+    settings.smearing_amount = 5;
+    settings.filter_coeff = 0.75;
+    settings.filter_alpha = 0.25;
+
     memset(data.hamming_values, 0, sizeof(float) * BUFF_SIZE);
     memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float));
@@ -25,6 +31,27 @@ FourierTransform::FourierTransform() {
     }
 
     calculate_window();
+}
+
+void FourierTransform::set_alpha(float amount){
+    settings.filter_alpha = amount;
+}
+
+void FourierTransform::set_filter(float amount){
+    settings.filter_coeff = amount;
+
+}
+
+void FourierTransform::set_smear(int amount){
+    settings.smearing_amount = amount;
+}
+
+void FourierTransform::set_smoothing(int amount){
+    settings.smoothing_amount = amount;
+}
+
+const FFTSettings *FourierTransform::get_settings(){
+    return &settings;
 }
 
 FData *FourierTransform::get_data() {
@@ -103,11 +130,10 @@ void FourierTransform::hamming_window() {
 // Formula
 // Y[n]=X[n]−0.90⋅X[n−1]
 void FourierTransform::pre_emphasis() {
-    const float alpha = 0.25;
     for (int i = BUFF_SIZE - 1; i > 0; --i) {
         float *input = &bufs.pre_raw[i];
         const float last_input = bufs.pre_raw[i - 1];
-        *input = *input - alpha * last_input;
+        *input = *input - settings.filter_alpha * last_input;
     }
 }
 
@@ -124,7 +150,7 @@ void FourierTransform::high_pass_filter(int SR, float cutoff_freq) {
     int cutoff_bin = cutoff_freq / freq_bin_size;
 
     for (int i = 0; i < cutoff_bin; ++i) {
-        bufs.extracted[i] *= 0.80;
+        bufs.extracted[i] *= settings.filter_coeff;
     }
 }
 
@@ -164,14 +190,15 @@ void FourierTransform::apply_smoothing() {
     /*Linear smoothing*/
     for (size_t i = 0; i < data.output_len; ++i) {
         bufs.processed[i] /= data.max_ampl;
-        bufs.smoothed[i] +=
-            (bufs.processed[i] - bufs.smoothed[i]) * 8 * (1.0 / FPS);
+        bufs.smoothed[i] += (bufs.processed[i] - bufs.smoothed[i]) *
+                            settings.smoothing_amount * (1.0 / FPS);
     }
 }
 
 void FourierTransform::apply_smear() {
     const int FPS = 60;
     for (size_t i = 0; i < data.output_len; ++i) {
-        bufs.smear[i] += (bufs.smoothed[i] - bufs.smear[i]) * 5 * (1.0 / FPS);
+        bufs.smear[i] += (bufs.smoothed[i] - bufs.smear[i]) *
+                         settings.smearing_amount * (1.0 / FPS);
     }
 }

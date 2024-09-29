@@ -28,10 +28,8 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 
         box = { end_x_pos, end_y_pos, cell_width, end_bar_height };
 
-        Coordinates end_positions = {  end_x_pos,
-                                      end_y_pos,
-                                       end_bar_height,
-                                       box };
+        Coordinates end_positions = { end_x_pos, end_y_pos, end_bar_height,
+                                      box };
 
         const int start_x_pos = (i * space);
         const int start_y_pos = h - static_cast<int>(start * h);
@@ -39,10 +37,8 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 
         box = { start_x_pos, start_y_pos, cell_width, start_bar_height };
 
-        Coordinates start_positions = { start_x_pos,
-                                        start_y_pos,
-                                        start_bar_height,
-                                        box };
+        Coordinates start_positions = { start_x_pos, start_y_pos,
+                                        start_bar_height, box };
 
         bar_end_coords[i] = end_positions;
         bar_start_coords[i] = start_positions;
@@ -50,7 +46,7 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 }
 
 void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
-                                    SDL_Color *sec, SDL_Renderer *r) {
+                                    SDL_Color *sec) {
     for (size_t i = 0; i < *len; ++i) {
         SDL_SetRenderDrawColor(r, prim->r, prim->g, prim->b, prim->a);
         SDL_RenderFillRect(r, &bar_end_coords[i].copy_rect);

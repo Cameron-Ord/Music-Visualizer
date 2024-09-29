@@ -9,6 +9,14 @@ SDL2KeyInputs::SDL2KeyInputs() {
     virtual_svec_index = 0;
     virtual_cursor_dindex = 0;
     virtual_cursor_sindex = 0;
+    settings_cursor = 0;
+}
+
+void SDL2KeyInputs::set_settings_cursor(size_t i) {
+    settings_cursor = i;
+}
+const size_t *SDL2KeyInputs::get_settings_cursor() {
+    return &settings_cursor;
 }
 
 void SDL2KeyInputs::set_vsong_index(size_t i) {

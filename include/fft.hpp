@@ -2,8 +2,6 @@
 #define FFT_HPP
 #include "defines.hpp"
 
-struct AudioDataContainer;
-
 class FourierTransform {
   public:
     FourierTransform();
@@ -22,8 +20,16 @@ class FourierTransform {
     void extract_frequencies();
     void high_pass_filter(int SR, float cutoff_freq);
 
+    void set_alpha(float amount);
+    void set_filter(float amount);
+    void set_smoothing(int amount);
+    void set_smear(int amount);
+
+    const FFTSettings *get_settings();
+
   private:
     FData data;
     FBuffers bufs;
+    FFTSettings settings;
 };
 #endif
