@@ -10,9 +10,38 @@
 #include "../include/render_entity.hpp"
 #include "../include/theme.hpp"
 #include <cstdio>
+#include <csignal>
 #include <SDL2/SDL.h>
+#include <fstream>
+#include <mutex>
+#include <mutex>
+std::mutex log_mutex;
+
+void log_bad_term(const std::string *message);
+void signal_handler(int signum);
+
+void log_bad_term(const std::string *message){
+    std::lock_guard<std::mutex> lock(log_mutex);
+    std::ofstream log_file("exit_log.txt", std::ios::app);
+    if(log_file.is_open()){
+        log_file << message << std::endl;
+    }
+}
+
+void signal_handler(int signum){
+    if(signum == SIGSEGV){
+        const std::string message = "SIGSEGV OCCURRED";
+        log_bad_term(&message);
+    }
+}
 
 int main(int argc, char **argv) {
+
+    std::signal(SIGSEGV, signal_handler);
+    std::signal(SIGABRT, signal_handler);
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
+
     bool err;
 
     USERDATA *userdata = new USERDATA;
@@ -293,9 +322,10 @@ int main(int argc, char **argv) {
 
     fonts.destroy_allocated_fonts();
 
-    delete userdata;
+    
     free(ad->get_audio_data()->buffer);
     delete ad->get_audio_data();
+    delete userdata;
     delete ad;
     delete sdl2;
     delete fft;

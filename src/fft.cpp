@@ -110,7 +110,7 @@ void FourierTransform::freq_bin_algo(int SR){
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
     const size_t buf_size = 3;
     float bin_sums[buf_size];
-    memset(bin_sums, 0, sizeof(float)*3);
+
     int low_bin;
     int high_bin;
     
@@ -118,9 +118,15 @@ void FourierTransform::freq_bin_algo(int SR){
         low_bin = low_cutoffs[filter_index] / freq_bin_size;
         high_bin = high_cutoffs[filter_index] / freq_bin_size;
 
+        bin_sums[filter_index] = 0.0f;
+
         for(int i = low_bin; i < high_bin; i++){
             bin_sums[filter_index] += bufs.extracted[i];
         }
+
+        //average it out.
+        const int iter_count = high_bin - low_bin;
+        bin_sums[filter_index] /= iter_count;
     }
 
     float max_bin_value = bin_sums[0];
@@ -171,6 +177,7 @@ void FourierTransform::hamming_window() {
         int right = i * 2 + 1;
 
         float summed = (bufs.in_cpy[left] + bufs.in_cpy[right]) / 2;
+        //float max_value = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
 
         //bufs.pre_raw[i] = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
         
