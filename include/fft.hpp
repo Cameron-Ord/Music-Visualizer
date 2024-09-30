@@ -11,8 +11,7 @@ class FourierTransform {
     void hamming_window();
     float amp(float z);
     void squash_to_log(size_t size);
-    void apply_smear();
-    void apply_smoothing();
+    void visual_refine();
     FData *get_data();
     FBuffers *get_bufs();
     void fft_func(float *in, size_t stride, std::complex<float> *out, size_t n);

@@ -103,8 +103,7 @@ void FourierTransform::generate_visual(AudioDataContainer *ad) {
     multi_band_stop(ad->SR);
     freq_bin_algo(ad->SR);
     squash_to_log(HALF_BUFF);
-    apply_smoothing();
-    apply_smear();
+    visual_refine();
 } /*generate_visual*/
 
 void FourierTransform::freq_bin_algo(int SR){
@@ -257,22 +256,15 @@ float FourierTransform::amp(float z) {
     return logf(z);
 } /*amp*/
 
-void FourierTransform::apply_smoothing() {
+void FourierTransform::visual_refine() {
     const int FPS = 60;
-    /*Linear smoothing*/
-
-    
     for (size_t i = 0; i < data.output_len; ++i) {
         bufs.processed_phases[i] /= data.max_phase;
         bufs.processed[i] /= data.max_ampl;
+
         bufs.smoothed[i] += (bufs.processed[i] - bufs.smoothed[i]) *
                             settings.smoothing_amount * (1.0 / FPS);
-    }
-}
 
-void FourierTransform::apply_smear() {
-    const int FPS = 60;
-    for (size_t i = 0; i < data.output_len; ++i) {
         bufs.smear[i] += (bufs.smoothed[i] - bufs.smear[i]) *
                          settings.smearing_amount * (1.0 / FPS);
     }
