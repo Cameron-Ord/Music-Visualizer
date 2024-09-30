@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
     Mouse mouse = { mouse_x, mouse_y, false };
 
     while (sdl2->get_play_state()) {
-        rend.render_bg(themes.get_secondary());
+        rend.render_bg(themes.get_background());
         rend.render_clear();
 
         SDL_Event e;
@@ -339,7 +339,7 @@ int main(int argc, char **argv) {
                                  fft->get_bufs()->smoothed,
                                  fft->get_bufs()->processed_phases);
             rend.render_draw_bars(&fft->get_data()->output_len,
-                                  themes.get_primary(), themes.get_tertiary(),
+                                  themes.get_primary(), themes.get_secondary(),
                                   fft->get_bufs()->processed_phases);
             break;
         }

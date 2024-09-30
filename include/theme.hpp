@@ -5,7 +5,7 @@
 typedef enum {
     PRIMARY = 0,
     SECONDARY = 1,
-    TERTIARY = 2,
+    BACKGROUND = 2,
     TEXT = 3,
     TEXT_BG = 4,
     BG = 5
@@ -18,14 +18,14 @@ class ProgramThemes {
     void set_color(SDL_Color to_color, int type);
     SDL_Color *get_primary();
     SDL_Color *get_secondary();
-    SDL_Color *get_tertiary();
+    SDL_Color *get_background();
     SDL_Color *get_text();
     SDL_Color *get_textbg();
 
   private:
     SDL_Color primary;
     SDL_Color secondary;
-    SDL_Color tertiary;
+    SDL_Color background;
     SDL_Color text;
     SDL_Color text_bg;
 };

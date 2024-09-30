@@ -1,15 +1,15 @@
 #include "../include/theme.hpp"
 
 ProgramThemes::ProgramThemes() {
-    SDL_Color primary = { 189, 147, 249, 255 };
     SDL_Color background = { 40, 42, 54, 255 };
-    SDL_Color tertiary = { 255, 121, 198, 255 };
+    SDL_Color primary = { 189, 147, 249, 255 };
+    SDL_Color secondary = { 255, 121, 198, 255 };
     SDL_Color text = { 80, 250, 123, 255 };
     SDL_Color text_bg = { 68, 71, 90, 255 };
 
     set_color(primary, PRIMARY);
-    set_color(background, SECONDARY);
-    set_color(tertiary, TERTIARY);
+    set_color(secondary, SECONDARY);
+    set_color(background, BACKGROUND);
     set_color(text, TEXT);
     set_color(text_bg, TEXT_BG);
 }
@@ -24,8 +24,8 @@ SDL_Color *ProgramThemes::get_secondary() {
     return &secondary;
 }
 
-SDL_Color *ProgramThemes::get_tertiary() {
-    return &tertiary;
+SDL_Color *ProgramThemes::get_background() {
+    return &background;
 }
 
 SDL_Color *ProgramThemes::get_text() {
@@ -46,8 +46,8 @@ void ProgramThemes::set_color(SDL_Color to_color, int TYPE) {
         secondary = to_color;
         break;
     }
-    case TERTIARY: {
-        tertiary = to_color;
+    case BACKGROUND: {
+        background = to_color;
         break;
     }
     case TEXT: {
