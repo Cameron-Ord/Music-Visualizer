@@ -253,6 +253,9 @@ void FourierTransform::squash_to_log(size_t size) {
 }
 
 float FourierTransform::amp(float z) {
+    if(z == 0.0f){
+        return 0.0f;
+    }
     return logf(z);
 } /*amp*/
 
