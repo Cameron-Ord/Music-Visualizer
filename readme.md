@@ -4,12 +4,14 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
-![Image](example/example.png)
+![Image](example/example_desktop_2.png)
 
 ## Usage Manual
 **For understanding on how to properly use the program please read the following**.
 ---
 
+
+![Image](example/example_desktop_4.png)
 ## Releases
 
 This version of the program is only available for linux, I am working on builds for windows at the moment. If you want a windows version take a look at my releases and use those. Keep in mind that this is the old version of my program.
@@ -40,9 +42,6 @@ The program relies on directories located in the **~/Music dir located in the ho
 - Shift + L/R Arrow keys : Navigate settings.
 - U/D Arrow keys : Select between settings.
 - Shift + U/D Arrow keys : Change setting values.
-
-
-
 
 ## BUILDING
 My program depends on these libs:
