@@ -196,12 +196,18 @@ void FourierTransform::extract_frequencies() {
 
 void FourierTransform::multi_band_stop(int SR) {
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
-    for (size_t filer_index = 0; filer_index < low_cutoffs.size();
-         ++filer_index) {
-        int low_bin = low_cutoffs[filer_index] / freq_bin_size;
-        int high_bin = high_cutoffs[filer_index] / freq_bin_size;
+    for (size_t filter_index = 0; filter_index < low_cutoffs.size();
+         ++filter_index) {
+
+        // Just skip if its 1.0f since it doesnt actually change anything;
+        if(settings.filter_coeffs[filter_index] == 1.0f){
+            continue;
+        }    
+        
+        int low_bin = low_cutoffs[filter_index] / freq_bin_size;
+        int high_bin = high_cutoffs[filter_index] / freq_bin_size;
         for (int i = low_bin; i < high_bin; i++) {
-            bufs.extracted[i] *= settings.filter_coeffs[filer_index];
+            bufs.extracted[i] *= settings.filter_coeffs[filter_index];
         }
     }
 }
