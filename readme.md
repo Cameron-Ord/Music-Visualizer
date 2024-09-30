@@ -5,10 +5,10 @@
 
 ## Music Visualizer
 ![Image](example/example_desktop_2.png)
+![Image](example/example_desktop_3.png)
 
 ## Releases
-
-This version of the program is only available for linux, I am working on builds for windows at the moment. If you want a windows version take a look at my releases and use those. Keep in mind that this is the old version of my program.
+There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
  
 The program relies on directories located in the **~/Music dir located in the home path**.
 
