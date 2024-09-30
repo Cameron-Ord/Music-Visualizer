@@ -23,6 +23,7 @@ std::mutex log_mutex;
 
 void log_bad_term(const std::string *message);
 void signal_handler(int signum);
+void set_config_colours(ProgramThemes *themes, FILE *file_ptr);
 
 void log_bad_term(const std::string *message) {
     std::lock_guard<std::mutex> lock(log_mutex);
@@ -37,6 +38,81 @@ void signal_handler(int signum) {
         const std::string message = "SIGSEGV OCCURRED";
         log_bad_term(&message);
     }
+}
+
+void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
+    char buffer[256];
+    int r, g, b, a;
+
+    SDL_Color primary;
+    SDL_Color secondary;
+    SDL_Color background;
+    SDL_Color text;
+    SDL_Color textbg;
+
+    fseek(file_ptr, 0, SEEK_SET);
+    int read;
+    int ttl_read = 4 * 5;
+    int accumulator = 0;
+
+    while (fgets(buffer, sizeof(buffer), file_ptr) != NULL) {
+        read = sscanf(buffer, "primary = {%d,%d,%d,%d};", &r, &g, &b, &a);
+        if (read == 4) {
+            primary = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
+            std::cout << "Items read :" << read << " Values :" << r << g << b
+                      << a << std::endl;
+            accumulator += 4;
+            continue;
+        }
+
+        read = sscanf(buffer, "secondary = {%d,%d,%d,%d};", &r, &g, &b, &a);
+        if (read == 4) {
+            secondary = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
+            std::cout << "Items read :" << read << " Values :" << r << g << b
+                      << a << std::endl;
+            accumulator += 4;
+            continue;
+        }
+
+        read = sscanf(buffer, "background = {%d,%d,%d,%d};", &r, &g, &b, &a);
+        if (read == 4) {
+            background = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
+            std::cout << "Items read :" << read << " Values :" << r << g << b
+                      << a << std::endl;
+            accumulator += 4;
+            continue;
+        }
+
+        read = sscanf(buffer, "text = {%d,%d,%d,%d};", &r, &g, &b, &a);
+        if (read == 4) {
+            text = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
+            std::cout << "Items read :" << read << " Values :" << r << g << b
+                      << a << std::endl;
+            accumulator += 4;
+            continue;
+        }
+
+        read = sscanf(buffer, "textbg = {%d,%d,%d,%d};", &r, &g, &b, &a);
+        if (read == 4) {
+            textbg = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
+            std::cout << "Items read : " << read << " Values :" << r << " " << g
+                      << " " << b << " " << a << std::endl;
+            accumulator += 4;
+            continue;
+        }
+    }
+
+    fclose(file_ptr);
+
+    if (accumulator != ttl_read) {
+        return;
+    }
+
+    themes->set_color(primary, PRIMARY);
+    themes->set_color(secondary, SECONDARY);
+    themes->set_color(background, BACKGROUND);
+    themes->set_color(text, TEXT);
+    themes->set_color(textbg, TEXT_BG);
 }
 
 int main(int argc, char **argv) {
@@ -103,6 +179,18 @@ int main(int argc, char **argv) {
     if (!stderr_file) {
         std::cerr << "Could not open logging file for stdout! ->"
                   << strerror(errno) << std::endl;
+    }
+
+    FILE *conf_file = NULL;
+
+    conf_file = fopen("config.txt", "r");
+    if (!conf_file) {
+        std::cerr << "Error opening file or no config file! -> "
+                  << strerror(errno) << std::endl;
+    }
+
+    if (conf_file) {
+        set_config_colours(&themes, conf_file);
     }
 
     if (!sdl2->initialize_sdl2_video()) {

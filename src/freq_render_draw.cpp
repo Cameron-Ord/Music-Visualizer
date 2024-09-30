@@ -54,45 +54,44 @@ void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
 
     float max = fmaxf(r_prime, fmaxf(g_prime, b_prime));
     float min = fminf(r_prime, fminf(g_prime, b_prime));
-    
-    float delta = max- min;
+
+    float delta = max - min;
     float hue = 0.0;
     float saturation = 0.0;
     float lightness = (max + min) / 2.0;
 
-    if(delta == 0.0){
+    if (delta == 0.0) {
         hue = 0.0;
         saturation = 0.0;
     } else {
-        if(lightness > 0.5){
+        if (lightness > 0.5) {
             saturation = delta / (2.0 - max - min);
         } else {
             saturation = delta / (max + min);
         }
 
-        if(max == r_prime){
+        if (max == r_prime) {
             hue = fmodf((g_prime - b_prime) / delta, 6.0);
-        } else if(max == g_prime){
-            hue = (b_prime- r_prime) / delta + 2.0;
+        } else if (max == g_prime) {
+            hue = (b_prime - r_prime) / delta + 2.0;
         } else {
             hue = (r_prime - g_prime) / delta + 4.0;
         }
 
         hue *= 60.0;
-        if(hue < 0){
+        if (hue < 0) {
             hue += 360.0;
         }
     }
 
-
     for (size_t i = 0; i < *len; ++i) {
-        float phased_hue = hue + (processed_phases[i] * 20.0) - 7.5;
+        float phased_hue = hue + (processed_phases[i] * 10.0) - 7.5;
         phased_hue = fmod(phased_hue, 360.0);
 
         float C = 0.5;
         float X = C * (1 - fabs(fmod(phased_hue / 60.f, 2) - 1));
         float m = 0.5;
-        
+
         r_prime = 0.0;
         g_prime = 0.0;
         b_prime = 0.0;
