@@ -21,6 +21,7 @@ class FourierTransform {
     void set_filter_coeff(size_t i, float amount);
     void set_smoothing(int amount);
     void set_smear(int amount);
+    void freq_bin_algo(int SR);
 
     const FFTSettings *get_settings();
 

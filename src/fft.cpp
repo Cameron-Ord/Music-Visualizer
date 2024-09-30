@@ -101,10 +101,61 @@ void FourierTransform::generate_visual(AudioDataContainer *ad) {
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
     extract_frequencies();
     multi_band_stop(ad->SR);
+    freq_bin_algo(ad->SR);
     squash_to_log(HALF_BUFF);
     apply_smoothing();
     apply_smear();
 } /*generate_visual*/
+
+void FourierTransform::freq_bin_algo(int SR){
+    float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
+    const size_t buf_size = 3;
+    float bin_sums[buf_size];
+    memset(bin_sums, 0, sizeof(float)*3);
+    int low_bin;
+    int high_bin;
+    
+    for(size_t filter_index = 0; filter_index < buf_size; filter_index++){
+        low_bin = low_cutoffs[filter_index] / freq_bin_size;
+        high_bin = high_cutoffs[filter_index] / freq_bin_size;
+
+        for(int i = low_bin; i < high_bin; i++){
+            bin_sums[filter_index] += bufs.extracted[i];
+        }
+    }
+
+    float max_bin_value = bin_sums[0];
+    float min_bin_value = bin_sums[0];
+
+    int max_bin_index = 0;
+    int min_bin_index = 0;
+
+    for(size_t filter_index = 0; filter_index < buf_size; filter_index++){
+        if(bin_sums[filter_index] > max_bin_value){
+            max_bin_value = bin_sums[filter_index];
+            max_bin_index = filter_index;
+        }
+
+        if(bin_sums[filter_index] < min_bin_value){
+            min_bin_value = bin_sums[filter_index];
+            min_bin_index = filter_index;
+        }
+    }
+
+    low_bin = low_cutoffs[max_bin_index] / freq_bin_size;
+    high_bin = high_cutoffs[max_bin_index] / freq_bin_size;
+
+    for(int i = low_bin; i < high_bin; i++){
+        bufs.extracted[i] *= 1.25;
+    }
+
+    low_bin = low_cutoffs[min_bin_index] / freq_bin_size;
+    high_bin = high_cutoffs[min_bin_index] / freq_bin_size;
+
+    for(int i = low_bin; i < high_bin; i++){
+        bufs.extracted[i] *= 0.75;
+    }
+}
 
 void FourierTransform::calculate_window() {
     for (int i = 0; i < BUFF_SIZE; ++i) {
@@ -160,6 +211,7 @@ void FourierTransform::squash_to_log(size_t size) {
     float lowf = 1.0f;
     size_t m = 0;
     size_t y = 0;
+
     data.max_ampl = 1.0f;
     data.max_phase = 1.0f;
 
@@ -202,6 +254,8 @@ float FourierTransform::amp(float z) {
 void FourierTransform::apply_smoothing() {
     const int FPS = 60;
     /*Linear smoothing*/
+
+    
     for (size_t i = 0; i < data.output_len; ++i) {
         bufs.processed_phases[i] /= data.max_phase;
         bufs.processed[i] /= data.max_ampl;

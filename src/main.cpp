@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
                 rend.render_draw_float_settings(
                     fonts.get_float_settings_vec(),
                     sdl2->get_stored_window_size(), themes.get_primary(),
-                    themes.get_tertiary(), key.get_settings_cursor());
+                    themes.get_primary(), key.get_settings_cursor());
                 break;
             }
 
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
                 rend.render_draw_int_settings(
                     fonts.get_int_settings_vec(),
                     sdl2->get_stored_window_size(), themes.get_primary(),
-                    themes.get_tertiary(), key.get_settings_cursor());
+                    themes.get_primary(), key.get_settings_cursor());
                 break;
             }
             }

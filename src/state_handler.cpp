@@ -210,11 +210,13 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
             }
             case INTS: {
                 rend->set_setting_render_mode(FLOATS);
+                key->set_settings_cursor(0);
                 break;
             }
 
             case FLOATS: {
                 rend->set_setting_render_mode(INTS);
+                key->set_settings_cursor(0);
                 break;
             }
             }
@@ -236,11 +238,13 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
 
             case INTS: {
                 rend->set_setting_render_mode(FLOATS);
+                key->set_settings_cursor(0);
                 break;
             }
 
             case FLOATS: {
                 rend->set_setting_render_mode(INTS);
+                key->set_settings_cursor(0);
                 break;
             }
             }
