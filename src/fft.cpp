@@ -170,7 +170,11 @@ void FourierTransform::hamming_window() {
         int left = i * 2;
         int right = i * 2 + 1;
 
-        bufs.pre_raw[i] = MAX(bufs.in_cpy[left], bufs.in_cpy[right]);
+        float summed = (bufs.in_cpy[left] + bufs.in_cpy[right]) / 2;
+
+        //bufs.pre_raw[i] = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
+        
+        bufs.pre_raw[i] = summed;
         bufs.pre_raw[i] *= data.hamming_values[i];
     }
 }
