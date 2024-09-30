@@ -10,6 +10,7 @@ void *SDL2Window::create_window(SDL_Window **w) {
         return NULL;
     }
 
+    SDL_SetWindowKeyboardGrab(*w, SDL_TRUE);
     SDL_SetWindowMinimumSize(*w, 400, 300);
     is_window_bordered = 0;
     return *w;

@@ -23,13 +23,26 @@ The program relies on directories located in the **~/Music dir located in the ho
 
 
 ## Controls
-- Right : Navigate to the right/Start song
-- Left : Navigate left
-- Up : Navigate up through list
-- Down : Navigate down through list
-- Shift + Up : Cycle upwards through list
-- Shift + Down : Cycle downwards through list
-- Space : Toggle Pause
+**General controls**
+
+- Up : Navigate cursor up through current list.
+- Down : Navigate cursor down through current list.
+- Space : Select the current item under cursor.
+- Mouse : Click and drag the window.
+- Right : Navigate to the right.
+- Left : Navigate left.
+- H J K L : Change window sizing.
+- T : Toggle window border.
+- P : Toggle Pause.
+- Q or close : Quit.
+
+**In settings**
+- Shift + L/R Arrow keys : Navigate settings.
+- U/D Arrow keys : Select between settings.
+- Shift + U/D Arrow keys : Change setting values.
+
+
+
 
 ## BUILDING
 My program depends on these libs:
