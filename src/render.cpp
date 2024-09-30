@@ -4,7 +4,7 @@ SDL2Renderer::SDL2Renderer() {
     r = NULL;
     bar_end_coords.clear();
     bar_start_coords.clear();
-    font_draw_limit = 8;
+    font_draw_limit = 0;
     setting_render_mode = FLOATS;
     sprite_sheet_filename = "sprites.png";
     sprite_surface = NULL;
@@ -144,20 +144,7 @@ void SDL2Renderer::create_sprite_surface() {
 void SDL2Renderer::reset_vector_positions() {}
 
 void SDL2Renderer::set_font_draw_limit(int h) {
-    if (h < 200) {
-        font_draw_limit = 1;
-        return;
-    }
-
-    if (h < 300) {
-        font_draw_limit = 2;
-    } else if (h > 300 && h < 760) {
-        font_draw_limit = 4;
-    } else if (h > 760 && h < 1280) {
-        font_draw_limit = 6;
-    } else {
-        font_draw_limit = 8;
-    }
+    font_draw_limit = std::min(24, std::max(4, (h - 300) / 20));
 }
 
 const size_t *SDL2Renderer::get_font_draw_limit() {

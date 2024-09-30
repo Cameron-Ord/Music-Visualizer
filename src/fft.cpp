@@ -106,25 +106,25 @@ void FourierTransform::generate_visual(AudioDataContainer *ad) {
     visual_refine();
 } /*generate_visual*/
 
-void FourierTransform::freq_bin_algo(int SR){
+void FourierTransform::freq_bin_algo(int SR) {
     float freq_bin_size = static_cast<float>(SR) / BUFF_SIZE;
     const size_t buf_size = 3;
     float bin_sums[buf_size];
 
     int low_bin;
     int high_bin;
-    
-    for(size_t filter_index = 0; filter_index < buf_size; filter_index++){
+
+    for (size_t filter_index = 0; filter_index < buf_size; filter_index++) {
         low_bin = low_cutoffs[filter_index] / freq_bin_size;
         high_bin = high_cutoffs[filter_index] / freq_bin_size;
 
         bin_sums[filter_index] = 0.0f;
 
-        for(int i = low_bin; i < high_bin; i++){
+        for (int i = low_bin; i < high_bin; i++) {
             bin_sums[filter_index] += bufs.extracted[i];
         }
 
-        //average it out.
+        // average it out.
         const int iter_count = high_bin - low_bin;
         bin_sums[filter_index] /= iter_count;
     }
@@ -135,13 +135,14 @@ void FourierTransform::freq_bin_algo(int SR){
     int max_bin_index = 0;
     int min_bin_index = 0;
 
-    for(size_t filter_index = 0; filter_index < buf_size; filter_index++){
-        if(bin_sums[filter_index] > max_bin_value){
+    for (size_t filter_index = 0; filter_index < buf_size; filter_index++) {
+        if (bin_sums[filter_index] > max_bin_value) {
             max_bin_value = bin_sums[filter_index];
             max_bin_index = filter_index;
+            continue;
         }
 
-        if(bin_sums[filter_index] < min_bin_value){
+        if (bin_sums[filter_index] < min_bin_value) {
             min_bin_value = bin_sums[filter_index];
             min_bin_index = filter_index;
         }
@@ -150,14 +151,14 @@ void FourierTransform::freq_bin_algo(int SR){
     low_bin = low_cutoffs[max_bin_index] / freq_bin_size;
     high_bin = high_cutoffs[max_bin_index] / freq_bin_size;
 
-    for(int i = low_bin; i < high_bin; i++){
+    for (int i = low_bin; i < high_bin; i++) {
         bufs.extracted[i] *= 1.25;
     }
 
     low_bin = low_cutoffs[min_bin_index] / freq_bin_size;
     high_bin = high_cutoffs[min_bin_index] / freq_bin_size;
 
-    for(int i = low_bin; i < high_bin; i++){
+    for (int i = low_bin; i < high_bin; i++) {
         bufs.extracted[i] *= 0.75;
     }
 }
@@ -177,10 +178,10 @@ void FourierTransform::hamming_window() {
         int right = i * 2 + 1;
 
         float summed = (bufs.in_cpy[left] + bufs.in_cpy[right]) / 2;
-        //float max_value = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
+        // float max_value = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
 
-        //bufs.pre_raw[i] = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
-        
+        // bufs.pre_raw[i] = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
+
         bufs.pre_raw[i] = summed;
         bufs.pre_raw[i] *= data.hamming_values[i];
     }
@@ -210,10 +211,10 @@ void FourierTransform::multi_band_stop(int SR) {
          ++filter_index) {
 
         // Just skip if its 1.0f since it doesnt actually change anything;
-        if(settings.filter_coeffs[filter_index] == 1.0f){
+        if (settings.filter_coeffs[filter_index] == 1.0f) {
             continue;
-        }    
-        
+        }
+
         int low_bin = low_cutoffs[filter_index] / freq_bin_size;
         int high_bin = high_cutoffs[filter_index] / freq_bin_size;
         for (int i = low_bin; i < high_bin; i++) {
@@ -264,7 +265,7 @@ void FourierTransform::squash_to_log(size_t size) {
 }
 
 float FourierTransform::amp(float z) {
-    if(z == 0.0f){
+    if (z == 0.0f) {
         return 0.0f;
     }
     return logf(z);

@@ -30,20 +30,28 @@ class SDL2Renderer {
                             const size_t *cursor_index);
     void render_draw_text_bg(const SDL_Color *rgba);
     void reset_vector_positions();
-    void render_draw_bars(size_t *len, SDL_Color *prim, SDL_Color *sec,  float* processed_phases);
+    void render_draw_bars(size_t *len, SDL_Color *prim, SDL_Color *sec,
+                          float *processed_phases);
     void render_set_bars(const size_t *len, const int *win_height,
-                         const int *win_width, float *smear, float *smooth, float* processed_phases);
+                         const int *win_width, float *smear, float *smooth,
+                         float *processed_phases);
     void set_font_draw_limit(int h);
     const size_t *get_font_draw_limit();
-    
-    void render_draw_int_settings(std::vector<SettingTextInt> *int_sett, const WIN_SIZE *window_sizing, const SDL_Color *rgba, const SDL_Color *sec,const size_t *cursor);
-    void render_draw_float_settings(std::vector<SettingTextFloat> *float_sett, const WIN_SIZE *window_sizing, const SDL_Color *rgba, const SDL_Color *sec,const size_t *cursor);
+
+    void render_draw_int_settings(std::vector<SettingTextInt> *int_sett,
+                                  const WIN_SIZE *window_sizing,
+                                  const SDL_Color *rgba, const SDL_Color *sec,
+                                  const size_t *cursor);
+    void render_draw_float_settings(std::vector<SettingTextFloat> *float_sett,
+                                    const WIN_SIZE *window_sizing,
+                                    const SDL_Color *rgba, const SDL_Color *sec,
+                                    const size_t *cursor);
 
     const int *get_setting_render_mode();
     void set_setting_render_mode(int MODE);
 
   private:
-  int setting_render_mode;
+    int setting_render_mode;
     std::string sprite_sheet_filename;
     SDL_Texture *sprite_texture;
     SDL_Surface *sprite_surface;

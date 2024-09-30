@@ -9,27 +9,31 @@
 #include "../include/window_entity.hpp"
 #include "../include/render_entity.hpp"
 #include "../include/theme.hpp"
+#include "../include/mouse.hpp"
+#include "SDL2/SDL_stdinc.h"
+
 #include <cstdio>
 #include <csignal>
 #include <SDL2/SDL.h>
 #include <fstream>
 #include <mutex>
 #include <mutex>
+
 std::mutex log_mutex;
 
 void log_bad_term(const std::string *message);
 void signal_handler(int signum);
 
-void log_bad_term(const std::string *message){
+void log_bad_term(const std::string *message) {
     std::lock_guard<std::mutex> lock(log_mutex);
     std::ofstream log_file("exit_log.txt", std::ios::app);
-    if(log_file.is_open()){
+    if (log_file.is_open()) {
         log_file << message << std::endl;
     }
 }
 
-void signal_handler(int signum){
-    if(signum == SIGSEGV){
+void signal_handler(int signum) {
+    if (signum == SIGSEGV) {
         const std::string message = "SIGSEGV OCCURRED";
         log_bad_term(&message);
     }
@@ -184,9 +188,93 @@ int main(int argc, char **argv) {
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
+    int mouse_x = 0;
+    int mouse_y = 0;
+
+    // Not using a mouse mask for anything, so not using the return
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    Mouse mouse = { mouse_x, mouse_y, false };
+
     while (sdl2->get_play_state()) {
         rend.render_bg(themes.get_secondary());
         rend.render_clear();
+
+        SDL_Event e;
+
+        int drag_start_x;
+        int drag_start_y;
+
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            default: {
+                break;
+            }
+
+            case MOUSEBTN_DOWN: {
+                if (e.button.button == MOUSE_LEFT) {
+                    mouse.held = true;
+                    drag_start_x = e.button.x;
+                    drag_start_y = e.button.y;
+                }
+                break;
+            }
+
+            case MOUSEBTN_UP: {
+                if (e.button.button == MOUSE_LEFT) {
+                    mouse.held = false;
+                }
+                break;
+            }
+
+            case MOUSE_MOVE: {
+                if (mouse.held) {
+                    int win_x, win_y;
+                    SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
+                    SDL_SetWindowPosition(*win.get_window(),
+                                          win_x + e.motion.x - drag_start_x,
+                                          win_y + e.motion.y - drag_start_y);
+                }
+                break;
+            }
+
+            case SDL_WINDOWEVENT: {
+                if (!mouse.held) {
+                    handle_window_event(e.window.event, &std, &sdl2_w);
+                }
+                break;
+            }
+
+            case SDL_KEYDOWN: {
+
+                keydown_handle_state(sdl2->get_current_user_state(),
+                                     e.key.keysym, &std, &sdl2_w, userdata);
+                break;
+            }
+
+            case SDL_KEYUP: {
+                if (e.key.keysym.sym == Q) {
+                    sdl2->set_play_state(false);
+                }
+
+                if (e.key.keysym.sym == T) {
+                    if (*win.get_border_bool()) {
+                        SDL_SetWindowBordered(*win.get_window(), SDL_FALSE);
+                        win.set_border_bool(!*win.get_border_bool());
+                    } else {
+                        SDL_SetWindowBordered(*win.get_window(), SDL_TRUE);
+                        SDL_SetWindowResizable(*win.get_window(), SDL_TRUE);
+                        win.set_border_bool(!*win.get_border_bool());
+                    }
+                }
+                break;
+            }
+
+            case SDL_QUIT: {
+                sdl2->set_play_state(false);
+                break;
+            }
+            }
+        }
 
         switch (*sdl2_ad.get_stream_flag()) {
         default: {
@@ -285,31 +373,6 @@ int main(int argc, char **argv) {
         }
         }
 
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            switch (e.type) {
-            default: {
-                break;
-            }
-
-            case SDL_WINDOWEVENT: {
-                handle_window_event(e.window.event, &std, &sdl2_w);
-                break;
-            }
-
-            case SDL_KEYDOWN: {
-                keydown_handle_state(sdl2->get_current_user_state(),
-                                     e.key.keysym, &std, &sdl2_w, userdata);
-                break;
-            }
-
-            case SDL_QUIT: {
-                sdl2->set_play_state(false);
-                break;
-            }
-            }
-        }
-
         frame_start = SDL_GetTicks64();
 
         frame_time = SDL_GetTicks64() - frame_start;
@@ -322,7 +385,6 @@ int main(int argc, char **argv) {
 
     fonts.destroy_allocated_fonts();
 
-    
     free(ad->get_audio_data()->buffer);
     delete ad->get_audio_data();
     delete userdata;

@@ -11,6 +11,10 @@
 #include "../include/theme.hpp"
 #include "SDL2/SDL_keycode.h"
 
+// Not gonna max limit cause thats LAME
+const int MIN_WIDTH = 400;
+const int MIN_HEIGHT = 300;
+
 void keydown_handle_state(int userstate, SDL_Keysym sym, StdClassWrapper *std,
                           SDL2Wrapper *sdl2_w, USERDATA *userdata) {
     switch (userstate) {
@@ -39,9 +43,42 @@ void keydown_handle_state(int userstate, SDL_Keysym sym, StdClassWrapper *std,
     }
 }
 
+void decrease_win_width(SDL_Window *w) {
+    int current_w, current_h;
+
+    SDL_GetWindowSize(w, &current_w, &current_h);
+    if (current_w - 10 <= MIN_WIDTH) {
+        current_w = MIN_WIDTH;
+    }
+    SDL_SetWindowSize(w, current_w - 10, current_h);
+}
+
+void increase_win_width(SDL_Window *w) {
+    int current_w, current_h;
+    SDL_GetWindowSize(w, &current_w, &current_h);
+    SDL_SetWindowSize(w, current_w + 10, current_h);
+}
+
+void increase_win_height(SDL_Window *w) {
+    int current_w, current_h;
+    SDL_GetWindowSize(w, &current_w, &current_h);
+
+    SDL_SetWindowSize(w, current_w, current_h + 10);
+}
+
+void decrease_win_height(SDL_Window *w) {
+    int current_w, current_h;
+    SDL_GetWindowSize(w, &current_w, &current_h);
+    if (current_h - 10 <= MIN_HEIGHT) {
+        current_h = MIN_HEIGHT;
+    }
+    SDL_SetWindowSize(w, current_w, current_h - 10);
+}
+
 void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                               StdClassWrapper *std, SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
+    SDL2Window *win = sdl2_w->win;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     SDL2KeyInputs *key = sdl2_w->key;
     SDL2Fonts *fonts = sdl2_w->fonts;
@@ -50,6 +87,39 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
 
     switch (sym) {
     default: {
+        break;
+    }
+
+    case L: {
+        increase_win_width(*win->get_window());
+        break;
+    }
+
+    case K: {
+        increase_win_height(*win->get_window());
+        break;
+    }
+
+    case H: {
+        decrease_win_width(*win->get_window());
+        break;
+    }
+
+    case J: {
+        decrease_win_height(*win->get_window());
+        break;
+    }
+
+    case P_KEY: {
+        if (*sdl2_ad->get_stream_flag() == PLAYING) {
+            std::cout << "Paused" << std::endl;
+            sdl2_ad->pause_audio();
+            sdl2_ad->set_flag(PAUSED, sdl2_ad->get_stream_flag());
+        } else if (*sdl2_ad->get_stream_flag() == PAUSED) {
+            std::cout << "Playing" << std::endl;
+            sdl2_ad->resume_audio();
+            sdl2_ad->set_flag(PLAYING, sdl2_ad->get_stream_flag());
+        }
         break;
     }
 
@@ -432,9 +502,30 @@ void directory_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
     SDL2KeyInputs *key = sdl2_w->key;
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
+    SDL2Window *win = sdl2_w->win;
 
     switch (sym) {
     default: {
+        break;
+    }
+
+    case L: {
+        increase_win_width(*win->get_window());
+        break;
+    }
+
+    case K: {
+        increase_win_height(*win->get_window());
+        break;
+    }
+
+    case H: {
+        decrease_win_width(*win->get_window());
+        break;
+    }
+
+    case J: {
+        decrease_win_height(*win->get_window());
         break;
     }
 
@@ -540,9 +631,30 @@ void song_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     SDL2KeyInputs *key = sdl2_w->key;
     SDL2Fonts *fonts = sdl2_w->fonts;
+    SDL2Window *win = sdl2_w->win;
 
     switch (sym) {
     default: {
+        break;
+    }
+
+    case L: {
+        increase_win_width(*win->get_window());
+        break;
+    }
+
+    case K: {
+        increase_win_height(*win->get_window());
+        break;
+    }
+
+    case H: {
+        decrease_win_width(*win->get_window());
+        break;
+    }
+
+    case J: {
+        decrease_win_height(*win->get_window());
         break;
     }
 
@@ -645,8 +757,30 @@ void playback_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
                               SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
+    SDL2Window *win = sdl2_w->win;
+
     switch (sym) {
     default: {
+        break;
+    }
+
+    case L: {
+        increase_win_width(*win->get_window());
+        break;
+    }
+
+    case K: {
+        increase_win_height(*win->get_window());
+        break;
+    }
+
+    case H: {
+        decrease_win_width(*win->get_window());
+        break;
+    }
+
+    case J: {
+        decrease_win_height(*win->get_window());
         break;
     }
 
@@ -685,6 +819,7 @@ void handle_window_event(std::uint8_t event, StdClassWrapper *std,
     SDL2Fonts *fonts = sdl2_w->fonts;
     ProgramFiles *files = std->files;
     ProgramThemes *themes = std->themes;
+    SDL2KeyInputs *key = sdl2_w->key;
 
     switch (event) {
     default: {
@@ -710,6 +845,11 @@ void handle_window_event(std::uint8_t event, StdClassWrapper *std,
                                    rend->get_font_draw_limit());
         }
 
+        // I would like to handle it a little more gracefully, but for now this
+        // is what im doing
+
+        key->set_vdir_cursor_index(0);
+        key->set_vsong_cursor_index(0);
         break;
     }
 
@@ -732,6 +872,12 @@ void handle_window_event(std::uint8_t event, StdClassWrapper *std,
                                    fonts->get_font_ptr(),
                                    rend->get_font_draw_limit());
         }
+
+        key->set_vdir_index(0);
+        key->set_vdir_cursor_index(0);
+
+        key->set_vsong_index(0);
+        key->set_vsong_cursor_index(0);
 
         break;
     }

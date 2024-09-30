@@ -17,4 +17,13 @@ void playback_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
                               SDL2Wrapper *sdl2_w);
 void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                               StdClassWrapper *std, SDL2Wrapper *sdl2_w);
+
+void decrease_win_width(SDL_Window *w);
+
+void increase_win_width(SDL_Window *w);
+
+void increase_win_height(SDL_Window *w);
+
+void decrease_win_height(SDL_Window *w);
+
 #endif

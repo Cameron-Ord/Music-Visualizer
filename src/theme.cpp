@@ -2,10 +2,10 @@
 
 ProgramThemes::ProgramThemes() {
     SDL_Color primary = { 189, 147, 249, 255 };
-    SDL_Color background = { 40 ,42 ,54, 255 };
-    SDL_Color tertiary = { 255 ,121 ,198 , 255 };
+    SDL_Color background = { 40, 42, 54, 255 };
+    SDL_Color tertiary = { 255, 121, 198, 255 };
     SDL_Color text = { 80, 250, 123, 255 };
-    SDL_Color text_bg = { 68, 71, 90 , 255 };
+    SDL_Color text_bg = { 68, 71, 90, 255 };
 
     set_color(primary, PRIMARY);
     set_color(background, SECONDARY);

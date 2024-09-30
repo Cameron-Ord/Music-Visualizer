@@ -1,5 +1,6 @@
 #ifndef DEFINES_HPP
 #define DEFINES_HPP
+#include "SDL2/SDL_keycode.h"
 #include "macdefs.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -55,7 +56,7 @@ struct WIN_SIZE {
     int HEIGHT;
 };
 
-typedef enum{
+typedef enum {
     FLOATS = 0,
     INTS = 1,
 } SETTING_RENDER_MODE;
@@ -78,6 +79,14 @@ typedef enum {
     SPACE = SDLK_SPACE,
     ESCAPE = SDLK_ESCAPE,
     P_KEY = SDLK_p,
+    L = SDLK_l,
+    // up
+    K = SDLK_k,
+    H = SDLK_h,
+    // down
+    J = SDLK_j,
+    T = SDLK_t
+
 } SDL_KEYCODES_ENUM;
 
 typedef enum { STOPPED = 0, PLAYING = 1, PAUSED = 2 } STREAM_FLAGS;
@@ -154,14 +163,13 @@ struct FFTSettings {
     float filter_coeffs[3];
 };
 
-struct SettingTextInt{
+struct SettingTextInt {
     Text setting_text;
     const int *setting_value_ptr;
     SDL_Rect setting_value_rect;
 };
 
-
-struct SettingTextFloat{
+struct SettingTextFloat {
     Text setting_text;
     const float *setting_value_ptr;
     SDL_Rect setting_value_rect;

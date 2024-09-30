@@ -52,7 +52,7 @@ void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
         float hue = 225.0f + (processed_phases[i] * 15.0) - 5.0;
         hue = fmod(hue, 360.0);
 
-        float C = 0.35f; 
+        float C = 0.35f;
         float X = C * (1 - fabs(fmod(hue / 60.f, 2) - 1));
         float m = 0.51f;
         float r_prime, g_prime, b_prime;

@@ -30,6 +30,5 @@ class FourierTransform {
     FFTSettings settings;
     std::vector<float> low_cutoffs;
     std::vector<float> high_cutoffs;
-
 };
 #endif

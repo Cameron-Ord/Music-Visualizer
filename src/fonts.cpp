@@ -88,39 +88,14 @@ size_t SDL2Fonts::get_dir_vec_size() {
 }
 
 void SDL2Fonts::set_char_limit(int w) {
-    if (w < 200) {
-        character_limit = 8;
-        return;
-    }
-    if (w < 600) {
-        character_limit = 20;
-        return;
-    }
+    character_limit = std::min(175, std::max(8, (w - 200) / 12));
+}
 
-    if (w < 1000) {
-        character_limit = 40;
-        return;
-    }
-
-    if (w < 1400) {
-        character_limit = 60;
-        return;
-    }
-
-    if (w < 1800) {
-        character_limit = 80;
-        return;
-    }
-
-    if (w < 2200) {
-        character_limit = 90;
-        return;
-    }
-
-    if (w > 2200) {
-        character_limit = 100;
-        return;
-    }
+std::vector<std::vector<Text>> *SDL2Fonts::get_full_dir_textvector() {
+    return &dir_text_vec;
+}
+std::vector<std::vector<Text>> *SDL2Fonts::get_full_song_textvector() {
+    return &song_text_vec;
 }
 
 void SDL2Fonts::destroy_allocated_fonts() {
