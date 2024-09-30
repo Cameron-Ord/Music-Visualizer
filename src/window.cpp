@@ -10,6 +10,8 @@ void *SDL2Window::create_window(SDL_Window **w) {
         return NULL;
     }
 
+    SDL_SetWindowMinimumSize(*w, 600, 400);
+
     return *w;
 }
 
