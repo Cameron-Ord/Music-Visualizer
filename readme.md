@@ -6,6 +6,7 @@
 ## Music Visualizer
 ![Image](example/example_desktop_2.png)
 ![Image](example/example_desktop_3.png)
+![Image](example/example_desktop_4.png)
 
 ## Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
@@ -17,7 +18,6 @@ The program relies on directories located in the **~/Music dir located in the ho
 - ```MVSource``` which is where your music will be located. **The program expects folders inside this directory**, of which contain the audio files.
 ---
 
-![Image](example/example_desktop_4.png)
 
 ## Controls
 **General controls**
