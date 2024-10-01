@@ -22,7 +22,7 @@ int FFT_THREAD(void *data){
         }
 
 
-        if(ptr->is_running){
+        if(ptr->is_ready){
             SDL_CondWait(ptr->c, ptr->m);
         }
     }
