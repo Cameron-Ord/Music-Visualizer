@@ -94,6 +94,19 @@ void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
 }
 
 int main(int argc, char **argv) {
+    int no_mouse_grab = 0;
+
+    if(argc > 1){
+        std::cout << "hello" << std::endl;
+        for(int i = 1; i < argc; ++i){
+            std::string arg = argv[i];
+            if(arg == "--no-mouse-grab"){
+                no_mouse_grab = 1;
+            } else {
+                std::cout << "Unknown argument: " << arg << std::endl;
+            }
+        }
+    }
 
     std::signal(SIGSEGV, signal_handler);
     std::signal(SIGABRT, signal_handler);
@@ -310,28 +323,34 @@ int main(int argc, char **argv) {
             }
 
             case MOUSEBTN_DOWN: {
-                if (e.button.button == MOUSE_LEFT) {
-                    mouse.held = true;
-                    drag_start_x = e.button.x;
-                    drag_start_y = e.button.y;
+                if(!no_mouse_grab){
+                    if (e.button.button == MOUSE_LEFT) {
+                        mouse.held = true;
+                        drag_start_x = e.button.x;
+                        drag_start_y = e.button.y;
+                    }
                 }
                 break;
             }
 
             case MOUSEBTN_UP: {
-                if (e.button.button == MOUSE_LEFT) {
-                    mouse.held = false;
+                if(!no_mouse_grab){
+                    if (e.button.button == MOUSE_LEFT) {
+                        mouse.held = false;
+                    }
                 }
                 break;
             }
 
             case MOUSE_MOVE: {
-                if (mouse.held) {
-                    int win_x, win_y;
-                    SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
-                    SDL_SetWindowPosition(*win.get_window(),
-                                          win_x + e.motion.x - drag_start_x,
-                                          win_y + e.motion.y - drag_start_y);
+                if(!no_mouse_grab){
+                    if (mouse.held) {
+                        int win_x, win_y;
+                        SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
+                        SDL_SetWindowPosition(*win.get_window(),
+                                            win_x + e.motion.x - drag_start_x,
+                                            win_y + e.motion.y - drag_start_y);
+                    }
                 }
                 break;
             }

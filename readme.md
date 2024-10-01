@@ -18,6 +18,8 @@ The program relies on directories located in the **~/Music dir located in the ho
 ## Configuration
 You can use a config.txt to set the the colors you want the program to use at runtime. The defaults are what are shown above. Check out CONFIG_EXAMPLE.txt to see how to set that up. It uses RGBA in SDL2s format. This is pretty lazy set up right now and you need to launch the program in the working directory for it to find the files.
 
+If you are using a window manager like i3 or sway, You can pass ```--no-mouse-grab``` as a command line argument when running the program to disable the grab and drag code I have written for the window. I would recommend it, as it doesn't play nice for the most part.
+
 > Foundational directories will be **created on the initial program launch if they do not already exist:**
 - ```MVLogs``` which contains ```errlog.txt``` and ```log.txt```
 - ```MVSource``` which is where your music will be located. **The program expects folders inside this directory**, of which contain the audio files.
