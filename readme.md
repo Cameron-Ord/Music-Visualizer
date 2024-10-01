@@ -62,9 +62,9 @@ My program depends on these libs:
 Building is relatively painless. Just make sure you have the afforementioned libs installed so that **CMake** can search for them.
 
 ## Build steps for linux
-```mkdir build```
-```cd build && cmake ..```
-```cmake --build .```
+- ```mkdir build```
+- ```cd build && cmake ..```
+- ```cmake --build .```
 
 ## Build steps for windows
 You can simply run the **win64_make.sh** script inside the working directory of the project but I will give a rundown of what it does here.
@@ -80,8 +80,8 @@ You can simply run the **win64_make.sh** script inside the working directory of 
 ```
 
 
-```cd build```
-```mingw32-make```
+- ```cd build```
+- ```mingw32-make```
 
 
 
