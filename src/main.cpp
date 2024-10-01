@@ -10,6 +10,7 @@
 #include "../include/render_entity.hpp"
 #include "../include/theme.hpp"
 #include "../include/mouse.hpp"
+#include "SDL2/SDL_mutex.h"
 #include "SDL2/SDL_stdinc.h"
 
 #include <cstdio>
@@ -17,7 +18,8 @@
 #include <SDL2/SDL.h>
 #include <fstream>
 #include <mutex>
-#include <mutex>
+#include "../include/threads.hpp"
+
 
 std::mutex log_mutex;
 
@@ -41,72 +43,48 @@ void signal_handler(int signum) {
 }
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
-    char buffer[256];
+    
     int r, g, b, a;
 
-    SDL_Color primary;
-    SDL_Color secondary;
-    SDL_Color background;
-    SDL_Color text;
-    SDL_Color textbg;
+    SDL_Color primary = {0,0,0,0};
+    SDL_Color secondary = {0,0,0,0};
+    SDL_Color background = {0,0,0,0};
+    SDL_Color text = {0,0,0,0};
+    SDL_Color textbg = {0,0,0,0};
 
-    fseek(file_ptr, 0, SEEK_SET);
-    int read;
-    int ttl_read = 4 * 5;
+
+    const char *colors_str_buffer[] = {"primary", "secondary", "background", "text", "textbg"};
+    SDL_Color *sdl_color_buffer[] = {&primary, &secondary, &background, &text, &textbg};
+    
     int accumulator = 0;
+    int total = 4 * 5;
 
-    while (fgets(buffer, sizeof(buffer), file_ptr) != NULL) {
-        read = sscanf(buffer, "primary = {%d,%d,%d,%d};", &r, &g, &b, &a);
-        if (read == 4) {
-            primary = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
-            std::cout << "Items read :" << read << " Values :" << r << g << b
-                      << a << std::endl;
-            accumulator += 4;
-            continue;
-        }
+    for(size_t i = 0; i < sizeof(colors_str_buffer) /  sizeof(colors_str_buffer[0]); i++){
+        fseek(file_ptr, 0, SEEK_SET);
 
-        read = sscanf(buffer, "secondary = {%d,%d,%d,%d};", &r, &g, &b, &a);
-        if (read == 4) {
-            secondary = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
-            std::cout << "Items read :" << read << " Values :" << r << g << b
-                      << a << std::endl;
-            accumulator += 4;
-            continue;
-        }
+        char buffer[256];
+        char pattern[256];
 
-        read = sscanf(buffer, "background = {%d,%d,%d,%d};", &r, &g, &b, &a);
-        if (read == 4) {
-            background = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
-            std::cout << "Items read :" << read << " Values :" << r << g << b
-                      << a << std::endl;
-            accumulator += 4;
-            continue;
-        }
+        snprintf(pattern, sizeof(pattern), "%s = {%%d,%%d,%%d,%%d}", colors_str_buffer[i]);
 
-        read = sscanf(buffer, "text = {%d,%d,%d,%d};", &r, &g, &b, &a);
-        if (read == 4) {
-            text = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
-            std::cout << "Items read :" << read << " Values :" << r << g << b
-                      << a << std::endl;
-            accumulator += 4;
-            continue;
-        }
+        while(fgets(buffer, sizeof(buffer), file_ptr) != NULL){
+            if(sscanf(buffer, pattern, &r, &g, &b, &a) == 4){
+                sdl_color_buffer[i]->r =  (uint8_t) r;
+                sdl_color_buffer[i]->g =  (uint8_t) g;
+                sdl_color_buffer[i]->b =  (uint8_t) b;
+                sdl_color_buffer[i]->a =  (uint8_t) a;
 
-        read = sscanf(buffer, "textbg = {%d,%d,%d,%d};", &r, &g, &b, &a);
-        if (read == 4) {
-            textbg = { (uint8_t) r, (uint8_t) g, (uint8_t) b, (uint8_t) a };
-            std::cout << "Items read : " << read << " Values :" << r << " " << g
-                      << " " << b << " " << a << std::endl;
-            accumulator += 4;
-            continue;
+                accumulator += 4; 
+            } 
         }
     }
 
-    fclose(file_ptr);
-
-    if (accumulator != ttl_read) {
+    if(accumulator != total){
         return;
     }
+
+
+    fclose(file_ptr);
 
     themes->set_color(primary, PRIMARY);
     themes->set_color(secondary, SECONDARY);
@@ -282,6 +260,39 @@ int main(int argc, char **argv) {
     // Not using a mouse mask for anything, so not using the return
     SDL_GetMouseState(&mouse_x, &mouse_y);
     Mouse mouse = { mouse_x, mouse_y, false };
+
+    ThreadData fft_thread;
+    fft_thread.thread_ptr = NULL;
+    fft_thread.is_ready = false;
+    fft_thread.is_running = true;
+    fft_thread.m = SDL_CreateMutex();
+    fft_thread.c = SDL_CreateCond();
+
+    fft_thread.thread_ptr = SDL_CreateThread(FFT_THREAD, "FFT_THREAD", &fft_thread);
+    if(fft_thread.thread_ptr == NULL){
+        std::cout<<"Could not create thread! -> " << SDL_GetError() << std::endl;
+        return - 1;
+    }
+
+   // ThreadTestData testdata;
+
+    //testdata.running = 1;
+    //testdata.c = SDL_CreateCond();
+    //testdata.m = SDL_CreateMutex();
+
+    //SDL_Thread *thread_ptr = SDL_CreateThread(test_thread, "THREAD_TEST", &testdata);
+    //if(thread_ptr == NULL){
+     //   std::cerr << "Could not create thread! -> " << SDL_GetError() << std::endl;
+      //  return -1;
+    //}
+
+    //SDL_LockMutex(testdata.m);
+    //testdata.running = 0;
+    //SDL_CondSignal(testdata.c);
+    //SDL_UnlockMutex(testdata.m);
+
+    //int status;
+    //SDL_WaitThread(thread_ptr, &status);
 
     while (sdl2->get_play_state()) {
         rend.render_bg(themes.get_background());
@@ -470,6 +481,16 @@ int main(int argc, char **argv) {
 
         rend.render_present();
     }
+
+
+    SDL_LockMutex(fft_thread.m);
+    fft_thread.is_ready = true;
+    fft_thread.is_running = false;
+    SDL_CondSignal(fft_thread.c);
+    SDL_UnlockMutex(fft_thread.m);
+
+    int status;
+    SDL_WaitThread(fft_thread.thread_ptr, &status);
 
     fonts.destroy_allocated_fonts();
 

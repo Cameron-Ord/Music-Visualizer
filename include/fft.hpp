@@ -2,6 +2,8 @@
 #define FFT_HPP
 #include "defines.hpp"
 
+int FFT_THREAD(void* data);
+
 class FourierTransform {
   public:
     FourierTransform();
@@ -21,6 +23,7 @@ class FourierTransform {
     void set_smoothing(int amount);
     void set_smear(int amount);
     void freq_bin_algo(int SR);
+    int FFT_THREAD(void *data);
 
     const FFTSettings *get_settings();
 

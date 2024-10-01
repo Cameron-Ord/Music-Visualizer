@@ -1,8 +1,36 @@
 #include "../include/fft.hpp"
+#include "../include/threads.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265359
 #endif
+
+
+
+
+int FFT_THREAD(void *data){
+    ThreadData *ptr = static_cast<ThreadData*>(data);
+    SDL_LockMutex(ptr->m);
+
+    while(true){
+        if(!ptr->is_ready){
+            SDL_CondWait(ptr->c, ptr->m);
+        }
+
+        if(!ptr->is_running){
+            break;
+        }
+
+
+        if(ptr->is_running){
+            SDL_CondWait(ptr->c, ptr->m);
+        }
+    }
+
+    SDL_UnlockMutex(ptr->m);
+
+    return 0;
+}
 
 FourierTransform::FourierTransform() {
     data.max_ampl = 1.0;

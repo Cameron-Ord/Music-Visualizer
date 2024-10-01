@@ -5,6 +5,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_mutex.h>
+
 #include <cmath>
 #include <vector>
 #include <filesystem>
