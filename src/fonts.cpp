@@ -1,4 +1,4 @@
-#include "../include/font_entity.hpp"
+#include "../include/fonts.hpp"
 
 SDL2Fonts::SDL2Fonts() {
     font = NULL;

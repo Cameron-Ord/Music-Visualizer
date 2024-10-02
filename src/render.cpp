@@ -1,14 +1,15 @@
-#include "../include/render_entity.hpp"
+#include "../include/rendering.hpp"
+#include "../include/macdefs.hpp"
+#include "../include/enumdefs.hpp"
+
 
 SDL2Renderer::SDL2Renderer() {
     r = NULL;
     bar_end_coords.clear();
     bar_start_coords.clear();
     font_draw_limit = 0;
+    set_length = 0;
     setting_render_mode = FLOATS;
-    sprite_sheet_filename = "sprites.png";
-    sprite_surface = NULL;
-    sprite_texture = NULL;
 }
 
 SDL2Renderer::~SDL2Renderer() {}
@@ -122,29 +123,11 @@ void SDL2Renderer::render_draw_float_settings(
     }
 }
 
-// not used at the moment, but not removing
-void SDL2Renderer::create_sprite_texture() {
-    sprite_texture = SDL_CreateTextureFromSurface(r, sprite_surface);
-    if (!sprite_texture) {
-        std::cerr << "Failed to create surface texture! ->" << SDL_GetError()
-                  << std::endl;
-        sprite_texture = NULL;
-    }
-}
-
-// not used at the moment, but not removing
-void SDL2Renderer::create_sprite_surface() {
-    sprite_surface = IMG_Load(sprite_sheet_filename.c_str());
-    if (!sprite_surface) {
-        std::cerr << "Failed to load image! ->" << IMG_GetError() << std::endl;
-        sprite_surface = NULL;
-    }
-}
 
 void SDL2Renderer::reset_vector_positions() {}
 
 void SDL2Renderer::set_font_draw_limit(int h) {
-    font_draw_limit = std::min(24, std::max(4, (h - 300) / 20));
+    font_draw_limit = std::min(24, std::max(1, (h - 100) / 28));
 }
 
 const size_t *SDL2Renderer::get_font_draw_limit() {

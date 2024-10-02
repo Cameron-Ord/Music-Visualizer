@@ -8,37 +8,33 @@ SDL2Audio::SDL2Audio() {
 }
 
 void callback(void *data, uint8_t *stream, int len) {
-    USERDATA *userdata = static_cast<USERDATA *>(data);
+    AudioDataContainer *a = static_cast<AudioDataContainer *>(data);
 
-    const uint32_t length = userdata->ad->get_audio_data()->length;
-    uint32_t *pos = &userdata->ad->get_audio_data()->position;
+    const uint32_t *length = &a->length;
+    uint32_t *pos = &a->position;
 
     const uint32_t uint32_len = static_cast<uint32_t>(len);
     const uint32_t samples = uint32_len / sizeof(float);
-    const uint32_t remaining = (length - *pos);
+    const uint32_t remaining = (*length - *pos);
 
     const uint32_t copy = (samples < remaining) ? samples : remaining;
-
+    
     float *f32_stream = reinterpret_cast<float *>(stream);
     for (uint32_t i = 0; i < copy; i++) {
-        f32_stream[i] = userdata->ad->get_audio_data()->buffer[i + *pos] * 1.0;
+        f32_stream[i] = a->buffer[i + *pos] * 1.0;
     }
 
-    userdata->fft->fft_push(*pos, userdata->ad->get_audio_data()->buffer,
-                            copy * sizeof(float));
+    a->fft_push_fn(*pos, a->fft_in, a->buffer,
+                           copy * sizeof(float));
+
     *pos += copy;
-
-    if (*pos >= length) {
-        userdata->sdl2_ad->set_flag(NEXT,
-                                    userdata->sdl2_ad->get_next_song_flag());
-    }
 }
 
-void SDL2Audio::set_audio_spec(USERDATA *userdata) {
-    spec.userdata = userdata;
+void SDL2Audio::set_audio_spec(AudioDataContainer *a) {
+    spec.userdata = a;
     spec.callback = callback;
-    spec.channels = userdata->ad->get_audio_data()->channels;
-    spec.freq = userdata->ad->get_audio_data()->SR;
+    spec.channels = a->channels;
+    spec.freq = a->SR;
     spec.format = AUDIO_F32;
     spec.samples = BUFF_SIZE;
 }
@@ -53,20 +49,20 @@ bool SDL2Audio::open_audio_device() {
 }
 
 void SDL2Audio::close_audio_device() {
-    SDL_CloseAudioDevice(dev);
+    if(SDL_GetAudioDeviceStatus(dev)){
+        SDL_CloseAudioDevice(dev);
+    }
 }
 
 void SDL2Audio::pause_audio() {
-    int status = SDL_GetAudioDeviceStatus(dev);
-    if (status) {
+    if (SDL_GetAudioDeviceStatus(dev)) {
         SDL_PauseAudioDevice(dev, true);
         audio_streaming = 0;
     }
 }
 
 void SDL2Audio::resume_audio() {
-    int status = SDL_GetAudioDeviceStatus(dev);
-    if (status) {
+    if (SDL_GetAudioDeviceStatus(dev)) {
         SDL_PauseAudioDevice(dev, false);
         audio_streaming = 1;
     }

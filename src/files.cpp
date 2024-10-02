@@ -1,15 +1,11 @@
 #include "../include/files.hpp"
+#include <filesystem>
 
 ProgramFiles::ProgramFiles() {
     std::vector<std::string> gfx_file_names{
         "music_icon.png", "pause_icon.png",    "play_icon.png",
         "seek_icon.png",  "settings_icon.png", "stop_icon.png"
     };
-
-    for (std::string file_name_str : gfx_file_names) {
-        Icon tmp = { file_name_str, NULL, NULL, 0 };
-        icons_vec.push_back(tmp);
-    }
 }
 
 ProgramFiles::~ProgramFiles() {}

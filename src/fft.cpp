@@ -10,9 +10,10 @@
 
 int FFT_THREAD(void *data){
     ThreadData *ptr = static_cast<ThreadData*>(data);
-    SDL_LockMutex(ptr->m);
 
     while(true){
+        SDL_LockMutex(ptr->m);
+
         if(!ptr->is_ready){
             SDL_CondWait(ptr->c, ptr->m);
         }
@@ -25,9 +26,9 @@ int FFT_THREAD(void *data){
         if(ptr->is_ready){
             SDL_CondWait(ptr->c, ptr->m);
         }
-    }
 
-    SDL_UnlockMutex(ptr->m);
+        SDL_UnlockMutex(ptr->m);
+    }
 
     return 0;
 }
@@ -49,7 +50,6 @@ FourierTransform::FourierTransform() {
     high_cutoffs = { 250.0f, 2000.0f, 5000.0f };
 
     memset(data.hamming_values, 0, sizeof(float) * BUFF_SIZE);
-    memset(bufs.fft_in, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.in_cpy, 0, DOUBLE_BUFF * sizeof(float));
     memset(bufs.pre_raw, 0, BUFF_SIZE * sizeof(float));
     memset(bufs.phases, 0, BUFF_SIZE * sizeof(float));
@@ -118,13 +118,13 @@ void FourierTransform::fft_func(float *in, size_t stride,
 
 } /*fft_func*/
 
-void FourierTransform::fft_push(uint32_t pos, float *audio_data_buffer,
+void fft_push(uint32_t pos, float* ffn_in_buf,float *audio_data_buffer,
                                 int bytes) {
-    memcpy(bufs.fft_in, audio_data_buffer + pos, bytes);
+    memcpy(ffn_in_buf, audio_data_buffer + pos, bytes);
 }
 
 void FourierTransform::generate_visual(AudioDataContainer *ad) {
-    memcpy(bufs.in_cpy, bufs.fft_in, sizeof(float) * DOUBLE_BUFF);
+    memcpy(bufs.in_cpy, ad->fft_in, sizeof(float) * DOUBLE_BUFF);
     hamming_window();
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
     extract_frequencies();

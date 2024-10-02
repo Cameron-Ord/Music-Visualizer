@@ -67,6 +67,7 @@ bool AudioData::read_audio_file(std::string file_path) {
     }
 
     memset(a_data->buffer, 0, a_data->bytes);
+    memset(a_data->fft_in, 0, sizeof(float) * DOUBLE_BUFF);
 
     sf_count_t read = sf_read_float(sndfile, a_data->buffer, a_data->samples);
     if (read < 0) {
@@ -78,6 +79,7 @@ bool AudioData::read_audio_file(std::string file_path) {
     }
 
     a_data->length = static_cast<uint32_t>(a_data->samples);
+
     sf_close(sndfile);
     return true;
 }

@@ -1,21 +1,24 @@
-#include "../include/render_entity.hpp"
-#include <cmath>
+#include "../include/rendering.hpp"
+
 
 void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
                                    const int *win_width, float *smear,
                                    float *smooth, float *phases) {
-    const int cell_width = *win_width / *len;
     const int h = *win_height;
 
-    if (bar_end_coords.size() < (*len - 1)) {
+    if (bar_end_coords.size() < *len) {
         bar_end_coords.resize(*len);
     }
 
-    if (bar_start_coords.size() < (*len - 1)) {
+    if (bar_start_coords.size() < *len) {
         bar_start_coords.resize(*len);
     }
 
-    for (size_t i = 0; i < *len; ++i) {
+    float cell_width_scale = static_cast<float>(*win_width) / *len;
+    set_length = cell_width_scale < 2.0 ? (*len / 2) : *len;
+
+    const int cell_width = *win_width / set_length;
+    for (size_t i = 0; i < set_length; ++i) {
         const float start = smear[i];
         const float end = smooth[i];
 
@@ -46,7 +49,7 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
     }
 }
 
-void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
+void SDL2Renderer::render_draw_bars(SDL_Color *prim,
                                     SDL_Color *sec, float *processed_phases) {
     float r_prime = prim->r / 255.0;
     float g_prime = prim->g / 255.0;
@@ -84,7 +87,7 @@ void SDL2Renderer::render_draw_bars(size_t *len, SDL_Color *prim,
         }
     }
 
-    for (size_t i = 0; i < *len; ++i) {
+    for (size_t i = 0; i < set_length; ++i) {
         float phased_hue = hue + (processed_phases[i] * 10.0) - 7.5;
         phased_hue = fmod(phased_hue, 360.0);
 

@@ -2,45 +2,14 @@
 #include "../include/events.hpp"
 #include "../include/fft.hpp"
 #include "../include/files.hpp"
-#include "../include/font_entity.hpp"
+#include "../include/fonts.hpp"
 #include "../include/switch.hpp"
-#include "../include/program_path.hpp"
-#include "../include/sdl2_entity.hpp"
-#include "../include/window_entity.hpp"
-#include "../include/render_entity.hpp"
+#include "../include/paths.hpp"
+#include "../include/internal.hpp"
+#include "../include/window.hpp"
+#include "../include/rendering.hpp"
 #include "../include/theme.hpp"
-#include "../include/mouse.hpp"
-#include "SDL2/SDL_mutex.h"
-#include "SDL2/SDL_stdinc.h"
-
-#include <cstdio>
-#include <csignal>
-#include <SDL2/SDL.h>
-#include <fstream>
-#include <mutex>
 #include "../include/threads.hpp"
-
-
-std::mutex log_mutex;
-
-void log_bad_term(const std::string *message);
-void signal_handler(int signum);
-void set_config_colours(ProgramThemes *themes, FILE *file_ptr);
-
-void log_bad_term(const std::string *message) {
-    std::lock_guard<std::mutex> lock(log_mutex);
-    std::ofstream log_file("exit_log.txt", std::ios::app);
-    if (log_file.is_open()) {
-        log_file << message << std::endl;
-    }
-}
-
-void signal_handler(int signum) {
-    if (signum == SIGSEGV) {
-        const std::string message = "SIGSEGV OCCURRED";
-        log_bad_term(&message);
-    }
-}
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
     
@@ -108,14 +77,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    std::signal(SIGSEGV, signal_handler);
-    std::signal(SIGABRT, signal_handler);
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
-
     bool err;
 
-    USERDATA *userdata = new USERDATA;
     FourierTransform *fft = new FourierTransform;
     SDL2INTERNAL *sdl2 = new SDL2INTERNAL;
     SDL2Audio sdl2_ad;
@@ -128,13 +91,11 @@ int main(int argc, char **argv) {
     ProgramFiles files;
     SDL2Fonts fonts;
 
+    ad->get_audio_data()->fft_push_fn = fft_push;
+
     StdClassWrapper std = { ad, &pathing, &files, fft, &themes };
 
     SDL2Wrapper sdl2_w = { sdl2, &sdl2_ad, &rend, &win, &key, &fonts };
-
-    userdata->ad = ad;
-    userdata->sdl2_ad = &sdl2_ad;
-    userdata->fft = fft;
 
     err = pathing.create_music_source();
     if (!err) {
@@ -186,11 +147,6 @@ int main(int argc, char **argv) {
 
     if (!sdl2->initialize_sdl2_video()) {
         std::cerr << "Failed to initialize SDL2 video!" << std::endl;
-        return 1;
-    }
-
-    if (!sdl2->initialize_sdl2_img()) {
-        std::cerr << "Failed to initialize SDL2 image!" << std::endl;
         return 1;
     }
 
@@ -267,45 +223,7 @@ int main(int argc, char **argv) {
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
-    int mouse_x = 0;
-    int mouse_y = 0;
-
-    // Not using a mouse mask for anything, so not using the return
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-    Mouse mouse = { mouse_x, mouse_y, false };
-
-    ThreadData fft_thread;
-    fft_thread.thread_ptr = NULL;
-    fft_thread.is_ready = false;
-    fft_thread.is_running = true;
-    fft_thread.m = SDL_CreateMutex();
-    fft_thread.c = SDL_CreateCond();
-
-    fft_thread.thread_ptr = SDL_CreateThread(FFT_THREAD, "FFT_THREAD", &fft_thread);
-    if(fft_thread.thread_ptr == NULL){
-        std::cout<<"Could not create thread! -> " << SDL_GetError() << std::endl;
-        return - 1;
-    }
-
-   // ThreadTestData testdata;
-
-    //testdata.running = 1;
-    //testdata.c = SDL_CreateCond();
-    //testdata.m = SDL_CreateMutex();
-
-    //SDL_Thread *thread_ptr = SDL_CreateThread(test_thread, "THREAD_TEST", &testdata);
-    //if(thread_ptr == NULL){
-     //   std::cerr << "Could not create thread! -> " << SDL_GetError() << std::endl;
-      //  return -1;
-    //}
-
-    //SDL_LockMutex(testdata.m);
-    //testdata.running = 0;
-    //SDL_CondSignal(testdata.c);
-    //SDL_UnlockMutex(testdata.m);
-
-    //int status;
-    //SDL_WaitThread(thread_ptr, &status);
+    int mouse_held = 0;
 
     while (sdl2->get_play_state()) {
         rend.render_bg(themes.get_background());
@@ -325,7 +243,7 @@ int main(int argc, char **argv) {
             case MOUSEBTN_DOWN: {
                 if(!no_mouse_grab){
                     if (e.button.button == MOUSE_LEFT) {
-                        mouse.held = true;
+                        mouse_held = 1;
                         drag_start_x = e.button.x;
                         drag_start_y = e.button.y;
                     }
@@ -336,7 +254,7 @@ int main(int argc, char **argv) {
             case MOUSEBTN_UP: {
                 if(!no_mouse_grab){
                     if (e.button.button == MOUSE_LEFT) {
-                        mouse.held = false;
+                        mouse_held = 0;
                     }
                 }
                 break;
@@ -344,7 +262,7 @@ int main(int argc, char **argv) {
 
             case MOUSE_MOVE: {
                 if(!no_mouse_grab){
-                    if (mouse.held) {
+                    if (mouse_held) {
                         int win_x, win_y;
                         SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
                         SDL_SetWindowPosition(*win.get_window(),
@@ -356,16 +274,14 @@ int main(int argc, char **argv) {
             }
 
             case SDL_WINDOWEVENT: {
-                if (!mouse.held) {
                     handle_window_event(e.window.event, &std, &sdl2_w);
-                }
                 break;
             }
 
             case SDL_KEYDOWN: {
 
                 keydown_handle_state(sdl2->get_current_user_state(),
-                                     e.key.keysym, &std, &sdl2_w, userdata);
+                                     e.key.keysym, &std, &sdl2_w);
                 break;
             }
 
@@ -401,14 +317,22 @@ int main(int argc, char **argv) {
         case PLAYING: {
             switch (*sdl2_ad.get_next_song_flag()) {
             case WAITING: {
-                fft->generate_visual(ad->get_audio_data());
+                uint32_t position = ad->get_audio_data()->position;
+                uint32_t length = ad->get_audio_data()->length;
+
+                if(position > length){
+                    sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
+                } else {
+                    fft->generate_visual(ad->get_audio_data());
+                }
                 break;
             }
 
             case NEXT: {
-                goto_next_song(&sdl2_w, &std, userdata);
+                goto_next_song(&sdl2_w, &std);
                 break;
             }
+
             default: {
                 break;
             }
@@ -456,7 +380,7 @@ int main(int argc, char **argv) {
                                  &sizes->WIDTH, fft->get_bufs()->smear,
                                  fft->get_bufs()->smoothed,
                                  fft->get_bufs()->processed_phases);
-            rend.render_draw_bars(&fft->get_data()->output_len,
+            rend.render_draw_bars(
                                   themes.get_primary(), themes.get_secondary(),
                                   fft->get_bufs()->processed_phases);
             break;
@@ -502,20 +426,13 @@ int main(int argc, char **argv) {
     }
 
 
-    SDL_LockMutex(fft_thread.m);
-    fft_thread.is_ready = true;
-    fft_thread.is_running = false;
-    SDL_CondSignal(fft_thread.c);
-    SDL_UnlockMutex(fft_thread.m);
-
-    int status;
-    SDL_WaitThread(fft_thread.thread_ptr, &status);
+    sdl2_ad.pause_audio();
+    sdl2_ad.close_audio_device();
 
     fonts.destroy_allocated_fonts();
 
     free(ad->get_audio_data()->buffer);
     delete ad->get_audio_data();
-    delete userdata;
     delete ad;
     delete sdl2;
     delete fft;

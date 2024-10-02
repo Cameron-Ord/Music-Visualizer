@@ -1,7 +1,11 @@
 #ifndef SDL2_TTF_HPP
 #define SDL2_TTF_HPP
 
-#include "defines.hpp"
+#include "fontdefs.hpp"
+#include <SDL2/SDL_ttf.h>
+#include "filedefs.hpp"
+#include "audiodefs.hpp"
+
 #include <vector>
 
 class SDL2Fonts {

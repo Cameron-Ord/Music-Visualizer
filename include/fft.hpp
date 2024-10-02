@@ -1,13 +1,17 @@
 #ifndef FFT_HPP
 #define FFT_HPP
-#include "defines.hpp"
+#include <complex>
+#include <iostream>
+#include "audiodefs.hpp"
+#include <cmath>
+#include <vector>
 
+void fft_push(uint32_t pos, float *fft_in, float *audio_data_buffer, int bytes);
 int FFT_THREAD(void* data);
 
 class FourierTransform {
   public:
     FourierTransform();
-    void fft_push(uint32_t pos, float *audio_data_buffer, int bytes);
     void generate_visual(AudioDataContainer *ad);
     void calculate_window();
     void hamming_window();
@@ -23,8 +27,6 @@ class FourierTransform {
     void set_smoothing(int amount);
     void set_smear(int amount);
     void freq_bin_algo(int SR);
-    int FFT_THREAD(void *data);
-
     const FFTSettings *get_settings();
 
   private:

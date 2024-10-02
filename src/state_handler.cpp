@@ -1,22 +1,22 @@
 #include "../include/audio.hpp"
-#include "../include/render_entity.hpp"
+#include "../include/rendering.hpp"
 #include "../include/fft.hpp"
-#include "../include/window_entity.hpp"
+#include "../include/window.hpp"
 #include "../include/events.hpp"
 #include "../include/files.hpp"
-#include "../include/font_entity.hpp"
+#include "../include/fonts.hpp"
 #include "../include/switch.hpp"
-#include "../include/program_path.hpp"
-#include "../include/sdl2_entity.hpp"
+#include "../include/paths.hpp"
+#include "../include/internal.hpp"
 #include "../include/theme.hpp"
-#include "SDL2/SDL_keycode.h"
+#include <cstdint>
 
 // Not gonna max limit cause thats LAME
 const int MIN_WIDTH = 400;
 const int MIN_HEIGHT = 300;
 
 void keydown_handle_state(int userstate, SDL_Keysym sym, StdClassWrapper *std,
-                          SDL2Wrapper *sdl2_w, USERDATA *userdata) {
+                          SDL2Wrapper *sdl2_w) {
     switch (userstate) {
     default: {
         break;
@@ -28,7 +28,7 @@ void keydown_handle_state(int userstate, SDL_Keysym sym, StdClassWrapper *std,
     }
 
     case AT_SONGS: {
-        song_keydown_options(sym.sym, std, sdl2_w, userdata);
+        song_keydown_options(sym.sym, std, sdl2_w);
         break;
     }
 
@@ -326,8 +326,8 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
     }
 }
 
-void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std,
-                    USERDATA *userdata) {
+void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std
+                    ) {
 
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
@@ -390,7 +390,7 @@ void goto_next_song(SDL2Wrapper *sdl2_w, StdClassWrapper *std,
         if (result) {
             key->set_song_index(*r_song_vec_index);
             key->set_song_cursor_index(*r_song_cursor);
-            sdl2_ad->set_audio_spec(userdata);
+            sdl2_ad->set_audio_spec(ad->get_audio_data());
             sdl2_ad->open_audio_device();
             sdl2_ad->resume_audio();
             sdl2_ad->set_flag(PLAYING, sdl2_ad->get_stream_flag());
@@ -447,8 +447,7 @@ void select_directory(StdClassWrapper *std, SDL2Wrapper *sdl2_w) {
     }
 }
 
-void select_song(StdClassWrapper *std, SDL2Wrapper *sdl2_w,
-                 USERDATA *userdata) {
+void select_song(StdClassWrapper *std, SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     ProgramPath *pathing = std->pathing;
@@ -485,7 +484,7 @@ void select_song(StdClassWrapper *std, SDL2Wrapper *sdl2_w,
             key->set_song_index(*virt_song_vec_index);
             key->set_song_cursor_index(*virt_song_cursor);
 
-            sdl2_ad->set_audio_spec(userdata);
+            sdl2_ad->set_audio_spec(ad->get_audio_data());
             sdl2_ad->open_audio_device();
             sdl2_ad->resume_audio();
             sdl2_ad->set_flag(PLAYING, sdl2_ad->get_stream_flag());
@@ -626,7 +625,7 @@ void directory_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
 }
 
 void song_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
-                          SDL2Wrapper *sdl2_w, USERDATA *userdata) {
+                          SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Audio *sdl2_ad = sdl2_w->sdl2_ad;
     SDL2KeyInputs *key = sdl2_w->key;
@@ -747,7 +746,7 @@ void song_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
     }
 
     case SPACE: {
-        select_song(std, sdl2_w, userdata);
+        select_song(std, sdl2_w);
         break;
     }
     }
@@ -811,7 +810,7 @@ void playback_keydown_options(SDL_Keycode sym, StdClassWrapper *std,
     }
 }
 
-void handle_window_event(std::uint8_t event, StdClassWrapper *std,
+void handle_window_event(uint8_t event, StdClassWrapper *std,
                          SDL2Wrapper *sdl2_w) {
     SDL2INTERNAL *sdl2 = sdl2_w->sdl2;
     SDL2Window *win = sdl2_w->win;

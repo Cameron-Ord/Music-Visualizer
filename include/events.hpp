@@ -1,6 +1,11 @@
 #ifndef EVENTS_HPP
 #define EVENTS_HPP
-#include "defines.hpp"
+
+#include "enumdefs.hpp"
+#include "fontdefs.hpp"
+#include <SDL2/SDL_keyboard.h>
+#include <iostream>
+#include <vector>
 
 class SDL2KeyInputs {
   public:

@@ -1,4 +1,6 @@
-#include "../include/program_path.hpp"
+#include "../include/filedefs.hpp"
+#include "../include/paths.hpp"
+#include <filesystem>
 
 ProgramPath::ProgramPath() {
     const std::string platform_home = get_platform_home();

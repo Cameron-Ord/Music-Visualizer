@@ -1,6 +1,10 @@
 #ifndef SDL2_ENTITY_HPP
 #define SDL2_ENTITY_HPP
-#include "defines.hpp"
+
+#include "sdl2defs.hpp"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
 class SDL2INTERNAL {
   public:
     ~SDL2INTERNAL();
@@ -10,7 +14,6 @@ class SDL2INTERNAL {
     bool initialize_sdl2_events();
     bool initialize_sdl2_audio();
     bool initialize_sdl2_ttf();
-    bool initialize_sdl2_img();
     bool get_play_state();
 
     const WIN_SIZE *get_stored_window_size();

@@ -1,4 +1,5 @@
-#include "../include/render_entity.hpp"
+#include "../include/rendering.hpp"
+
 
 void SDL2Renderer::render_draw_text(std::vector<Text> *text_vec) {
     for (auto it = text_vec->begin(); it != text_vec->end(); it++) {

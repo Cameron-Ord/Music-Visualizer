@@ -1,4 +1,5 @@
-#include "../include/render_entity.hpp"
+#include "../include/rendering.hpp"
+
 
 void SDL2Renderer::render_set_text_bg(const WIN_SIZE *sizes,
                                       const std::vector<Text> *text_vec,

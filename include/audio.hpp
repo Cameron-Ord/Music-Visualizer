@@ -1,7 +1,7 @@
 #ifndef AUDIO_HPP
 #define AUDIO_HPP
-
-#include "defines.hpp"
+#include "audiodefs.hpp"
+#include <SDL2/SDL_audio.h>
 #include <sndfile.h>
 
 class AudioData {
@@ -20,7 +20,7 @@ class SDL2Audio {
   public:
     SDL2Audio();
     ~SDL2Audio();
-    void set_audio_spec(USERDATA *userdata);
+    void set_audio_spec(AudioDataContainer *a);
 
     void pause_audio();
     void resume_audio();

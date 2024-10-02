@@ -1,7 +1,8 @@
 #ifndef FILES_HPP
 #define FILES_HPP
 
-#include "defines.hpp"
+#include "filedefs.hpp"
+#include <vector>
 
 class ProgramFiles {
   public:
@@ -21,7 +22,6 @@ class ProgramFiles {
     int dir_count;
     std::vector<Directory> directories;
     std::vector<Files> files;
-    std::vector<Icon> icons_vec;
 };
 
 #endif
