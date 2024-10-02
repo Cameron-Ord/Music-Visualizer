@@ -127,7 +127,7 @@ void SDL2Renderer::render_draw_float_settings(
 void SDL2Renderer::reset_vector_positions() {}
 
 void SDL2Renderer::set_font_draw_limit(int h) {
-    font_draw_limit = std::min(24, std::max(1, (h - 100) / 28));
+    font_draw_limit = std::min(24, std::max(1, (h - 100) / 32));
 }
 
 const size_t *SDL2Renderer::get_font_draw_limit() {

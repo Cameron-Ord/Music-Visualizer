@@ -3,16 +3,16 @@
 #include <complex>
 #include <iostream>
 #include "audiodefs.hpp"
+#include "macdefs.hpp"
 #include <cmath>
 #include <vector>
 
 void fft_push(uint32_t pos, float *fft_in, float *audio_data_buffer, int bytes);
-int FFT_THREAD(void* data);
 
 class FourierTransform {
   public:
     FourierTransform();
-    void generate_visual(AudioDataContainer *ad);
+    void generate_visual();
     void calculate_window();
     void hamming_window();
     float amp(float z);
@@ -28,8 +28,11 @@ class FourierTransform {
     void set_smear(int amount);
     void freq_bin_algo(int SR);
     const FFTSettings *get_settings();
+    const AudioDataContainer *get_audio_data();
+    void set_audio_data_ptr(AudioDataContainer *audio_data);
 
   private:
+    AudioDataContainer *a_data;
     FData data;
     FBuffers bufs;
     FFTSettings settings;

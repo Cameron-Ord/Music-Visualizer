@@ -9,12 +9,15 @@ struct ThreadData {
     SDL_Thread *thread_ptr;
     bool is_running;
     bool is_ready;
+    bool is_locked;
     void *arg1;
     void *arg2;
     void *arg3;
 };
 
 
-int test_thread(void* data);
+void lock_mutex(SDL_mutex *m, bool *is_locked);
+void unlock_mutex(SDL_mutex *m, bool *is_locked);
+int FFT_THREAD(void *data);
 
 #endif

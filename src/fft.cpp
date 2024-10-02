@@ -7,32 +7,6 @@
 
 
 
-
-int FFT_THREAD(void *data){
-    ThreadData *ptr = static_cast<ThreadData*>(data);
-
-    while(true){
-        SDL_LockMutex(ptr->m);
-
-        if(!ptr->is_ready){
-            SDL_CondWait(ptr->c, ptr->m);
-        }
-
-        if(!ptr->is_running){
-            break;
-        }
-
-
-        if(ptr->is_ready){
-            SDL_CondWait(ptr->c, ptr->m);
-        }
-
-        SDL_UnlockMutex(ptr->m);
-    }
-
-    return 0;
-}
-
 FourierTransform::FourierTransform() {
     data.max_ampl = 1.0;
     data.output_len = 0;
@@ -68,6 +42,10 @@ FourierTransform::FourierTransform() {
     }
 
     calculate_window();
+}
+
+void FourierTransform::set_audio_data_ptr(AudioDataContainer *a){
+    a_data = a;
 }
 
 void FourierTransform::set_filter_coeff(size_t i, float amount) {
@@ -123,13 +101,13 @@ void fft_push(uint32_t pos, float* ffn_in_buf,float *audio_data_buffer,
     memcpy(ffn_in_buf, audio_data_buffer + pos, bytes);
 }
 
-void FourierTransform::generate_visual(AudioDataContainer *ad) {
-    memcpy(bufs.in_cpy, ad->fft_in, sizeof(float) * DOUBLE_BUFF);
+void FourierTransform::generate_visual() {
+    memcpy(bufs.in_cpy, a_data->fft_in, sizeof(float)*DOUBLE_BUFF);
     hamming_window();
     fft_func(bufs.pre_raw, 1, bufs.out_raw, BUFF_SIZE);
     extract_frequencies();
-    multi_band_stop(ad->SR);
-    freq_bin_algo(ad->SR);
+    multi_band_stop(a_data->SR);
+    freq_bin_algo(a_data->SR);
     squash_to_log(HALF_BUFF);
     visual_refine();
 } /*generate_visual*/

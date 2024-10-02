@@ -1,18 +1,10 @@
 #include "../include/audio.hpp"
 
 AudioData::AudioData() {
-    a_data = NULL;
-    a_data = new AudioDataContainer;
+}
 
-    a_data->buffer = NULL;
-    a_data->length = 0;
-    a_data->position = 0;
-    a_data->samples = 0;
-    a_data->bytes = 0;
-    a_data->channels = 0;
-    a_data->SR = 0;
-    a_data->format = 0;
-    a_data->volume = 1.0;
+void AudioData::set_audio_data_ptr(AudioDataContainer *a){
+    a_data = a;
 }
 
 void AudioData::zero_values() {

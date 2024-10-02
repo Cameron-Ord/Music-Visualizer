@@ -10,6 +10,8 @@
 #include "../include/rendering.hpp"
 #include "../include/theme.hpp"
 #include "../include/threads.hpp"
+#include "SDL2/SDL_mutex.h"
+#include <unordered_map>
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
     
@@ -79,6 +81,19 @@ int main(int argc, char **argv) {
 
     bool err;
 
+  
+    AudioDataContainer *audio_data = new AudioDataContainer;
+
+    audio_data->buffer = NULL;
+    audio_data->length = 0;
+    audio_data->position = 0;
+    audio_data->samples = 0;
+    audio_data->bytes = 0;
+    audio_data->channels = 0;
+    audio_data->SR = 0;
+    audio_data->format = 0;
+    audio_data->volume = 1.0;
+
     FourierTransform *fft = new FourierTransform;
     SDL2INTERNAL *sdl2 = new SDL2INTERNAL;
     SDL2Audio sdl2_ad;
@@ -90,6 +105,15 @@ int main(int argc, char **argv) {
     ProgramPath pathing;
     ProgramFiles files;
     SDL2Fonts fonts;
+
+    fft->set_audio_data_ptr(audio_data);
+    ad->set_audio_data_ptr(audio_data);
+
+
+    std::unordered_map<std::string, void*> class_mapping;
+
+    class_mapping["FFT"] = &fft;
+    class_mapping["AUDIO_DATA"] = &ad;
 
     ad->get_audio_data()->fft_push_fn = fft_push;
 
@@ -223,6 +247,13 @@ int main(int argc, char **argv) {
     sdl2->set_play_state(true);
     sdl2->set_current_user_state(AT_DIRECTORIES);
 
+    ThreadData FTransformThread = {NULL, NULL, NULL, 1, 0, false, (void*)fft, NULL, NULL};
+    FTransformThread.c = SDL_CreateCond();
+    FTransformThread.m = SDL_CreateMutex();
+    
+    FTransformThread.thread_ptr = SDL_CreateThread(FFT_THREAD, "FFT_THREAD_WORKER", &FTransformThread);
+
+
     int mouse_held = 0;
 
     while (sdl2->get_play_state()) {
@@ -323,7 +354,10 @@ int main(int argc, char **argv) {
                 if(position > length){
                     sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
                 } else {
-                    fft->generate_visual(ad->get_audio_data());
+                    lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+                    FTransformThread.is_ready = 0;
+                    SDL_CondSignal(FTransformThread.c);
+                    unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
                 }
                 break;
             }
@@ -415,8 +449,13 @@ int main(int argc, char **argv) {
         }
         }
 
-        frame_start = SDL_GetTicks64();
+        lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+        FTransformThread.is_ready = 0;
+        SDL_CondSignal(FTransformThread.c);
+        unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
 
+
+        frame_start = SDL_GetTicks64();
         frame_time = SDL_GetTicks64() - frame_start;
         if (ticks_per_frame > frame_time) {
             SDL_Delay(ticks_per_frame - frame_time);
@@ -425,9 +464,19 @@ int main(int argc, char **argv) {
         rend.render_present();
     }
 
-
+    
     sdl2_ad.pause_audio();
     sdl2_ad.close_audio_device();
+
+    lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+    FTransformThread.is_running = 0;
+    SDL_CondSignal(FTransformThread.c);
+    unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+
+    int th_status;
+    SDL_WaitThread(FTransformThread.thread_ptr, &th_status);
+
+    std::cout << "Thread exited with status -> " << th_status << std::endl; 
 
     fonts.destroy_allocated_fonts();
 

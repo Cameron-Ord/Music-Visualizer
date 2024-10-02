@@ -4,6 +4,11 @@
 void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
                                    const int *win_width, float *smear,
                                    float *smooth, float *phases) {
+
+    if(*len == 0){
+        return;
+    }
+
     const int h = *win_height;
 
     if (bar_end_coords.size() < *len) {
@@ -51,6 +56,11 @@ void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
 
 void SDL2Renderer::render_draw_bars(SDL_Color *prim,
                                     SDL_Color *sec, float *processed_phases) {
+
+    if(set_length == 0){
+        return;
+    }
+    
     float r_prime = prim->r / 255.0;
     float g_prime = prim->g / 255.0;
     float b_prime = prim->b / 255.0;

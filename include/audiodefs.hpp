@@ -31,6 +31,7 @@ struct FData {
     float max_phase;
     SDL_Rect *rect_buff;
     float hamming_values[BUFF_SIZE];
+    int sample_rate;
 };
 
 struct AudioDataContainer {

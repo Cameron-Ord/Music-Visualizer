@@ -10,8 +10,9 @@ class AudioData {
     ~AudioData();
     void zero_values();
     bool read_audio_file(std::string file_path);
-    AudioDataContainer *get_audio_data();
 
+    void set_audio_data_ptr(AudioDataContainer *audio_data);
+    AudioDataContainer *get_audio_data();
   private:
     AudioDataContainer *a_data;
 };

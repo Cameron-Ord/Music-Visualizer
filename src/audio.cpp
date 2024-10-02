@@ -87,4 +87,5 @@ SDL_AudioSpec *SDL2Audio::get_spec() {
     return &spec;
 }
 
+
 SDL2Audio::~SDL2Audio() {}
