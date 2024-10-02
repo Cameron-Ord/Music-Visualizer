@@ -253,8 +253,11 @@ int main(int argc, char **argv) {
     
     FTransformThread.thread_ptr = SDL_CreateThread(FFT_THREAD, "FFT_THREAD_WORKER", &FTransformThread);
 
+    ThreadData RenderThread = {NULL, NULL, NULL, 1, 0, false, NULL, NULL, NULL};
+    RenderThread.c = SDL_CreateCond();
+    RenderThread.m = SDL_CreateMutex();
+    RenderThread.thread_ptr = SDL_CreateThread(RENDER_THREAD, "RENDER_THREAD_WORKER", &RenderThread);
 
-    int mouse_held = 0;
 
     while (sdl2->get_play_state()) {
         rend.render_bg(themes.get_background());
@@ -262,6 +265,7 @@ int main(int argc, char **argv) {
 
         SDL_Event e;
 
+        int mouse_held = 0;
         int drag_start_x;
         int drag_start_y;
 
@@ -467,16 +471,27 @@ int main(int argc, char **argv) {
     
     sdl2_ad.pause_audio();
     sdl2_ad.close_audio_device();
+    int th_status;
 
     lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
     FTransformThread.is_running = 0;
     SDL_CondSignal(FTransformThread.c);
     unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
 
-    int th_status;
+
     SDL_WaitThread(FTransformThread.thread_ptr, &th_status);
 
-    std::cout << "Thread exited with status -> " << th_status << std::endl; 
+    std::cout << "FFT Thread exited with status -> " << th_status << std::endl; 
+
+    lock_mutex(RenderThread.m, &RenderThread.is_locked);
+    RenderThread.is_running = 0;
+    SDL_CondSignal(RenderThread.c);
+    unlock_mutex(RenderThread.m, &RenderThread.is_locked);
+
+    SDL_WaitThread(RenderThread.thread_ptr, &th_status);
+
+    std::cout << "RENDER Thread exited with status -> " << th_status << std::endl; 
+
 
     fonts.destroy_allocated_fonts();
 

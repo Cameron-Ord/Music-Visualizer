@@ -1,4 +1,7 @@
 #include "../include/events.hpp"
+#include "../include/internal.hpp"
+#include "../include/window.hpp"
+#include "../include/switch.hpp"
 
 SDL2KeyInputs::SDL2KeyInputs() {
     cursor_index_dirs = 0;
@@ -118,4 +121,92 @@ std::string SDL2KeyInputs::check_cursor_move(size_t vec_size,
 std::string SDL2KeyInputs::select_element(const std::vector<Text> *d,
                                           const size_t *cursor_index_ptr) {
     return (*d)[*cursor_index_ptr].name;
+}
+
+void SDL2KeyInputs::set_mouse_grab(int status){
+    no_mouse_grab = status;
+}
+
+void SDL2KeyInputs::input_handler(StdClassWrapper *std, SDL2Wrapper *sdl2_w){
+        SDL_Event e;
+        int mouse_held = 0;
+        int drag_start_x;
+        int drag_start_y;
+
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            default: {
+                break;
+            }
+
+            case MOUSEBTN_DOWN: {
+                if(!no_mouse_grab){
+                    if (e.button.button == MOUSE_LEFT) {
+                        mouse_held = 1;
+                        drag_start_x = e.button.x;
+                        drag_start_y = e.button.y;
+                    }
+                }
+                break;
+            }
+
+            case MOUSEBTN_UP: {
+                if(!no_mouse_grab){
+                    if (e.button.button == MOUSE_LEFT) {
+                        mouse_held = 0;
+                    }
+                }
+                break;
+            }
+
+            case MOUSE_MOVE: {
+                if(!no_mouse_grab){
+                    if (mouse_held) {
+                        int win_x, win_y;
+                        SDL_GetWindowPosition(*sdl2_w->win->get_window(), &win_x, &win_y);
+                        SDL_SetWindowPosition(*sdl2_w->win->get_window(),
+                                            win_x + e.motion.x - drag_start_x,
+                                            win_y + e.motion.y - drag_start_y);
+                    }
+                }
+                break;
+            }
+
+            case SDL_WINDOWEVENT: {
+                    handle_window_event(e.window.event, std, sdl2_w);
+                break;
+            }
+
+            case SDL_KEYDOWN: {
+
+                keydown_handle_state(sdl2_w->sdl2->get_current_user_state(),
+                                     e.key.keysym, std, sdl2_w);
+                break;
+            }
+
+            case SDL_KEYUP: {
+                if (e.key.keysym.sym == Q) {
+                    sdl2_w->sdl2->set_play_state(false);
+                }
+
+                if (e.key.keysym.sym == T) {
+                    if (*sdl2_w->win->get_border_bool()) {
+                        SDL_SetWindowBordered(*sdl2_w->win->get_window(), SDL_FALSE);
+                        sdl2_w->win->set_border_bool(!*sdl2_w->win->get_border_bool());
+                    } else {
+                        SDL_SetWindowBordered(*sdl2_w->win->get_window(), SDL_TRUE);
+                        SDL_SetWindowResizable(*sdl2_w->win->get_window(), SDL_TRUE);
+                        sdl2_w->win->set_border_bool(!*sdl2_w->win->get_border_bool());
+                    }
+                }
+                break;
+            }
+
+            case SDL_QUIT: {
+                sdl2_w->sdl2->set_play_state(false);
+                break;
+            }
+            }
+        }
+
 }

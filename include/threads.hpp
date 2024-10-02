@@ -19,5 +19,5 @@ struct ThreadData {
 void lock_mutex(SDL_mutex *m, bool *is_locked);
 void unlock_mutex(SDL_mutex *m, bool *is_locked);
 int FFT_THREAD(void *data);
-
+int RENDER_THREAD(void *data);
 #endif

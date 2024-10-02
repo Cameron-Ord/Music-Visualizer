@@ -3,6 +3,7 @@
 
 #include "enumdefs.hpp"
 #include "fontdefs.hpp"
+#include "sdl2defs.hpp"
 #include <SDL2/SDL_keyboard.h>
 #include <iostream>
 #include <vector>
@@ -38,8 +39,12 @@ class SDL2KeyInputs {
 
     void set_settings_cursor(size_t i);
     const size_t *get_settings_cursor();
+    void input_handler(StdClassWrapper *std, SDL2Wrapper *sdl2_w);
+    void set_mouse_grab(int status);
 
   private:
+
+    int no_mouse_grab;
     size_t virtual_dvec_index;
     size_t virtual_svec_index;
 
