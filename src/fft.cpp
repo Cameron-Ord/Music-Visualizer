@@ -100,6 +100,8 @@ size_t bit_reverse(size_t index, size_t log2n) {
   return reversed;
 }
 
+//https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
+
 void iter_fft(float *in, std::complex<float> *out, size_t size) {
 
   for (size_t i = 0; i < size; i++) {
