@@ -16,11 +16,11 @@ class ProgramThemes {
     ProgramThemes();
     ~ProgramThemes();
     void set_color(SDL_Color to_color, int type);
-    SDL_Color *get_primary();
-    SDL_Color *get_secondary();
-    SDL_Color *get_background();
-    SDL_Color *get_text();
-    SDL_Color *get_textbg();
+    const SDL_Color *get_primary();
+    const SDL_Color *get_secondary();
+    const SDL_Color *get_background();
+    const SDL_Color *get_text();
+    const SDL_Color *get_textbg();
 
   private:
     SDL_Color primary;

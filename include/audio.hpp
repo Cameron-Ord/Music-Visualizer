@@ -1,6 +1,9 @@
 #ifndef AUDIO_HPP
 #define AUDIO_HPP
 #include "audiodefs.hpp"
+#include "files.hpp"
+#include "paths.hpp"
+#include "threads.hpp"
 #include <SDL2/SDL_audio.h>
 #include <sndfile.h>
 
@@ -23,6 +26,7 @@ class SDL2Audio {
     ~SDL2Audio();
     void set_audio_spec(AudioDataContainer *a);
 
+    void audio_state_handler(AudioData *ad, ProgramFiles *files, ProgramPath *pathing,ThreadData *FTransformThread);
     void pause_audio();
     void resume_audio();
 

@@ -6,7 +6,7 @@
 #include "macdefs.hpp"
 #include <cmath>
 #include <vector>
-
+void iter_fft(float *in, std::complex<float> *out, size_t size);
 void fft_push(uint32_t pos, float *fft_in, float *audio_data_buffer, int bytes);
 
 class FourierTransform {

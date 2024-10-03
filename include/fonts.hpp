@@ -15,18 +15,16 @@ class SDL2Fonts {
     SDL_Surface *create_text_surface(TTF_Font *font, const SDL_Color color,
                                      const std::string text);
     SDL_Texture *create_text_texture(SDL_Renderer *r, SDL_Surface *surf);
-    void create_dir_text(const std::vector<Directory> d, SDL_Renderer *r,
-                         const SDL_Color color, TTF_Font *font,
-                         const size_t *text_limit);
-    void create_file_text(const std::vector<Files> f, SDL_Renderer *r,
-                          const SDL_Color color, TTF_Font *font,
-                          const size_t *text_limit);
+    void create_dir_text(const std::vector<Directory> d,
+                         const SDL_Color color);
+    void create_file_text(const std::vector<Files> f,
+                          const SDL_Color color);
     void destroy_file_text(std::vector<std::vector<Text>>::iterator &file_vec);
     void destroy_dir_text(std::vector<std::vector<Text>>::iterator &dir_vec);
     SDL_Surface *destroy_text_surface(SDL_Surface *ptr);
     SDL_Texture *destroy_text_texture(SDL_Texture *ptr);
     bool open_font();
-    Text create_text(const std::string text, TTF_Font *font, SDL_Renderer *r,
+    Text create_text(const std::string text,
                      const size_t text_id, const SDL_Color color);
     TTF_Font *get_font_ptr();
 
@@ -42,12 +40,9 @@ class SDL2Fonts {
     std::string check_vector_index(size_t ttl_vec_size, const size_t *index,
                                    std::string direction);
 
-    void create_float_number_text(const SDL_Color color, TTF_Font *font,
-                                  SDL_Renderer *r);
-    void create_integer_number_text(const SDL_Color color, TTF_Font *font,
-                                    SDL_Renderer *r);
-    void create_settings_text(const SDL_Color color, TTF_Font *font,
-                              SDL_Renderer *r, const FFTSettings *fft_settings);
+    void create_float_number_text(const SDL_Color color);
+    void create_integer_number_text(const SDL_Color color);
+    void create_settings_text(const SDL_Color color, const FFTSettings *fft_settings);
 
     std::vector<SettingTextInt> *get_int_settings_vec();
     std::vector<SettingTextFloat> *get_float_settings_vec();

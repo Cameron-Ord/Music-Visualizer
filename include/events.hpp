@@ -1,9 +1,13 @@
 #ifndef EVENTS_HPP
 #define EVENTS_HPP
 
+#include "audio.hpp"
 #include "enumdefs.hpp"
+#include "fft.hpp"
+#include "files.hpp"
 #include "fontdefs.hpp"
-#include "sdl2defs.hpp"
+#include "paths.hpp"
+#include "theme.hpp"
 #include <SDL2/SDL_keyboard.h>
 #include <iostream>
 #include <vector>
@@ -39,7 +43,7 @@ class SDL2KeyInputs {
 
     void set_settings_cursor(size_t i);
     const size_t *get_settings_cursor();
-    void input_handler(StdClassWrapper *std, SDL2Wrapper *sdl2_w);
+    void input_handler(ProgramPath *pathing, ProgramFiles *files, AudioData* ad, FourierTransform *fft, ProgramThemes *themes);
     void set_mouse_grab(int status);
 
   private:

@@ -26,8 +26,11 @@ class SDL2INTERNAL {
     void set_play_state(bool state);
 
   private:
+    int no_mouse_grab;
     int user_state;
     WIN_SIZE window_size_values;
     bool play_state;
 };
+
+
 #endif
