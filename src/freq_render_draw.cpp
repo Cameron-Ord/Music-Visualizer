@@ -138,11 +138,12 @@ void SDL2Renderer::render_draw_bars(const SDL_Color *prim, const SDL_Color *sec,
     uint8_t secondary = static_cast<Uint8>((g_prime + m) * 255);
     uint8_t tert = static_cast<Uint8>((b_prime + m) * 255);
 
-    SDL_SetRenderDrawColor(r, primary, secondary, tert, 255);
-    SDL_RenderFillRect(r, &bar_end_coords[i].copy_rect);
-    if (bar_end_coords[i].y > bar_start_coords[i].y) {
+    if (bar_end_coords[i].y > bar_start_coords[i].y + 5) {
       SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a);
       SDL_RenderFillRect(r, &bar_start_coords[i].copy_rect);
     }
+
+    SDL_SetRenderDrawColor(r, primary, secondary, tert, 255);
+    SDL_RenderFillRect(r, &bar_end_coords[i].copy_rect);
   }
 }
