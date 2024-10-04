@@ -225,8 +225,8 @@ int main(int argc, char **argv) {
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
-  ThreadData FTransformThread = {NULL,  NULL,        NULL, 1,   0,
-                                 false, (void *)fft, NULL, NULL};
+  ThreadData FTransformThread = {
+      NULL, NULL, NULL, 1, 0, false, fft, sdl2_ad.get_stream_flag(), NULL};
   FTransformThread.c = SDL_CreateCond();
   FTransformThread.m = SDL_CreateMutex();
 
@@ -244,13 +244,20 @@ int main(int argc, char **argv) {
     rend.render_clear();
 
     key.input_handler(&pathing, &files, ad, fft, &themes);
-    sdl2_ad.audio_state_handler(ad, &files, &pathing, &FTransformThread);
-    rend.render_state_handler(&themes, fft->get_data(), fft->get_bufs());
 
-    lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+    sdl2_ad.audio_state_handler(ad, &files, &pathing, &FTransformThread);
+
+    SDL_LockMutex(FTransformThread.m);
+    FTransformThread.is_ready = 1;
+    SDL_CondSignal(FTransformThread.c);
+    SDL_UnlockMutex(FTransformThread.m);
+
+    SDL_LockMutex(FTransformThread.m);
     FTransformThread.is_ready = 0;
     SDL_CondSignal(FTransformThread.c);
-    unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
+    SDL_UnlockMutex(FTransformThread.m);
+
+    rend.render_state_handler(&themes, fft->get_data(), fft->get_bufs());
 
     frame_start = SDL_GetTicks64();
     frame_time = SDL_GetTicks64() - frame_start;

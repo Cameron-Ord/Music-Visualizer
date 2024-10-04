@@ -46,10 +46,6 @@ void SDL2Audio::audio_state_handler(AudioData *ad, ProgramFiles *files,
       if (position >= length) {
         sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
       } else {
-        lock_mutex(FTransformThread->m, &FTransformThread->is_locked);
-        FTransformThread->is_ready = 0;
-        SDL_CondSignal(FTransformThread->c);
-        unlock_mutex(FTransformThread->m, &FTransformThread->is_locked);
       }
       break;
     }
