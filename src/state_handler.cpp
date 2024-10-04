@@ -2,6 +2,7 @@
 #include "../include/switch.hpp"
 #include "../include/theme.hpp"
 
+#include <assert.h>
 #include <cstdint>
 
 // Not gonna max limit cause thats LAME
@@ -763,8 +764,34 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     // I would like to handle it a little more gracefully, but for now this
     // is what im doing
 
-    key.set_vdir_cursor_index(0);
-    key.set_vsong_cursor_index(0);
+    const size_t song_font_indexes_count = fonts.get_song_vec_size();
+    const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
+
+    const size_t *songs_index = key.get_vsong_index();
+    const size_t *dirs_index = key.get_vdir_index();
+
+    const size_t *dir_cursor_index = key.get_vdir_cursor_index();
+    const size_t *song_cursor_index = key.get_vsong_cursor_index();
+
+    std::vector<Text> *text_vector = NULL;
+    size_t text_size = 0;
+
+    if (dir_font_indexes_count > 0) {
+      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_size = text_vector->size();
+      if (*dir_cursor_index > text_size - 1) {
+        key.set_vdir_cursor_index(text_size - 1);
+      }
+    }
+
+    if (song_font_indexes_count > 0) {
+      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_size = text_vector->size();
+      if (*song_cursor_index > text_size - 1) {
+        key.set_vsong_cursor_index(text_size - 1);
+      }
+    }
+
     break;
   }
 
@@ -786,11 +813,33 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
                             *themes->get_text());
     }
 
-    key.set_vdir_index(0);
-    key.set_vdir_cursor_index(0);
+    const size_t song_font_indexes_count = fonts.get_song_vec_size();
+    const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
 
-    key.set_vsong_index(0);
-    key.set_vsong_cursor_index(0);
+    const size_t *songs_index = key.get_vsong_index();
+    const size_t *dirs_index = key.get_vdir_index();
+
+    const size_t *dir_cursor_index = key.get_vdir_cursor_index();
+    const size_t *song_cursor_index = key.get_vsong_cursor_index();
+
+    std::vector<Text> *text_vector = NULL;
+    size_t text_size = 0;
+
+    if (dir_font_indexes_count > 0) {
+      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_size = text_vector->size();
+      if (*dir_cursor_index > text_size - 1) {
+        key.set_vdir_cursor_index(text_size - 1);
+      }
+    }
+
+    if (song_font_indexes_count > 0) {
+      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_size = text_vector->size();
+      if (*song_cursor_index > text_size - 1) {
+        key.set_vsong_cursor_index(text_size - 1);
+      }
+    }
 
     break;
   }
