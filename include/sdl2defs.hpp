@@ -2,9 +2,8 @@
 #define SDL2DEFS_HPP
 
 struct WIN_SIZE {
-    int WIDTH;
-    int HEIGHT;
+  int WIDTH;
+  int HEIGHT;
 };
-
 
 #endif

@@ -15,7 +15,6 @@ SDL2KeyInputs key;
 SDL2Fonts fonts;
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
-
   int r, g, b, a;
 
   SDL_Color primary = {0, 0, 0, 0};
@@ -218,13 +217,6 @@ int main(int argc, char **argv) {
 
   fonts.create_integer_number_text(*themes.get_text());
 
-  const int ticks_per_frame = (1000.0 / 60);
-  uint64_t frame_start;
-  int frame_time;
-
-  sdl2.set_play_state(true);
-  sdl2.set_current_user_state(AT_DIRECTORIES);
-
   ThreadData FTransformThread = {
       NULL, NULL, NULL, 1, 0, false, fft, sdl2_ad.get_stream_flag(), NULL};
   FTransformThread.c = SDL_CreateCond();
@@ -233,18 +225,18 @@ int main(int argc, char **argv) {
   FTransformThread.thread_ptr =
       SDL_CreateThread(FFT_THREAD, "FFT_THREAD_WORKER", &FTransformThread);
 
-  ThreadData RenderThread = {NULL, NULL, NULL, 1, 0, false, NULL, NULL, NULL};
-  RenderThread.c = SDL_CreateCond();
-  RenderThread.m = SDL_CreateMutex();
-  RenderThread.thread_ptr =
-      SDL_CreateThread(RENDER_THREAD, "RENDER_THREAD_WORKER", &RenderThread);
+  const int ticks_per_frame = (1000.0 / 60);
+  uint64_t frame_start;
+  int frame_time;
+
+  sdl2.set_play_state(true);
+  sdl2.set_current_user_state(AT_DIRECTORIES);
 
   while (sdl2.get_play_state()) {
     rend.render_bg(themes.get_background());
     rend.render_clear();
 
     key.input_handler(&pathing, &files, ad, fft, &themes);
-
     sdl2_ad.audio_state_handler(ad, &files, &pathing, &FTransformThread);
 
     SDL_LockMutex(FTransformThread.m);
@@ -279,16 +271,10 @@ int main(int argc, char **argv) {
 
   SDL_WaitThread(FTransformThread.thread_ptr, &th_status);
 
+  SDL_DestroyCond(FTransformThread.c);
+  SDL_DestroyMutex(FTransformThread.m);
+
   std::cout << "FFT Thread exited with status -> " << th_status << std::endl;
-
-  lock_mutex(RenderThread.m, &RenderThread.is_locked);
-  RenderThread.is_running = 0;
-  SDL_CondSignal(RenderThread.c);
-  unlock_mutex(RenderThread.m, &RenderThread.is_locked);
-
-  SDL_WaitThread(RenderThread.thread_ptr, &th_status);
-
-  std::cout << "RENDER Thread exited with status -> " << th_status << std::endl;
 
   fonts.destroy_allocated_fonts();
 

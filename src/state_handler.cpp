@@ -6,8 +6,8 @@
 #include <cstdint>
 
 // Not gonna max limit cause thats LAME
-const int MIN_WIDTH = 400;
-const int MIN_HEIGHT = 300;
+const int MIN_WIDTH = 200;
+const int MIN_HEIGHT = 100;
 
 void keydown_handle_state(int userstate, SDL_Keysym sym, ProgramPath *pathing,
                           ProgramFiles *files, AudioData *ad,

@@ -66,8 +66,8 @@ const FFTSettings *FourierTransform::get_settings() { return &settings; }
 FData *FourierTransform::get_data() { return &data; }
 FBuffers *FourierTransform::get_bufs() { return &bufs; }
 
-void FourierTransform::fft_func(float *in, size_t stride,
-                                std::complex<float> *out, size_t n) {
+void recursive_fft(float *in, size_t stride, std::complex<float> *out,
+                   size_t n) {
   if (n == 1) {
     out[0] = in[0];
     return;
@@ -75,8 +75,8 @@ void FourierTransform::fft_func(float *in, size_t stride,
 
   size_t half_n = n / 2;
 
-  fft_func(in, stride * 2, out, half_n);
-  fft_func(in + stride, stride * 2, out + half_n, half_n);
+  recursive_fft(in, stride * 2, out, half_n);
+  recursive_fft(in + stride, stride * 2, out + half_n, half_n);
   // v = o*x
   // out = e - o*x e + o*x e e| e + o*x o - o*x o o
   for (size_t k = 0; k < n / 2; ++k) {
@@ -102,7 +102,7 @@ size_t bit_reverse(size_t index, size_t log2n) {
 
 // https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
 
-void iter_fft(float *in, std::complex<float> *out, size_t size) {
+void iterative_fft(float *in, std::complex<float> *out, size_t size) {
 
   for (size_t i = 0; i < size; i++) {
     int rev_index = bit_reverse(i, log2(size));
@@ -138,7 +138,7 @@ void fft_push(uint32_t pos, float *ffn_in_buf, float *audio_data_buffer,
 void FourierTransform::generate_visual() {
   memcpy(bufs.in_cpy, a_data->fft_in, sizeof(float) * DOUBLE_BUFF);
   hamming_window();
-  iter_fft(bufs.pre_raw, bufs.out_raw, BUFF_SIZE);
+  iterative_fft(bufs.pre_raw, bufs.out_raw, BUFF_SIZE);
   extract_frequencies();
   multi_band_stop(a_data->SR);
   freq_bin_algo(a_data->SR);
@@ -218,10 +218,6 @@ void FourierTransform::hamming_window() {
     int right = i * 2 + 1;
 
     float summed = (bufs.in_cpy[left] + bufs.in_cpy[right]) / 2;
-    // float max_value = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
-
-    // bufs.pre_raw[i] = std::max(bufs.in_cpy[left], bufs.in_cpy[right]);
-
     bufs.pre_raw[i] = summed;
     bufs.pre_raw[i] *= data.hamming_values[i];
   }
