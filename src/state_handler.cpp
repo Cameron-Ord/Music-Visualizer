@@ -38,38 +38,6 @@ void keydown_handle_state(int userstate, SDL_Keysym sym, ProgramPath *pathing,
   }
 }
 
-void decrease_win_width(SDL_Window *w) {
-  int current_w, current_h;
-
-  SDL_GetWindowSize(w, &current_w, &current_h);
-  if (current_w - 10 <= MIN_WIDTH) {
-    current_w = MIN_WIDTH;
-  }
-  SDL_SetWindowSize(w, current_w - 10, current_h);
-}
-
-void increase_win_width(SDL_Window *w) {
-  int current_w, current_h;
-  SDL_GetWindowSize(w, &current_w, &current_h);
-  SDL_SetWindowSize(w, current_w + 10, current_h);
-}
-
-void increase_win_height(SDL_Window *w) {
-  int current_w, current_h;
-  SDL_GetWindowSize(w, &current_w, &current_h);
-
-  SDL_SetWindowSize(w, current_w, current_h + 10);
-}
-
-void decrease_win_height(SDL_Window *w) {
-  int current_w, current_h;
-  SDL_GetWindowSize(w, &current_w, &current_h);
-  if (current_h - 10 <= MIN_HEIGHT) {
-    current_h = MIN_HEIGHT;
-  }
-  SDL_SetWindowSize(w, current_w, current_h - 10);
-}
-
 void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
                               FourierTransform *fft) {
 
@@ -746,6 +714,29 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     break;
   }
   case SDL_WINDOWEVENT_RESIZED: {
+    const size_t song_indexes_before = fonts.get_song_vec_size();
+    const size_t dir_indexes_before = fonts.get_dir_vec_size();
+    const size_t *song_cursor_before = key.get_vsong_cursor_index();
+    const size_t *dir_cursor_before = key.get_vdir_cursor_index();
+
+    const size_t *songs_index = key.get_vsong_index();
+    const size_t *dirs_index = key.get_vdir_index();
+
+    std::vector<Text> *text_vector = nullptr;
+
+    std::string dir_name;
+    std::string song_name;
+
+    if (dir_indexes_before > 0) {
+      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      dir_name = (*text_vector)[*dir_cursor_before].name;
+    }
+
+    if (song_indexes_before > 0) {
+      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      song_name = (*text_vector)[*song_cursor_before].name;
+    }
+
     WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
     sdl2.set_window_size(ws);
     rend.set_font_draw_limit(ws.HEIGHT);
@@ -761,34 +752,52 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
                             *themes->get_text());
     }
 
-    // I would like to handle it a little more gracefully, but for now this
-    // is what im doing
-
     const size_t song_font_indexes_count = fonts.get_song_vec_size();
     const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
 
-    const size_t *songs_index = key.get_vsong_index();
-    const size_t *dirs_index = key.get_vdir_index();
-
-    const size_t *dir_cursor_index = key.get_vdir_cursor_index();
-    const size_t *song_cursor_index = key.get_vsong_cursor_index();
-
-    std::vector<Text> *text_vector = NULL;
+    text_vector = NULL;
     size_t text_size = 0;
 
-    if (dir_font_indexes_count > 0) {
+    if (dir_font_indexes_count > 0 && dir_name.empty()) {
+      if (dir_indexes_before > dir_font_indexes_count) {
+        key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
+      }
       text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
       text_size = text_vector->size();
-      if (*dir_cursor_index > text_size - 1) {
+      if (*dir_cursor_before > text_size - 1) {
         key.set_vdir_cursor_index(text_size - 1);
       }
     }
 
-    if (song_font_indexes_count > 0) {
+    if (song_font_indexes_count > 0 && song_name.empty()) {
+      if (song_indexes_before > song_font_indexes_count) {
+        key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
+                            1);
+      }
       text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
       text_size = text_vector->size();
-      if (*song_cursor_index > text_size - 1) {
+      if (*song_cursor_before > text_size - 1) {
         key.set_vsong_cursor_index(text_size - 1);
+      }
+    }
+
+    if (!dir_name.empty()) {
+      size_t *new_indexes = key.get_updated_text_location(
+          &dir_name, fonts.get_full_dir_textvector());
+      if (new_indexes) {
+        key.set_vdir_index(*(new_indexes + 0));
+        key.set_vdir_cursor_index(*(new_indexes + 1));
+        free(new_indexes);
+      }
+    }
+
+    if (!song_name.empty()) {
+      size_t *new_indexes = key.get_updated_text_location(
+          &song_name, fonts.get_full_song_textvector());
+      if (new_indexes) {
+        key.set_vsong_index(*(new_indexes + 0));
+        key.set_vsong_cursor_index(*(new_indexes + 1));
+        free(new_indexes);
       }
     }
 
@@ -796,6 +805,29 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
   }
 
   case SDL_WINDOWEVENT_SIZE_CHANGED: {
+    const size_t song_indexes_before = fonts.get_song_vec_size();
+    const size_t dir_indexes_before = fonts.get_dir_vec_size();
+    const size_t *song_cursor_before = key.get_vsong_cursor_index();
+    const size_t *dir_cursor_before = key.get_vdir_cursor_index();
+
+    const size_t *songs_index = key.get_vsong_index();
+    const size_t *dirs_index = key.get_vdir_index();
+
+    std::vector<Text> *text_vector = nullptr;
+
+    std::string dir_name;
+    std::string song_name;
+
+    if (dir_indexes_before > 0) {
+      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      dir_name = (*text_vector)[*dir_cursor_before].name;
+    }
+
+    if (song_indexes_before > 0) {
+      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      song_name = (*text_vector)[*song_cursor_before].name;
+    }
+
     WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
     sdl2.set_window_size(ws);
     rend.set_font_draw_limit(ws.HEIGHT);
@@ -816,32 +848,85 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     const size_t song_font_indexes_count = fonts.get_song_vec_size();
     const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
 
-    const size_t *songs_index = key.get_vsong_index();
-    const size_t *dirs_index = key.get_vdir_index();
-
-    const size_t *dir_cursor_index = key.get_vdir_cursor_index();
-    const size_t *song_cursor_index = key.get_vsong_cursor_index();
-
-    std::vector<Text> *text_vector = NULL;
+    text_vector = nullptr;
     size_t text_size = 0;
 
-    if (dir_font_indexes_count > 0) {
+    if (dir_font_indexes_count > 0 && dir_name.empty()) {
+      if (dir_indexes_before > dir_font_indexes_count) {
+        key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
+      }
       text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
       text_size = text_vector->size();
-      if (*dir_cursor_index > text_size - 1) {
+      if (*dir_cursor_before > text_size - 1) {
         key.set_vdir_cursor_index(text_size - 1);
       }
     }
 
-    if (song_font_indexes_count > 0) {
+    if (song_font_indexes_count > 0 && song_name.empty()) {
+      if (song_indexes_before > song_font_indexes_count) {
+        key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
+                            1);
+      }
       text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
       text_size = text_vector->size();
-      if (*song_cursor_index > text_size - 1) {
+      if (*song_cursor_before > text_size - 1) {
         key.set_vsong_cursor_index(text_size - 1);
+      }
+    }
+
+    if (!dir_name.empty()) {
+      size_t *new_indexes = key.get_updated_text_location(
+          &dir_name, fonts.get_full_dir_textvector());
+      if (new_indexes) {
+        key.set_vdir_index(*(new_indexes + 0));
+        key.set_vdir_cursor_index(*(new_indexes + 1));
+        free(new_indexes);
+      }
+    }
+
+    if (!song_name.empty()) {
+      size_t *new_indexes = key.get_updated_text_location(
+          &song_name, fonts.get_full_song_textvector());
+      if (new_indexes) {
+        key.set_vsong_index(*(new_indexes + 0));
+        key.set_vsong_cursor_index(*(new_indexes + 1));
+        free(new_indexes);
       }
     }
 
     break;
   }
   }
+}
+
+void decrease_win_width(SDL_Window *w) {
+  int current_w, current_h;
+
+  SDL_GetWindowSize(w, &current_w, &current_h);
+  if (current_w - 10 <= MIN_WIDTH) {
+    current_w = MIN_WIDTH;
+  }
+  SDL_SetWindowSize(w, current_w - 10, current_h);
+}
+
+void increase_win_width(SDL_Window *w) {
+  int current_w, current_h;
+  SDL_GetWindowSize(w, &current_w, &current_h);
+  SDL_SetWindowSize(w, current_w + 10, current_h);
+}
+
+void increase_win_height(SDL_Window *w) {
+  int current_w, current_h;
+  SDL_GetWindowSize(w, &current_w, &current_h);
+
+  SDL_SetWindowSize(w, current_w, current_h + 10);
+}
+
+void decrease_win_height(SDL_Window *w) {
+  int current_w, current_h;
+  SDL_GetWindowSize(w, &current_w, &current_h);
+  if (current_h - 10 <= MIN_HEIGHT) {
+    current_h = MIN_HEIGHT;
+  }
+  SDL_SetWindowSize(w, current_w, current_h - 10);
 }

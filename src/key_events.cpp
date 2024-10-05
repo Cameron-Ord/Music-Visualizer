@@ -1,5 +1,7 @@
 #include "../include/globals.hpp"
 #include "../include/switch.hpp"
+#include <cstddef>
+#include <string>
 
 SDL2KeyInputs::SDL2KeyInputs() {
   cursor_index_dirs = 0;
@@ -153,7 +155,6 @@ void SDL2KeyInputs::input_handler(ProgramPath *pathing, ProgramFiles *files,
     }
 
     case SDL_KEYDOWN: {
-
       keydown_handle_state(sdl2.get_current_user_state(), e.key.keysym, pathing,
                            files, ad, fft, themes);
       break;
@@ -183,4 +184,30 @@ void SDL2KeyInputs::input_handler(ProgramPath *pathing, ProgramFiles *files,
     }
     }
   }
+}
+
+size_t *SDL2KeyInputs::get_updated_text_location(
+    const std::string *name,
+    const std::vector<std::vector<Text>> *text_vector) {
+  size_t *value_holder = (size_t *)malloc(sizeof(size_t) * 2);
+  if (!value_holder) {
+    std::cerr << "Could not allocate buffer! -> " << strerror(errno)
+              << std::endl;
+    return NULL;
+  }
+
+  for (size_t i = 0; i < text_vector->size(); i++) {
+    std::vector<Text> nested_vector = (*text_vector)[i];
+    for (size_t j = 0; j < nested_vector.size(); j++) {
+      Text text_container = nested_vector[j];
+      if (text_container.name == *name) {
+        *(value_holder + 0) = i; // vector index
+        *(value_holder + 1) = j; // cursor index
+        return value_holder;
+      }
+    }
+  }
+
+  free(value_holder);
+  return NULL;
 }
