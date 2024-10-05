@@ -22,6 +22,8 @@ bool AudioData::read_audio_file(std::string file_path) {
   SNDFILE *sndfile = NULL;
   SF_INFO sfinfo;
 
+  memset(&sfinfo, 0, sizeof(SF_INFO));
+
   fprintf(stdout, "Reading file -> %s\n", file_path.c_str());
 
   sndfile = sf_open(file_path.c_str(), SFM_READ, &sfinfo);

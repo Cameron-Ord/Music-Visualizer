@@ -83,7 +83,7 @@ size_t SDL2Fonts::get_song_vec_size() { return song_text_vec.size(); }
 size_t SDL2Fonts::get_dir_vec_size() { return dir_text_vec.size(); }
 
 void SDL2Fonts::set_char_limit(int w) {
-  character_limit = std::min(175, std::max(8, (w - 200) / 12));
+  character_limit = std::min(175, std::max(8, (w - 200) / 14));
 }
 
 std::vector<std::vector<Text>> *SDL2Fonts::get_full_dir_textvector() {

@@ -283,6 +283,18 @@ int main(int argc, char **argv) {
   delete ad;
   delete fft;
 
+  if (*rend.get_renderer()) {
+    SDL_DestroyRenderer(*rend.get_renderer());
+  }
+
+  if (*win.get_window()) {
+    SDL_DestroyWindow(*win.get_window());
+  }
+
+  if (fonts.get_font_ptr()) {
+    TTF_CloseFont(fonts.get_font_ptr());
+  }
+
   if (stdout_file) {
     fclose(stdout_file);
   }

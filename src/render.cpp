@@ -194,8 +194,7 @@ void SDL2Renderer::set_font_draw_limit(int h) {
 const size_t *SDL2Renderer::get_font_draw_limit() { return &font_draw_limit; }
 
 void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {
-  *r = SDL_CreateRenderer(*w, -1,
-                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_SOFTWARE);
   if (!*r) {
     fprintf(stderr, "Could not create renderer! -> %s", SDL_GetError());
     SDL_DestroyWindow(*w);
