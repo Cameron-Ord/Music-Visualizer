@@ -31,12 +31,10 @@ int FFT_THREAD(void *data) {
       fptr->generate_visual();
     }
 
+    ptr->is_ready = 0;
+
     if (!ptr->is_running) {
       break;
-    }
-
-    if (ptr->is_ready && ptr->is_running) {
-      SDL_CondWait(ptr->c, ptr->m);
     }
 
     SDL_UnlockMutex(ptr->m);

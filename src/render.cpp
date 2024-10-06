@@ -1,6 +1,7 @@
 #include "../include/enumdefs.hpp"
 #include "../include/globals.hpp"
 #include "../include/macdefs.hpp"
+#include <SDL2/SDL_render.h>
 
 SDL2Renderer::SDL2Renderer() {
   r = NULL;
@@ -194,9 +195,20 @@ void SDL2Renderer::set_font_draw_limit(int h) {
 const size_t *SDL2Renderer::get_font_draw_limit() { return &font_draw_limit; }
 
 void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {
-  *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_SOFTWARE);
+  *r = SDL_CreateRenderer(*w, -1,
+                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (!*r) {
-    fprintf(stderr, "Could not create renderer! -> %s", SDL_GetError());
+    fprintf(
+        stderr,
+        "Could not create renderer! -> %s : Fallback to Software Rasterization",
+        SDL_GetError());
+
+    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_SOFTWARE);
+  }
+
+  if (!*r) {
+    std::cerr << "Could not create CPU rasterization renderer! -> "
+              << SDL_GetError() << std::endl;
     SDL_DestroyWindow(*w);
     return NULL;
   }

@@ -246,11 +246,6 @@ int main(int argc, char **argv) {
     SDL_CondSignal(FTransformThread.c);
     SDL_UnlockMutex(FTransformThread.m);
 
-    SDL_LockMutex(FTransformThread.m);
-    FTransformThread.is_ready = 0;
-    SDL_CondSignal(FTransformThread.c);
-    SDL_UnlockMutex(FTransformThread.m);
-
     rend.render_state_handler(&themes, fft->get_data(), fft->get_bufs());
 
     frame_time = SDL_GetTicks64() - frame_start;
