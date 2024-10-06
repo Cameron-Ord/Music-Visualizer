@@ -4,10 +4,10 @@
 #include "audiodefs.hpp"
 #include "fontdefs.hpp"
 #include "macdefs.hpp"
+#include "particles.hpp"
 #include "renderdefs.hpp"
 #include "sdl2defs.hpp"
 #include "theme.hpp"
-#include "particles.hpp"
 #include <iostream>
 #include <vector>
 
@@ -50,11 +50,12 @@ public:
   void set_setting_render_mode(int MODE);
   void allocate_particle_buffer();
   size_t *get_particle_buffer_size();
-  Particle **get_particle_buffer();
-  const std::vector<Coordinates>* get_start_cords_buf();
+  ParticleTrio *get_particle_buffer();
+  const std::vector<Coordinates> *get_start_coords_buf();
+  const std::vector<Coordinates> *get_end_coords_buf();
 
 private:
-  Particle **particle_buffer;
+  ParticleTrio *particle_buffer;
   size_t particle_buffer_size;
   int setting_render_mode;
   size_t set_length;

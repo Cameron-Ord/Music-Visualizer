@@ -15,22 +15,26 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
-size_t *SDL2Renderer::get_particle_buffer_size(){
+size_t *SDL2Renderer::get_particle_buffer_size() {
   return &particle_buffer_size;
 }
 
-Particle** SDL2Renderer::get_particle_buffer(){
-  return particle_buffer;
-}
+ParticleTrio *SDL2Renderer::get_particle_buffer() { return particle_buffer; }
 
-const std::vector<Coordinates>* SDL2Renderer::get_start_cords_buf(){
+const std::vector<Coordinates> *SDL2Renderer::get_start_coords_buf() {
   return &bar_start_coords;
 }
 
-void SDL2Renderer::allocate_particle_buffer(){
-  particle_buffer = (Particle**)malloc(sizeof(Particle*) * 256);
-  for(int i = 0; i < 256; i++){
-    particle_buffer[i] = NULL;
+const std::vector<Coordinates> *SDL2Renderer::get_end_coords_buf() {
+  return &bar_end_coords;
+}
+
+void SDL2Renderer::allocate_particle_buffer() {
+  particle_buffer = (ParticleTrio *)malloc(sizeof(ParticleTrio) * 256);
+  for (size_t i = 0; i < 256; i++) {
+    for (size_t j = 0; j < PARTICLE_COUNT; j++) {
+      particle_buffer[i].buf[j] = NULL;
+    }
   }
 
   particle_buffer_size = 256;
@@ -72,9 +76,6 @@ void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
                     ftbufs->smear, ftbufs->smoothed, ftbufs->processed_phases);
     render_draw_bars(themes->get_primary(), themes->get_secondary(),
                      ftbufs->processed_phases);
-    std::cout << "HELLO" << std::endl;
-
-    render_draw_particle(rend.get_particle_buffer(), rend.get_particle_buffer_size(), &ftdata->output_len);
     break;
   }
 
