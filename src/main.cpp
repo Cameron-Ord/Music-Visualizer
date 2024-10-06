@@ -5,6 +5,8 @@
 #include "../include/switch.hpp"
 #include "../include/theme.hpp"
 #include "../include/threads.hpp"
+#include <cstdlib>
+#include <ctime>
 
 // Globals
 SDL2INTERNAL sdl2;
@@ -81,6 +83,8 @@ int main(int argc, char **argv) {
   }
 
   key.set_mouse_grab(no_mouse_grab);
+
+  srand(time(NULL));
 
   bool err;
 
@@ -229,6 +233,8 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
+
+  rend.allocate_particle_buffer();
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
@@ -278,6 +284,10 @@ int main(int argc, char **argv) {
   delete ad->get_audio_data();
   delete ad;
   delete fft;
+
+  if(rend.get_particle_buffer()){
+    free(rend.get_particle_buffer());
+  }
 
   if (*rend.get_renderer()) {
     SDL_DestroyRenderer(*rend.get_renderer());

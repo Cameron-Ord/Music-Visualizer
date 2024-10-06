@@ -1,4 +1,6 @@
 #include "../include/rendering.hpp"
+#include "../include/particles.hpp"
+#include <cstdlib>
 
 void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
                                    const int *win_width, float *smear,

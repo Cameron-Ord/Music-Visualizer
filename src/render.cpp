@@ -1,6 +1,7 @@
 #include "../include/enumdefs.hpp"
 #include "../include/globals.hpp"
 #include "../include/macdefs.hpp"
+#include "../include/particles.hpp"
 #include <SDL2/SDL_render.h>
 
 SDL2Renderer::SDL2Renderer() {
@@ -14,9 +15,29 @@ SDL2Renderer::SDL2Renderer() {
 
 SDL2Renderer::~SDL2Renderer() {}
 
+size_t *SDL2Renderer::get_particle_buffer_size(){
+  return &particle_buffer_size;
+}
+
+Particle** SDL2Renderer::get_particle_buffer(){
+  return particle_buffer;
+}
+
+const std::vector<Coordinates>* SDL2Renderer::get_start_cords_buf(){
+  return &bar_start_coords;
+}
+
+void SDL2Renderer::allocate_particle_buffer(){
+  particle_buffer = (Particle**)malloc(sizeof(Particle*) * 256);
+  for(int i = 0; i < 256; i++){
+    particle_buffer[i] = NULL;
+  }
+
+  particle_buffer_size = 256;
+}
+
 void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
                                         FBuffers *ftbufs) {
-
   std::vector<Text> *dir =
       fonts.retrieve_indexed_dir_textvector(*key.get_vdir_index());
   std::vector<Text> *song =
@@ -51,6 +72,9 @@ void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
                     ftbufs->smear, ftbufs->smoothed, ftbufs->processed_phases);
     render_draw_bars(themes->get_primary(), themes->get_secondary(),
                      ftbufs->processed_phases);
+    std::cout << "HELLO" << std::endl;
+
+    render_draw_particle(rend.get_particle_buffer(), rend.get_particle_buffer_size(), &ftdata->output_len);
     break;
   }
 
