@@ -6,6 +6,7 @@
 #include "fonts.hpp"
 #include "internal.hpp"
 #include "rendering.hpp"
+#include "theme.hpp"
 #include "window.hpp"
 
 extern SDL2INTERNAL sdl2;

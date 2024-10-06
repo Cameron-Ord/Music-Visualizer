@@ -28,7 +28,7 @@ public:
   void set_audio_spec(AudioDataContainer *a);
 
   void audio_state_handler(AudioData *ad, ProgramFiles *files,
-                           ProgramPath *pathing, ThreadData *FTransformThread);
+                           ProgramPath *pathing);
   void pause_audio();
   void resume_audio();
 

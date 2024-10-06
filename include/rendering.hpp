@@ -28,7 +28,7 @@ public:
                           const size_t *cursor_index);
   void render_draw_text_bg(const SDL_Color *rgba);
   void reset_vector_positions();
-  void render_draw_bars(const SDL_Color *prim, const SDL_Color *sec,
+  void render_draw_bars(const float *prim_hue, const SDL_Color *sec,
                         float *processed_phases);
   void render_set_bars(const size_t *len, const int *win_height,
                        const int *win_width, float *smear, float *smooth,
@@ -53,6 +53,7 @@ public:
   ParticleTrio *get_particle_buffer();
   const std::vector<Coordinates> *get_start_coords_buf();
   const std::vector<Coordinates> *get_end_coords_buf();
+  const size_t *get_set_length();
 
 private:
   ParticleTrio *particle_buffer;

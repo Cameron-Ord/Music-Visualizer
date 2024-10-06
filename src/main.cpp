@@ -233,6 +233,12 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
+  themes.set_hue_from_rgba(PRIMARY);
+  themes.set_hue_from_rgba(SECONDARY);
+  themes.set_hue_from_rgba(BACKGROUND);
+  themes.set_hue_from_rgba(TEXT_BG);
+  themes.set_hue_from_rgba(TEXT);
+
   rend.allocate_particle_buffer();
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
@@ -244,7 +250,7 @@ int main(int argc, char **argv) {
     rend.render_clear();
 
     key.input_handler(&pathing, &files, ad, fft, &themes);
-    sdl2_ad.audio_state_handler(ad, &files, &pathing, &FTransformThread);
+    sdl2_ad.audio_state_handler(ad, &files, &pathing);
 
     SDL_LockMutex(FTransformThread.m);
     FTransformThread.is_ready = 1;

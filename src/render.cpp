@@ -19,6 +19,8 @@ size_t *SDL2Renderer::get_particle_buffer_size() {
   return &particle_buffer_size;
 }
 
+const size_t *SDL2Renderer::get_set_length() { return &set_length; }
+
 ParticleTrio *SDL2Renderer::get_particle_buffer() { return particle_buffer; }
 
 const std::vector<Coordinates> *SDL2Renderer::get_start_coords_buf() {
@@ -74,13 +76,14 @@ void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
   case LISTENING: {
     render_set_bars(&ftdata->output_len, &win_size->HEIGHT, &win_size->WIDTH,
                     ftbufs->smear, ftbufs->smoothed, ftbufs->processed_phases);
-    render_draw_bars(themes->get_primary(), themes->get_secondary(),
+    render_draw_bars(themes->get_hue(PRIMARY), themes->get_secondary(),
                      ftbufs->processed_phases);
 
     render_draw_particle(rend.get_particle_buffer(),
                          rend.get_particle_buffer_size(),
-                         rend.get_start_coords_buf(), &ftdata->output_len,
-                         themes->get_primary());
+                         rend.get_start_coords_buf(), rend.get_end_coords_buf(),
+                         &ftdata->output_len, themes->get_primary(),
+                         themes->get_hue(SECONDARY), ftbufs->processed_phases);
     break;
   }
 
