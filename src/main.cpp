@@ -233,6 +233,8 @@ int main(int argc, char **argv) {
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
   while (sdl2.get_play_state()) {
+    frame_start = SDL_GetTicks64();
+
     rend.render_bg(themes.get_background());
     rend.render_clear();
 
@@ -251,7 +253,6 @@ int main(int argc, char **argv) {
 
     rend.render_state_handler(&themes, fft->get_data(), fft->get_bufs());
 
-    frame_start = SDL_GetTicks64();
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {
       SDL_Delay(ticks_per_frame - frame_time);
