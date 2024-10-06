@@ -76,6 +76,11 @@ void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
                     ftbufs->smear, ftbufs->smoothed, ftbufs->processed_phases);
     render_draw_bars(themes->get_primary(), themes->get_secondary(),
                      ftbufs->processed_phases);
+
+    render_draw_particle(rend.get_particle_buffer(),
+                         rend.get_particle_buffer_size(),
+                         rend.get_start_coords_buf(), &ftdata->output_len,
+                         themes->get_primary());
     break;
   }
 

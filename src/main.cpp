@@ -233,6 +233,7 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
+  rend.allocate_particle_buffer();
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
