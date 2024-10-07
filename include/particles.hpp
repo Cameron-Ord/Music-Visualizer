@@ -6,7 +6,7 @@
 #include <vector>
 
 #define MAX_FRAME_TIME 6
-#define PARTICLE_COUNT 48
+#define PARTICLE_COUNT 24
 
 struct Particle {
   int frame;
