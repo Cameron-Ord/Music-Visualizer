@@ -5,8 +5,12 @@
 
 ## Music Visualizer
 
-> Music is from the game FTL:Faster Than Light and composed by Ben Prunty. My copy was purchased from steam!
-[![Video Example](https://img.youtube.com/vi/SP236bVoIZE/0.jpg)](https://www.youtube.com/watch?v=SP236bVoIZE)
+## Video Example
+- > Music is from the game FTL:Faster Than Light and composed by Ben Prunty. My copy was purchased from steam!
+
+[YouTube](https://www.youtube.com/watch?v=SP236bVoIZE).
+
+## Images
 ![Image](example/example_desktop_1.png)
 ![Image](example/example_desktop_2.png)
 ![Image](example/example_desktop_3.png)
