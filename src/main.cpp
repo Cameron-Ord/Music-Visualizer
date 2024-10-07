@@ -291,6 +291,15 @@ int main(int argc, char **argv) {
   delete fft;
 
   if (rend.get_particle_buffer()) {
+    if (rend.get_particle_buffer_size()) {
+      for (size_t i = 0; i < *rend.get_particle_buffer_size(); i++) {
+        for (size_t p = 0; p < PARTICLE_COUNT; p++) {
+          if (rend.get_particle_buffer()[i].buf[p]) {
+            free(rend.get_particle_buffer()[i].buf[p]);
+          }
+        }
+      }
+    }
     free(rend.get_particle_buffer());
   }
 

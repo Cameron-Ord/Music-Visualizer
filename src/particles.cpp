@@ -1,74 +1,101 @@
 #include "../include/particles.hpp"
 #include "../include/globals.hpp"
 #include "../include/rendering.hpp"
+#include "../include/utils.hpp"
 #include <cstdlib>
 
 int particle_is_dead(int frame) { return frame > MAX_FRAME_TIME; }
 
-Particle *render_create_particle(int bar_x, int bar_y, int bar_width) {
+Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
+                                 int bar_height) {
   Particle *particle = (Particle *)malloc(sizeof(Particle));
   if (!particle) {
-    return nullptr;
+    return NULL;
   }
 
-  particle->frame = rand() % 2;
+  particle->frame = rand() % 3;
   particle->h = 1;
   particle->w = 1;
 
-  particle->x = bar_x + rand() % 12;
-  particle->y = bar_y + rand() % 32;
+  if (bar_height < 15 || bar_width <= particle->w) {
+    free(particle);
+    return NULL;
+  }
+
+  particle->x = bar_x + rand() % (bar_width - particle->w);
+  particle->y = bar_y + rand() % (bar_height - particle->h);
 
   return particle;
 }
 
-void render_draw_particle(ParticleTrio *particle_buffer,
-                          size_t *particle_buf_len,
-                          const std::vector<Coordinates> *pos_start_buf,
-                          const std::vector<Coordinates> *pos_end_buf,
-                          const size_t *length, const SDL_Color *rgba,
-                          const float *prim_hue,
-                          const float *processed_phases) {
+void render_set_particles(ParticleTrio *particle_buffer,
+                          size_t *particle_buf_len, const size_t *output_length,
+                          const std::vector<Coordinates> *start_buf,
+                          const std::vector<Coordinates> *end_buf) {
 
-  if (*length > *particle_buf_len) {
-    particle_buffer = (ParticleTrio *)realloc(particle_buffer,
-                                              sizeof(ParticleTrio) * *length);
-    *particle_buf_len = *length;
+  void *ptr_buf[] = {particle_buf_len, particle_buffer, (void *)output_length,
+                     (void *)start_buf, (void *)end_buf};
+
+  bool result = check_ptrs(5, ptr_buf);
+  if (!result) {
+    return;
   }
 
-  for (size_t i = 0; i < *length; i++) {
+  if (*output_length > *particle_buf_len) {
+    particle_buffer = (ParticleTrio *)realloc(
+        particle_buffer, sizeof(ParticleTrio) * *output_length);
+    *particle_buf_len = *output_length;
+  }
+
+  for (size_t i = 0; i < *output_length; i++) {
+    const SDL_Rect start_rect = (*start_buf)[i].copy_rect;
+    const SDL_Rect end_rect = (*end_buf)[i].copy_rect;
+
+    for (size_t p = 0; p < PARTICLE_COUNT; p++) {
+      if (particle_buffer[i].buf[p] != NULL) {
+        if (particle_is_dead(particle_buffer[i].buf[p]->frame)) {
+          cull_dead_particle(particle_buffer[i].buf[p]);
+          particle_buffer[i].buf[p] = NULL;
+        }
+      }
+
+      if (particle_buffer[i].buf[p] == NULL) {
+        if (end_rect.y > start_rect.y) {
+          particle_buffer[i].buf[p] = render_create_particle(
+              start_rect.x, start_rect.y, start_rect.w, start_rect.h);
+        }
+      }
+    }
+  }
+}
+
+void render_draw_particles(ParticleTrio *particle_buffer,
+                           size_t *particle_buf_len, const float *prim_hue,
+                           const float *processed_phases) {
+
+  void *ptr_buf[] = {particle_buffer, particle_buf_len, (void *)prim_hue,
+                     (void *)processed_phases};
+  bool result = check_ptrs(4, ptr_buf);
+  if (!result) {
+    return;
+  }
+
+  for (size_t i = 0; i < *particle_buf_len; i++) {
     float phased_hue = *prim_hue + (processed_phases[i] * 10.0) - 7.5;
     phased_hue = fmod(phased_hue, 360);
-
     HSL_TO_RGB conv = phase_hue_effect(&phased_hue);
 
-    if (particle_buffer != NULL) {
-      for (size_t p = 0; p < PARTICLE_COUNT; p++) {
-        if (particle_buffer[i].buf[p] != NULL) {
-          if (particle_is_dead(particle_buffer[i].buf[p]->frame)) {
-            cull_dead_particle(particle_buffer[i].buf[p]);
-            particle_buffer[i].buf[p] = NULL;
-          }
-        }
+    for (size_t g = 0; g < PARTICLE_COUNT; g++) {
+      if (particle_buffer[i].buf[g]) {
+        SDL_Rect particle_rect = {
+            particle_buffer[i].buf[g]->x, particle_buffer[i].buf[g]->y,
+            particle_buffer[i].buf[g]->w, particle_buffer[i].buf[g]->h};
 
-        if (particle_buffer[i].buf[p] == NULL) {
-          if ((*pos_end_buf)[i].y > (*pos_start_buf)[i].y) {
-            particle_buffer[i].buf[p] = render_create_particle(
-                (*pos_start_buf)[i].x, (*pos_start_buf)[i].y,
-                (*pos_start_buf)[i].copy_rect.w);
-          }
-        }
+        SDL_SetRenderDrawColor(*rend.get_renderer(), conv.r, conv.g, conv.b,
+                               255 - 55);
+        SDL_RenderFillRect(*rend.get_renderer(), &particle_rect);
 
-        if (particle_buffer[i].buf[p] != NULL) {
-          SDL_Rect particle_rect = {
-              particle_buffer[i].buf[p]->x, particle_buffer[i].buf[p]->y,
-              particle_buffer[i].buf[p]->w, particle_buffer[i].buf[p]->h};
-
-          SDL_SetRenderDrawColor(*rend.get_renderer(), conv.r, conv.g, conv.b,
-                                 rgba->a - 75);
-          SDL_RenderFillRect(*rend.get_renderer(), &particle_rect);
-
-          particle_buffer[i].buf[p]->frame++;
-        }
+        particle_buffer[i].buf[g]->frame++;
       }
     }
   }

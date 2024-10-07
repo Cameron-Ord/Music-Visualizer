@@ -78,12 +78,12 @@ void SDL2Renderer::render_state_handler(ProgramThemes *themes, FData *ftdata,
                     ftbufs->smear, ftbufs->smoothed, ftbufs->processed_phases);
     render_draw_bars(themes->get_hue(PRIMARY), themes->get_secondary(),
                      ftbufs->processed_phases);
+    render_set_particles(particle_buffer, &particle_buffer_size,
+                         &ftdata->output_len, &bar_start_coords,
+                         &bar_end_coords);
+    render_draw_particles(particle_buffer, &particle_buffer_size,
+                          themes->get_hue(PRIMARY), ftbufs->processed_phases);
 
-    render_draw_particle(rend.get_particle_buffer(),
-                         rend.get_particle_buffer_size(),
-                         rend.get_start_coords_buf(), rend.get_end_coords_buf(),
-                         &ftdata->output_len, themes->get_primary(),
-                         themes->get_hue(SECONDARY), ftbufs->processed_phases);
     break;
   }
 
