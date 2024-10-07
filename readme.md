@@ -4,6 +4,9 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
+
+> Music is from the game FTL:Faster Than Light and composed by Ben Prunty. My copy was purchased from steam!
+[![Video Example](https://img.youtube.com/vi/SP236bVoIZE/0.jpg)](https://www.youtube.com/watch?v=SP236bVoIZE)
 ![Image](example/example_desktop_1.png)
 ![Image](example/example_desktop_2.png)
 ![Image](example/example_desktop_3.png)
