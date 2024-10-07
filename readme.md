@@ -5,7 +5,7 @@
 
 ## Music Visualizer
 > Music is from the game FTL:Faster Than Light and composed by Ben Prunty. You can buy the soundtrack off steam. 
-- [Video Example](https://www.youtube.com/watch?v=SP236bVoIZE)
+- [Video Demo](https://www.youtube.com/watch?v=mwnPXq6t93I)
 
 ## Images
 ![Image](example/example_desktop_1.png)
