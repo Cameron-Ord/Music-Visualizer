@@ -16,8 +16,8 @@ public:
   SDL2Renderer();
   ~SDL2Renderer();
 
-  SDL_Renderer **get_renderer();
-  void *create_renderer(SDL_Window **w, SDL_Renderer **r);
+  SDL_Renderer *get_renderer();
+  void set_renderer(SDL_Renderer *ptr);
   void render_clear();
   void render_bg(const SDL_Color *rgba);
   void render_present();
@@ -27,7 +27,6 @@ public:
                           const std::vector<Text> *text_vec,
                           const size_t *cursor_index);
   void render_draw_text_bg(const SDL_Color *rgba);
-  void reset_vector_positions();
   void render_draw_bars(const float *prim_hue, const SDL_Color *sec,
                         float *processed_phases);
   void render_set_bars(const size_t *len, const int *win_height,

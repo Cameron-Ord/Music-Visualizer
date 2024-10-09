@@ -5,6 +5,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+int scc(int code);
+void* scp(void* ptr);
+
 class SDL2INTERNAL {
 public:
   ~SDL2INTERNAL();

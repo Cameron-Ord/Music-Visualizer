@@ -91,9 +91,9 @@ void render_draw_particles(ParticleTrio *particle_buffer,
             particle_buffer[i].buf[g]->x, particle_buffer[i].buf[g]->y,
             particle_buffer[i].buf[g]->w, particle_buffer[i].buf[g]->h};
 
-        SDL_SetRenderDrawColor(*rend.get_renderer(), conv.r, conv.g, conv.b,
+        SDL_SetRenderDrawColor(rend.get_renderer(), conv.r, conv.g, conv.b,
                                255 - 55);
-        SDL_RenderFillRect(*rend.get_renderer(), &particle_rect);
+        SDL_RenderFillRect(rend.get_renderer(), &particle_rect);
 
         particle_buffer[i].buf[g]->frame++;
       }

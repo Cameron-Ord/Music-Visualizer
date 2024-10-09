@@ -5,6 +5,10 @@
 #include "../include/switch.hpp"
 #include "../include/theme.hpp"
 #include "../include/threads.hpp"
+#include "SDL2/SDL_platform.h"
+#include "SDL2/SDL_render.h"
+#include "SDL2/SDL_video.h"
+#include <SDL2/SDL_syswm.h>
 #include <cstdlib>
 #include <ctime>
 
@@ -15,6 +19,24 @@ SDL2Renderer rend;
 SDL2Window win;
 SDL2KeyInputs key;
 SDL2Fonts fonts;
+
+void* scp(void* ptr){
+  if(!ptr){
+    std::cerr << "SDL failed to create pointer! -> " << SDL_GetError() << std::endl;
+    exit(1);
+  }
+
+  return ptr;
+}
+
+
+int scc(int code){
+  if(code < 0){
+    std::cerr << "SDL failed to perform task! -> " << SDL_GetError() << std::endl;
+  }
+
+  return code;
+}
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
   int r, g, b, a;
@@ -122,28 +144,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  const std::string logging_src_path = pathing.get_logging_path();
-
-  const std::string log_file_concat =
-      pathing.join_str(logging_src_path, "log.txt");
-
-  FILE *stdout_file = NULL;
-  stdout_file = freopen(log_file_concat.c_str(), "a", stdout);
-  if (!stdout_file) {
-    std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
-              << std::endl;
-  }
-
-  const std::string errlog_file_concat =
-      pathing.join_str(logging_src_path, "errlog.txt");
-
-  FILE *stderr_file = NULL;
-  stderr_file = freopen(errlog_file_concat.c_str(), "a", stderr);
-  if (!stderr_file) {
-    std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
-              << std::endl;
-  }
-
   FILE *conf_file = NULL;
 
   conf_file = fopen("config.txt", "r");
@@ -161,19 +161,15 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  win.create_window(win.get_window());
-  if (win.get_window() == NULL) {
-    std::cerr << "Could not create window!" << std::endl;
-    SDL_Quit();
-    return 1;
-  }
+  SDL_Window* w = (SDL_Window*)scp(SDL_CreateWindow("Music Player", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 600, 400, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
+  SDL_Renderer *r = (SDL_Renderer*)scp(SDL_CreateRenderer(w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
-  rend.create_renderer(win.get_window(), rend.get_renderer());
-  if (*rend.get_renderer() == NULL) {
-    std::cerr << "Could not create renderer! -> EXIT" << std::endl;
-    SDL_Quit();
-    return 1;
-  }
+  win.set_window(w);
+  rend.set_renderer(r);
+  win.set_border_bool(false);
+
+  const char* platform = SDL_GetPlatform();
+  std::cout << "Platform -> " << platform << std::endl;
 
   if (!sdl2.initialize_sdl2_events()) {
     std::cerr << "Failed to initialize SDL2 inputs! -> EXIT" << std::endl;
@@ -200,10 +196,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  SDL_SetRenderDrawBlendMode(*rend.get_renderer(), SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawBlendMode(rend.get_renderer(), SDL_BLENDMODE_BLEND);
   SDL_EnableScreenSaver();
 
-  WIN_SIZE sizes = sdl2.get_current_window_size(*win.get_window());
+  WIN_SIZE sizes = sdl2.get_current_window_size(win.get_window());
   sdl2.set_window_size(sizes);
   rend.set_font_draw_limit(sizes.HEIGHT);
   fonts.set_char_limit(sizes.WIDTH);
@@ -248,6 +244,28 @@ int main(int argc, char **argv) {
   int drag_start_x = 0;
   int drag_start_y = 0;
 
+
+  const std::string logging_src_path = pathing.get_logging_path();
+  const std::string log_file_concat =
+      pathing.join_str(logging_src_path, "log.txt");
+
+  FILE *stdout_file = NULL;
+  stdout_file = freopen(log_file_concat.c_str(), "a", stdout);
+  if (!stdout_file) {
+    std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
+              << std::endl;
+  }
+
+  const std::string errlog_file_concat =
+      pathing.join_str(logging_src_path, "errlog.txt");
+
+  FILE *stderr_file = NULL;
+  stderr_file = freopen(errlog_file_concat.c_str(), "a", stderr);
+  if (!stderr_file) {
+    std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
+              << std::endl;
+  }
+
   while (sdl2.get_play_state()) {
     frame_start = SDL_GetTicks64();
 
@@ -287,8 +305,8 @@ int main(int argc, char **argv) {
         if (!no_mouse_grab) {
           if (mouse_held) {
             int win_x, win_y;
-            SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
-            SDL_SetWindowPosition(*win.get_window(),
+            SDL_GetWindowPosition(win.get_window(), &win_x, &win_y);
+            SDL_SetWindowPosition(win.get_window(),
                                   win_x + e.motion.x - drag_start_x,
                                   win_y + e.motion.y - drag_start_y);
           }
@@ -314,11 +332,11 @@ int main(int argc, char **argv) {
 
         if (e.key.keysym.sym == T) {
           if (*win.get_border_bool()) {
-            SDL_SetWindowBordered(*win.get_window(), SDL_FALSE);
+            SDL_SetWindowBordered(win.get_window(), SDL_FALSE);
             win.set_border_bool(!*win.get_border_bool());
           } else {
-            SDL_SetWindowBordered(*win.get_window(), SDL_TRUE);
-            SDL_SetWindowResizable(*win.get_window(), SDL_TRUE);
+            SDL_SetWindowBordered(win.get_window(), SDL_TRUE);
+            SDL_SetWindowResizable(win.get_window(), SDL_TRUE);
             win.set_border_bool(!*win.get_border_bool());
           }
         }
@@ -496,12 +514,12 @@ int main(int argc, char **argv) {
     free(rend.get_particle_buffer());
   }
 
-  if (*rend.get_renderer()) {
-    SDL_DestroyRenderer(*rend.get_renderer());
+  if (rend.get_renderer()) {
+    SDL_DestroyRenderer(rend.get_renderer());
   }
 
-  if (*win.get_window()) {
-    SDL_DestroyWindow(*win.get_window());
+  if (win.get_window()) {
+    SDL_DestroyWindow(win.get_window());
   }
 
   if (fonts.get_font_ptr()) {

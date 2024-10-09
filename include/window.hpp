@@ -5,10 +5,10 @@
 class SDL2Window {
 public:
   SDL2Window();
-  void *create_window(SDL_Window **w);
-  SDL_Window **get_window();
+  SDL_Window *get_window();
   const int *get_border_bool();
   void set_border_bool(int value);
+  void set_window(SDL_Window *ptr);
 
 private:
   SDL_Window *w;

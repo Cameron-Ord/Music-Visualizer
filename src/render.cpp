@@ -147,7 +147,10 @@ void SDL2Renderer::render_draw_float_settings(
   }
 }
 
-void SDL2Renderer::reset_vector_positions() {}
+
+void SDL2Renderer::set_renderer(SDL_Renderer *ptr){
+  r = ptr;
+} 
 
 void SDL2Renderer::set_font_draw_limit(int h) {
   font_draw_limit = std::min(24, std::max(1, (h - 100) / 32));
@@ -155,31 +158,9 @@ void SDL2Renderer::set_font_draw_limit(int h) {
 
 const size_t *SDL2Renderer::get_font_draw_limit() { return &font_draw_limit; }
 
-void *SDL2Renderer::create_renderer(SDL_Window **w, SDL_Renderer **r) {
-  *r = SDL_CreateRenderer(*w, -1,
-                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  if (!*r) {
-    fprintf(
-        stderr,
-        "Could not create renderer! -> %s : Fallback to Software Rasterization",
-        SDL_GetError());
-
-    *r = SDL_CreateRenderer(*w, -1, SDL_RENDERER_SOFTWARE);
-  }
-
-  if (!*r) {
-    std::cerr << "Could not create CPU rasterization renderer! -> "
-              << SDL_GetError() << std::endl;
-    SDL_DestroyWindow(*w);
-    return NULL;
-  }
-
-  return *r;
-}
-
 void SDL2Renderer::render_clear() { SDL_RenderClear(r); }
 void SDL2Renderer::render_present() { SDL_RenderPresent(r); }
 void SDL2Renderer::render_bg(const SDL_Color *rgba) {
   SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
 }
-SDL_Renderer **SDL2Renderer::get_renderer() { return &r; }
+SDL_Renderer *SDL2Renderer::get_renderer() { return r; }

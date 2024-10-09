@@ -337,7 +337,7 @@ Text SDL2Fonts::create_text(const std::string text, const size_t text_id,
     return text_entity;
   }
 
-  SDL_Texture *tex_ptr = create_text_texture(*rend.get_renderer(), surf_ptr);
+  SDL_Texture *tex_ptr = create_text_texture(rend.get_renderer(), surf_ptr);
   if (tex_ptr == NULL) {
     return text_entity;
   }

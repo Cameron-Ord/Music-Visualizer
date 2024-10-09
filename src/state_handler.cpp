@@ -47,22 +47,22 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
   }
 
   case L: {
-    increase_win_width(*win.get_window());
+    increase_win_width(win.get_window());
     break;
   }
 
   case K: {
-    increase_win_height(*win.get_window());
+    increase_win_height(win.get_window());
     break;
   }
 
   case H: {
-    decrease_win_width(*win.get_window());
+    decrease_win_width(win.get_window());
     break;
   }
 
   case J: {
-    decrease_win_height(*win.get_window());
+    decrease_win_height(win.get_window());
     break;
   }
 
@@ -357,22 +357,22 @@ void directory_keydown_options(SDL_Keycode sym, ProgramPath *pathing,
   }
 
   case L: {
-    increase_win_width(*win.get_window());
+    increase_win_width(win.get_window());
     break;
   }
 
   case K: {
-    increase_win_height(*win.get_window());
+    increase_win_height(win.get_window());
     break;
   }
 
   case H: {
-    decrease_win_width(*win.get_window());
+    decrease_win_width(win.get_window());
     break;
   }
 
   case J: {
-    decrease_win_height(*win.get_window());
+    decrease_win_height(win.get_window());
     break;
   }
 
@@ -478,22 +478,22 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
   }
 
   case L: {
-    increase_win_width(*win.get_window());
+    increase_win_width(win.get_window());
     break;
   }
 
   case K: {
-    increase_win_height(*win.get_window());
+    increase_win_height(win.get_window());
     break;
   }
 
   case H: {
-    decrease_win_width(*win.get_window());
+    decrease_win_width(win.get_window());
     break;
   }
 
   case J: {
-    decrease_win_height(*win.get_window());
+    decrease_win_height(win.get_window());
     break;
   }
 
@@ -598,22 +598,22 @@ void playback_keydown_options(SDL_Keycode sym) {
   }
 
   case L: {
-    increase_win_width(*win.get_window());
+    increase_win_width(win.get_window());
     break;
   }
 
   case K: {
-    increase_win_height(*win.get_window());
+    increase_win_height(win.get_window());
     break;
   }
 
   case H: {
-    decrease_win_width(*win.get_window());
+    decrease_win_width(win.get_window());
     break;
   }
 
   case J: {
-    decrease_win_height(*win.get_window());
+    decrease_win_height(win.get_window());
     break;
   }
 
@@ -675,7 +675,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
       song_name = (*text_vector)[*song_cursor_before].name;
     }
 
-    WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
+    WIN_SIZE ws = sdl2.get_current_window_size(win.get_window());
     sdl2.set_window_size(ws);
     rend.set_font_draw_limit(ws.HEIGHT);
     fonts.set_char_limit(ws.WIDTH);
@@ -766,7 +766,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
       song_name = (*text_vector)[*song_cursor_before].name;
     }
 
-    WIN_SIZE ws = sdl2.get_current_window_size(*win.get_window());
+    WIN_SIZE ws = sdl2.get_current_window_size(win.get_window());
     sdl2.set_window_size(ws);
     rend.set_font_draw_limit(ws.HEIGHT);
     fonts.set_char_limit(ws.WIDTH);
