@@ -25,6 +25,7 @@ struct FBuffers {
 struct FData {
   int cell_width;
   size_t output_len;
+  size_t *output_len_ptr;
   float max_ampl;
   float max_phase;
   SDL_Rect *rect_buff;

@@ -298,6 +298,7 @@ void FourierTransform::squash_to_log(size_t size) {
   }
 
   data.output_len = m;
+  data.output_len_ptr = &data.output_len;
 }
 
 float FourierTransform::amp(float z) {

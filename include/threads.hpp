@@ -8,7 +8,7 @@ struct ThreadData {
   SDL_mutex *m;
   SDL_Thread *thread_ptr;
   bool is_running;
-  bool is_ready;
+  int is_ready;
   bool is_locked;
   void *arg1;
   void *arg2;

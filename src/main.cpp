@@ -239,9 +239,14 @@ int main(int argc, char **argv) {
   themes.set_hue_from_rgba(TEXT_BG);
   themes.set_hue_from_rgba(TEXT);
 
+  //Define some pointers here so I dont have to keep doing so later, value will change anyway.
+
   rend.allocate_particle_buffer();
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
+
+  int drag_start_x = 0;
+  int drag_start_y = 0;
 
   while (sdl2.get_play_state()) {
     frame_start = SDL_GetTicks64();
@@ -249,15 +254,203 @@ int main(int argc, char **argv) {
     rend.render_bg(themes.get_background());
     rend.render_clear();
 
-    key.input_handler(&pathing, &files, ad, fft, &themes);
-    sdl2_ad.audio_state_handler(ad, &files, &pathing);
+    SDL_Event e;
+    static int mouse_held;
 
-    SDL_LockMutex(FTransformThread.m);
-    FTransformThread.is_ready = 1;
-    SDL_CondSignal(FTransformThread.c);
-    SDL_UnlockMutex(FTransformThread.m);
+    while (SDL_PollEvent(&e)) {
+      switch (e.type) {
+      default: {
+        break;
+      }
 
-    rend.render_state_handler(&themes, fft->get_data(), fft->get_bufs());
+      case MOUSEBTN_DOWN: {
+        if (!no_mouse_grab) {
+          if (e.button.button == MOUSE_LEFT) {
+            mouse_held = 1;
+            drag_start_x = e.button.x;
+            drag_start_y = e.button.y;
+          }
+        }
+        break;
+      }
+
+      case MOUSEBTN_UP: {
+        if (!no_mouse_grab) {
+          if (e.button.button == MOUSE_LEFT) {
+            mouse_held = 0;
+          }
+        }
+        break;
+      }
+
+      case MOUSE_MOVE: {
+        if (!no_mouse_grab) {
+          if (mouse_held) {
+            int win_x, win_y;
+            SDL_GetWindowPosition(*win.get_window(), &win_x, &win_y);
+            SDL_SetWindowPosition(*win.get_window(),
+                                  win_x + e.motion.x - drag_start_x,
+                                  win_y + e.motion.y - drag_start_y);
+          }
+        }
+        break;
+      }
+
+      case SDL_WINDOWEVENT: {
+        handle_window_event(e.window.event, &files, &themes);
+        break;
+      }
+
+      case SDL_KEYDOWN: {
+        keydown_handle_state(sdl2.get_current_user_state(), e.key.keysym,
+                             &pathing, &files, ad, fft, &themes);
+        break;
+      }
+
+      case SDL_KEYUP: {
+        if (e.key.keysym.sym == Q) {
+          sdl2.set_play_state(false);
+        }
+
+        if (e.key.keysym.sym == T) {
+          if (*win.get_border_bool()) {
+            SDL_SetWindowBordered(*win.get_window(), SDL_FALSE);
+            win.set_border_bool(!*win.get_border_bool());
+          } else {
+            SDL_SetWindowBordered(*win.get_window(), SDL_TRUE);
+            SDL_SetWindowResizable(*win.get_window(), SDL_TRUE);
+            win.set_border_bool(!*win.get_border_bool());
+          }
+        }
+        break;
+      }
+
+      case SDL_QUIT: {
+        sdl2.set_play_state(false);
+        break;
+      }
+      }
+    }
+
+    switch (*sdl2_ad.get_stream_flag()) {
+    default: {
+      break;
+    }
+    case PLAYING: {
+      switch (*sdl2_ad.get_next_song_flag()) {
+      case WAITING: {
+        uint32_t position = ad->get_audio_data()->position;
+        uint32_t length = ad->get_audio_data()->length;
+        if (position >= length) {
+          sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
+        }
+        break;
+      }
+
+      case NEXT: {
+        goto_next_song(&files, &pathing, ad);
+        break;
+      }
+
+      default: {
+        break;
+      }
+      }
+      break;
+    }
+    }
+
+    switch (FTransformThread.is_ready) {
+    case 1: {
+      break;
+    }
+
+    case 0: {
+      SDL_LockMutex(FTransformThread.m);
+      FTransformThread.is_ready = 1;
+      SDL_CondSignal(FTransformThread.c);
+      SDL_UnlockMutex(FTransformThread.m);
+      break;
+    }
+
+    default: {
+      break;
+    }
+    }
+
+    std::vector<Text> *dir =
+        fonts.retrieve_indexed_dir_textvector(*key.get_vdir_index());
+    std::vector<Text> *song =
+        fonts.retrieve_indexed_song_textvector(*key.get_vsong_index());
+
+
+    const WIN_SIZE *win_size = sdl2.get_stored_window_size();
+    const size_t *dir_vcursor = key.get_vdir_cursor_index();
+    const size_t *song_vcursor = key.get_vsong_cursor_index();
+
+    switch (sdl2.get_current_user_state()) {
+    case AT_DIRECTORIES: {
+      if (fonts.get_dir_vec_size() > 0) {
+        rend.render_set_text(win_size, dir);
+        rend.render_draw_text(dir);
+        rend.render_set_text_bg(win_size, dir, dir_vcursor);
+        rend.render_draw_text_bg(themes.get_textbg());
+      }
+      break;
+    }
+
+    case AT_SONGS: {
+      if (fonts.get_song_vec_size() > 0) {
+        rend.render_set_text(win_size, song);
+        rend.render_draw_text(song);
+        rend.render_set_text_bg(win_size, song, song_vcursor);
+        rend.render_draw_text_bg(themes.get_textbg());
+      }
+      break;
+    }
+
+    case LISTENING: {
+      rend.render_set_bars(&fft->get_data()->output_len, &win_size->HEIGHT, &win_size->WIDTH,
+                      fft->get_bufs()->smear, fft->get_bufs()->smoothed,
+                      fft->get_bufs()->processed_phases);
+      rend.render_draw_bars(themes.get_hue(PRIMARY), themes.get_secondary(),
+                       fft->get_bufs()->processed_phases);
+      
+      render_set_particles(rend.get_particle_buffer(), rend.get_particle_buffer_size(),
+                           &fft->get_data()->output_len, rend.get_start_coords_buf(),rend.get_end_coords_buf());
+      render_draw_particles(rend.get_particle_buffer(), rend.get_particle_buffer_size(),
+                            themes.get_hue(PRIMARY), fft->get_bufs()->processed_phases);
+
+      break;
+    }
+
+    case AT_SETTINGS: {
+      switch (*rend.get_setting_render_mode()) {
+      default: {
+        break;
+      }
+
+      case FLOATS: {
+        rend.render_draw_float_settings(fonts.get_float_settings_vec(), win_size,
+                                   themes.get_primary(), themes.get_primary(),
+                                   key.get_settings_cursor());
+        break;
+      }
+
+      case INTS: {
+        rend.render_draw_int_settings(fonts.get_int_settings_vec(), win_size,
+                                 themes.get_primary(), themes.get_primary(),
+                                 key.get_settings_cursor());
+        break;
+      }
+      }
+    }
+
+    default: {
+      break;
+    }
+    }
+
 
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {
@@ -272,7 +465,7 @@ int main(int argc, char **argv) {
   int th_status;
 
   lock_mutex(FTransformThread.m, &FTransformThread.is_locked);
-  FTransformThread.is_running = 0;
+  FTransformThread.is_running = false;
   SDL_CondSignal(FTransformThread.c);
   unlock_mutex(FTransformThread.m, &FTransformThread.is_locked);
 

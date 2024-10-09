@@ -14,8 +14,8 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
   }
 
   particle->frame = rand() % 3;
-  particle->h = std::max(1, static_cast<int>(bar_width*0.1));
-  particle->w = std::max(1, static_cast<int>(bar_width*0.1));
+  particle->h = std::max(1, static_cast<int>(bar_width * 0.1));
+  particle->w = std::max(1, static_cast<int>(bar_width * 0.1));
 
   if (bar_height < 25 || bar_width <= particle->w) {
     free(particle);

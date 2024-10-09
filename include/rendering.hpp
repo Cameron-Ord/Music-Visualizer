@@ -44,8 +44,6 @@ public:
                                   const WIN_SIZE *window_sizing,
                                   const SDL_Color *rgba, const SDL_Color *sec,
                                   const size_t *cursor);
-  void render_state_handler(ProgramThemes *themes, FData *ftdata,
-                            FBuffers *ftbufs);
   const int *get_setting_render_mode();
   void set_setting_render_mode(int MODE);
   void allocate_particle_buffer();

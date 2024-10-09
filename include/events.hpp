@@ -17,7 +17,6 @@ public:
   SDL2KeyInputs();
 
   void reset_cursor_index(size_t *cursor_index_ptr);
-  std::pair<int, SDL_Keysym> poll_events();
   std::string check_cursor_move(size_t vec_size, const size_t *cursor_ptr,
                                 std::string direction);
   void affirm_index();
@@ -43,8 +42,6 @@ public:
 
   void set_settings_cursor(size_t i);
   const size_t *get_settings_cursor();
-  void input_handler(ProgramPath *pathing, ProgramFiles *files, AudioData *ad,
-                     FourierTransform *fft, ProgramThemes *themes);
   void set_mouse_grab(int status);
   size_t* get_updated_text_location(const std::string *name, const std::vector<std::vector<Text>> *text_vector);
 

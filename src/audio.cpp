@@ -29,36 +29,6 @@ void callback(void *data, uint8_t *stream, int len) {
   *pos += copy;
 }
 
-void SDL2Audio::audio_state_handler(AudioData *ad, ProgramFiles *files,
-                                    ProgramPath *pathing) {
-  switch (*sdl2_ad.get_stream_flag()) {
-  default: {
-    break;
-  }
-  case PLAYING: {
-    switch (*sdl2_ad.get_next_song_flag()) {
-    case WAITING: {
-      uint32_t position = ad->get_audio_data()->position;
-      uint32_t length = ad->get_audio_data()->length;
-      if (position >= length) {
-        sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
-      }
-      break;
-    }
-
-    case NEXT: {
-      goto_next_song(files, pathing, ad);
-      break;
-    }
-
-    default: {
-      break;
-    }
-    }
-    break;
-  }
-  }
-}
 
 void goto_next_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
 
