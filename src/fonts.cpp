@@ -60,7 +60,7 @@ std::vector<Text> *SDL2Fonts::get_indexed_dir_vec(size_t index) {
 }
 
 std::vector<Text> *SDL2Fonts::get_indexed_song_vec(size_t index) {
-  const size_t vecsize = dir_text_vec.size();
+  const size_t vecsize = song_text_vec.size();
   if (index > vecsize - 1) {
     return NULL;
   }
