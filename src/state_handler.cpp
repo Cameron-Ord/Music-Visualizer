@@ -285,7 +285,7 @@ void select_directory(ProgramThemes *themes, ProgramFiles *files,
 
     std::string dirname;
     std::vector<Text> *font_dir_vec =
-        fonts.retrieve_indexed_dir_textvector(*virt_dir_vec_index);
+        fonts.get_indexed_dir_vec(*virt_dir_vec_index);
     dirname = key.select_element(font_dir_vec, virt_dir_cursor);
     pathing->set_opened_dir(dirname);
 
@@ -327,7 +327,7 @@ void select_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
 
     std::string filename;
     std::vector<Text> *font_song_vec =
-        fonts.retrieve_indexed_song_textvector(*virt_song_vec_index);
+        fonts.get_indexed_song_vec(*virt_song_vec_index);
     filename = key.select_element(font_song_vec, virt_song_cursor);
     bool result = false;
     std::string concat_path =
@@ -397,8 +397,7 @@ void directory_keydown_options(SDL_Keycode sym, ProgramPath *pathing,
 
     size_t ttl_vec_size = fonts.get_dir_vec_size();
     if (ttl_vec_size > 0) {
-      current_vec_size =
-          fonts.retrieve_indexed_dir_textvector(*virtual_dvec_index)->size();
+      current_vec_size = fonts.get_indexed_dir_vec(*virtual_dvec_index)->size();
       result =
           key.check_cursor_move(current_vec_size, virtual_dir_cursor, "DOWN");
       if (result == "SAFE") {
@@ -423,8 +422,7 @@ void directory_keydown_options(SDL_Keycode sym, ProgramPath *pathing,
 
     size_t ttl_vec_size = fonts.get_dir_vec_size();
     if (ttl_vec_size > 0) {
-      current_vec_size =
-          fonts.retrieve_indexed_dir_textvector(*virtual_dvec_index)->size();
+      current_vec_size = fonts.get_indexed_dir_vec(*virtual_dvec_index)->size();
       result =
           key.check_cursor_move(current_vec_size, virtual_dir_cursor, "UP");
 
@@ -435,8 +433,7 @@ void directory_keydown_options(SDL_Keycode sym, ProgramPath *pathing,
             fonts.check_vector_index(ttl_vec_size, virtual_dvec_index, "UP");
         if (result == "SAFE") {
           current_vec_size =
-              fonts.retrieve_indexed_dir_textvector(*key.get_vdir_index() - 1)
-                  ->size();
+              fonts.get_indexed_dir_vec(*key.get_vdir_index() - 1)->size();
           if (*virtual_dir_cursor > current_vec_size - 1) {
             key.set_vdir_cursor_index(current_vec_size - 1);
           }
@@ -519,7 +516,7 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
     size_t ttl_vec_size = fonts.get_song_vec_size();
     if (ttl_vec_size > 0) {
       current_vec_size =
-          fonts.retrieve_indexed_song_textvector(*virtual_svec_index)->size();
+          fonts.get_indexed_song_vec(*virtual_svec_index)->size();
       result =
           key.check_cursor_move(current_vec_size, virtual_song_cursor, "DOWN");
       if (result == "SAFE") {
@@ -545,7 +542,7 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
     size_t ttl_vec_size = fonts.get_song_vec_size();
     if (ttl_vec_size > 0) {
       current_vec_size =
-          fonts.retrieve_indexed_song_textvector(*virtual_svec_index)->size();
+          fonts.get_indexed_song_vec(*virtual_svec_index)->size();
       result =
           key.check_cursor_move(current_vec_size, virtual_song_cursor, "UP");
       if (result == "SAFE") {
@@ -555,9 +552,7 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
             fonts.check_vector_index(ttl_vec_size, virtual_svec_index, "UP");
         if (result == "SAFE") {
           current_vec_size =
-              fonts
-                  .retrieve_indexed_song_textvector(*key.get_vsong_index() - 1)
-                  ->size();
+              fonts.get_indexed_song_vec(*key.get_vsong_index() - 1)->size();
           if (*virtual_song_cursor > current_vec_size - 1) {
             key.set_vsong_cursor_index(current_vec_size - 1);
           }
@@ -666,12 +661,12 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     std::string song_name;
 
     if (dir_indexes_before > 0) {
-      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
       dir_name = (*text_vector)[*dir_cursor_before].name;
     }
 
     if (song_indexes_before > 0) {
-      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_vector = fonts.get_indexed_song_vec(*songs_index);
       song_name = (*text_vector)[*song_cursor_before].name;
     }
 
@@ -700,7 +695,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
       if (dir_indexes_before > dir_font_indexes_count) {
         key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
       }
-      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
       text_size = text_vector->size();
       if (*dir_cursor_before > text_size - 1) {
         key.set_vdir_cursor_index(text_size - 1);
@@ -712,7 +707,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
         key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
                             1);
       }
-      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_vector = fonts.get_indexed_song_vec(*songs_index);
       text_size = text_vector->size();
       if (*song_cursor_before > text_size - 1) {
         key.set_vsong_cursor_index(text_size - 1);
@@ -757,12 +752,12 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     std::string song_name;
 
     if (dir_indexes_before > 0) {
-      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
       dir_name = (*text_vector)[*dir_cursor_before].name;
     }
 
     if (song_indexes_before > 0) {
-      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_vector = fonts.get_indexed_song_vec(*songs_index);
       song_name = (*text_vector)[*song_cursor_before].name;
     }
 
@@ -793,7 +788,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
       if (dir_indexes_before > dir_font_indexes_count) {
         key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
       }
-      text_vector = fonts.retrieve_indexed_dir_textvector(*dirs_index);
+      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
       text_size = text_vector->size();
       if (*dir_cursor_before > text_size - 1) {
         key.set_vdir_cursor_index(text_size - 1);
@@ -805,7 +800,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
         key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
                             1);
       }
-      text_vector = fonts.retrieve_indexed_song_textvector(*songs_index);
+      text_vector = fonts.get_indexed_song_vec(*songs_index);
       text_size = text_vector->size();
       if (*song_cursor_before > text_size - 1) {
         key.set_vsong_cursor_index(text_size - 1);

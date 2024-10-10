@@ -21,14 +21,13 @@ void callback(void *data, uint8_t *stream, int len) {
 
   float *f32_stream = reinterpret_cast<float *>(stream);
   for (uint32_t i = 0; i < copy; i++) {
-    f32_stream[i] = a->buffer[i + *pos] * 1.0;
+    f32_stream[i] = a->buffer[i + *pos] * a->volume;
   }
 
   a->fft_push_fn(*pos, a->fft_in, a->buffer, copy * sizeof(float));
 
   *pos += copy;
 }
-
 
 void goto_next_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
 
@@ -44,8 +43,7 @@ void goto_next_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
 
   size_t ttl_vec_size = fonts.get_song_vec_size();
   if (ttl_vec_size > 0) {
-    current_vec_size =
-        fonts.retrieve_indexed_song_textvector(*real_svec_index)->size();
+    current_vec_size = fonts.get_indexed_song_vec(*real_svec_index)->size();
     result = key.check_cursor_move(current_vec_size, real_song_cursor, "DOWN");
     if (result == "SAFE") {
       key.set_song_cursor_index(*real_song_cursor + 1);
@@ -73,7 +71,7 @@ void goto_next_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
 
     std::string filename;
     std::vector<Text> *font_song_vec =
-        fonts.retrieve_indexed_song_textvector(*r_song_vec_index);
+        fonts.get_indexed_song_vec(*r_song_vec_index);
     filename = key.select_element(font_song_vec, r_song_cursor);
     bool result = false;
     std::string concat_path =

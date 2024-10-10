@@ -4,9 +4,13 @@
 #include "sdl2defs.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <cstdio>
 
-int scc(int code);
-void* scp(void* ptr);
+
+typedef struct {
+  FILE* stdout_file;
+  FILE* stderr_file;
+} Logging;
 
 class SDL2INTERNAL {
 public:

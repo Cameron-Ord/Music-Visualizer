@@ -15,5 +15,6 @@ extern SDL2Renderer rend;
 extern SDL2Window win;
 extern SDL2KeyInputs key;
 extern SDL2Fonts fonts;
+extern Logging logs;
 
 #endif

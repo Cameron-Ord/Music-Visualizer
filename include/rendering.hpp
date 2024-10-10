@@ -30,8 +30,7 @@ public:
   void render_draw_bars(const float *prim_hue, const SDL_Color *sec,
                         float *processed_phases);
   void render_set_bars(const size_t *len, const int *win_height,
-                       const int *win_width, float *smear, float *smooth,
-                       float *processed_phases);
+                       const int *win_width, float *smear, float *smooth);
   void set_font_draw_limit(int h);
   const size_t *get_font_draw_limit();
 
@@ -45,7 +44,7 @@ public:
                                   const size_t *cursor);
   const int *get_setting_render_mode();
   void set_setting_render_mode(int MODE);
-  void allocate_particle_buffer();
+  bool allocate_particle_buffer();
   size_t *get_particle_buffer_size();
   ParticleTrio *get_particle_buffer();
   const std::vector<Coordinates> *get_start_coords_buf();

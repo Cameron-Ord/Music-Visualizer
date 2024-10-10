@@ -26,8 +26,9 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
                                  int bar_height);
 void cull_dead_particle(Particle *dead_particle);
 
+bool reallocate_particle_buffer(const size_t *output_length, size_t *particle_buf_len, ParticleTrio* particle_buffer);
 void render_set_particles(ParticleTrio *particle_buffer,
-                          size_t *particle_buf_len, const size_t *output_length,
+                          const size_t *output_length,
                           const std::vector<Coordinates> *start_buf,
                           const std::vector<Coordinates> *end_buf);
 

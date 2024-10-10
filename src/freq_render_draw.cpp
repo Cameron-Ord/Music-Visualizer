@@ -1,10 +1,11 @@
 #include "../include/particles.hpp"
 #include "../include/rendering.hpp"
+#include "../include/utils.hpp"
 #include <cstdlib>
 
 void SDL2Renderer::render_set_bars(const size_t *len, const int *win_height,
                                    const int *win_width, float *smear,
-                                   float *smooth, float *phases) {
+                                   float *smooth) {
 
   if (*len == 0) {
     return;
@@ -67,11 +68,11 @@ void SDL2Renderer::render_draw_bars(const float *prim_hue, const SDL_Color *sec,
     HSL_TO_RGB conv = phase_hue_effect(&phased_hue);
 
     if (bar_end_coords[i].y > bar_start_coords[i].y) {
-      SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a);
-      SDL_RenderFillRect(r, &bar_start_coords[i].copy_rect);
+      scc(SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a));
+      scc(SDL_RenderFillRect(r, &bar_start_coords[i].copy_rect));
     }
 
-    SDL_SetRenderDrawColor(r, conv.r, conv.g, conv.b, 255);
-    SDL_RenderFillRect(r, &bar_end_coords[i].copy_rect);
+    scc(SDL_SetRenderDrawColor(r, conv.r, conv.g, conv.b, 255));
+    scc(SDL_RenderFillRect(r, &bar_end_coords[i].copy_rect));
   }
 }

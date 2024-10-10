@@ -5,10 +5,7 @@
 #include "../include/switch.hpp"
 #include "../include/theme.hpp"
 #include "../include/threads.hpp"
-#include "SDL2/SDL_platform.h"
-#include "SDL2/SDL_render.h"
-#include "SDL2/SDL_video.h"
-#include <SDL2/SDL_syswm.h>
+#include "../include/utils.hpp"
 #include <cstdlib>
 #include <ctime>
 
@@ -19,24 +16,7 @@ SDL2Renderer rend;
 SDL2Window win;
 SDL2KeyInputs key;
 SDL2Fonts fonts;
-
-void* scp(void* ptr){
-  if(!ptr){
-    std::cerr << "SDL failed to create pointer! -> " << SDL_GetError() << std::endl;
-    exit(1);
-  }
-
-  return ptr;
-}
-
-
-int scc(int code){
-  if(code < 0){
-    std::cerr << "SDL failed to perform task! -> " << SDL_GetError() << std::endl;
-  }
-
-  return code;
-}
+Logging logs;
 
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
   int r, g, b, a;
@@ -113,6 +93,13 @@ int main(int argc, char **argv) {
   FourierTransform *fft = new FourierTransform;
   AudioData *ad = new AudioData;
   AudioDataContainer *audio_data = new AudioDataContainer;
+
+  if (!check_ptrs(3, fft, ad, audio_data)) {
+    std::cerr << "Failed to allocate pointers! ->" << strerror(errno)
+              << std::endl;
+    return 1;
+  }
+
   ProgramThemes themes;
   ProgramPath pathing;
   ProgramFiles files;
@@ -161,14 +148,17 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  SDL_Window* w = (SDL_Window*)scp(SDL_CreateWindow("Music Player", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 600, 400, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
-  SDL_Renderer *r = (SDL_Renderer*)scp(SDL_CreateRenderer(w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+  SDL_Window *w = (SDL_Window *)scp(SDL_CreateWindow(
+      "Music Player", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 600, 400,
+      SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE));
+  SDL_Renderer *r = (SDL_Renderer *)scp(SDL_CreateRenderer(
+      w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
   win.set_window(w);
   rend.set_renderer(r);
   win.set_border_bool(false);
 
-  const char* platform = SDL_GetPlatform();
+  const char *platform = SDL_GetPlatform();
   std::cout << "Platform -> " << platform << std::endl;
 
   if (!sdl2.initialize_sdl2_events()) {
@@ -196,7 +186,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  SDL_SetRenderDrawBlendMode(rend.get_renderer(), SDL_BLENDMODE_BLEND);
+  scc(SDL_SetRenderDrawBlendMode(rend.get_renderer(), SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
 
   WIN_SIZE sizes = sdl2.get_current_window_size(win.get_window());
@@ -213,12 +203,8 @@ int main(int argc, char **argv) {
 
   fonts.create_settings_text(*themes.get_text(), fft->get_settings());
 
-  fonts.create_float_number_text(*themes.get_text());
-
-  fonts.create_integer_number_text(*themes.get_text());
-
-  ThreadData FTransformThread = {
-      NULL, NULL, NULL, 1, 0, false, fft, sdl2_ad.get_stream_flag(), NULL};
+  ThreadData FTransformThread = {NULL,  NULL, NULL, 1,   0,
+                                 false, fft,  NULL, NULL};
   FTransformThread.c = SDL_CreateCond();
   FTransformThread.m = SDL_CreateMutex();
 
@@ -235,35 +221,37 @@ int main(int argc, char **argv) {
   themes.set_hue_from_rgba(TEXT_BG);
   themes.set_hue_from_rgba(TEXT);
 
-  //Define some pointers here so I dont have to keep doing so later, value will change anyway.
+  if (!rend.allocate_particle_buffer()) {
+    std::cerr << "Could not allocate particle buffer! -> " << strerror(errno)
+              << std::endl;
+    return 1;
+  }
 
-  rend.allocate_particle_buffer();
   sdl2.set_play_state(true);
   sdl2.set_current_user_state(AT_DIRECTORIES);
 
   int drag_start_x = 0;
   int drag_start_y = 0;
 
-
   const std::string logging_src_path = pathing.get_logging_path();
   const std::string log_file_concat =
       pathing.join_str(logging_src_path, "log.txt");
 
-  FILE *stdout_file = NULL;
-  stdout_file = freopen(log_file_concat.c_str(), "a", stdout);
-  if (!stdout_file) {
+  logs.stdout_file = freopen(log_file_concat.c_str(), "a", stdout);
+  if (!logs.stdout_file) {
     std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
               << std::endl;
+    return 1;
   }
 
   const std::string errlog_file_concat =
       pathing.join_str(logging_src_path, "errlog.txt");
 
-  FILE *stderr_file = NULL;
-  stderr_file = freopen(errlog_file_concat.c_str(), "a", stderr);
-  if (!stderr_file) {
+  logs.stderr_file = freopen(errlog_file_concat.c_str(), "a", stderr);
+  if (!logs.stderr_file) {
     std::cerr << "Could not open logging file for stdout! ->" << strerror(errno)
               << std::endl;
+    return 1;
   }
 
   while (sdl2.get_play_state()) {
@@ -331,7 +319,7 @@ int main(int argc, char **argv) {
         }
 
         if (e.key.keysym.sym == T) {
-          if (*win.get_border_bool()) {
+          if (win.get_border_bool() && *win.get_border_bool()) {
             SDL_SetWindowBordered(win.get_window(), SDL_FALSE);
             win.set_border_bool(!*win.get_border_bool());
           } else {
@@ -362,6 +350,25 @@ int main(int argc, char **argv) {
         if (position >= length) {
           sdl2_ad.set_flag(NEXT, sdl2_ad.get_next_song_flag());
         }
+
+        switch (FTransformThread.is_ready) {
+        case 1: {
+          break;
+        }
+
+        case 0: {
+          scc(SDL_LockMutex(FTransformThread.m));
+          FTransformThread.is_ready = 1;
+          scc(SDL_CondSignal(FTransformThread.c));
+          scc(SDL_UnlockMutex(FTransformThread.m));
+          break;
+        }
+
+        default: {
+          break;
+        }
+        }
+
         break;
       }
 
@@ -378,37 +385,25 @@ int main(int argc, char **argv) {
     }
     }
 
-    switch (FTransformThread.is_ready) {
-    case 1: {
-      break;
-    }
+    const size_t *p_buf_size = rend.get_particle_buffer_size();
+    const size_t fft_out_len = fft->get_data()->output_len;
 
-    case 0: {
-      SDL_LockMutex(FTransformThread.m);
-      FTransformThread.is_ready = 1;
-      SDL_CondSignal(FTransformThread.c);
-      SDL_UnlockMutex(FTransformThread.m);
-      break;
+    if (p_buf_size && fft_out_len > 0) {
+      if (*p_buf_size != fft_out_len) {
+        reallocate_particle_buffer(&fft->get_data()->output_len,
+                                   rend.get_particle_buffer_size(),
+                                   rend.get_particle_buffer());
+      }
     }
-
-    default: {
-      break;
-    }
-    }
-
-    std::vector<Text> *dir =
-        fonts.retrieve_indexed_dir_textvector(*key.get_vdir_index());
-    std::vector<Text> *song =
-        fonts.retrieve_indexed_song_textvector(*key.get_vsong_index());
-
 
     const WIN_SIZE *win_size = sdl2.get_stored_window_size();
-    const size_t *dir_vcursor = key.get_vdir_cursor_index();
-    const size_t *song_vcursor = key.get_vsong_cursor_index();
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      if (fonts.get_dir_vec_size() > 0) {
+      std::vector<Text> *dir = fonts.get_indexed_dir_vec(*key.get_vdir_index());
+      const size_t *dir_vcursor = key.get_vdir_cursor_index();
+      if (check_ptrs(3, dir, win_size, dir_vcursor) &&
+          fonts.get_dir_vec_size() > 0) {
         rend.render_set_text(win_size, dir);
         rend.render_draw_text(dir);
         rend.render_set_text_bg(win_size, dir, dir_vcursor);
@@ -418,7 +413,11 @@ int main(int argc, char **argv) {
     }
 
     case AT_SONGS: {
-      if (fonts.get_song_vec_size() > 0) {
+      std::vector<Text> *song =
+          fonts.get_indexed_song_vec(*key.get_vsong_index());
+      const size_t *song_vcursor = key.get_vsong_cursor_index();
+      if (check_ptrs(3, song, win_size, song_vcursor) &&
+          fonts.get_song_vec_size() > 0) {
         rend.render_set_text(win_size, song);
         rend.render_draw_text(song);
         rend.render_set_text_bg(win_size, song, song_vcursor);
@@ -428,16 +427,18 @@ int main(int argc, char **argv) {
     }
 
     case LISTENING: {
-      rend.render_set_bars(&fft->get_data()->output_len, &win_size->HEIGHT, &win_size->WIDTH,
-                      fft->get_bufs()->smear, fft->get_bufs()->smoothed,
-                      fft->get_bufs()->processed_phases);
+      rend.render_set_bars(&fft->get_data()->output_len, &win_size->HEIGHT,
+                           &win_size->WIDTH, fft->get_bufs()->smear,
+                           fft->get_bufs()->smoothed);
       rend.render_draw_bars(themes.get_hue(PRIMARY), themes.get_secondary(),
-                       fft->get_bufs()->processed_phases);
-      
-      render_set_particles(rend.get_particle_buffer(), rend.get_particle_buffer_size(),
-                           &fft->get_data()->output_len, rend.get_start_coords_buf(),rend.get_end_coords_buf());
-      render_draw_particles(rend.get_particle_buffer(), rend.get_particle_buffer_size(),
-                            themes.get_hue(PRIMARY), fft->get_bufs()->processed_phases);
+                            fft->get_bufs()->processed_phases);
+
+      render_set_particles(
+          rend.get_particle_buffer(), &fft->get_data()->output_len,
+          rend.get_start_coords_buf(), rend.get_end_coords_buf());
+      render_draw_particles(
+          rend.get_particle_buffer(), rend.get_particle_buffer_size(),
+          themes.get_hue(PRIMARY), fft->get_bufs()->processed_phases);
 
       break;
     }
@@ -449,16 +450,16 @@ int main(int argc, char **argv) {
       }
 
       case FLOATS: {
-        rend.render_draw_float_settings(fonts.get_float_settings_vec(), win_size,
-                                   themes.get_primary(), themes.get_primary(),
-                                   key.get_settings_cursor());
+        rend.render_draw_float_settings(
+            fonts.get_float_settings_vec(), win_size, themes.get_primary(),
+            themes.get_primary(), key.get_settings_cursor());
         break;
       }
 
       case INTS: {
-        rend.render_draw_int_settings(fonts.get_int_settings_vec(), win_size,
-                                 themes.get_primary(), themes.get_primary(),
-                                 key.get_settings_cursor());
+        rend.render_draw_int_settings(
+            fonts.get_int_settings_vec(), win_size, themes.get_primary(),
+            themes.get_primary(), key.get_settings_cursor());
         break;
       }
       }
@@ -468,7 +469,6 @@ int main(int argc, char **argv) {
       break;
     }
     }
-
 
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {
@@ -496,10 +496,21 @@ int main(int argc, char **argv) {
 
   fonts.destroy_allocated_fonts();
 
-  free(ad->get_audio_data()->buffer);
-  delete ad->get_audio_data();
-  delete ad;
-  delete fft;
+  if (ad->get_audio_data()->buffer) {
+    free(ad->get_audio_data()->buffer);
+  }
+
+  if (ad->get_audio_data()) {
+    delete ad->get_audio_data();
+  }
+
+  if (ad) {
+    delete ad;
+  }
+
+  if (fft) {
+    delete fft;
+  }
 
   if (rend.get_particle_buffer()) {
     if (rend.get_particle_buffer_size()) {
@@ -526,13 +537,7 @@ int main(int argc, char **argv) {
     TTF_CloseFont(fonts.get_font_ptr());
   }
 
-  if (stdout_file) {
-    fclose(stdout_file);
-  }
-
-  if (stderr_file) {
-    fclose(stderr_file);
-  }
+  close_output_files();
 
   TTF_Quit();
   SDL_Quit();

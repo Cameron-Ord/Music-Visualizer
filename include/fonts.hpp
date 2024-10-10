@@ -33,24 +33,16 @@ public:
   size_t get_song_vec_size();
   std::vector<std::vector<Text>> *get_full_dir_textvector();
   std::vector<std::vector<Text>> *get_full_song_textvector();
-  std::vector<Text> *retrieve_indexed_dir_textvector(size_t index);
-  std::vector<Text> *retrieve_indexed_song_textvector(size_t index);
+  std::vector<Text> *get_indexed_dir_vec(size_t index);
+  std::vector<Text> *get_indexed_song_vec(size_t index);
   std::string check_vector_index(size_t ttl_vec_size, const size_t *index,
                                  std::string direction);
-
-  void create_float_number_text(const SDL_Color color);
-  void create_integer_number_text(const SDL_Color color);
   void create_settings_text(const SDL_Color color,
                             const FFTSettings *fft_settings);
 
   std::vector<SettingTextInt> *get_int_settings_vec();
   std::vector<SettingTextFloat> *get_float_settings_vec();
-  Text *find_integer_font(int setting_num);
-  Text *find_float_font(float setting_num);
-
 private:
-  std::vector<Text> float_nums;
-  std::vector<Text> int_nums;
   std::vector<std::string> setting_names;
   std::vector<SettingTextInt> int_settings_vec;
   std::vector<SettingTextFloat> float_settings_vec;

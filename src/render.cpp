@@ -2,6 +2,7 @@
 #include "../include/globals.hpp"
 #include "../include/macdefs.hpp"
 #include "../include/particles.hpp"
+#include "../include/utils.hpp"
 #include <SDL2/SDL_render.h>
 
 SDL2Renderer::SDL2Renderer() {
@@ -30,18 +31,6 @@ const std::vector<Coordinates> *SDL2Renderer::get_start_coords_buf() {
 const std::vector<Coordinates> *SDL2Renderer::get_end_coords_buf() {
   return &bar_end_coords;
 }
-
-void SDL2Renderer::allocate_particle_buffer() {
-  particle_buffer = (ParticleTrio *)malloc(sizeof(ParticleTrio) * 256);
-  for (size_t i = 0; i < 256; i++) {
-    for (size_t j = 0; j < PARTICLE_COUNT; j++) {
-      particle_buffer[i].buf[j] = NULL;
-    }
-  }
-
-  particle_buffer_size = 256;
-}
-
 
 const int *SDL2Renderer::get_setting_render_mode() {
   return &setting_render_mode;
@@ -79,9 +68,9 @@ void SDL2Renderer::render_draw_int_settings(
     setting_val_rect->w = 16;
     setting_val_rect->h = 16;
 
-    SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
-    SDL_RenderCopy(r, texture, NULL, setting_rect);
-    SDL_RenderFillRect(r, setting_val_rect);
+    scc(SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a));
+    scc(SDL_RenderCopy(r, texture, NULL, setting_rect));
+    scc(SDL_RenderFillRect(r, setting_val_rect));
 
     if (i == *cursor) {
       SDL_Rect rect_cpy = *setting_val_rect;
@@ -91,8 +80,8 @@ void SDL2Renderer::render_draw_int_settings(
       rect_cpy.x = static_cast<int>(normalized * win_width) - (26 / 2);
       rect_cpy.y = (pixel_accumulate + (setting_rect->h + 20)) - (26 / 2);
 
-      SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a);
-      SDL_RenderFillRect(r, &rect_cpy);
+      scc(SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a));
+      scc(SDL_RenderFillRect(r, &rect_cpy));
     }
 
     pixel_accumulate += pixel_increment;
@@ -127,9 +116,9 @@ void SDL2Renderer::render_draw_float_settings(
     setting_val_rect->w = 16;
     setting_val_rect->h = 16;
 
-    SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
-    SDL_RenderCopy(r, texture, NULL, setting_rect);
-    SDL_RenderFillRect(r, setting_val_rect);
+    scc(SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a));
+    scc(SDL_RenderCopy(r, texture, NULL, setting_rect));
+    scc(SDL_RenderFillRect(r, setting_val_rect));
 
     if (i == *cursor) {
       SDL_Rect rect_cpy = *setting_val_rect;
@@ -139,18 +128,15 @@ void SDL2Renderer::render_draw_float_settings(
       rect_cpy.x = static_cast<int>(*setting_value * win_width) - (26 / 2);
       rect_cpy.y = (pixel_accumulate + (setting_rect->h + 20)) - (26 / 2);
 
-      SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a);
-      SDL_RenderFillRect(r, &rect_cpy);
+      scc(SDL_SetRenderDrawColor(r, sec->r, sec->g, sec->b, sec->a));
+      scc(SDL_RenderFillRect(r, &rect_cpy));
     }
 
     pixel_accumulate += pixel_increment;
   }
 }
 
-
-void SDL2Renderer::set_renderer(SDL_Renderer *ptr){
-  r = ptr;
-} 
+void SDL2Renderer::set_renderer(SDL_Renderer *ptr) { r = ptr; }
 
 void SDL2Renderer::set_font_draw_limit(int h) {
   font_draw_limit = std::min(24, std::max(1, (h - 100) / 32));
@@ -161,6 +147,6 @@ const size_t *SDL2Renderer::get_font_draw_limit() { return &font_draw_limit; }
 void SDL2Renderer::render_clear() { SDL_RenderClear(r); }
 void SDL2Renderer::render_present() { SDL_RenderPresent(r); }
 void SDL2Renderer::render_bg(const SDL_Color *rgba) {
-  SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a);
+  scc(SDL_SetRenderDrawColor(r, rgba->r, rgba->g, rgba->b, rgba->a));
 }
 SDL_Renderer *SDL2Renderer::get_renderer() { return r; }

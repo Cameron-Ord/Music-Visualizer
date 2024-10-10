@@ -18,7 +18,6 @@ void unlock_mutex(SDL_mutex *m, bool *is_locked) {
 int FFT_THREAD(void *data) {
   ThreadData *ptr = static_cast<ThreadData *>(data);
   FourierTransform *fptr = static_cast<FourierTransform *>(ptr->arg1);
-  int *stream_flag_ptr = static_cast<int *>(ptr->arg2);
 
   while (true) {
     SDL_LockMutex(ptr->m);
@@ -27,10 +26,7 @@ int FFT_THREAD(void *data) {
       SDL_CondWait(ptr->c, ptr->m);
     }
 
-    if (*stream_flag_ptr) {
-      fptr->generate_visual();
-    }
-
+    fptr->generate_visual();
     ptr->is_ready = 0;
 
     if (!ptr->is_running) {

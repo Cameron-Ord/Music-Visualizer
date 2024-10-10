@@ -21,26 +21,6 @@ bool SDL2Fonts::open_font() {
   return true;
 }
 
-Text *SDL2Fonts::find_integer_font(int setting_num) {
-  for (size_t i = 0; i < int_nums.size(); i++) {
-    const int from_str = std::stoi(int_nums[i].name);
-    if (from_str == setting_num) {
-      return &int_nums[i];
-    }
-  }
-  return NULL;
-}
-
-Text *SDL2Fonts::find_float_font(float setting_num) {
-  for (size_t i = 0; i < float_nums.size(); i++) {
-    const float from_str = std::stof(float_nums[i].name);
-    if (from_str == setting_num) {
-      return &float_nums[i];
-    }
-  }
-  return NULL;
-}
-
 std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
                                           const size_t *index,
                                           std::string direction) {
@@ -70,11 +50,21 @@ std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
 
 TTF_Font *SDL2Fonts::get_font_ptr() { return font; }
 
-std::vector<Text> *SDL2Fonts::retrieve_indexed_dir_textvector(size_t index) {
+std::vector<Text> *SDL2Fonts::get_indexed_dir_vec(size_t index) {
+  const size_t vecsize = dir_text_vec.size();
+  if (index > vecsize - 1) {
+    return NULL;
+  }
+
   return &dir_text_vec[index];
 }
 
-std::vector<Text> *SDL2Fonts::retrieve_indexed_song_textvector(size_t index) {
+std::vector<Text> *SDL2Fonts::get_indexed_song_vec(size_t index) {
+  const size_t vecsize = dir_text_vec.size();
+  if (index > vecsize - 1) {
+    return NULL;
+  }
+
   return &song_text_vec[index];
 }
 
@@ -83,7 +73,7 @@ size_t SDL2Fonts::get_song_vec_size() { return song_text_vec.size(); }
 size_t SDL2Fonts::get_dir_vec_size() { return dir_text_vec.size(); }
 
 void SDL2Fonts::set_char_limit(int w) {
-  character_limit = std::min(175, std::max(8, (w - 200) / 14));
+  character_limit = std::min(175, std::max(8, (w - 200) / 12));
 }
 
 std::vector<std::vector<Text>> *SDL2Fonts::get_full_dir_textvector() {
@@ -118,46 +108,6 @@ void SDL2Fonts::destroy_allocated_fonts() {
   }
 
   float_settings_vec.clear();
-
-  for (auto it = float_nums.begin(); it != float_nums.end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-  float_nums.clear();
-
-  for (auto it = int_nums.begin(); it != int_nums.end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-  int_nums.clear();
-}
-
-void SDL2Fonts::create_float_number_text(const SDL_Color color) {
-  for (auto it = float_nums.begin(); it != float_nums.end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-  float_nums.clear();
-
-  int id = 0;
-  for (float i = 0.0f; i < 1.0f; i += 0.01) {
-    Text tmp = create_text(std::to_string(i), id, color);
-    if (tmp.is_valid) {
-      float_nums.push_back(tmp);
-    }
-    id++;
-  }
-}
-
-void SDL2Fonts::create_integer_number_text(const SDL_Color color) {
-  for (auto it = int_nums.begin(); it != int_nums.end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-  int_nums.clear();
-
-  for (int i = 0; i < 20; i++) {
-    Text tmp = create_text(std::to_string(i), i, color);
-    if (tmp.is_valid) {
-      int_nums.push_back(tmp);
-    }
-  }
 }
 
 void SDL2Fonts::create_settings_text(const SDL_Color color,
@@ -183,6 +133,8 @@ void SDL2Fonts::create_settings_text(const SDL_Color color,
       &fft_settings->filter_coeffs[0], &fft_settings->filter_coeffs[1],
       &fft_settings->filter_coeffs[2]};
 
+  int_settings_vec.resize(int_setting_names.size());
+
   for (size_t i = 0; i < int_setting_names.size(); i++) {
     size_t id = i;
     Text tmp = create_text(int_setting_names[i], id, color);
@@ -191,9 +143,11 @@ void SDL2Fonts::create_settings_text(const SDL_Color color,
       tmp_int.setting_text = tmp;
       tmp_int.setting_value_ptr = int_setting_ptrs[i];
       tmp_int.setting_value_rect = {0, 0, 0, 0};
-      int_settings_vec.push_back(tmp_int);
+      int_settings_vec[i] = tmp_int;
     }
   }
+
+  float_settings_vec.resize(float_setting_names.size());
 
   for (size_t i = 0; i < float_setting_names.size(); i++) {
     size_t id = i;
@@ -203,7 +157,7 @@ void SDL2Fonts::create_settings_text(const SDL_Color color,
       tmp_float.setting_text = tmp;
       tmp_float.setting_value_ptr = float_setting_ptrs[i];
       tmp_float.setting_value_rect = {0, 0, 0, 0};
-      float_settings_vec.push_back(tmp_float);
+      float_settings_vec[i] = tmp_float;
     }
   }
 }
