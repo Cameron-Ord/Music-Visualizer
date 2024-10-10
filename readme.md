@@ -55,7 +55,6 @@ My program depends on these libs:
 1. libsndfile
 2. SDL2-devel
 3. SDL2_ttf-devel
-4. SDL2_image-devel
 
 # OTHER REQUIREMENTS
 1. CMake
