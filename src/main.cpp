@@ -18,6 +18,7 @@ SDL2KeyInputs key;
 SDL2Fonts fonts;
 Logging logs;
 
+// TODO : use fread and read the contents into a buffer and process it that way instead.
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
   int r, g, b, a;
 
