@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
 
   win.set_window(w);
   rend.set_renderer(r);
-  win.set_border_bool(false);
+  win.set_border_bool(true);
 
   const char *platform = SDL_GetPlatform();
   std::cout << "Platform -> " << platform << std::endl;
