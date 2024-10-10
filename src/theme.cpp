@@ -1,4 +1,5 @@
 #include "../include/theme.hpp"
+#include <cmath>
 #include <cstdint>
 
 ProgramThemes::ProgramThemes() {
