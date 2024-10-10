@@ -67,7 +67,7 @@ Building is relatively painless. Just make sure you have the afforementioned lib
 ## Build steps for linux
 - ```mkdir build```
 - ```cd build && cmake ..```
-- ```cmake --build .```
+- ```cmake --build .``` or just ```make```
 
 ## Build steps for windows
 You can simply run the **win64_make.sh** script inside the working directory of the project but I will give a rundown of what it does here.
