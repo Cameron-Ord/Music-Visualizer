@@ -42,9 +42,12 @@ int main(int argc, char **argv) {
   win.w = NULL;
   rend.r = NULL;
 
+  printf("Creating window..\n");
   win.w = (SDL_Window *)scp(SDL_CreateWindow(
       "Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_W,
       WIN_H, SDL_WINDOW_RESIZABLE));
+
+  printf("Creating renderer..\n");
   rend.r = (SDL_Renderer *)scp(SDL_CreateRenderer(
       win.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
@@ -57,6 +60,8 @@ int main(int argc, char **argv) {
   font.char_limit = 0;
   font.size = 16;
 
+
+  printf("Opening font..\n");
   font.font = (TTF_Font *)scp(TTF_OpenFont(FONT_PATH, font.size));
 
   rend.title_limit = get_title_limit(win.height);
@@ -67,6 +72,7 @@ int main(int argc, char **argv) {
   size_t dir_count = 0;
   size_t file_count = 0;
 
+  printf("Finding directories..\n");
 #ifdef _WIN32
   char **dir_buf = win_find_directories(&dir_count);
 #else
@@ -94,7 +100,7 @@ int main(int argc, char **argv) {
   const int ticks_per_frame = (1000.0 / 60);
   uint64_t frame_start;
   int frame_time;
-
+  printf("Entering main loop..\n");
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 
@@ -131,9 +137,9 @@ int main(int argc, char **argv) {
 
           case SDLK_DOWN: {
             nav_down(&key.dir_cursor, &key.dir_list_index, dir_text_buf[key.dir_list_index].size);
+          }break;
           }
-          }
-        }
+        }break;
         }
       } break;
 
@@ -151,6 +157,11 @@ int main(int argc, char **argv) {
 
     render_present();
   }
+
+
+
+  SDL_DestroyRenderer(rend.r);
+  SDL_DestroyWindow(win.w);
 
   TTF_Quit();
   SDL_Quit();

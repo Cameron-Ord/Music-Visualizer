@@ -6,21 +6,20 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
                                     size_t *list_size,
                                     const size_t *buffer_size) {
 
-  TextBuffer *list_buf = malloc(sizeof(TextBuffer ) * *list_size);
+  TextBuffer *list_buf = malloc(sizeof(TextBuffer ) * (*list_size));
   if (!list_buf) {
     fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
     return NULL;
   }
 
-  memset(list_buf, 0, sizeof(TextBuffer **) * *list_size);
-
   Text **tmp_buf = malloc(sizeof(Text *) * (*buffer_size));
+  if(!tmp_buf){
+    fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
+    return NULL;
+  }
 
   size_t sub_increment = 0;
   size_t sub_buffer_level = 0;
-
-  size_t remaining = 0;
-  size_t unfilled_flag = 0;
 
   for (size_t i = 0; i < dir_count; i++) {
     if (sub_increment > *buffer_size - 1) {
