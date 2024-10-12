@@ -3,7 +3,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#else
+#endif
+#ifdef __LINUX__
 #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
@@ -62,7 +63,7 @@ char **win_find_directories(size_t *count) {
         strcpy_s(dir_buffer[*count], sizeof(char) * (file_name_length + 1),
                  find_file_data.cFileName);
 
-        *count += 1;
+        (*count)++;
       }
     }
   }
@@ -72,7 +73,7 @@ char **win_find_directories(size_t *count) {
   return dir_buffer;
 }
 #endif
-
+#ifdef __LINUX__
 char **unix_find_directories(size_t *count) {
   char *home = getenv("HOME");
   char *music_dir = "Music/MVSource";
@@ -118,3 +119,4 @@ char **unix_find_directories(size_t *count) {
   closedir(dir);
   return dir_buffer;
 }
+#endif

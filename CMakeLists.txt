@@ -55,7 +55,7 @@ message("")
 file(GLOB SOURCES "src/*.c")
 
 if(WIN32)
-  add_executable(Vis WIN32 ${SOURCES})
+  add_executable(Vis ${SOURCES})
 else()
   add_executable(Vis ${SOURCES})
 endif()

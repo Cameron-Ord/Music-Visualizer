@@ -9,8 +9,7 @@ size_t nav_down(size_t *cursor, size_t *locn, size_t max_length) {
     signed_cursor = 0;
   }
 
-  *locn += 1;
-  fprintf(stdout, "%d - %zu\n", signed_cursor, max_length);
+  *cursor = signed_cursor;
   return (size_t)signed_cursor;
 }
 
@@ -22,6 +21,8 @@ size_t nav_up(size_t *cursor, size_t *locn, size_t max_length) {
   if (signed_cursor < 0) {
     signed_cursor = signed_length - 1;
   }
-  *locn -= 1;
+
+  *cursor = signed_cursor;
+  
   return (size_t)signed_cursor;
 }

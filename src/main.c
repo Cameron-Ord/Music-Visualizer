@@ -81,10 +81,11 @@ int main(int argc, char **argv) {
   size_t dtext_buf_size = 1;
   size_t dsub_buf_size = rend.title_limit;
 
-  TextBuffer **dir_text_buf = create_directory_fonts(
+  TextBuffer *dir_text_buf = create_directory_fonts(
       dir_buf, dir_count, &dtext_buf_size, &dsub_buf_size);
   if (!dir_text_buf) {
     fprintf(stderr, "Could not allocate text buffer!\n");
+    return 1;
   }
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
@@ -104,8 +105,8 @@ int main(int argc, char **argv) {
       break;
 
     case DIRECTORIES: {
-      // render_draw_text(dir_text_buf[key.dir_list_index], &key.dir_cursor,
-      // &dsub_buf_size);
+      render_draw_text(&dir_text_buf[key.dir_list_index], &key.dir_cursor,
+       &dsub_buf_size);
     } break;
     }
 
@@ -125,11 +126,11 @@ int main(int argc, char **argv) {
           default:
             break;
           case SDLK_UP: {
-            nav_up(&key.dir_cursor, &key.dir_list_index, dsub_buf_size);
+            nav_up(&key.dir_cursor, &key.dir_list_index, dir_text_buf[key.dir_list_index].size);
           } break;
 
           case SDLK_DOWN: {
-            nav_down(&key.dir_cursor, &key.dir_list_index, dsub_buf_size);
+            nav_down(&key.dir_cursor, &key.dir_list_index, dir_text_buf[key.dir_list_index].size);
           }
           }
         }

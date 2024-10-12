@@ -66,10 +66,9 @@ int scc(int code);
 int get_title_limit(int height);
 int get_char_limit(int width);
 
-TextBuffer** create_directory_fonts(char **dir_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
-
+TextBuffer* create_directory_fonts(char **dir_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
 void render_bg(void);
-void render_draw_text(Text **text_buf, const size_t *cursor,  const size_t *size);
+void render_draw_text(TextBuffer *list_buf, const size_t *cursor,  const size_t *size);
 void render_clear(void);
 void render_present(void);
 
