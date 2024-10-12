@@ -1,3 +1,0 @@
-/home/cameron/Projects/Music-Visualizer/build/CMakeFiles/Vis.dir
-/home/cameron/Projects/Music-Visualizer/build/CMakeFiles/edit_cache.dir
-/home/cameron/Projects/Music-Visualizer/build/CMakeFiles/rebuild_cache.dir
