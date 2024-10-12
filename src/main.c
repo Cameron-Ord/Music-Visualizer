@@ -1,6 +1,10 @@
 #include "main.h"
 #include "filesystem.h"
 #include <math.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,7 +70,7 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
   char **dir_buf = win_find_directories(&dir_count);
 #else
-  dir_buf = unix_find_directories();
+  char **dir_buf = unix_find_directories(&dir_count);
 #endif
 
   files.dir_titles = dir_buf;
@@ -152,11 +156,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-int get_char_limit(int width) { return fmin(175, fmax(8, (width - 200) / 12)); }
+int get_char_limit(int width) { return MIN(175, MAX(8, (width - 200) / 12)); }
 
-int get_title_limit(int height) {
-  return fmin(24, fmax(1, (height - 100) / 32));
-}
+int get_title_limit(int height) { return MIN(24, MAX(1, (height - 100) / 32)); }
 
 void *scp(void *ptr) {
   if (!ptr) {

@@ -1,3 +1,1 @@
-C:\msys64\mingw64\bin\cmake.exe -E rm -f CMakeFiles\Vis.dir/objects.a
-C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\Vis.dir/objects.a @CMakeFiles\Vis.dir\objects1.rsp
-C:\msys64\mingw64\bin\gcc.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\Vis.dir/objects.a -Wl,--no-whole-archive -o C:\Users\camer\Documents\doover2\bin\Vis.exe -Wl,--out-implib,libVis.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Vis.dir\linkLibs.rsp
+/usr/lib64/ccache/cc -O3 -DNDEBUG CMakeFiles/Vis.dir/src/events.c.o CMakeFiles/Vis.dir/src/filesystem.c.o CMakeFiles/Vis.dir/src/fonts_create.c.o CMakeFiles/Vis.dir/src/main.c.o CMakeFiles/Vis.dir/src/render_draw_text.c.o CMakeFiles/Vis.dir/src/renderer_window.c.o CMakeFiles/Vis.dir/src/utils.c.o -o /home/cameron/Projects/Music-Visualizer/bin/Vis  /usr/lib64/libSDL2.so /usr/lib64/libSDL2_ttf.so /usr/lib64/libSDL2_image.so /usr/lib64/libsndfile.so 
