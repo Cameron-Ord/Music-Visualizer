@@ -43,7 +43,9 @@ public:
   void set_settings_cursor(size_t i);
   const size_t *get_settings_cursor();
   void set_mouse_grab(int status);
-  size_t* get_updated_text_location(const std::string *name, const std::vector<std::vector<Text>> *text_vector);
+  size_t *
+  get_updated_text_location(const std::string *name,
+                            const std::vector<std::vector<Text>> *text_vector);
 
 private:
   int no_mouse_grab;

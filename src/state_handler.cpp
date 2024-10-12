@@ -1,8 +1,6 @@
 #include "../include/globals.hpp"
 #include "../include/switch.hpp"
 #include "../include/theme.hpp"
-
-#include <assert.h>
 #include <cstdint>
 
 // Not gonna max limit cause thats LAME
@@ -273,40 +271,18 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
 void select_directory(ProgramThemes *themes, ProgramFiles *files,
                       ProgramPath *pathing) {
 
-  const size_t font_dir_vec_size = fonts.get_dir_vec_size();
   const size_t *virt_dir_vec_index = key.get_vdir_index();
   const size_t *virt_dir_cursor = key.get_vdir_cursor_index();
   const size_t directories_size = files->retrieve_directories()->size();
 
-  if (font_dir_vec_size > 0 && directories_size > 0) {
-    if (*virt_dir_vec_index > font_dir_vec_size) {
-      return;
-    }
+  std::string dirname;
+  dirname = key.select_element(NULL, virt_dir_cursor);
+  pathing->set_opened_dir(dirname);
 
-    std::string dirname;
-    std::vector<Text> *font_dir_vec =
-        fonts.get_indexed_dir_vec(*virt_dir_vec_index);
-    dirname = key.select_element(font_dir_vec, virt_dir_cursor);
-    pathing->set_opened_dir(dirname);
+  bool result = false;
+  std::string concat_path = pathing->join_str(pathing->get_src_path(), dirname);
 
-    bool result = false;
-    std::string concat_path =
-        pathing->join_str(pathing->get_src_path(), dirname);
-
-    result = files->fill_files(concat_path, pathing->return_slash());
-    if (result) {
-      const std::vector<Files> *f = files->retrieve_directory_files();
-      if (f->size() > 0) {
-        const SDL_Color *col = themes->get_text();
-
-        key.set_vsong_cursor_index(0);
-        key.set_vsong_index(0);
-
-        fonts.create_file_text(*f, *col);
-        sdl2.set_current_user_state(AT_SONGS);
-      }
-    }
-  }
+  // result = files->fill_files(concat_path, pathing->return_slash());
 }
 
 void select_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
@@ -315,36 +291,27 @@ void select_song(ProgramFiles *files, ProgramPath *pathing, AudioData *ad) {
   sdl2_ad.pause_audio();
   sdl2_ad.close_audio_device();
 
-  const size_t font_song_vec_size = fonts.get_song_vec_size();
   const size_t *virt_song_vec_index = key.get_vsong_index();
   const size_t *virt_song_cursor = key.get_vsong_cursor_index();
   const size_t files_size = files->retrieve_directory_files()->size();
 
-  if (font_song_vec_size > 0 && files_size > 0) {
-    if (*virt_song_vec_index > font_song_vec_size) {
-      return;
-    }
+  std::string filename;
+  filename = key.select_element(NULL, virt_song_cursor);
+  bool result = false;
+  std::string concat_path =
+      pathing->join_str(pathing->get_src_path(), pathing->get_opened_dir());
+  result = ad->read_audio_file(pathing->join_str(concat_path, filename));
 
-    std::string filename;
-    std::vector<Text> *font_song_vec =
-        fonts.get_indexed_song_vec(*virt_song_vec_index);
-    filename = key.select_element(font_song_vec, virt_song_cursor);
-    bool result = false;
-    std::string concat_path =
-        pathing->join_str(pathing->get_src_path(), pathing->get_opened_dir());
-    result = ad->read_audio_file(pathing->join_str(concat_path, filename));
+  if (result) {
 
-    if (result) {
+    key.set_song_index(*virt_song_vec_index);
+    key.set_song_cursor_index(*virt_song_cursor);
 
-      key.set_song_index(*virt_song_vec_index);
-      key.set_song_cursor_index(*virt_song_cursor);
-
-      sdl2_ad.set_audio_spec(ad->get_audio_data());
-      sdl2_ad.open_audio_device();
-      sdl2_ad.resume_audio();
-      sdl2_ad.set_flag(PLAYING, sdl2_ad.get_stream_flag());
-      sdl2.set_current_user_state(LISTENING);
-    }
+    sdl2_ad.set_audio_spec(ad->get_audio_data());
+    sdl2_ad.open_audio_device();
+    sdl2_ad.resume_audio();
+    sdl2_ad.set_flag(PLAYING, sdl2_ad.get_stream_flag());
+    sdl2.set_current_user_state(LISTENING);
   }
 }
 
@@ -395,67 +362,21 @@ void directory_keydown_options(SDL_Keycode sym, ProgramPath *pathing,
     const size_t *virtual_dir_cursor = key.get_vdir_cursor_index();
     const size_t *virtual_dvec_index = key.get_vdir_index();
 
-    size_t ttl_vec_size = fonts.get_dir_vec_size();
-    if (ttl_vec_size > 0) {
-      current_vec_size = fonts.get_indexed_dir_vec(*virtual_dvec_index)->size();
-      result =
-          key.check_cursor_move(current_vec_size, virtual_dir_cursor, "DOWN");
-      if (result == "SAFE") {
-        key.set_vdir_cursor_index(*virtual_dir_cursor + 1);
-      } else if (result == "MAX") {
-        result =
-            fonts.check_vector_index(ttl_vec_size, virtual_dvec_index, "DOWN");
-        if (result == "SAFE") {
-          key.set_vdir_cursor_index(0);
-          key.set_vdir_index(*virtual_dvec_index + 1);
-        }
-      }
-    }
-    break;
-  }
+  } break;
 
   case UP: {
     std::string result;
     size_t current_vec_size;
     const size_t *virtual_dir_cursor = key.get_vdir_cursor_index();
     const size_t *virtual_dvec_index = key.get_vdir_index();
-
-    size_t ttl_vec_size = fonts.get_dir_vec_size();
-    if (ttl_vec_size > 0) {
-      current_vec_size = fonts.get_indexed_dir_vec(*virtual_dvec_index)->size();
-      result =
-          key.check_cursor_move(current_vec_size, virtual_dir_cursor, "UP");
-
-      if (result == "SAFE") {
-        key.set_vdir_cursor_index(*virtual_dir_cursor - 1);
-      } else if (result == "MIN") {
-        result =
-            fonts.check_vector_index(ttl_vec_size, virtual_dvec_index, "UP");
-        if (result == "SAFE") {
-          current_vec_size =
-              fonts.get_indexed_dir_vec(*key.get_vdir_index() - 1)->size();
-          if (*virtual_dir_cursor > current_vec_size - 1) {
-            key.set_vdir_cursor_index(current_vec_size - 1);
-          }
-
-          key.set_vdir_index(*virtual_dvec_index - 1);
-          key.set_vdir_cursor_index(current_vec_size - 1);
-        }
-      }
-    }
-    break;
-  }
+  } break;
 
   case LEFT: {
     sdl2.set_current_user_state(AT_SETTINGS);
-    break;
-  }
+  } break;
 
   case RIGHT: {
-    if (fonts.get_song_vec_size() > 0 &&
-        files->retrieve_directory_files()->size() > 0) {
-      sdl2.set_current_user_state(AT_SONGS);
-    }
+    // sdl2.set_current_user_state(AT_SONGS);
     break;
   }
 
@@ -513,25 +434,7 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
     const size_t *virtual_song_cursor = key.get_vsong_cursor_index();
     const size_t *virtual_svec_index = key.get_vsong_index();
 
-    size_t ttl_vec_size = fonts.get_song_vec_size();
-    if (ttl_vec_size > 0) {
-      current_vec_size =
-          fonts.get_indexed_song_vec(*virtual_svec_index)->size();
-      result =
-          key.check_cursor_move(current_vec_size, virtual_song_cursor, "DOWN");
-      if (result == "SAFE") {
-        key.set_vsong_cursor_index(*virtual_song_cursor + 1);
-      } else if (result == "MAX") {
-        result =
-            fonts.check_vector_index(ttl_vec_size, virtual_svec_index, "DOWN");
-        if (result == "SAFE") {
-          key.set_vsong_cursor_index(0);
-          key.set_vsong_index(*virtual_svec_index + 1);
-        }
-      }
-    }
-    break;
-  }
+  } break;
 
   case UP: {
     std::string result;
@@ -539,31 +442,7 @@ void song_keydown_options(SDL_Keycode sym, ProgramFiles *files, AudioData *ad,
     const size_t *virtual_song_cursor = key.get_vsong_cursor_index();
     const size_t *virtual_svec_index = key.get_vsong_index();
 
-    size_t ttl_vec_size = fonts.get_song_vec_size();
-    if (ttl_vec_size > 0) {
-      current_vec_size =
-          fonts.get_indexed_song_vec(*virtual_svec_index)->size();
-      result =
-          key.check_cursor_move(current_vec_size, virtual_song_cursor, "UP");
-      if (result == "SAFE") {
-        key.set_vsong_cursor_index(*virtual_song_cursor - 1);
-      } else if (result == "MIN") {
-        result =
-            fonts.check_vector_index(ttl_vec_size, virtual_svec_index, "UP");
-        if (result == "SAFE") {
-          current_vec_size =
-              fonts.get_indexed_song_vec(*key.get_vsong_index() - 1)->size();
-          if (*virtual_song_cursor > current_vec_size - 1) {
-            key.set_vsong_cursor_index(current_vec_size - 1);
-          }
-
-          key.set_vsong_index(*virtual_svec_index - 1);
-          key.set_vsong_cursor_index(current_vec_size - 1);
-        }
-      }
-    }
-    break;
-  }
+  } break;
 
   case LEFT: {
     sdl2.set_current_user_state(AT_DIRECTORIES);
@@ -647,8 +526,6 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     break;
   }
   case SDL_WINDOWEVENT_RESIZED: {
-    const size_t song_indexes_before = fonts.get_song_vec_size();
-    const size_t dir_indexes_before = fonts.get_dir_vec_size();
     const size_t *song_cursor_before = key.get_vsong_cursor_index();
     const size_t *dir_cursor_before = key.get_vdir_cursor_index();
 
@@ -660,86 +537,14 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     std::string dir_name;
     std::string song_name;
 
-    if (dir_indexes_before > 0) {
-      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
-      dir_name = (*text_vector)[*dir_cursor_before].name;
-    }
-
-    if (song_indexes_before > 0) {
-      text_vector = fonts.get_indexed_song_vec(*songs_index);
-      song_name = (*text_vector)[*song_cursor_before].name;
-    }
-
     WIN_SIZE ws = sdl2.get_current_window_size(win.get_window());
     sdl2.set_window_size(ws);
     rend.set_font_draw_limit(ws.HEIGHT);
     fonts.set_char_limit(ws.WIDTH);
 
-    if (files->retrieve_directory_files()->size() > 0) {
-      fonts.create_file_text(*files->retrieve_directory_files(),
-                             *themes->get_text());
-    }
-
-    if (files->retrieve_directories()->size() > 0) {
-      fonts.create_dir_text(*files->retrieve_directories(),
-                            *themes->get_text());
-    }
-
-    const size_t song_font_indexes_count = fonts.get_song_vec_size();
-    const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
-
-    text_vector = NULL;
-    size_t text_size = 0;
-
-    if (dir_font_indexes_count > 0 && dir_name.empty()) {
-      if (dir_indexes_before > dir_font_indexes_count) {
-        key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
-      }
-      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
-      text_size = text_vector->size();
-      if (*dir_cursor_before > text_size - 1) {
-        key.set_vdir_cursor_index(text_size - 1);
-      }
-    }
-
-    if (song_font_indexes_count > 0 && song_name.empty()) {
-      if (song_indexes_before > song_font_indexes_count) {
-        key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
-                            1);
-      }
-      text_vector = fonts.get_indexed_song_vec(*songs_index);
-      text_size = text_vector->size();
-      if (*song_cursor_before > text_size - 1) {
-        key.set_vsong_cursor_index(text_size - 1);
-      }
-    }
-
-    if (!dir_name.empty()) {
-      size_t *new_indexes = key.get_updated_text_location(
-          &dir_name, fonts.get_full_dir_textvector());
-      if (new_indexes) {
-        key.set_vdir_index(*(new_indexes + 0));
-        key.set_vdir_cursor_index(*(new_indexes + 1));
-        free(new_indexes);
-      }
-    }
-
-    if (!song_name.empty()) {
-      size_t *new_indexes = key.get_updated_text_location(
-          &song_name, fonts.get_full_song_textvector());
-      if (new_indexes) {
-        key.set_vsong_index(*(new_indexes + 0));
-        key.set_vsong_cursor_index(*(new_indexes + 1));
-        free(new_indexes);
-      }
-    }
-
-    break;
-  }
+  } break;
 
   case SDL_WINDOWEVENT_SIZE_CHANGED: {
-    const size_t song_indexes_before = fonts.get_song_vec_size();
-    const size_t dir_indexes_before = fonts.get_dir_vec_size();
     const size_t *song_cursor_before = key.get_vsong_cursor_index();
     const size_t *dir_cursor_before = key.get_vdir_cursor_index();
 
@@ -751,84 +556,7 @@ void handle_window_event(uint8_t event, ProgramFiles *files,
     std::string dir_name;
     std::string song_name;
 
-    if (dir_indexes_before > 0) {
-      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
-      dir_name = (*text_vector)[*dir_cursor_before].name;
-    }
-
-    if (song_indexes_before > 0) {
-      text_vector = fonts.get_indexed_song_vec(*songs_index);
-      song_name = (*text_vector)[*song_cursor_before].name;
-    }
-
-    WIN_SIZE ws = sdl2.get_current_window_size(win.get_window());
-    sdl2.set_window_size(ws);
-    rend.set_font_draw_limit(ws.HEIGHT);
-    fonts.set_char_limit(ws.WIDTH);
-
-    if (files->retrieve_directory_files()->size() > 0) {
-      fonts.create_file_text(*files->retrieve_directory_files(),
-                             *themes->get_text()
-
-      );
-    }
-
-    if (files->retrieve_directories()->size() > 0) {
-      fonts.create_dir_text(*files->retrieve_directories(),
-                            *themes->get_text());
-    }
-
-    const size_t song_font_indexes_count = fonts.get_song_vec_size();
-    const size_t dir_font_indexes_count = fonts.get_dir_vec_size();
-
-    text_vector = nullptr;
-    size_t text_size = 0;
-
-    if (dir_font_indexes_count > 0 && dir_name.empty()) {
-      if (dir_indexes_before > dir_font_indexes_count) {
-        key.set_vdir_index((dir_indexes_before - dir_font_indexes_count) - 1);
-      }
-      text_vector = fonts.get_indexed_dir_vec(*dirs_index);
-      text_size = text_vector->size();
-      if (*dir_cursor_before > text_size - 1) {
-        key.set_vdir_cursor_index(text_size - 1);
-      }
-    }
-
-    if (song_font_indexes_count > 0 && song_name.empty()) {
-      if (song_indexes_before > song_font_indexes_count) {
-        key.set_vsong_index((song_indexes_before - song_font_indexes_count) -
-                            1);
-      }
-      text_vector = fonts.get_indexed_song_vec(*songs_index);
-      text_size = text_vector->size();
-      if (*song_cursor_before > text_size - 1) {
-        key.set_vsong_cursor_index(text_size - 1);
-      }
-    }
-
-    if (!dir_name.empty()) {
-      size_t *new_indexes = key.get_updated_text_location(
-          &dir_name, fonts.get_full_dir_textvector());
-      if (new_indexes) {
-        key.set_vdir_index(*(new_indexes + 0));
-        key.set_vdir_cursor_index(*(new_indexes + 1));
-        free(new_indexes);
-      }
-    }
-
-    if (!song_name.empty()) {
-      size_t *new_indexes = key.get_updated_text_location(
-          &song_name, fonts.get_full_song_textvector());
-      if (new_indexes) {
-        key.set_vsong_index(*(new_indexes + 0));
-        key.set_vsong_cursor_index(*(new_indexes + 1));
-        free(new_indexes);
-      }
-    }
-
-    break;
-  }
+  } break;
   }
 }
 

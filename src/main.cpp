@@ -18,7 +18,8 @@ SDL2KeyInputs key;
 SDL2Fonts fonts;
 Logging logs;
 
-// TODO : use fread and read the contents into a buffer and process it that way instead.
+// TODO : use fread and read the contents into a buffer and process it that way
+// instead.
 void set_config_colours(ProgramThemes *themes, FILE *file_ptr) {
   int r, g, b, a;
 
@@ -200,7 +201,26 @@ int main(int argc, char **argv) {
     std::cout << "No directories" << std::endl;
   }
 
-  fonts.create_dir_text(*files.retrieve_directories(), *themes.get_text());
+  size_t SFTableSize = DEFAULT_TABLE_SIZE;
+  size_t DFTableSize = DEFAULT_TABLE_SIZE;
+
+  Node **SFTable = (Node **)malloc(sizeof(Node *) * DEFAULT_TABLE_SIZE);
+  Node **DFTable = (Node **)malloc(sizeof(Node *) * DEFAULT_TABLE_SIZE);
+
+  if (!check_ptrs(2, SFTable, DFTable)) {
+    std::cerr << "Could not allocate pointers! -> " << strerror(errno)
+              << std::endl;
+
+    return 1;
+  }
+
+  for (size_t i = 0; i < DEFAULT_TABLE_SIZE; i++) {
+    SFTable[i] = NULL;
+    DFTable[i] = NULL;
+  }
+
+  fonts.create_dir_text(files.retrieve_directories(), DFTable, &DFTableSize,
+                        themes.get_text());
 
   fonts.create_settings_text(*themes.get_text(), fft->get_settings());
 
@@ -401,31 +421,18 @@ int main(int argc, char **argv) {
 
     switch (sdl2.get_current_user_state()) {
     case AT_DIRECTORIES: {
-      std::vector<Text> *dir = fonts.get_indexed_dir_vec(*key.get_vdir_index());
-      const size_t *dir_vcursor = key.get_vdir_cursor_index();
-      if (check_ptrs(3, dir, win_size, dir_vcursor) &&
-          fonts.get_dir_vec_size() > 0) {
-        rend.render_set_text(win_size, dir);
-        rend.render_draw_text(dir);
-        rend.render_set_text_bg(win_size, dir, dir_vcursor);
-        rend.render_draw_text_bg(themes.get_textbg());
-      }
-      break;
-    }
+      rend.render_set_text(win_size, NULL);
+      rend.render_draw_text(NULL);
+      rend.render_set_text_bg(win_size, NULL, NULL);
+      rend.render_draw_text_bg(themes.get_textbg());
+    } break;
 
     case AT_SONGS: {
-      std::vector<Text> *song =
-          fonts.get_indexed_song_vec(*key.get_vsong_index());
-      const size_t *song_vcursor = key.get_vsong_cursor_index();
-      if (check_ptrs(3, song, win_size, song_vcursor) &&
-          fonts.get_song_vec_size() > 0) {
-        rend.render_set_text(win_size, song);
-        rend.render_draw_text(song);
-        rend.render_set_text_bg(win_size, song, song_vcursor);
-        rend.render_draw_text_bg(themes.get_textbg());
-      }
-      break;
-    }
+      rend.render_set_text(win_size, NULL);
+      rend.render_draw_text(NULL);
+      rend.render_set_text_bg(win_size, NULL, NULL);
+      rend.render_draw_text_bg(themes.get_textbg());
+    } break;
 
     case LISTENING: {
       rend.render_set_bars(&fft->get_data()->output_len, &win_size->HEIGHT,
@@ -441,8 +448,7 @@ int main(int argc, char **argv) {
           rend.get_particle_buffer(), rend.get_particle_buffer_size(),
           themes.get_hue(PRIMARY), fft->get_bufs()->processed_phases);
 
-      break;
-    }
+    } break;
 
     case AT_SETTINGS: {
       switch (*rend.get_setting_render_mode()) {
@@ -454,15 +460,13 @@ int main(int argc, char **argv) {
         rend.render_draw_float_settings(
             fonts.get_float_settings_vec(), win_size, themes.get_primary(),
             themes.get_primary(), key.get_settings_cursor());
-        break;
-      }
+      } break;
 
       case INTS: {
         rend.render_draw_int_settings(
             fonts.get_int_settings_vec(), win_size, themes.get_primary(),
             themes.get_primary(), key.get_settings_cursor());
-        break;
-      }
+      } break;
       }
     }
 
@@ -536,6 +540,14 @@ int main(int argc, char **argv) {
 
   if (fonts.get_font_ptr()) {
     TTF_CloseFont(fonts.get_font_ptr());
+  }
+
+  if (DFTable) {
+    free(DFTable);
+  }
+
+  if (SFTable) {
+    free(SFTable);
   }
 
   close_output_files();

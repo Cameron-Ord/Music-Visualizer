@@ -1,5 +1,6 @@
 #include "../include/globals.hpp"
 #include "../include/switch.hpp"
+#include "../include/utils.hpp"
 #include <cstddef>
 #include <string>
 
@@ -96,7 +97,11 @@ std::string SDL2KeyInputs::check_cursor_move(size_t vec_size,
 
 std::string SDL2KeyInputs::select_element(const std::vector<Text> *d,
                                           const size_t *cursor_index_ptr) {
-  return (*d)[*cursor_index_ptr].name;
+  if (check_ptrs(2, d, cursor_index_ptr)) {
+    return (*d)[*cursor_index_ptr].name;
+  }
+
+  return "EMPTY";
 }
 
 void SDL2KeyInputs::set_mouse_grab(int status) { no_mouse_grab = status; }

@@ -25,4 +25,7 @@ struct SettingTextFloat {
   const float *setting_value_ptr;
   SDL_Rect setting_value_rect;
 };
+
+typedef struct Text Text;
+
 #endif

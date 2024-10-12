@@ -1,5 +1,6 @@
 #include "../include/fonts.hpp"
 #include "../include/globals.hpp"
+#include "../include/utils.hpp"
 
 SDL2Fonts::SDL2Fonts() {
   font = NULL;
@@ -50,52 +51,11 @@ std::string SDL2Fonts::check_vector_index(size_t ttl_vec_size,
 
 TTF_Font *SDL2Fonts::get_font_ptr() { return font; }
 
-std::vector<Text> *SDL2Fonts::get_indexed_dir_vec(size_t index) {
-  const size_t vecsize = dir_text_vec.size();
-  if (index > vecsize - 1) {
-    return NULL;
-  }
-
-  return &dir_text_vec[index];
-}
-
-std::vector<Text> *SDL2Fonts::get_indexed_song_vec(size_t index) {
-  const size_t vecsize = song_text_vec.size();
-  if (index > vecsize - 1) {
-    return NULL;
-  }
-
-  return &song_text_vec[index];
-}
-
-size_t SDL2Fonts::get_song_vec_size() { return song_text_vec.size(); }
-
-size_t SDL2Fonts::get_dir_vec_size() { return dir_text_vec.size(); }
-
 void SDL2Fonts::set_char_limit(int w) {
   character_limit = std::min(175, std::max(8, (w - 200) / 12));
 }
 
-std::vector<std::vector<Text>> *SDL2Fonts::get_full_dir_textvector() {
-  return &dir_text_vec;
-}
-std::vector<std::vector<Text>> *SDL2Fonts::get_full_song_textvector() {
-  return &song_text_vec;
-}
-
 void SDL2Fonts::destroy_allocated_fonts() {
-  for (auto it = dir_text_vec.begin(); it != dir_text_vec.end(); it++) {
-    destroy_dir_text(it);
-  }
-
-  dir_text_vec.clear();
-
-  for (auto it = song_text_vec.begin(); it != song_text_vec.end(); it++) {
-    destroy_file_text(it);
-  }
-
-  song_text_vec.clear();
-
   for (auto it = int_settings_vec.begin(); it != int_settings_vec.end(); it++) {
     it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
   }
@@ -170,80 +130,64 @@ std::vector<SettingTextFloat> *SDL2Fonts::get_float_settings_vec() {
   return &float_settings_vec;
 }
 
-void SDL2Fonts::create_dir_text(const std::vector<Directory> d,
-                                const SDL_Color color) {
-  for (auto it = dir_text_vec.begin(); it != dir_text_vec.end(); it++) {
-    destroy_dir_text(it);
-  }
+bool SDL2Fonts::create_dir_text(const std::vector<Directory> *d,
+                                Node **df_table, size_t *DFTableSize,
+                                const SDL_Color *color) {
+  if (check_ptrs(3, d, df_table, color)) {
+    const size_t size = d->size();
+    // Reallocate the hash table size to the actual amount of directories
+    // instead of the default. This prevents overflows and more often saves
+    // memory.
+    df_table = (Node **)realloc(df_table, sizeof(Node *) * size);
+    if (!df_table) {
+      *DFTableSize = 0;
+      std::cerr << "Reallocation failed! -> " << strerror(errno) << std::endl;
+      return false;
+    }
 
-  dir_text_vec.clear();
-
-  std::vector<Text> tmp_vector;
-  for (size_t i = 0; i < d.size(); i++) {
-    int id = i % *rend.get_font_draw_limit();
-    Text tmp = create_text(d[i].directory_name, id, color);
-    if (tmp.is_valid) {
-      if (tmp_vector.size() < *rend.get_font_draw_limit()) {
-        tmp_vector.push_back(tmp);
-      } else {
-        dir_text_vec.push_back(tmp_vector);
-        tmp_vector.clear();
-        tmp_vector.push_back(tmp);
+    for (size_t i = 0; i < size; i++) {
+      Text text_sample = create_text((*d)[i].directory_name, i, *color);
+      if (!insert_node(df_table, i, &text_sample, size)) {
+        *DFTableSize = 0;
+        std::cerr << "Failed to create node! -> " << strerror(errno)
+                  << std::endl;
+        return false;
       }
     }
+    *DFTableSize = size;
   }
 
-  if (tmp_vector.size() != 0) {
-    dir_text_vec.push_back(tmp_vector);
-  }
+  return true;
 }
 
-void SDL2Fonts::create_file_text(const std::vector<Files> f,
-                                 const SDL_Color color) {
-  for (auto it = song_text_vec.begin(); it != song_text_vec.end(); it++) {
-    destroy_file_text(it);
-  }
+bool SDL2Fonts::create_file_text(const std::vector<Files> *f, Node **sf_table,
+                                 size_t *SFTableSize, const SDL_Color *color) {
+  if (check_ptrs(3, f, sf_table, color)) {
+    const size_t size = f->size();
+    // Reallocate the hash table size to the actual amount of directories
+    // instead of the default. This prevents overflows and more often saves
+    // memory.
+    sf_table = (Node **)realloc(sf_table, sizeof(Node *) * size);
+    if (!sf_table) {
+      *SFTableSize = 0;
+      std::cerr << "Reallocation failed! -> " << strerror(errno) << std::endl;
+      return false;
+    }
 
-  song_text_vec.clear();
-
-  std::vector<Text> tmp_vector;
-  for (size_t i = 0; i < f.size(); i++) {
-    int id = i % *rend.get_font_draw_limit();
-    Text tmp = create_text(f[i].file_name, id, color);
-    if (tmp.is_valid) {
-      if (tmp_vector.size() < *rend.get_font_draw_limit()) {
-        tmp_vector.push_back(tmp);
-      } else {
-        song_text_vec.push_back(tmp_vector);
-        tmp_vector.clear();
-        tmp_vector.push_back(tmp);
+    for (size_t i = 0; i < size; i++) {
+      Text text_sample = create_text((*f)[i].file_name, i, *color);
+      if (!insert_node(sf_table, i, &text_sample, size)) {
+        *SFTableSize = 0;
+        std::cerr << "Failed to create node! -> " << strerror(errno)
+                  << std::endl;
+        return false;
       }
     }
+
+    *SFTableSize = size;
   }
 
-  if (tmp_vector.size() != 0) {
-    song_text_vec.push_back(tmp_vector);
-  }
-}
-
-void SDL2Fonts::destroy_file_text(
-    std::vector<std::vector<Text>>::iterator &file_vec) {
-  std::vector<Text> *f = &(*file_vec);
-  for (auto it = f->begin(); it != f->end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-
-  f->clear();
-}
-
-void SDL2Fonts::destroy_dir_text(
-    std::vector<std::vector<Text>>::iterator &dir_vec) {
-  std::vector<Text> *d = &(*dir_vec);
-  for (auto it = d->begin(); it != d->end(); it++) {
-    it->tex = destroy_text_texture(it->tex);
-  }
-
-  d->clear();
+  return true;
 }
 
 SDL_Surface *SDL2Fonts::create_text_surface(TTF_Font *font,
