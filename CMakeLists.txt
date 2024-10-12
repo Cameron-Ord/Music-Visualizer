@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(Music-Visualizer VERSION 1.0)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
@@ -52,15 +52,15 @@ else()
 endif()
 message("")
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.c")
 
 if(WIN32)
-  add_executable(Vis WIN32 ${SOURCES})
+  add_executable(Vis ${SOURCES})
 else()
   add_executable(Vis ${SOURCES})
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   target_compile_options(Vis PRIVATE -Wall -Wextra -pedantic)
 endif()
 

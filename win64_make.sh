@@ -1,5 +1,5 @@
 
-if [ -e "/c/msys64/mingw64/bin/g++.exe" ]; then
+if [ -e "/c/msys64/mingw64/bin/gcc.exe" ]; then
     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
         -DCMAKE_C_COMPILER=/c/msys64/mingw64/bin/gcc.exe \
