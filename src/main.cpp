@@ -219,8 +219,13 @@ int main(int argc, char **argv) {
     DFTable[i] = NULL;
   }
 
-  fonts.create_dir_text(files.retrieve_directories(), DFTable, &DFTableSize,
-                        themes.get_text());
+  if (!fonts.create_dir_text(files.retrieve_directories(), DFTable,
+                             &DFTableSize, themes.get_text())) {
+    std::cerr << "Font creation failed! -> EXIT" << std::endl;
+    return 1;
+  }
+
+  return 0;
 
   fonts.create_settings_text(*themes.get_text(), fft->get_settings());
 

@@ -1,7 +1,7 @@
 #include "../include/table.hpp"
 
-Text *search_key(Node **table, int key, int length) {
-  size_t index = (size_t)hash_fn(key, length);
+Text *search_key(Node **table, size_t key, size_t length) {
+  size_t index = hash_fn(key, length);
   Node *current = table[index];
 
   while (current != NULL) {
@@ -14,8 +14,8 @@ Text *search_key(Node **table, int key, int length) {
 
   return NULL;
 }
-int hash_fn(int key, int length) { return key % length; }
-bool insert_node(Node **table, int key, Text *value, int length) {
+size_t hash_fn(size_t key, size_t length) { return key % length; }
+bool insert_node(Node **table, size_t key, Text *value, size_t length) {
   Node *node = (Node *)malloc(sizeof(Node));
   if (!node) {
     std::cerr << "Could not allocate pointer! -> " << strerror(errno)
@@ -23,8 +23,9 @@ bool insert_node(Node **table, int key, Text *value, int length) {
     return false;
   }
 
+  size_t index = hash_fn(key, length);
+  node->key = key;
   node->text_data = value;
-  int index = hash_fn(key, length);
 
   node->next = table[index];
   table[index] = node;

@@ -9,12 +9,12 @@ struct Node;
 typedef struct Node Node;
 
 struct Node {
-  int key;
+  size_t key;
   Text *text_data;
   Node *next;
 };
 
-Text *search_key(Node **table, int key, size_t length);
-bool insert_node(Node **hash_table, int key, Text *value, int length);
-int hash_fn(int key, int length);
+Text *search_key(Node **table, size_t key, size_t length);
+bool insert_node(Node **hash_table, size_t key, Text *value, size_t length);
+size_t hash_fn(size_t key, size_t length);
 #endif

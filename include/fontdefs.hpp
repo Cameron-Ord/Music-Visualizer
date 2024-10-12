@@ -15,13 +15,13 @@ struct Text {
 };
 
 struct SettingTextInt {
-  Text setting_text;
+  Text *setting_text;
   const int *setting_value_ptr;
   SDL_Rect setting_value_rect;
 };
 
 struct SettingTextFloat {
-  Text setting_text;
+  Text *setting_text;
   const float *setting_value_ptr;
   SDL_Rect setting_value_rect;
 };

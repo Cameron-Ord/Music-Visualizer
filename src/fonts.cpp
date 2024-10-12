@@ -57,14 +57,14 @@ void SDL2Fonts::set_char_limit(int w) {
 
 void SDL2Fonts::destroy_allocated_fonts() {
   for (auto it = int_settings_vec.begin(); it != int_settings_vec.end(); it++) {
-    it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    it->setting_text->tex = destroy_text_texture(it->setting_text->tex);
   }
 
   int_settings_vec.clear();
 
   for (auto it = float_settings_vec.begin(); it != float_settings_vec.end();
        it++) {
-    it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    it->setting_text->tex = destroy_text_texture(it->setting_text->tex);
   }
 
   float_settings_vec.clear();
@@ -73,12 +73,12 @@ void SDL2Fonts::destroy_allocated_fonts() {
 void SDL2Fonts::create_settings_text(const SDL_Color color,
                                      const FFTSettings *fft_settings) {
   for (auto it = int_settings_vec.begin(); it != int_settings_vec.end(); it++) {
-    it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    it->setting_text->tex = destroy_text_texture(it->setting_text->tex);
   }
 
   for (auto it = float_settings_vec.begin(); it != float_settings_vec.end();
        it++) {
-    it->setting_text.tex = destroy_text_texture(it->setting_text.tex);
+    it->setting_text->tex = destroy_text_texture(it->setting_text->tex);
   }
 
   int_settings_vec.clear();
@@ -97,13 +97,17 @@ void SDL2Fonts::create_settings_text(const SDL_Color color,
 
   for (size_t i = 0; i < int_setting_names.size(); i++) {
     size_t id = i;
-    Text tmp = create_text(int_setting_names[i], id, color);
+    Text *tmp = create_text(int_setting_names[i], id, color);
     SettingTextInt tmp_int;
-    if (tmp.is_valid) {
+    if (tmp && tmp->is_valid) {
       tmp_int.setting_text = tmp;
       tmp_int.setting_value_ptr = int_setting_ptrs[i];
       tmp_int.setting_value_rect = {0, 0, 0, 0};
       int_settings_vec[i] = tmp_int;
+    } else {
+
+      if (tmp)
+        free(tmp);
     }
   }
 
@@ -111,13 +115,16 @@ void SDL2Fonts::create_settings_text(const SDL_Color color,
 
   for (size_t i = 0; i < float_setting_names.size(); i++) {
     size_t id = i;
-    Text tmp = create_text(float_setting_names[i], id, color);
+    Text *tmp = create_text(float_setting_names[i], id, color);
     SettingTextFloat tmp_float;
-    if (tmp.is_valid) {
+    if (tmp && tmp->is_valid) {
       tmp_float.setting_text = tmp;
       tmp_float.setting_value_ptr = float_setting_ptrs[i];
       tmp_float.setting_value_rect = {0, 0, 0, 0};
       float_settings_vec[i] = tmp_float;
+    } else {
+      if (tmp)
+        free(tmp);
     }
   }
 }
@@ -146,18 +153,23 @@ bool SDL2Fonts::create_dir_text(const std::vector<Directory> *d,
     }
 
     for (size_t i = 0; i < size; i++) {
-      Text text_sample = create_text((*d)[i].directory_name, i, *color);
-      if (!insert_node(df_table, i, &text_sample, size)) {
-        *DFTableSize = 0;
-        std::cerr << "Failed to create node! -> " << strerror(errno)
-                  << std::endl;
-        return false;
+      Text *tex_ptr = create_text((*d)[i].directory_name, i, *color);
+      if (tex_ptr && tex_ptr->is_valid) {
+        if (!insert_node(df_table, i, tex_ptr, size)) {
+          *DFTableSize = 0;
+          std::cerr << "Failed to create node! -> " << strerror(errno)
+                    << std::endl;
+          return false;
+        }
+      } else if (tex_ptr && !tex_ptr->is_valid) {
+        free(tex_ptr);
       }
     }
     *DFTableSize = size;
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 bool SDL2Fonts::create_file_text(const std::vector<Files> *f, Node **sf_table,
@@ -175,19 +187,24 @@ bool SDL2Fonts::create_file_text(const std::vector<Files> *f, Node **sf_table,
     }
 
     for (size_t i = 0; i < size; i++) {
-      Text text_sample = create_text((*f)[i].file_name, i, *color);
-      if (!insert_node(sf_table, i, &text_sample, size)) {
-        *SFTableSize = 0;
-        std::cerr << "Failed to create node! -> " << strerror(errno)
-                  << std::endl;
-        return false;
+      Text *tex_ptr = create_text((*f)[i].file_name, i, *color);
+      if (tex_ptr && tex_ptr->is_valid) {
+        if (!insert_node(sf_table, i, tex_ptr, size)) {
+          *SFTableSize = 0;
+          std::cerr << "Failed to create node! -> " << strerror(errno)
+                    << std::endl;
+          return false;
+        }
+      } else if (tex_ptr && !tex_ptr->is_valid) {
+        free(tex_ptr);
       }
     }
 
     *SFTableSize = size;
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 SDL_Surface *SDL2Fonts::create_text_surface(TTF_Font *font,
@@ -218,11 +235,13 @@ SDL_Texture *SDL2Fonts::create_text_texture(SDL_Renderer *r,
   return tex_ptr;
 }
 
-Text SDL2Fonts::create_text(const std::string text, const size_t text_id,
-                            const SDL_Color color) {
-  Text text_entity = {
-      NULL, NULL, {0, 0, 0, 0}, 0, 0, text_id, false, text,
-  };
+Text *SDL2Fonts::create_text(const std::string text, const size_t text_id,
+                             const SDL_Color color) {
+  Text *text_entity = (Text *)malloc(sizeof(Text));
+
+  text_entity->name = text;
+  text_entity->id = text_id;
+  text_entity->is_valid = false;
 
   std::string text_cpy = text;
   if (text_cpy.size() > character_limit) {
@@ -242,11 +261,12 @@ Text SDL2Fonts::create_text(const std::string text, const size_t text_id,
 
   SDL_Rect tmp = {0, 0, surf_ptr->w, surf_ptr->h};
 
-  text_entity.rect = tmp;
-  text_entity.tex = tex_ptr;
-  text_entity.is_valid = true;
-  text_entity.width = surf_ptr->w;
-  text_entity.height = surf_ptr->h;
+  text_entity->rect = tmp;
+  text_entity->tex = tex_ptr;
+  text_entity->surf = NULL;
+  text_entity->is_valid = true;
+  text_entity->width = surf_ptr->w;
+  text_entity->height = surf_ptr->h;
 
   surf_ptr = destroy_text_surface(surf_ptr);
 

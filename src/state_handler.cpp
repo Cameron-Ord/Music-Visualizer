@@ -95,7 +95,7 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
         }
 
         std::string setting_name =
-            (*i)[*key.get_settings_cursor()].setting_text.name;
+            (*i)[*key.get_settings_cursor()].setting_text->name;
 
         if (setting_name == "Smoothing") {
           fft->set_smoothing(mutable_value);
@@ -162,7 +162,7 @@ void settings_keydown_options(SDL_Keycode sym, uint16_t mod,
         }
 
         std::string setting_name =
-            (*i)[*key.get_settings_cursor()].setting_text.name;
+            (*i)[*key.get_settings_cursor()].setting_text->name;
 
         if (setting_name == "Smoothing") {
           fft->set_smoothing(mutable_value);

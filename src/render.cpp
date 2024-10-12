@@ -51,9 +51,9 @@ void SDL2Renderer::render_draw_int_settings(
   int pixel_accumulate = pixel_increment;
 
   for (size_t i = 0; i < size; i++) {
-    SDL_Rect *setting_rect = &(*int_sett)[i].setting_text.rect;
+    SDL_Rect *setting_rect = &(*int_sett)[i].setting_text->rect;
     SDL_Rect *setting_val_rect = &(*int_sett)[i].setting_value_rect;
-    SDL_Texture *texture = (*int_sett)[i].setting_text.tex;
+    SDL_Texture *texture = (*int_sett)[i].setting_text->tex;
 
     const int *setting_value = (*int_sett)[i].setting_value_ptr;
     setting_rect->x =
@@ -100,9 +100,9 @@ void SDL2Renderer::render_draw_float_settings(
   int pixel_accumulate = pixel_increment;
 
   for (size_t i = 0; i < size; i++) {
-    SDL_Rect *setting_rect = &(*float_sett)[i].setting_text.rect;
+    SDL_Rect *setting_rect = &(*float_sett)[i].setting_text->rect;
     SDL_Rect *setting_val_rect = &(*float_sett)[i].setting_value_rect;
-    SDL_Texture *texture = (*float_sett)[i].setting_text.tex;
+    SDL_Texture *texture = (*float_sett)[i].setting_text->tex;
 
     const float *setting_value = (*float_sett)[i].setting_value_ptr;
     setting_rect->x =

@@ -19,8 +19,8 @@ public:
   SDL_Surface *destroy_text_surface(SDL_Surface *ptr);
   SDL_Texture *destroy_text_texture(SDL_Texture *ptr);
   bool open_font();
-  Text create_text(const std::string text, const size_t text_id,
-                   const SDL_Color color);
+  Text *create_text(const std::string text, const size_t text_id,
+                    const SDL_Color color);
   TTF_Font *get_font_ptr();
 
   bool create_dir_text(const std::vector<Directory> *d, Node **df_table,
