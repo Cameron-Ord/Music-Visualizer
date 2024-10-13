@@ -1,4 +1,5 @@
 #include "main.h"
+#include "SDL2/SDL_audio.h"
 #include "audio.h"
 #include "audiodefs.h"
 #include "filesystem.h"
@@ -297,11 +298,12 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            if (file_text_list) {
+            if (file_text_list && key.file_list_index < f_list_size) {
               const Text *text_buf = file_text_list[key.file_list_index].buf;
               const char *search_key = text_buf[key.file_cursor].name;
               if (file_contents && adc && search_key) {
                 fprintf(stdout, "Searching file -> %s\n", search_key);
+                SDL_CloseAudioDevice(vis.dev);
                 if (read_audio_file(find_pathstr(search_key, file_contents),
                                     adc)) {
                   if (!load_song(adc)) {
@@ -377,6 +379,7 @@ int main(int argc, char **argv) {
           case SDLK_SPACE: {
             if (dir_text_list && dir_contents) {
               const Text *text_buf = dir_text_list[key.dir_list_index].buf;
+              if(text_buf){
               const char *search_key = text_buf[key.dir_cursor].name;
               if (search_key) {
                 file_contents = find_files(
@@ -398,6 +401,7 @@ int main(int argc, char **argv) {
                   }
                 }
               }
+              }
             }
 
           } break;
@@ -413,21 +417,13 @@ int main(int argc, char **argv) {
       }
     }
 
-
-switch (vis.current_state) {
+    switch (vis.current_state) {
     default:
       break;
 
     case PLAYBACK: {
-      if(vis.stream_flag){
+      if (vis.stream_flag) {
         if (adc->position < adc->length) {
-          if (adc->channels == 2) {
-            fft_push(&adc->position, adc->next->fft_in, adc->buffer,
-                     S_BUF_SIZE * sizeof(float));
-          } else {
-            fft_push(&adc->position, adc->next->fft_in, adc->buffer,
-                     M_BUF_SIZE * sizeof(float));
-          }
           hamming_window(f_buffers->fft_in, f_data->hamming_values,
                          f_buffers->windowed);
           recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
@@ -436,7 +432,8 @@ switch (vis.current_state) {
           squash_to_log(f_buffers, f_data);
           visual_refine(f_buffers, f_data);
         }
-      } else {
+      }
+      if (!vis.stream_flag) {
         if (file_text_list) {
           TextBuffer *list = file_text_list;
           size_t full = file_count;
@@ -453,25 +450,24 @@ switch (vis.current_state) {
           nav_down(&list_args);
 
           const Text *text_buf = file_text_list[key.file_list_index].buf;
-          const char *search_key = text_buf[key.file_cursor].name;
-          if (file_contents && adc && search_key) {
-            if (read_audio_file(find_pathstr(search_key, file_contents), adc)) {
-              if (!load_song(adc)) {
-                fprintf(stderr, "Failed to load song! CURRENT ERRNO -> %s\n",
-                        strerror(errno));
-                fprintf(stderr, "Failed to load song! SDL ERROR -> %s\n",
-                        SDL_GetError());
+          if(text_buf){
+            const char *search_key = text_buf[key.file_cursor].name;
+            if (file_contents && adc && search_key) {
+              SDL_CloseAudioDevice(vis.dev);
+              if (read_audio_file(find_pathstr(search_key, file_contents), adc)) {
+                if (!load_song(adc)) {
+                  fprintf(stderr, "Failed to load song! CURRENT ERRNO -> %s\n",
+                          strerror(errno));
+                  fprintf(stderr, "Failed to load song! SDL ERROR -> %s\n",
+                          SDL_GetError());
+                }
               }
             }
           }
         }
       }
-
-
-
     } break;
     }
-
 
     switch (vis.current_state) {
     default:

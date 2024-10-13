@@ -7,32 +7,30 @@ void callback(void *userdata, uint8_t *stream, int length) {
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
   if (adc && adc->buffer) {
 
-    const uint32_t *file_length = &adc->length;
-    uint32_t *pos = &adc->position;
+    const uint32_t file_length = adc->length;
+    uint32_t pos = adc->position;
 
-    if (pos && file_length) {
+      const uint32_t uint32_len = (uint32_t)length;
+      const uint32_t samples = uint32_len / sizeof(float);
+      const uint32_t remaining = (file_length - pos);
 
-        if(*pos >= *file_length){
-            pause_device();
-        }
-        
-        const uint32_t uint32_len = (uint32_t)length;
-        const uint32_t samples = uint32_len / sizeof(float);
-        const uint32_t remaining = (*file_length - *pos);
+      const uint32_t copy = (samples < remaining) ? samples : remaining;
+     
+      if (stream && pos < file_length) {
 
-        const uint32_t copy = (samples < remaining) ? samples : remaining;
-        if (stream) {
         float *f32_stream = (float *)stream;
         for (uint32_t i = 0; i < copy; i++) {
-            f32_stream[i] = adc->buffer[i + *pos] * adc->volume;
+          f32_stream[i] = adc->buffer[i + pos] * adc->volume;
         }
-        
-        if((*pos + copy) <= *file_length){
-            *pos += copy;
-        }
-        }
-    }
 
+        pos += copy;
+        adc->position = pos;
+        if(adc->next){
+            fft_push(&adc->position, adc->next->fft_in, adc->buffer, copy);
+        }
+      } else {
+        pause_device();
+      }
   }
 }
 
@@ -216,16 +214,19 @@ void calculate_window(float *hamming_values) {
   }
 }
 
-void zero_values(AudioDataContainer *adc){
-    adc->bytes = 0;
-    adc->channels = 0;
-    adc->format = 0;
-    adc->bytes = 0;
-    adc->length = 0;
-    adc->position = 0;
-    adc->samples = 0;
-    adc->SR = 0;
-    adc->volume = 1.0;
+void zero_values(AudioDataContainer *adc) {
+    if(!adc){
+        return;
+    }
+  adc->bytes = 0;
+  adc->channels = 0;
+  adc->format = 0;
+  adc->bytes = 0;
+  adc->length = 0;
+  adc->position = 0;
+  adc->samples = 0;
+  adc->SR = 0;
+  adc->volume = 1.0;
 }
 
 bool read_audio_file(char *file_path, AudioDataContainer *adc) {
@@ -233,15 +234,28 @@ bool read_audio_file(char *file_path, AudioDataContainer *adc) {
   SNDFILE *sndfile = NULL;
   SF_INFO sfinfo;
 
-if(!adc){
+  if (!adc) {
     return false;
-}
+  }
 
-    zero_values(adc);
-
+  zero_values(adc);
   if(adc->buffer){
     free(adc->buffer);
+    adc->buffer = NULL;
   }
+
+    if(adc->next){
+        memset(adc->next->extracted, 0, sizeof(float) * M_BUF_SIZE);
+        memset(adc->next->fft_in, 0, sizeof(float) * S_BUF_SIZE);
+        memset(adc->next->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
+        memset(adc->next->phases, 0, sizeof(float) * M_BUF_SIZE);
+        memset(adc->next->processed_phases, 0, sizeof(float) * HALF_BUFF_SIZE);
+        memset(adc->next->processed, 0, sizeof(float) * HALF_BUFF_SIZE);
+        memset(adc->next->smear, 0, sizeof(float) * HALF_BUFF_SIZE);
+        memset(adc->next->smoothed, 0, sizeof(float) * HALF_BUFF_SIZE);
+        memset(adc->next->windowed, 0, sizeof(float) * M_BUF_SIZE);
+    }
+
 
   memset(&sfinfo, 0, sizeof(SF_INFO));
 
@@ -260,11 +274,16 @@ if(!adc){
   adc->samples = sfinfo.frames * sfinfo.channels;
   adc->bytes = adc->samples * sizeof(float);
 
+  if(adc->channels != 2){
+    fprintf(stderr, "Must be a two channel audio file!\n");
+    return false;
+  }
+
   fprintf(stdout, "SAMPLE RATE %d\n", adc->SR);
   fprintf(stdout, "BYTES %zu\n", adc->bytes);
   fprintf(stdout, "SAMPLES %zu\n", adc->samples);
 
-  adc->buffer = (float *)calloc(adc->samples, sizeof(float));
+  adc->buffer = (float *)malloc(adc->bytes);
   if (!adc->buffer) {
     fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
@@ -288,31 +307,15 @@ if(!adc){
 }
 
 bool load_song(AudioDataContainer *adc) {
-if(!adc){
+  if (!adc) {
     return false;
-}
-
-SDL_CloseAudioDevice(vis.dev);
-
-  FFTBuffers *fft_buffers = adc->next;
-
-  if (fft_buffers) {
-    memset(fft_buffers->extracted, 0, sizeof(float) * M_BUF_SIZE);
-    memset(fft_buffers->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
-    memset(fft_buffers->windowed, 0, sizeof(float) * M_BUF_SIZE);
-    memset(fft_buffers->fft_in, 0, sizeof(float) * S_BUF_SIZE);
-    memset(fft_buffers->phases, 0, sizeof(float) * M_BUF_SIZE);
-    memset(fft_buffers->processed, 0, sizeof(float) * HALF_BUFF_SIZE);
-    memset(fft_buffers->processed_phases, 0, sizeof(float) * HALF_BUFF_SIZE);
-    memset(fft_buffers->smoothed, 0, sizeof(float) * HALF_BUFF_SIZE);
-    memset(fft_buffers->smear, 0, sizeof(float) * HALF_BUFF_SIZE);
   }
 
   vis.spec.userdata = adc;
   vis.spec.callback = callback;
   vis.spec.channels = adc->channels;
   vis.spec.freq = adc->SR;
-  vis.spec.format = AUDIO_F32;
+  vis.spec.format = AUDIO_F32SYS;
   vis.spec.samples = M_BUF_SIZE;
 
   vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 0);
