@@ -1,5 +1,7 @@
 #include "main.h"
 #include "SDL2/SDL_platform.h"
+#include "audio.h"
+#include "audiodefs.h"
 #include "filesystem.h"
 #include "fontdef.h"
 #include "utils.h"
@@ -117,13 +119,33 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+
+  AudioDataContainer *adc = calloc(1,sizeof(AudioDataContainer));
+  if(!adc){
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  FFTBuffers *f_buffers = calloc(1, sizeof(FFTBuffers));
+ if(!f_buffers){
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  FFTData *f_data = calloc(1, sizeof(FFTData));
+   if(!f_data){
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+
+
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
 
   const int ticks_per_frame = (1000.0 / 60);
   uint64_t frame_start;
   int frame_time;
-  printf("Entering main loop..\n");
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -157,6 +179,57 @@ int main(int argc, char **argv) {
           break;
 
         case SONGS:{
+          switch(event.key.keysym.sym){
+            default:break;
+
+            case SDLK_UP:{
+            {
+              TextBuffer *list = file_text_list;
+              size_t full = file_count;
+              size_t *cursor = &key.file_cursor;
+              size_t *list_index = &key.file_list_index;
+              size_t list_size = f_list_size;
+
+              NavListArgs list_args = {.list = list,
+                                       .max_len = full,
+                                       .cursor = cursor,
+                                       .list_index = list_index,
+                                       .list_size = list_size};
+
+              nav_up(&list_args);
+            }
+            }break;
+
+            case SDLK_DOWN:{
+            {
+              TextBuffer *list = file_text_list;
+              size_t full = file_count;
+              size_t *cursor = &key.file_cursor;
+              size_t *list_index = &key.file_list_index;
+              size_t list_size = f_list_size;
+
+              NavListArgs list_args = {.list = list,
+                                       .max_len = full,
+                                       .cursor = cursor,
+                                       .list_index = list_index,
+                                       .list_size = list_size};
+
+              nav_down(&list_args);
+            }
+            }break;
+
+            case SDLK_SPACE:{
+              const Text* text_buf = file_text_list[key.file_list_index].buf;
+              const char *search_key = text_buf[key.file_cursor].name;
+              
+              if(read_audio_file(find_pathstr(search_key, file_contents), adc)){
+                if(!load_song(adc)){
+                  fprintf(stderr,"Failed to load song! CURRENT ERRNO -> %s\n", strerror(errno));
+                  fprintf(stderr,"Failed to load song! SDL ERROR -> %s\n", SDL_GetError());
+                }
+              }
+            }break;
+          }
 
         }break;
 
@@ -204,7 +277,7 @@ int main(int argc, char **argv) {
               const Text* text_buf = dir_text_list[key.dir_list_index].buf;
               const char *search_key = text_buf[key.dir_cursor].name;
               
-              file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
+              file_contents = find_files(&file_count, find_pathstr(search_key, dir_contents));
               if(file_contents){
                 file_text_list = create_fonts(file_contents, file_count, &f_list_size, &f_subbuf_size);
                 if(file_text_list){

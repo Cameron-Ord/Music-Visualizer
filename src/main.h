@@ -20,6 +20,9 @@ typedef enum {DIRECTORIES = 0, SONGS = 1, PLAYBACK = 2} USER_STATE;
 #define WIN_H 400
 
 typedef struct {
+    SDL_AudioDeviceID dev;
+    SDL_AudioSpec spec;
+    bool stream_flag;
     bool quit;
     int current_state;
     SDL_Color primary;
