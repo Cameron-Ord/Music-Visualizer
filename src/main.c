@@ -1,5 +1,6 @@
 #include "main.h"
 #include "filesystem.h"
+#include "fontdef.h"
 #include <math.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -60,7 +61,6 @@ int main(int argc, char **argv) {
   font.char_limit = 0;
   font.size = 16;
 
-
   printf("Opening font..\n");
   font.font = (TTF_Font *)scp(TTF_OpenFont(FONT_PATH, font.size));
 
@@ -79,20 +79,26 @@ int main(int argc, char **argv) {
   char **dir_buf = unix_find_directories(&dir_count);
 #endif
 
+  if(!dir_buf){
+    fprintf(stderr, "Failed to read directories! -> EXIT\n");
+    exit(EXIT_FAILURE);
+  }
+
   files.dir_titles = dir_buf;
   files.file_titles = NULL;
   files.dir_count = dir_count;
   files.file_count = file_count;
 
-  size_t dtext_buf_size = 1;
-  size_t dsub_buf_size = rend.title_limit;
+  size_t d_list_size = 1;
+  size_t d_subbuf_size = rend.title_limit;
 
-  TextBuffer *dir_text_buf = create_directory_fonts(
-      dir_buf, dir_count, &dtext_buf_size, &dsub_buf_size);
-  if (!dir_text_buf) {
-    fprintf(stderr, "Could not allocate text buffer!\n");
-    return 1;
+  TextBuffer *dir_text_list = create_directory_fonts(
+      dir_buf, dir_count, &d_list_size, &d_subbuf_size);
+  if(!dir_text_list){
+    fprintf(stderr, "Text creation failed! -> EXIT\n");
+    exit(EXIT_FAILURE);
   }
+
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
@@ -101,7 +107,7 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
   printf("Entering main loop..\n");
-  
+
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 
@@ -112,8 +118,8 @@ int main(int argc, char **argv) {
       break;
 
     case DIRECTORIES: {
-      render_draw_text(&dir_text_buf[key.dir_list_index], &key.dir_cursor,
-       &dsub_buf_size);
+      render_draw_text(&dir_text_list[key.dir_list_index], &key.dir_cursor,
+       &d_subbuf_size);
     } break;
     }
 
@@ -133,11 +139,31 @@ int main(int argc, char **argv) {
           default:
             break;
           case SDLK_UP: {
-            nav_up(&key.dir_cursor, &key.dir_list_index, dir_text_buf[key.dir_list_index].size);
+            {
+              TextBuffer *list = dir_text_list;
+              size_t full = dir_count;
+              size_t *cursor = &key.dir_cursor;
+              size_t *list_index = &key.dir_list_index;
+              size_t list_size = d_list_size;
+
+              NavListArgs list_args = {.list = list, .max_len = full,  .cursor = cursor, .list_index = list_index, .list_size = list_size};
+
+              nav_up(&list_args);
+            }
           } break;
 
           case SDLK_DOWN: {
-            nav_down(&key.dir_cursor, &key.dir_list_index, dir_text_buf[key.dir_list_index].size);
+            {
+              TextBuffer *list = dir_text_list;
+              size_t full = dir_count;
+              size_t *cursor = &key.dir_cursor;
+              size_t *list_index = &key.dir_list_index;
+              size_t list_size = d_list_size;
+              NavListArgs list_args = {.list = list, .max_len = full,  .cursor = cursor, .list_index = list_index, .list_size = list_size};
+
+
+              nav_down(&list_args);
+            }
           }break;
           }
         }break;

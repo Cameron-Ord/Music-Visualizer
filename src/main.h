@@ -54,6 +54,14 @@ typedef struct {
     int size;
 }Font;
 
+typedef struct {
+    TextBuffer* list;
+    size_t max_len;
+    size_t list_size;
+    size_t *cursor;
+    size_t *list_index;
+}NavListArgs;
+
 extern Font font;
 extern Renderer rend;
 extern Window win;
@@ -73,7 +81,7 @@ void render_clear(void);
 void render_present(void);
 
 
-size_t nav_down(size_t *cursor, size_t *locn, size_t max_length);
-size_t nav_up(size_t *cursor, size_t *locn, size_t max_length);
+size_t nav_down(NavListArgs *list_args);
+size_t nav_up(NavListArgs *list_args);
 
 #endif // MAIN_H
