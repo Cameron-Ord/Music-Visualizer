@@ -193,8 +193,6 @@ int main(int argc, char **argv) {
               const char *search_key = text_buf[key.dir_cursor].name;
               
               file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
-
-              
             }
           } break;
           }
