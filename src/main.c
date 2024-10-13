@@ -101,6 +101,7 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
   printf("Entering main loop..\n");
+  
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 

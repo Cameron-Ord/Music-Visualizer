@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL_render.h>
 
+//If this is ever heap allocated, it is to be copied to a buffer and freed.
 typedef struct {
   SDL_Texture *tex;
   SDL_Surface *surf;
@@ -15,8 +16,10 @@ typedef struct {
   char *name;
 } Text;
 
+//TextBuffer is heap allocated
 typedef struct {
-  Text **buf;
+  //Text is heap allocated
+  Text *buf;
   size_t size;
 } TextBuffer;
 
