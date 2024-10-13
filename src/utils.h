@@ -1,10 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include "filesysdefs.h"
 #include <stdarg.h>
 #include <stdint.h>
-#include "filesysdefs.h"
 
 void free_ptrs(size_t size, ...);
 size_t get_length(size_t size, ...);
-char *find_pathstr(const char* search_key, Paths* buffer);
+char *find_pathstr(const char *search_key, Paths *buffer);
 #endif

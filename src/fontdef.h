@@ -1,10 +1,10 @@
 #ifndef FONT_DEF
 #define FONT_DEF
 
-#include <stdbool.h>
 #include <SDL2/SDL_render.h>
+#include <stdbool.h>
 
-//If this is ever heap allocated, it is to be copied to a buffer and freed.
+// If this is ever heap allocated, it is to be copied to a buffer and freed.
 typedef struct {
   SDL_Texture *tex;
   SDL_Surface *surf;
@@ -16,9 +16,9 @@ typedef struct {
   char *name;
 } Text;
 
-//TextBuffer is heap allocated
+// TextBuffer is heap allocated
 typedef struct {
-  //Text is heap allocated
+  // Text is heap allocated
   Text *buf;
   size_t size;
 } TextBuffer;

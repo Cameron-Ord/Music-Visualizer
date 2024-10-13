@@ -1,12 +1,33 @@
 #ifndef AUDIODEFS_H
 #define AUDIODEFS_H
 
-#define M_BUF_SIZE (1<<12)
+#define M_BUF_SIZE (1 << 12)
 #define S_BUF_SIZE (M_BUF_SIZE * 2)
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 
-#include <stdint.h>
 #include <complex.h>
+#include <stdint.h>
+
+// I stole this from tsoding cause I had originally written my complex numbers
+// stuff in C++ and im lazy. So thanks Tsoding, I love you.
+
+// https://github.com/tsoding/musializer/blob/master/src/plug.c#L268
+
+#ifdef _MSC_VER
+#define Float_Complex _Fcomplex
+#define cfromreal(re) _FCbuild(re, 0)
+#define cfromimag(im) _FCbuild(0, im)
+#define mulcc _FCmulcc
+#define addcc(a, b) _FCbuild(crealf(a) + crealf(b), cimagf(a) + cimagf(b))
+#define subcc(a, b) _FCbuild(crealf(a) - crealf(b), cimagf(a) - cimagf(b))
+#else
+#define Float_Complex float complex
+#define cfromreal(re) (re)
+#define cfromimag(im) ((im) * I)
+#define mulcc(a, b) ((a) * (b))
+#define addcc(a, b) ((a) + (b))
+#define subcc(a, b) ((a) - (b))
+#endif
 
 struct AudioDataContainer;
 struct FFTBuffers;
@@ -19,7 +40,7 @@ typedef struct FFTData FFTData;
 typedef struct BandStopFilter BandStopFilter;
 
 struct AudioDataContainer {
-    float* buffer;
+  float *buffer;
   uint32_t length;
   uint32_t position;
   size_t samples;
@@ -32,9 +53,9 @@ struct AudioDataContainer {
 };
 
 struct FFTBuffers {
-  float in_cpy[S_BUF_SIZE];
-  float pre_raw[M_BUF_SIZE];
-  _Complex float out_raw[M_BUF_SIZE];
+  float fft_in[S_BUF_SIZE];
+  float windowed[M_BUF_SIZE];
+  Float_Complex out_raw[M_BUF_SIZE];
   float extracted[M_BUF_SIZE];
   float phases[M_BUF_SIZE];
   float processed[HALF_BUFF_SIZE];
@@ -51,13 +72,12 @@ struct BandStopFilter {
 };
 
 struct FFTData {
-    size_t output_len;
+  size_t output_len;
   int cell_width;
   float max_ampl;
   float max_phase;
   float hamming_values[M_BUF_SIZE];
-  AudioDataContainer* next;
+  AudioDataContainer *next;
 };
-
 
 #endif

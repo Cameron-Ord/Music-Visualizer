@@ -1,6 +1,7 @@
 #ifndef FILESYSDEFS_H
 #define FILESYSDEFS_H
 
+#include <stdint.h>
 
 typedef struct {
   size_t dir_count;
@@ -8,10 +9,10 @@ typedef struct {
 } FileSys;
 
 typedef struct {
-  char* name;
+  char *name;
   size_t name_length;
-  char* path;
+  char *path;
   size_t path_length;
-}Paths;
+} Paths;
 
 #endif

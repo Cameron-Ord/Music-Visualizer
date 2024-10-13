@@ -27,16 +27,20 @@ void free_ptrs(size_t size, ...) {
   }
 }
 
-char *find_pathstr(const char* search_key, Paths* buffer){
+char *find_pathstr(const char *search_key, Paths *buffer) {
+
+  if (buffer) {
     Paths *start = buffer;
 
-    while(buffer != NULL){
-        if(strcmp(search_key, buffer->name) == 0){
-            return buffer->path;
-        }
-        buffer++;
+    while (buffer != NULL) {
+      if (strcmp(search_key, buffer->name) == 0) {
+        return buffer->path;
+      }
+      buffer++;
     }
 
     buffer = start;
-    return NULL;
+  }
+
+  return NULL;
 }
