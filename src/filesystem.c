@@ -1,19 +1,13 @@
 #include "filesystem.h"
 #include "utils.h"
-#include <stdbool.h>
-#include <string.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#ifdef __LINUX__
-#include <dirent.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#endif
+#include <string.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
-
 Paths *win_find_directories(size_t *count) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
@@ -185,7 +179,15 @@ Paths *win_find_directories(size_t *count) {
   free(home);
   return paths;
 }
+
+
+Paths *win_find_files(size_t *count, char* path){
+
+}
+
 #endif
+
+//This is not properly implemented yet
 #ifdef __LINUX__
 char **unix_find_directories(size_t *count, FileSys *files) {
   char *home = getenv("HOME");
@@ -231,5 +233,9 @@ char **unix_find_directories(size_t *count, FileSys *files) {
 
   closedir(dir);
   return dir_buffer;
+}
+
+Paths *unix_find_files(size_t *count, char* path){
+
 }
 #endif

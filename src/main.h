@@ -35,8 +35,6 @@ typedef struct {
 
 typedef struct{
     SDL_Renderer *r;
-    size_t dir_locn;
-    size_t song_locn;
     size_t title_limit;
     size_t draw_amount;
 } Renderer;
@@ -62,26 +60,43 @@ typedef struct {
     size_t *list_index;
 }NavListArgs;
 
+//Convienence generic pointer struct for passing pointer arguments
+//Just make sure you type cast correctly if this is used. 
+typedef struct {
+    void* arg1;
+    void* arg2;
+    void* arg3;
+    void* arg4;
+}VoidPtrArgs;
+
+
+//Global structures
 extern Font font;
 extern Renderer rend;
 extern Window win;
 extern Visualizer vis;
 extern Events key;
 
+//General/Utility functions
 void *scp(void* ptr);
 int scc(int code);
-
 int get_title_limit(int height);
 int get_char_limit(int width);
 
+//Font related functions
 TextBuffer* create_directory_fonts(char **dir_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
+
+//Render functions
 void render_bg(void);
 void render_draw_text(TextBuffer *list_buf, const size_t *cursor,  const size_t *size);
 void render_clear(void);
 void render_present(void);
 
-
+//Events functions
 size_t nav_down(NavListArgs *list_args);
 size_t nav_up(NavListArgs *list_args);
+
+
+
 
 #endif // MAIN_H

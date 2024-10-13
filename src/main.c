@@ -1,4 +1,5 @@
 #include "main.h"
+#include "SDL2/SDL_platform.h"
 #include "filesystem.h"
 #include "fontdef.h"
 #include <math.h>
@@ -24,6 +25,12 @@ SDL_Color text_bg = {113, 124, 180, 255};
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
+
+  const char *platform = SDL_GetPlatform();
+  if(strcmp(platform, "Linux") != 0 && strcmp(platform, "Windows") != 0){
+    fprintf(stderr, "Wrong platform\n");
+    exit(EXIT_FAILURE);
+  }
 
   fprintf(stdout, "Starting..\n");
 
@@ -55,8 +62,6 @@ int main(int argc, char **argv) {
   win.height = WIN_H;
   win.width = WIN_W;
 
-  rend.song_locn = 0;
-  rend.dir_locn = 0;
   font.font = NULL;
   font.char_limit = 0;
   font.size = 16;
@@ -99,6 +104,8 @@ int main(int argc, char **argv) {
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
+
+  printf("LIST 2 - %s\n", dir_text_list[1].buf[0].name);
 
   const int ticks_per_frame = (1000.0 / 60);
   uint64_t frame_start;
@@ -172,8 +179,7 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            {
-            }
+
           } break;
           }
         } break;
