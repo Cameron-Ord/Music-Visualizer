@@ -303,7 +303,7 @@ Paths *win_find_files(size_t *count, char* path){
   free(path_cpy);
   free(home);
 
-return NULL;
+  return fpaths;
 }
 
 #endif

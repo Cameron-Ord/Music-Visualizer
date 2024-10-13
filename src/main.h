@@ -42,8 +42,8 @@ typedef struct{
 
 typedef struct {
     size_t dir_list_index;
-    size_t song_list_index;
-    size_t song_cursor;
+    size_t file_list_index;
+    size_t file_cursor;
     size_t dir_cursor;
 }Events;
 
@@ -85,7 +85,7 @@ int get_title_limit(int height);
 int get_char_limit(int width);
 
 //Font related functions
-TextBuffer* create_directory_fonts(Paths *paths_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
+TextBuffer* create_fonts(Paths *paths_buf, const size_t count, size_t *txt_buf_size, const size_t *sub_buf_size);
 
 //Render functions
 void render_bg(void);

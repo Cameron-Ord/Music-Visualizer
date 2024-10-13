@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-TextBuffer *create_directory_fonts(Paths *paths_buf, const size_t dir_count,
+
+TextBuffer *create_fonts(Paths *paths_buf, const size_t count,
                                    size_t *list_size,
                                    const size_t *buffer_size) {
 
@@ -21,7 +22,7 @@ TextBuffer *create_directory_fonts(Paths *paths_buf, const size_t dir_count,
   size_t buffer_i = 0;
   size_t list_i = 0;
 
-  for (size_t i = 0; i < dir_count; i++) {
+  for (size_t i = 0; i < count; i++) {
     if (buffer_i > *buffer_size - 1) {
 
       Text *text_buffer = malloc(sizeof(Text) * (*buffer_size));

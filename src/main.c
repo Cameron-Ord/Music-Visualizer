@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
   fprintf(stdout, "Starting..\n");
 
   key.dir_cursor = 0;
-  key.song_cursor = 0;
-  key.song_list_index = 0;
+  key.file_cursor = 0;
+  key.file_list_index = 0;
   key.dir_list_index = 0;
 
   vis.quit = false;
@@ -106,7 +106,11 @@ int main(int argc, char **argv) {
   size_t d_list_size = 1;
   size_t d_subbuf_size = rend.title_limit;
 
-  TextBuffer *dir_text_list = create_directory_fonts(
+  size_t f_list_size = 1;
+  size_t f_subbuf_size = rend.title_limit;
+
+  TextBuffer *file_text_list = NULL;
+  TextBuffer *dir_text_list = create_fonts(
       dir_contents, dir_count, &d_list_size, &d_subbuf_size);
   if (!dir_text_list) {
     fprintf(stderr, "Text creation failed! -> EXIT\n");
@@ -130,6 +134,11 @@ int main(int argc, char **argv) {
     default:
       break;
 
+    case SONGS:{
+      render_draw_text(&file_text_list[key.file_list_index], &key.file_cursor,
+                &f_subbuf_size);
+    } break;
+
     case DIRECTORIES: {
       render_draw_text(&dir_text_list[key.dir_list_index], &key.dir_cursor,
                        &d_subbuf_size);
@@ -146,6 +155,10 @@ int main(int argc, char **argv) {
         switch (vis.current_state) {
         default:
           break;
+
+        case SONGS:{
+
+        }break;
 
         case DIRECTORIES: {
           switch (event.key.keysym.sym) {
@@ -188,12 +201,17 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            {
               const Text* text_buf = dir_text_list[key.dir_list_index].buf;
               const char *search_key = text_buf[key.dir_cursor].name;
               
               file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
-            }
+              if(file_contents){
+                file_text_list = create_fonts(file_contents, file_count, &f_list_size, &f_subbuf_size);
+                if(file_text_list){
+                  vis.current_state = SONGS;
+                }
+              } 
+            
           } break;
           }
         } break;
