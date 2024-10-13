@@ -47,7 +47,8 @@ Paths *win_find_directories(size_t *count) {
 
   fprintf(stdout, "SEARCH PATH -> %s\n", search_path);
 
-  Paths *paths = calloc(1, sizeof(Paths));
+  size_t default_size = 6;
+  Paths *paths = calloc(default_size, sizeof(Paths));
   if (!paths) {
     fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
     return NULL;
@@ -57,25 +58,6 @@ Paths *win_find_directories(size_t *count) {
   if (h_find == INVALID_HANDLE_VALUE) {
     fprintf(stderr, "Could not read filesystem! -> %s\n", search_path);
     free(home);
-    return NULL;
-  }
-
-  size_t default_size = 6;
-  char **dir_buffer = (char **)calloc(default_size, sizeof(char *));
-  if (!dir_buffer) {
-    FindClose(h_find);
-    free(home);
-    fprintf(stderr, "Could not allocate pointer buffer! -> %s\n",
-            strerror(errno));
-    return NULL;
-  }
-
-  char **path_buffer = (char **)calloc(default_size, sizeof(char *));
-  if (!dir_buffer) {
-    FindClose(h_find);
-    free(home);
-    fprintf(stderr, "Could not allocate pointer buffer! -> %s\n",
-            strerror(errno));
     return NULL;
   }
 
@@ -89,8 +71,8 @@ Paths *win_find_directories(size_t *count) {
         // Check if we need to resize the buffer
         if (*count >= default_size) {
           size_t new_size = default_size * 2;
-          char **temp_buffer =
-              (char **)realloc(dir_buffer, sizeof(char *) * new_size);
+          Paths *temp_buffer =
+              (Paths *)realloc(paths, sizeof(Paths) * new_size);
           if (!temp_buffer) {
             fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
                     strerror(errno));
@@ -98,24 +80,13 @@ Paths *win_find_directories(size_t *count) {
             break;
           }
 
-          char **tmp_path_buffer =
-              (char **)realloc(path_buffer, sizeof(char *) * new_size);
-          if (!tmp_path_buffer) {
-            fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
-                    strerror(errno));
-            find_file_broken = true;
-            break;
-          }
-
-          path_buffer = tmp_path_buffer;
-          dir_buffer = temp_buffer;
+          paths = temp_buffer;
           default_size = new_size;
         }
 
         size_t file_name_length = strlen(find_file_data.cFileName);
-        dir_buffer[*count] =
-            (char *)malloc((file_name_length + 1) * sizeof(char));
-        if (!dir_buffer[*count]) {
+        char *dir_buffer = (char *)malloc((file_name_length + 1) * sizeof(char));
+        if (!dir_buffer) {
           fprintf(stderr,
                   "Could not allocate memory for directory name! -> %s\n",
                   strerror(errno));
@@ -123,30 +94,37 @@ Paths *win_find_directories(size_t *count) {
           break;
         }
 
-        strcpy_s(dir_buffer[*count], file_name_length + 1,
+        strcpy_s(dir_buffer, file_name_length + 1,
                  find_file_data.cFileName);
 
         size_t path_ttl_length =
             get_length(4, strlen(music_dir_no_wc), strlen(home), strlen("\\"),
-                       strlen(dir_buffer[*count]));
+                       strlen(dir_buffer));
+        
+        char * path_buffer = NULL;
         if (path_ttl_length < MAX_PATH) {
-          path_buffer[*count] =
-              (char *)malloc(sizeof(char) * (path_ttl_length + 1));
-          if (!path_buffer[*count]) {
+          path_buffer = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+          if (!path_buffer) {
             fprintf(stderr, "Could not allocate pointer! -> %s\n",
                     strerror(errno));
             find_file_broken = true;
             break;
           }
 
-          snprintf(path_buffer[*count], path_ttl_length + 1, "%s\\%s%s", home,
-                   music_dir_no_wc, dir_buffer[*count]);
+          snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s", home,
+                   music_dir_no_wc, dir_buffer);
         }
 
         printf("\n");
-        printf("Added directory -> %s\n", dir_buffer[*count]);
-        printf("Added path -> %s\n", path_buffer[*count]);
+        printf("Added directory -> %s\n", dir_buffer);
+        printf("Added path -> %s\n", path_buffer);
         printf("\n");
+
+        paths[*count].path = path_buffer;
+        paths[*count].path_length = path_ttl_length;
+        paths[*count].name = dir_buffer;
+        paths[*count].name_length = file_name_length;
+
 
         (*count)++;
       }
@@ -156,24 +134,21 @@ Paths *win_find_directories(size_t *count) {
   //Tested and works as far as I know.
   if (find_file_broken) {
     for (size_t i = 0; i < *count; i++) {
-      if (dir_buffer[i]) {
-        free(dir_buffer[i]);
-        dir_buffer[i] = NULL;
+      if (paths[i].name) {
+        free(paths[i].name);
+        paths[i].name = NULL;
       }
 
-      if (path_buffer[i]) {
-        free(path_buffer[i]);
-        path_buffer[i] = NULL;
+      if (paths[i].path) {
+        free(paths[i].path);
+        paths[i].path = NULL;
       }
     }
 
-    free_ptrs(4, home, dir_buffer, path_buffer, paths);
+    free_ptrs(3, home, paths, paths);
     FindClose(h_find);
     return NULL;
   }
-
-  paths->paths = path_buffer;
-  paths->names = dir_buffer;
 
   FindClose(h_find);
   free(home);
@@ -183,6 +158,7 @@ Paths *win_find_directories(size_t *count) {
 
 Paths *win_find_files(size_t *count, char* path){
 
+return NULL;
 }
 
 #endif
@@ -237,5 +213,6 @@ char **unix_find_directories(size_t *count, FileSys *files) {
 
 Paths *unix_find_files(size_t *count, char* path){
 
+return NULL;
 }
 #endif

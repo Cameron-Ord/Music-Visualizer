@@ -1,17 +1,7 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 #include <stdint.h>
-
-
-typedef struct {
-  size_t dir_count;
-  size_t file_count;
-} FileSys;
-
-typedef struct {
-  char** names;
-  char** paths;
-}Paths;
+#include "filesysdefs.h"
 
 
 #ifdef _WIN32

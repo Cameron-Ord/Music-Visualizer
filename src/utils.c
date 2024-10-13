@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <stdlib.h>
+#include <string.h>
 
 size_t get_length(size_t size, ...) {
   va_list args;
@@ -24,4 +25,18 @@ void free_ptrs(size_t size, ...) {
       ptr = NULL;
     }
   }
+}
+
+char *find_char_str(char* search_key, Paths* buffer){
+    Paths *start = buffer;
+
+    while(buffer != NULL){
+        if(strcmp(search_key, buffer->name) == 0){
+            return buffer->path;
+        }
+        buffer++;
+    }
+
+    buffer = start;
+    return NULL;
 }

@@ -2,10 +2,24 @@
 #include "SDL2/SDL_platform.h"
 #include "filesystem.h"
 #include "fontdef.h"
+#include "utils.h"
 #include <math.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+
+
+#ifdef _WIN32
+Paths* (*find_directories)(size_t *) = &win_find_directories;  
+Paths* (*find_files)(size_t *, char *) = &win_find_files;  
+#endif
+
+#ifdef __linux__
+Paths* (*find_directories)(size_t *) = &unix_find_directories;  
+Paths* (*find_files)(size_t *, char *) = &unix_find_files;  
+#endif
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -78,11 +92,7 @@ int main(int argc, char **argv) {
   size_t file_count = 0;
 
   printf("Finding directories..\n");
-#ifdef _WIN32
-  Paths *dir_contents = win_find_directories(&dir_count);
-#else
-  Paths *dir_buf = unix_find_directories(&dir_count);
-#endif
+  Paths *dir_contents = find_directories(&dir_count);
 
   if (!dir_contents) {
     fprintf(stderr, "Failed to read directories! -> EXIT\n");
@@ -96,7 +106,7 @@ int main(int argc, char **argv) {
   size_t d_subbuf_size = rend.title_limit;
 
   TextBuffer *dir_text_list = create_directory_fonts(
-      dir_contents->names, dir_count, &d_list_size, &d_subbuf_size);
+      dir_contents, dir_count, &d_list_size, &d_subbuf_size);
   if (!dir_text_list) {
     fprintf(stderr, "Text creation failed! -> EXIT\n");
     exit(EXIT_FAILURE);
@@ -104,8 +114,6 @@ int main(int argc, char **argv) {
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
-
-  printf("LIST 2 - %s\n", dir_text_list[1].buf[0].name);
 
   const int ticks_per_frame = (1000.0 / 60);
   uint64_t frame_start;
@@ -179,7 +187,13 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
+            {
+            Text* text_buf = dir_text_list[key.dir_list_index].buf;
+            char *search_key = text_buf[key.dir_cursor].name;
+            
+            Paths* file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
 
+            }
           } break;
           }
         } break;

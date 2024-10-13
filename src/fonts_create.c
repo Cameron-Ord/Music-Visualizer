@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
+TextBuffer *create_directory_fonts(Paths *paths_buf, const size_t dir_count,
                                    size_t *list_size,
                                    const size_t *buffer_size) {
 
@@ -46,7 +46,7 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
     tmp_buf[buffer_i].id = buffer_i;
     tmp_buf[buffer_i].is_valid = false;
 
-    size_t char_len = strlen(dir_buf[i]);
+    size_t char_len = strlen(paths_buf[i].name);
     tmp_buf[buffer_i].name = malloc(sizeof(char) * (char_len + 1));
     if (!tmp_buf[buffer_i].name) {
       fprintf(stderr, "Could not allocate pointer! ->%s\n", strerror(errno));
@@ -55,7 +55,7 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
       return NULL;
     }
 
-    if (!strcpy(tmp_buf[buffer_i].name, dir_buf[i])) {
+    if (!strcpy(tmp_buf[buffer_i].name, paths_buf[i].name)) {
       fprintf(stderr, "Failed to copy string! -> %s\n", strerror(errno));
       free(tmp_buf[buffer_i].name);
       free(tmp_buf);

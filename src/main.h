@@ -1,5 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
+#include "filesystem.h"
 #include "fontdef.h"
 
 #include <SDL2/SDL.h>
@@ -84,7 +85,7 @@ int get_title_limit(int height);
 int get_char_limit(int width);
 
 //Font related functions
-TextBuffer* create_directory_fonts(char **dir_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
+TextBuffer* create_directory_fonts(Paths *paths_buf, const size_t dir_count, size_t *txt_buf_size,const size_t *sub_buf_size);
 
 //Render functions
 void render_bg(void);
