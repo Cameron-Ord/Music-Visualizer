@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <winnt.h>
 
 #ifdef _WIN32
 Paths *win_find_directories(size_t *count) {
@@ -98,8 +99,8 @@ Paths *win_find_directories(size_t *count) {
                  find_file_data.cFileName);
 
         size_t path_ttl_length =
-            get_length(4, strlen(music_dir_no_wc), strlen(home), strlen("\\"),
-                       strlen(dir_buffer));
+            get_length(5, strlen(music_dir_no_wc), strlen(home), strlen("\\"),
+                       strlen(dir_buffer), strlen("\\"));
         
         char * path_buffer = NULL;
         if (path_ttl_length < MAX_PATH) {
@@ -111,7 +112,7 @@ Paths *win_find_directories(size_t *count) {
             break;
           }
 
-          snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s", home,
+          snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s\\", home,
                    music_dir_no_wc, dir_buffer);
         }
 
@@ -145,7 +146,7 @@ Paths *win_find_directories(size_t *count) {
       }
     }
 
-    free_ptrs(3, home, paths, paths);
+    free_ptrs(2, home, paths);
     FindClose(h_find);
     return NULL;
   }
@@ -157,6 +158,150 @@ Paths *win_find_directories(size_t *count) {
 
 
 Paths *win_find_files(size_t *count, char* path){
+  WIN32_FIND_DATA find_file_data;
+  HANDLE h_find;
+
+  size_t size;
+  if (getenv_s(&size, NULL, 0, "USERPROFILE") != 0) {
+    fprintf(stderr, "Failed to get USERPROFILE size.\n");
+    return NULL;
+  }
+
+  char *home = (char *)malloc(size);
+  if (!home) {
+    fprintf(stderr, "Memory allocation for home failed.\n");
+    return NULL;
+  }
+
+  
+  if (getenv_s(&size, home, size, "USERPROFILE") != 0) {
+    fprintf(stderr, "Failed to get USERPROFILE.\n");
+    free(home);
+    return NULL;
+  }
+
+  size_t default_size = 6;
+  Paths *fpaths = calloc(default_size, sizeof(Paths));
+  if(!fpaths){
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    return NULL;
+  }
+  size_t path_length = strlen(path);
+  if(path_length == 0){
+    fprintf(stderr, "Failed to get char len! -> %s\n", strerror(errno));
+    free(home);
+    return NULL;
+  }
+
+  char* path_cpy = malloc((path_length + 2)*sizeof(char));
+  if(!path_cpy){
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    return NULL;
+  }
+
+  strcpy_s(path_cpy, sizeof(char) * (path_length + 2),path);
+  strcat_s(path_cpy, sizeof(char) * (path_length + 2),"*");
+  
+
+  fprintf(stdout, "RETRIEVING FILES FROM PATH -> %s\n", path_cpy);
+
+  h_find = FindFirstFile(path_cpy, &find_file_data);
+  if (h_find == INVALID_HANDLE_VALUE) {
+    fprintf(stderr, "Could not read filesystem! -> %s\n", path_cpy);
+    free(path_cpy);
+    free(home);
+    return NULL;
+  }
+
+  *count = 0;
+  bool find_file_broken = false;
+
+  do {  
+    if(!(find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
+   
+      if(strcmp(find_file_data.cFileName, "..") != 0 && strcmp(find_file_data.cFileName, ".") != 0){
+        if(*count >= default_size){
+                    size_t new_size = default_size * 2;
+          Paths *temp_buffer =
+              (Paths *)realloc(fpaths, sizeof(Paths) * new_size);
+          if (!temp_buffer) {
+            fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
+                    strerror(errno));
+            find_file_broken = true;
+            break;
+          }
+
+          fpaths = temp_buffer;
+          default_size = new_size;
+        }
+
+        size_t file_name_length = strlen(find_file_data.cFileName);
+        char *file_buffer = (char *)malloc((file_name_length + 1) * sizeof(char));
+        if (!file_buffer) {
+          fprintf(stderr,
+                  "Could not allocate memory for directory name! -> %s\n",
+                  strerror(errno));
+          find_file_broken = true;
+          break;
+        }
+
+        strcpy_s(file_buffer, file_name_length + 1,
+                 find_file_data.cFileName);
+
+        size_t path_ttl_length =
+            get_length(2, strlen(path), strlen(file_buffer));
+
+        char * path_buffer = NULL;
+        if (path_ttl_length < MAX_PATH) {
+          path_buffer = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+          if (!path_buffer) {
+            fprintf(stderr, "Could not allocate pointer! -> %s\n",
+                    strerror(errno));
+            find_file_broken = true;
+            break;
+          }
+
+          snprintf(path_buffer, path_ttl_length + 1, "%s%s", path, file_buffer);
+        }
+
+        
+        printf("\n");
+        printf("Added file -> %s\n", file_buffer);
+        printf("Added path -> %s\n", path_buffer);
+        printf("\n");
+
+        fpaths[*count].path = path_buffer;
+        fpaths[*count].path_length = path_ttl_length;
+        fpaths[*count].name = file_buffer;
+        fpaths[*count].name_length = file_name_length;
+
+
+      (*count)++;
+      }
+    }
+
+  }while(FindNextFile(h_find, &find_file_data) != 0);
+
+  if (find_file_broken) {
+    for (size_t i = 0; i < *count; i++) {
+      if (fpaths[i].name) {
+        free(fpaths[i].name);
+        fpaths[i].name = NULL;
+      }
+
+      if (fpaths[i].path) {
+        free(fpaths[i].path);
+        fpaths[i].path = NULL;
+      }
+    }
+
+    free_ptrs(3, home, path_cpy, fpaths);
+    FindClose(h_find);
+    return NULL;
+  }
+
+  free(path_cpy);
+  free(home);
 
 return NULL;
 }

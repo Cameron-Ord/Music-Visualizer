@@ -93,6 +93,7 @@ int main(int argc, char **argv) {
 
   printf("Finding directories..\n");
   Paths *dir_contents = find_directories(&dir_count);
+  Paths* file_contents = NULL;
 
   if (!dir_contents) {
     fprintf(stderr, "Failed to read directories! -> EXIT\n");
@@ -188,11 +189,12 @@ int main(int argc, char **argv) {
 
           case SDLK_SPACE: {
             {
-            Text* text_buf = dir_text_list[key.dir_list_index].buf;
-            char *search_key = text_buf[key.dir_cursor].name;
-            
-            Paths* file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
+              const Text* text_buf = dir_text_list[key.dir_list_index].buf;
+              const char *search_key = text_buf[key.dir_cursor].name;
+              
+              file_contents = find_files(&file_count, find_char_str(search_key, dir_contents));
 
+              
             }
           } break;
           }
