@@ -74,18 +74,16 @@ int main(int argc, char **argv) {
 
   printf("Finding directories..\n");
 #ifdef _WIN32
-  char **dir_buf = win_find_directories(&dir_count);
+  Paths *dir_contents = win_find_directories(&dir_count);
 #else
-  char **dir_buf = unix_find_directories(&dir_count);
+  Paths *dir_buf = unix_find_directories(&dir_count);
 #endif
 
-  if(!dir_buf){
+  if (!dir_contents) {
     fprintf(stderr, "Failed to read directories! -> EXIT\n");
     exit(EXIT_FAILURE);
   }
 
-  files.dir_titles = dir_buf;
-  files.file_titles = NULL;
   files.dir_count = dir_count;
   files.file_count = file_count;
 
@@ -93,12 +91,11 @@ int main(int argc, char **argv) {
   size_t d_subbuf_size = rend.title_limit;
 
   TextBuffer *dir_text_list = create_directory_fonts(
-      dir_buf, dir_count, &d_list_size, &d_subbuf_size);
-  if(!dir_text_list){
+      dir_contents->names, dir_count, &d_list_size, &d_subbuf_size);
+  if (!dir_text_list) {
     fprintf(stderr, "Text creation failed! -> EXIT\n");
     exit(EXIT_FAILURE);
   }
-
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
@@ -119,7 +116,7 @@ int main(int argc, char **argv) {
 
     case DIRECTORIES: {
       render_draw_text(&dir_text_list[key.dir_list_index], &key.dir_cursor,
-       &d_subbuf_size);
+                       &d_subbuf_size);
     } break;
     }
 
@@ -146,7 +143,11 @@ int main(int argc, char **argv) {
               size_t *list_index = &key.dir_list_index;
               size_t list_size = d_list_size;
 
-              NavListArgs list_args = {.list = list, .max_len = full,  .cursor = cursor, .list_index = list_index, .list_size = list_size};
+              NavListArgs list_args = {.list = list,
+                                       .max_len = full,
+                                       .cursor = cursor,
+                                       .list_index = list_index,
+                                       .list_size = list_size};
 
               nav_up(&list_args);
             }
@@ -159,14 +160,23 @@ int main(int argc, char **argv) {
               size_t *cursor = &key.dir_cursor;
               size_t *list_index = &key.dir_list_index;
               size_t list_size = d_list_size;
-              NavListArgs list_args = {.list = list, .max_len = full,  .cursor = cursor, .list_index = list_index, .list_size = list_size};
 
+              NavListArgs list_args = {.list = list,
+                                       .max_len = full,
+                                       .cursor = cursor,
+                                       .list_index = list_index,
+                                       .list_size = list_size};
 
               nav_down(&list_args);
             }
-          }break;
+          } break;
+
+          case SDLK_SPACE: {
+            {
+            }
+          } break;
           }
-        }break;
+        } break;
         }
       } break;
 
@@ -184,8 +194,6 @@ int main(int argc, char **argv) {
 
     render_present();
   }
-
-
 
   SDL_DestroyRenderer(rend.r);
   SDL_DestroyWindow(win.w);

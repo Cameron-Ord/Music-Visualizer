@@ -3,8 +3,8 @@
 #include <string.h>
 
 TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
-                                    size_t *list_size,
-                                    const size_t *buffer_size) {
+                                   size_t *list_size,
+                                   const size_t *buffer_size) {
 
   TextBuffer *list_buf = malloc(sizeof(TextBuffer) * (*list_size));
   if (!list_buf) {
@@ -13,7 +13,7 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
   }
 
   Text *tmp_buf = malloc(sizeof(Text) * (*buffer_size));
-  if(!tmp_buf){
+  if (!tmp_buf) {
     fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
     return NULL;
   }
@@ -43,7 +43,6 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
       buffer_i = 0;
     }
 
-  
     tmp_buf[buffer_i].id = buffer_i;
     tmp_buf[buffer_i].is_valid = false;
 
@@ -64,7 +63,8 @@ TextBuffer *create_directory_fonts(char **dir_buf, const size_t dir_count,
       return NULL;
     }
 
-    SDL_Surface *surf = TTF_RenderText_Blended(font.font, tmp_buf[buffer_i].name, vis.text);
+    SDL_Surface *surf =
+        TTF_RenderText_Blended(font.font, tmp_buf[buffer_i].name, vis.text);
     if (!surf) {
       fprintf(stderr, "Could not create font surface! -> %s\n", SDL_GetError());
       free(tmp_buf[buffer_i].name);
