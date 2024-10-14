@@ -11,13 +11,13 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
     return NULL;
   }
 
-  TextBuffer *text_buffer = (TextBuffer*)malloc(sizeof(TextBuffer) * (*count * 2));
+  TextBuffer *text_buffer = (TextBuffer*)malloc(sizeof(TextBuffer) * (*count ));
   if(!text_buffer){
     fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
     return NULL;
   }
 
-  memset(text_buffer, 0, sizeof(TextBuffer) * (*count * 2));
+  memset(text_buffer, 0, sizeof(TextBuffer) * (*count ));
 
   printf("COUNT : %zu\n", *count);
 
@@ -36,15 +36,18 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
 
     if(!paths_buf[i].name){
       free(text);
+      text = NULL;
       fprintf(stderr, "Path name is NULL! -> continue\n");
       continue;
     }
 
     const char *name = paths_buf[i].name;
-    char name_buffer[paths_buf[i].name_length];
+    char name_buffer[paths_buf[i].name_length + 1];
 
-    strcpy(name_buffer, name);
+    strncpy(name_buffer, name, paths_buf[i].name_length);
     const size_t max_chars = get_char_limit(win.width);
+
+    name_buffer[paths_buf[i].name_length] = '\0';
 
     if(paths_buf[i].name_length > max_chars){
       name_buffer[max_chars] = '\0';

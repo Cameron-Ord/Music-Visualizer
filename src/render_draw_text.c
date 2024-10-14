@@ -27,12 +27,19 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count, const size
       return;
     }
 
-    //list_buf[locn].text->rect.x = 25;
-    //list_buf[locn].text->rect.y = p_accumulate;
+    list_buf[locn].text->rect.x = 25;
+    list_buf[locn].text->rect.y = p_accumulate;
     p_accumulate += pixel_inc;
 
-    //scc(SDL_RenderCopy(rend.r, list_buf[locn].text->tex, NULL, &list_buf[locn].text->rect));
+    scc(SDL_RenderCopy(rend.r, list_buf[locn].text->tex, NULL, &list_buf[locn].text->rect));
 
   }   
 
+  size_t bg_locn = (*cursor) % *item_count; 
+  
+  SDL_Rect text_rect = list_buf[bg_locn].text->rect;
+  SDL_Rect bg_rect = {text_rect.x - 5, text_rect.y - 5, text_rect.w + 10, text_rect.h +10};
+  
+  SDL_SetRenderDrawColor(rend.r, vis.text_bg.r, vis.text_bg.g,vis.text_bg.b, vis.text_bg.a * 0.25);
+  SDL_RenderFillRect(rend.r, &bg_rect);
 }
