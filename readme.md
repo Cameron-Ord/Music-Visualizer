@@ -4,25 +4,15 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
-> Music is from the game Crypt of the Necrodancer and composed by Danny Baranowsky. You can buy the soundtrack off steam. 
-- [Video Demo](https://www.youtube.com/watch?v=6UWzQOlIfTw)
+I am making this for myself only, but if you wanna use it, check out the build section.
 
-## Images
-![Image](example/example_desktop_1.png)
-![Image](example/example_desktop_2.png)
-![Image](example/example_desktop_3.png)
-![Image](example/example_desktop_4.png)
-
-## Releases
+### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
  
 The program relies on directories located in the **~/Music dir located in the home path**.
 
 
-## Configuration
-You can use a config.txt to set the the colors you want the program to use at runtime. The defaults are what are shown above. Check out CONFIG_EXAMPLE.txt to see how to set that up. It uses RGBA in SDL2s format. This is pretty lazy set up right now and you need to launch the program in the working directory for it to find the files.
-
-If you are using a window manager like i3 or sway, You can pass ```--no-mouse-grab``` as a command line argument when running the program to disable the grab and drag code I have written for the window. I would recommend it, as it doesn't play nice for the most part.
+### Configuration
 
 > Foundational directories will be **created on the initial program launch if they do not already exist:**
 - ```MVSource``` which is where your music will be located. **The program expects folders inside this directory**, of which contain the audio files.
