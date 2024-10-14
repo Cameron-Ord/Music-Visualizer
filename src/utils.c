@@ -27,7 +27,7 @@ void free_ptrs(size_t size, ...) {
   }
 }
 
-char *find_pathstr(const char *search_key, Paths *buffer) {
+const char *find_pathstr(const char *search_key, Paths *buffer) {
 
   if (buffer) {
     Paths *start = buffer;

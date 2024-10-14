@@ -6,5 +6,5 @@
 
 void free_ptrs(size_t size, ...);
 size_t get_length(size_t size, ...);
-char *find_pathstr(const char *search_key, Paths *buffer);
+const char *find_pathstr(const char *search_key, Paths *buffer);
 #endif

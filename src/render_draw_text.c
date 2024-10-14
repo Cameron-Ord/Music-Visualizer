@@ -1,30 +1,38 @@
 #include "main.h"
+#include <assert.h>
 
-void render_draw_text(TextBuffer *list_buf, const size_t *cursor) {
-
-  if (list_buf) {
-    int pixel_inc = win.height / (list_buf->size + 1);
-    int p_accumulate = pixel_inc;
-
-    for (size_t i = 0; i < list_buf->size; i++) {
-      if (list_buf->buf) {
-        list_buf->buf[i].rect.x = 25;
-        list_buf->buf[i].rect.y = p_accumulate;
-        p_accumulate += pixel_inc;
-
-        if (i == *cursor) {
-          SDL_Rect bg = {
-              list_buf->buf[i].rect.x - 5, list_buf->buf[i].rect.y - 5,
-              list_buf->buf[i].rect.w + 10, list_buf->buf[i].rect.h + 10};
-          SDL_SetRenderDrawColor(rend.r, vis.text_bg.r, vis.text_bg.g,
-                                 vis.text_bg.b, vis.text_bg.a * 0.33);
-          SDL_RenderFillRect(rend.r, &bg);
-        }
-        if (list_buf->buf[i].tex) {
-          SDL_RenderCopy(rend.r, list_buf->buf[i].tex, NULL,
-                         &list_buf->buf[i].rect);
-        }
-      }
-    }
+void render_draw_text(TextBuffer *list_buf, const size_t *item_count, const size_t *cursor) {
+  
+  if(!list_buf || !item_count || !cursor || !rend.r){
+    return;
   }
+
+  size_t iter_count = rend.title_limit;
+  if(iter_count > *item_count){
+    iter_count = *item_count;
+  }
+
+
+  int pixel_inc = win.height / (iter_count + 1);
+  int p_accumulate = pixel_inc;
+
+  for(size_t i = 0; i < iter_count; i++){
+    
+    //wrap around
+    size_t locn = (*cursor + i) % *item_count; 
+
+    assert(list_buf[locn].text != NULL);
+    
+    if(!list_buf[locn].text || !list_buf[locn].text->tex){
+      return;
+    }
+
+    //list_buf[locn].text->rect.x = 25;
+    //list_buf[locn].text->rect.y = p_accumulate;
+    p_accumulate += pixel_inc;
+
+    //scc(SDL_RenderCopy(rend.r, list_buf[locn].text->tex, NULL, &list_buf[locn].text->rect));
+
+  }   
+
 }

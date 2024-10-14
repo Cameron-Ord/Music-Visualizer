@@ -7,6 +7,7 @@
 #include "particledef.h"
 #include "particles.h"
 #include "utils.h"
+#include <assert.h>
 #include <math.h>
 #include <time.h>
 
@@ -15,7 +16,7 @@
 
 #ifdef _WIN32
 Paths *(*find_directories)(size_t *) = &win_find_directories;
-Paths *(*find_files)(size_t *, char *) = &win_find_files;
+Paths *(*find_files)(size_t *, const char *) = &win_find_files;
 #endif
 
 #ifdef __linux__
@@ -85,6 +86,7 @@ int main(int argc, char **argv) {
   font.size = 16;
 
   printf("Opening font..\n");
+
   font.font = (TTF_Font *)scp(TTF_OpenFont(FONT_PATH, font.size));
 
   rend.title_limit = get_title_limit(win.height);
@@ -102,19 +104,21 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  size_t d_list_size = 1;
-  size_t d_subbuf_size = rend.title_limit;
-
-  size_t f_list_size = 1;
-  size_t f_subbuf_size = rend.title_limit;
-
-  TextBuffer *file_text_list = NULL;
-  TextBuffer *dir_text_list =
-      create_fonts(dir_contents, dir_count, &d_list_size, &d_subbuf_size);
-  if (!dir_text_list) {
-    fprintf(stderr, "Text creation failed! -> EXIT\n");
-    exit(EXIT_FAILURE);
+  if(dir_contents && dir_count == 0){
+    fprintf(stdout, "No directories!\n");
+    free(dir_contents);
+    dir_contents = NULL;
   }
+
+  TextBuffer * dir_text_buffer = NULL;
+  TextBuffer * file_text_buffer = NULL;
+
+  dir_text_buffer = create_fonts(dir_contents, &dir_count);
+  if(!dir_text_buffer){
+    fprintf(stdout, "Fonts weren't created!\n");
+    dir_text_buffer = NULL;
+  }
+
 
   AudioDataContainer *adc = calloc(1, sizeof(AudioDataContainer));
   if (!adc) {
@@ -161,6 +165,48 @@ int main(int argc, char **argv) {
     render_bg();
     render_clear();
 
+
+    switch (vis.current_state) {
+    default:
+      break;
+
+    case PLAYBACK: {
+      if (vis.stream_flag) {
+          hamming_window(f_buffers->fft_in, f_data->hamming_values,
+                         f_buffers->windowed);
+          recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
+          extract_frequencies(f_buffers);
+          freq_bin_algo(adc->SR, f_buffers->extracted);
+          squash_to_log(f_buffers, f_data);
+          visual_refine(f_buffers, f_data);
+      }
+      if (!vis.stream_flag) {
+      }
+    } break;
+    }
+
+    switch (vis.current_state) {
+    default:
+      break;
+
+    case PLAYBACK: {
+      if (f_data->output_len > 0 && vis.stream_flag) {
+        render_draw_music(f_buffers->smear, f_buffers->smoothed,
+                          &f_data->output_len, particle_buffer);
+      }
+    } break;
+
+    case SONGS: {
+      assert(file_text_buffer != NULL);
+      render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
+    } break;
+
+    case DIRECTORIES: {
+      assert(file_text_buffer != NULL);
+      render_draw_text(dir_text_buffer, &dir_count, &key.dir_cursor);
+    } break;
+    }
+
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
@@ -171,50 +217,16 @@ int main(int argc, char **argv) {
         switch (event.window.event) {
         case SDL_WINDOWEVENT_RESIZED: {
           SDL_GetWindowSize(win.w, &win.width, &win.height);
+          rend.title_limit = get_title_limit(win.height);
+          font.char_limit = get_char_limit(win.width);
 
-          d_subbuf_size = get_title_limit(win.height);
-          f_subbuf_size = get_title_limit(win.height);
-          if (dir_count > 0) {
-            dir_text_list = create_fonts(dir_contents, dir_count, &d_list_size,
-                                         &d_subbuf_size);
-            if (!dir_text_list) {
-              fprintf(stderr, "Could not create fonts!\n");
-              exit(EXIT_FAILURE);
-            }
-          }
-
-          if (file_count > 0) {
-            file_text_list = create_fonts(file_contents, file_count,
-                                          &f_list_size, &f_subbuf_size);
-            if (!file_text_list) {
-              fprintf(stderr, "Could not create fonts!\n");
-              exit(EXIT_FAILURE);
-            }
-          }
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
           SDL_GetWindowSize(win.w, &win.width, &win.height);
-          d_subbuf_size = get_title_limit(win.height);
-          f_subbuf_size = get_title_limit(win.height);
-          if (dir_count > 0) {
-            dir_text_list = create_fonts(dir_contents, dir_count, &d_list_size,
-                                         &d_subbuf_size);
-            if (!dir_text_list) {
-              fprintf(stderr, "Could not create fonts!\n");
-              exit(EXIT_FAILURE);
-            }
-          }
+          rend.title_limit = get_title_limit(win.height);
+          font.char_limit = get_char_limit(win.width);
 
-          if (file_count > 0) {
-            file_text_list = create_fonts(file_contents, file_count,
-                                          &f_list_size, &f_subbuf_size);
-
-            if (!file_text_list) {
-              fprintf(stderr, "Could not create fonts!\n");
-              exit(EXIT_FAILURE);
-            }
-          }
         } break;
         }
       } break;
@@ -229,15 +241,13 @@ int main(int argc, char **argv) {
           default:
             break;
           case SDLK_LEFT: {
-            if (file_text_list) {
+            if(file_count > 0)
               vis.current_state = SONGS;
-            }
           } break;
 
           case SDLK_RIGHT: {
-            if (dir_text_list) {
+            if(dir_count > 0)
               vis.current_state = DIRECTORIES;
-            }
           } break;
           }
         } break;
@@ -248,76 +258,24 @@ int main(int argc, char **argv) {
             break;
 
           case SDLK_LEFT: {
-            if (dir_text_list) {
+            if(dir_count > 0)
               vis.current_state = DIRECTORIES;
-            }
           } break;
 
           case SDLK_RIGHT: {
-            if (vis.stream_flag) {
+            if (vis.stream_flag) 
               vis.current_state = PLAYBACK;
-            }
           } break;
 
           case SDLK_UP: {
-            if (file_text_list) {
-
-              TextBuffer *list = file_text_list;
-              size_t full = file_count;
-              size_t *cursor = &key.file_cursor;
-              size_t *list_index = &key.file_list_index;
-              size_t list_size = f_list_size;
-
-              NavListArgs list_args = {.list = list,
-                                       .max_len = full,
-                                       .cursor = cursor,
-                                       .list_index = list_index,
-                                       .list_size = list_size};
-
-              nav_up(&list_args);
-            }
+            nav_up(&key.file_cursor, &file_count);
           } break;
 
           case SDLK_DOWN: {
-            if (file_text_list) {
-              TextBuffer *list = file_text_list;
-              size_t full = file_count;
-              size_t *cursor = &key.file_cursor;
-              size_t *list_index = &key.file_list_index;
-              size_t list_size = f_list_size;
-
-              NavListArgs list_args = {.list = list,
-                                       .max_len = full,
-                                       .cursor = cursor,
-                                       .list_index = list_index,
-                                       .list_size = list_size};
-
-              nav_down(&list_args);
-            }
-
+            nav_down(&key.file_cursor, &file_count);
           } break;
 
           case SDLK_SPACE: {
-            if (file_text_list && key.file_list_index < f_list_size) {
-              const Text *text_buf = file_text_list[key.file_list_index].buf;
-              const char *search_key = text_buf[key.file_cursor].name;
-              if (file_contents && adc && search_key) {
-                fprintf(stdout, "Searching file -> %s\n", search_key);
-                SDL_CloseAudioDevice(vis.dev);
-                if (read_audio_file(find_pathstr(search_key, file_contents),
-                                    adc)) {
-                  if (!load_song(adc)) {
-                    fprintf(stderr,
-                            "Failed to load song! CURRENT ERRNO -> %s\n",
-                            strerror(errno));
-                    fprintf(stderr, "Failed to load song! SDL ERROR -> %s\n",
-                            SDL_GetError());
-                  }
-
-                  vis.current_state = PLAYBACK;
-                }
-              }
-            }
           } break;
           }
 
@@ -335,75 +293,31 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_RIGHT: {
-            if (file_text_list) {
+            if(file_count > 0)
               vis.current_state = SONGS;
-            }
           } break;
 
           case SDLK_UP: {
-            if (dir_text_list) {
-              TextBuffer *list = dir_text_list;
-              size_t full = dir_count;
-              size_t *cursor = &key.dir_cursor;
-              size_t *list_index = &key.dir_list_index;
-              size_t list_size = d_list_size;
-
-              NavListArgs list_args = {.list = list,
-                                       .max_len = full,
-                                       .cursor = cursor,
-                                       .list_index = list_index,
-                                       .list_size = list_size};
-
-              nav_up(&list_args);
-            }
+            nav_up(&key.dir_cursor, &dir_count);
           } break;
 
           case SDLK_DOWN: {
-            if (dir_text_list) {
-              TextBuffer *list = dir_text_list;
-              size_t full = dir_count;
-              size_t *cursor = &key.dir_cursor;
-              size_t *list_index = &key.dir_list_index;
-              size_t list_size = d_list_size;
-
-              NavListArgs list_args = {.list = list,
-                                       .max_len = full,
-                                       .cursor = cursor,
-                                       .list_index = list_index,
-                                       .list_size = list_size};
-
-              nav_down(&list_args);
-            }
+            nav_down(&key.dir_cursor, &dir_count);
           } break;
 
           case SDLK_SPACE: {
-            if (dir_text_list && dir_contents) {
-              const Text *text_buf = dir_text_list[key.dir_list_index].buf;
-              if(text_buf){
-              const char *search_key = text_buf[key.dir_cursor].name;
-              if (search_key) {
-                file_contents = find_files(
-                    &file_count, find_pathstr(search_key, dir_contents));
-                if (file_contents) {
-                  if (file_text_list) {
-                    if (file_text_list->buf) {
-                      free(file_text_list->buf);
-                    }
-                    free(file_text_list);
-                    file_text_list = NULL;
-                  }
-                  file_text_list = create_fonts(file_contents, file_count,
-                                                &f_list_size, &f_subbuf_size);
-                  if (file_text_list) {
-                    vis.current_state = SONGS;
-                    key.file_list_index = 0;
-                    key.file_cursor = 0;
-                  }
-                }
-              }
-              }
-            }
+            const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
+            const char *path_str = find_pathstr(search_key, dir_contents);
 
+            printf("%s\n", path_str);
+
+            file_contents = find_files(&file_count, path_str);
+            file_text_buffer = create_fonts(file_contents, &file_count);
+            if(file_text_buffer){
+              key.file_cursor = 0;
+              vis.current_state = SONGS;
+              
+            }
           } break;
           }
         } break;
@@ -415,86 +329,6 @@ int main(int argc, char **argv) {
 
       } break;
       }
-    }
-
-    switch (vis.current_state) {
-    default:
-      break;
-
-    case PLAYBACK: {
-      if (vis.stream_flag) {
-        if (adc->position < adc->length) {
-          hamming_window(f_buffers->fft_in, f_data->hamming_values,
-                         f_buffers->windowed);
-          recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
-          extract_frequencies(f_buffers);
-          freq_bin_algo(adc->SR, f_buffers->extracted);
-          squash_to_log(f_buffers, f_data);
-          visual_refine(f_buffers, f_data);
-        }
-      }
-      if (!vis.stream_flag) {
-        if (file_text_list) {
-          TextBuffer *list = file_text_list;
-          size_t full = file_count;
-          size_t *cursor = &key.file_cursor;
-          size_t *list_index = &key.file_list_index;
-          size_t list_size = f_list_size;
-
-          NavListArgs list_args = {.list = list,
-                                   .max_len = full,
-                                   .cursor = cursor,
-                                   .list_index = list_index,
-                                   .list_size = list_size};
-
-          nav_down(&list_args);
-
-          const Text *text_buf = file_text_list[key.file_list_index].buf;
-          if(text_buf){
-            const char *search_key = text_buf[key.file_cursor].name;
-            if (file_contents && adc && search_key) {
-              SDL_CloseAudioDevice(vis.dev);
-              if (read_audio_file(find_pathstr(search_key, file_contents), adc)) {
-                if (!load_song(adc)) {
-                  fprintf(stderr, "Failed to load song! CURRENT ERRNO -> %s\n",
-                          strerror(errno));
-                  fprintf(stderr, "Failed to load song! SDL ERROR -> %s\n",
-                          SDL_GetError());
-                }
-              }
-            }
-          }
-        }
-      }
-    } break;
-    }
-
-    switch (vis.current_state) {
-    default:
-      break;
-
-    case PLAYBACK: {
-      if (f_data->output_len > 0 && vis.stream_flag) {
-        render_draw_music(f_buffers->smear, f_buffers->smoothed,
-                          &f_data->output_len, particle_buffer);
-      }
-    } break;
-
-    case SONGS: {
-      if (file_text_list && key.file_list_index < f_list_size &&
-          key.file_cursor < f_subbuf_size) {
-        render_draw_text(&file_text_list[key.file_list_index],
-                         &key.file_cursor);
-      }
-    } break;
-
-    case DIRECTORIES: {
-      if (dir_text_list && key.dir_list_index < d_list_size &&
-          key.dir_cursor < d_subbuf_size) {
-        render_draw_text(&dir_text_list[key.dir_list_index], &key.dir_cursor);
-      }
-
-    } break;
     }
 
     frame_time = SDL_GetTicks64() - frame_start;
@@ -513,20 +347,6 @@ int main(int argc, char **argv) {
     free(particle_buffer);
   }
 
-  if (dir_text_list) {
-    if (dir_text_list->buf) {
-      free(dir_text_list->buf);
-    }
-    free(dir_text_list);
-  }
-
-  if (file_text_list) {
-    if (file_text_list->buf) {
-      free(file_text_list->buf);
-    }
-    free(file_text_list);
-  }
-
   if (dir_contents) {
     for (size_t i = 0; i < dir_count; i++) {
       if (dir_contents[i].name) {
@@ -541,19 +361,19 @@ int main(int argc, char **argv) {
     free(dir_contents);
   }
 
-  if (file_contents) {
-    for (size_t i = 0; i < file_count; i++) {
-      if (file_contents[i].name) {
-        free(file_contents[i].name);
-      }
+//  if (file_contents) {
+  //  for (size_t i = 0; i < file_count; i++) {
+    //  if (file_contents[i].name) {
+     //   free(file_contents[i].name);
+     // }
 
-      if (file_contents[i].path) {
-        free(file_contents[i].path);
-      }
-    }
+      //if (file_contents[i].path) {
+       // free(file_contents[i].path);
+     // }
+    //}
 
-    free(file_contents);
-  }
+   // free(file_contents);
+ // }
 
   if (adc) {
     if (adc->buffer) {

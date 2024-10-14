@@ -88,19 +88,18 @@ int get_title_limit(int height);
 int get_char_limit(int width);
 
 // Font related functions
-TextBuffer *create_fonts(Paths *paths_buf, const size_t count,
-                         size_t *txt_buf_size, const size_t *sub_buf_size);
+TextBuffer *create_fonts(Paths *paths_buf, const size_t *count);
 
 // Render functions
 void render_bg(void);
-void render_draw_text(TextBuffer *list_buf, const size_t *cursor);
+void render_draw_text(TextBuffer *list_buf, const size_t *item_count, const size_t *cursor);
 void render_clear(void);
 void render_present(void);
 void render_draw_music(const float *smear, const float *smoothed,
                        const size_t *len, ParticleTrio* p_buffer);
 
 // Events functions
-size_t nav_down(NavListArgs *list_args);
-size_t nav_up(NavListArgs *list_args);
+size_t nav_down(size_t *cursor, const size_t *count);
+size_t nav_up(size_t *cursor, const size_t *count);
 
 #endif // MAIN_H

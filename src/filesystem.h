@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #include <windows.h>
 Paths *win_find_directories(size_t *count);
-Paths *win_find_files(size_t *count, char *path);
+Paths *win_find_files(size_t *count, const char *path);
 #endif
 
 #ifdef __linux__

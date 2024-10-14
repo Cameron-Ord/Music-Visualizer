@@ -4,9 +4,11 @@
 #include <sndfile.h>
 
 void callback(void *userdata, uint8_t *stream, int length) {
+  if(!userdata){
+    pause_device();
+  }
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
   if (adc && adc->buffer) {
-
     const uint32_t file_length = adc->length;
     uint32_t pos = adc->position;
 
@@ -17,7 +19,6 @@ void callback(void *userdata, uint8_t *stream, int length) {
       const uint32_t copy = (samples < remaining) ? samples : remaining;
      
       if (stream && pos < file_length) {
-
         float *f32_stream = (float *)stream;
         for (uint32_t i = 0; i < copy; i++) {
           f32_stream[i] = adc->buffer[i + pos] * adc->volume;
@@ -34,7 +35,6 @@ void callback(void *userdata, uint8_t *stream, int length) {
   }
 }
 
-// Called from main thread and not from SDLs audio callback thread.
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
@@ -215,9 +215,6 @@ void calculate_window(float *hamming_values) {
 }
 
 void zero_values(AudioDataContainer *adc) {
-    if(!adc){
-        return;
-    }
   adc->bytes = 0;
   adc->channels = 0;
   adc->format = 0;
@@ -283,14 +280,12 @@ bool read_audio_file(char *file_path, AudioDataContainer *adc) {
   fprintf(stdout, "BYTES %zu\n", adc->bytes);
   fprintf(stdout, "SAMPLES %zu\n", adc->samples);
 
-  adc->buffer = (float *)malloc(adc->bytes);
+  adc->buffer = (float *)calloc(adc->samples,adc->bytes);
   if (!adc->buffer) {
     fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
     return false;
   }
-
-  memset(adc->buffer, 0, adc->bytes);
 
   sf_count_t read = sf_read_float(sndfile, adc->buffer, adc->samples);
   if (read < 0) {
@@ -301,7 +296,6 @@ bool read_audio_file(char *file_path, AudioDataContainer *adc) {
   }
 
   adc->length = (uint32_t)(adc->samples);
-  adc->volume = 1.0f;
   sf_close(sndfile);
   return true;
 }

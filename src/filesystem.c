@@ -155,7 +155,7 @@ Paths *win_find_directories(size_t *count) {
   return paths;
 }
 
-Paths *win_find_files(size_t *count, char *path) {
+Paths *win_find_files(size_t *count, const char *path) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
 

@@ -13,14 +13,13 @@ typedef struct {
   int height;
   size_t id;
   bool is_valid;
-  char *name;
+  const char *name;
 } Text;
 
 // TextBuffer is heap allocated
 typedef struct {
-  // Text is heap allocated
-  Text *buf;
-  size_t size;
+  // Text is heap allocated (1 element)
+  Text *text;
 } TextBuffer;
 
 #endif // FONT_DEF_H

@@ -1,164 +1,94 @@
 #include "fontdef.h"
 #include "main.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-TextBuffer *create_fonts(Paths *paths_buf, const size_t count,
-                         size_t *list_size, const size_t *buffer_size) {
-  if (!list_size) {
-    fprintf(stderr, "size buf is NULL!\n");
+TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
+  
+  if(!paths_buf || !count){
+    fprintf(stderr, "Paths buf or counter was NULL! -> counter : %p - paths : %p\n", (void*)paths_buf, (void*)count);
     return NULL;
   }
 
-  *list_size = 1;
-
-  if (!paths_buf) {
-    fprintf(stderr, "Paths buf is NULL!\n");
+  TextBuffer *text_buffer = (TextBuffer*)malloc(sizeof(TextBuffer) * (*count * 2));
+  if(!text_buffer){
+    fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
     return NULL;
   }
 
-  TextBuffer *list_buf = malloc(sizeof(TextBuffer) * (*list_size));
-  if (!list_buf) {
-    fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-    return NULL;
-  }
+  memset(text_buffer, 0, sizeof(TextBuffer) * (*count * 2));
 
-  Text *tmp_buf = malloc(sizeof(Text) * (*buffer_size));
-  if (!tmp_buf) {
-    fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-    return NULL;
-  }
+  printf("COUNT : %zu\n", *count);
 
-  size_t buffer_i = 0;
-  size_t list_i = 0;
+  for(size_t i = 0; i < *count; i++){
+    Text* text = (Text*)malloc(sizeof(Text));
+    if(!text){
+      fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
+      free(text_buffer);
+      return NULL;
+    }
 
-  for (size_t i = 0; i < count; i++) {
-    if (!paths_buf[i].name) {
+    memset(text, 0, sizeof(Text));
+    text->is_valid = false;
+    text->surf = NULL;
+    text->tex = NULL;
+
+    if(!paths_buf[i].name){
+      free(text);
+      fprintf(stderr, "Path name is NULL! -> continue\n");
       continue;
     }
 
-    if (!paths_buf[i].path) {
-      continue;
+    const char *name = paths_buf[i].name;
+    char name_buffer[paths_buf[i].name_length];
+
+    strcpy(name_buffer, name);
+    const size_t max_chars = get_char_limit(win.width);
+
+    if(paths_buf[i].name_length > max_chars){
+      name_buffer[max_chars] = '\0';
     }
 
-    if (buffer_i > *buffer_size - 1) {
-
-      Text *text_buffer = malloc(sizeof(Text) * (*buffer_size));
-      if (!text_buffer) {
-        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-        return NULL;
-      }
-
-      if (text_buffer && tmp_buf) {
-        memcpy(text_buffer, tmp_buf, sizeof(Text) * (*buffer_size));
-        memset(tmp_buf, 0, sizeof(Text) * (*buffer_size));
-      }
-
-      if (list_buf) {
-        list_buf[list_i].size = *buffer_size;
-        list_buf[list_i].buf = text_buffer;
-      }
-
-      (*list_size)++;
-      TextBuffer *tmp = realloc(list_buf, sizeof(TextBuffer) * (*list_size));
-      if (!tmp) {
-        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-        return NULL;
-      }
-
-      if (list_buf && tmp) {
-        list_buf = tmp;
-      }
-
-      list_i++;
-      buffer_i = 0;
+    //We are simply giving the pointer to the name located in the Paths struct, as long as that memory is valid, this is valid too. The value cannot be changed from this pointer. If the original is ever deallocated, this will be invalidated.
+    text->name = name;
+    text->id = i;
+    
+    assert(font.font != NULL);
+    text->surf = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
+    if(!text->surf){
+      text->surf = NULL;
+      free(text);
+      free(text_buffer);
+      return NULL;
     }
+    assert(text->surf != NULL);
 
-    if (buffer_i < count) {
-      tmp_buf[buffer_i].id = buffer_i;
-      tmp_buf[buffer_i].is_valid = false;
-    }
-
-    size_t char_len = strlen(paths_buf[i].name);
-    tmp_buf[buffer_i].name = malloc(sizeof(char) * (char_len + 1));
-    if (!tmp_buf[buffer_i].name) {
-      fprintf(stderr, "Could not allocate pointer! ->%s\n", strerror(errno));
-      free(tmp_buf);
-      free(list_buf);
+    text->tex = SDL_CreateTextureFromSurface(rend.r, text->surf);
+    if(!text->tex){
+      text->tex = NULL;
+      SDL_FreeSurface(text->surf);
+      free(text);
+      free(text_buffer);
       return NULL;
     }
 
-    if (!strcpy(tmp_buf[buffer_i].name, paths_buf[i].name)) {
-      fprintf(stderr, "Failed to copy string! -> %s\n", strerror(errno));
-      free(tmp_buf[buffer_i].name);
-      free(tmp_buf);
-      free(list_buf);
-      return NULL;
-    }
+    assert(text->tex != NULL);
+    text->width = text->surf->w;
+    text->height = text->surf->h;
+    SDL_Rect text_rect = {.x= 0, .y = 0, text->width, text->height};
+    text->rect = text_rect;
 
-    size_t max_chars = (size_t)get_char_limit(win.width);
-    char text[max_chars + 10];
 
-    memcpy(text, tmp_buf[buffer_i].name, sizeof(char) * (max_chars + 1));
+    SDL_FreeSurface(text->surf);
+    text->surf = NULL;
 
-    text[max_chars] = '.';
-    text[max_chars + 1] = '.';
-    text[max_chars + 2] = '.';
-    text[max_chars + 3] = '\0';
+    text->is_valid = true;
 
-    SDL_Surface *surf = TTF_RenderText_Blended(font.font, text, vis.text);
-    if (!surf) {
-      fprintf(stderr, "Could not create font surface! -> %s\n", SDL_GetError());
-      free(tmp_buf[buffer_i].name);
-      free(tmp_buf);
-      free(list_buf);
-      return NULL;
-    }
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(rend.r, surf);
-    if (!texture) {
-      fprintf(stderr, "Could not create font texture! -> %s\n", SDL_GetError());
-      free(tmp_buf[buffer_i].name);
-      free(tmp_buf);
-      free(list_buf);
-      return NULL;
-    }
-
-    SDL_Rect tmp = {0, 0, surf->w, surf->h};
-
-    if (buffer_i < count) {
-      tmp_buf[buffer_i].rect = tmp;
-      tmp_buf[buffer_i].surf = surf;
-      tmp_buf[buffer_i].tex = texture;
-      tmp_buf[buffer_i].width = surf->w;
-      tmp_buf[buffer_i].height = surf->h;
-      tmp_buf[buffer_i].is_valid = true;
-    }
-
-    buffer_i++;
+    //Assign the pointer created in the current iteration
+    text_buffer[i].text = text;
   }
 
-  if (buffer_i > 0) {
-    Text *txt_sub_buf = malloc(sizeof(Text) * buffer_i);
-    if (!txt_sub_buf) {
-      fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-      return NULL;
-    }
 
-    if (txt_sub_buf && tmp_buf) {
-      memcpy(txt_sub_buf, tmp_buf, sizeof(Text) * buffer_i);
-      memset(tmp_buf, 0, sizeof(Text) * buffer_i);
-    }
-
-    if (list_buf) {
-      list_buf[list_i].buf = txt_sub_buf;
-      list_buf[list_i].size = buffer_i;
-    }
-  }
-
-  if (tmp_buf) {
-    free(tmp_buf);
-  }
-
-  return list_buf;
+  return text_buffer;
 }

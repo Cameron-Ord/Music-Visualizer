@@ -1,45 +1,32 @@
 #include "main.h"
 
-size_t nav_down(NavListArgs *list_args) {
-  int signed_cursor = (int)*list_args->cursor;
-  int signed_length = (int)list_args->list[*list_args->list_index].size;
-  int signed_list_index = (int)*list_args->list_index;
+size_t nav_down(size_t *cursor, const size_t *count) {
+  int signed_cursor = (int)*cursor;
+  int signed_count = (int)*count;
 
-  // This one is a little simpler.
   signed_cursor++;
-  if (signed_cursor > signed_length - 1) {
-    signed_list_index++;
+  if(signed_cursor > signed_count - 1){
     signed_cursor = 0;
-    if (signed_list_index > (int)list_args->list_size - 1) {
-      signed_list_index = 0;
-    }
   }
 
-  *list_args->list_index = (size_t)signed_list_index;
-  *list_args->cursor = (size_t)signed_cursor;
+  printf("%d\n", signed_cursor);
+
+  *cursor = (size_t)signed_cursor;
 
   return (size_t)signed_cursor;
 }
 
-size_t nav_up(NavListArgs *list_args) {
-  int signed_cursor = (int)*list_args->cursor;
-  int signed_list_index = (int)*list_args->list_index;
-  // Initial cursor decrement.
+size_t nav_up(size_t *cursor, const size_t *count) {
+  int signed_cursor = (int)*cursor;
+  int signed_count = (int)*count;
+  
   signed_cursor--;
-  if (signed_cursor < 0) {
-    // Walk down the list
-    signed_list_index--;
-    if (signed_list_index < 0) {
-      // Wrap around
-      signed_list_index = (int)(list_args->list_size - 1);
-    }
-
-    signed_cursor = (int)list_args->list[(size_t)signed_list_index].size - 1;
+  if(signed_cursor < 0){
+    signed_cursor = signed_count - 1;
   }
 
-  // Assign the variables to their pointers
-  *list_args->list_index = (size_t)signed_list_index;
-  *list_args->cursor = (size_t)signed_cursor;
+  printf("%d\n", signed_cursor);
+  *cursor = (size_t)signed_cursor;
 
   return (size_t)signed_cursor;
 }
