@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
 
-                    TextBuffer *original_dir = dir_text_buffer;
+            TextBuffer *original_dir = dir_text_buffer;
           TextBuffer *original_files = file_text_buffer;
 
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
@@ -331,15 +331,6 @@ int main(int argc, char **argv) {
 
     case PLAYBACK: {
       if (vis.stream_flag) {
-
-        const uint32_t uint32_len = S_BUF_SIZE;
-        const uint32_t samples = uint32_len / sizeof(float);
-        const uint32_t remaining = (adc->length - adc->position);
-
-        const uint32_t copy = (samples < remaining) ? samples : remaining;
-
-        fft_push(&adc->position, f_buffers->fft_in, adc->buffer,
-                 copy * sizeof(float));
         hamming_window(f_buffers->fft_in, f_data->hamming_values,
                        f_buffers->windowed);
         recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, S_BUF_SIZE);
