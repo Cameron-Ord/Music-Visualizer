@@ -4,7 +4,7 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
-I am making this for myself only, but if you wanna use it, check out the build section.
+I am making this for myself only, but if you wanna use it, check out the build section. Note that as of right now it will not work to linux as I have not completely implemented the filesystem search
 
 ### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
