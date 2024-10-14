@@ -18,22 +18,30 @@ void callback(void *userdata, uint8_t *stream, int length) {
 
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    if (adc->position >= file_length) {
+    if (adc->position >= file_length && !vis.scrolling) {
       pause_device();
     }
 
-    if (stream && vis.dev) {
+    if (stream && vis.dev && !vis.scrolling) {
       float *f32_stream = (float *)stream;
       if (f32_stream) {
         for (uint32_t i = 0; i < copy; i++) {
           f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
         }
-      }
+      } 
 
       adc->position += copy;
+    } else if(stream && vis.dev && vis.scrolling) {
+      float *f32_stream = (float *)stream;
+      if (f32_stream) {
+        for (uint32_t i = 0; i < copy; i++) {
+          f32_stream[i] = 0.0f;
+        }
+      }
     }
 
-    if (adc->position >= file_length) {
+    if (adc->position >= file_length && !vis.scrolling) {
+      vis.next_song_flag = 1;
       pause_device();
     }
 
@@ -315,6 +323,7 @@ bool load_song(AudioDataContainer *adc) {
     return false;
   }
 
+  vis.next_song_flag = 0;
   vis.spec.userdata = adc;
   vis.spec.callback = callback;
   vis.spec.channels = adc->channels;

@@ -24,6 +24,8 @@ typedef struct {
   SDL_AudioDeviceID dev;
   SDL_AudioSpec spec;
   bool stream_flag;
+  int next_song_flag;
+  int scrolling;
   bool quit;
   int current_state;
   SDL_Color primary;

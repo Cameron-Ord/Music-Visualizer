@@ -1,5 +1,6 @@
 #include "main.h"
 #include "SDL2/SDL_audio.h"
+#include "SDL2/SDL_keycode.h"
 #include "audio.h"
 #include "audiodefs.h"
 #include "filesystem.h"
@@ -58,6 +59,8 @@ int main(int argc, char **argv) {
   key.file_list_index = 0;
   key.dir_list_index = 0;
 
+  vis.next_song_flag = 0;
+  vis.scrolling = 0;
   vis.quit = false;
   vis.current_state = DIRECTORIES;
   vis.primary = primary;
@@ -216,6 +219,20 @@ int main(int argc, char **argv) {
         }
       } break;
 
+      case SDL_KEYUP: {
+        switch (event.key.keysym.sym) {
+        default:
+          break;
+        case SDLK_LEFT: {
+          vis.scrolling = 0;
+        } break;
+
+        case SDLK_RIGHT: {
+          vis.scrolling = 0;
+        } break;
+        }
+      } break;
+
       case SDL_KEYDOWN: {
         switch (vis.current_state) {
         default:
@@ -225,14 +242,58 @@ int main(int argc, char **argv) {
           switch (event.key.keysym.sym) {
           default:
             break;
+
+          case SDLK_p: {
+            if (vis.dev) {
+              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
+              default:
+                break;
+
+              case SDL_AUDIO_STOPPED: {
+
+              } break;
+
+              case SDL_AUDIO_PAUSED: {
+                resume_device();
+              } break;
+
+              case SDL_AUDIO_PLAYING: {
+                pause_device();
+              } break;
+              }
+            }
+          } break;
           case SDLK_LEFT: {
-            if (file_count > 0)
-              vis.current_state = SONGS;
+            if (event.key.keysym.mod & KMOD_SHIFT) {
+              vis.scrolling = 1;
+
+
+              int pos_cpy = adc->position - S_BUF_SIZE;
+              if (pos_cpy < 0) {
+                pos_cpy = 0;
+              }
+
+              adc->position = pos_cpy;
+            } else {
+              if (file_count > 0)
+                vis.current_state = SONGS;
+            }
           } break;
 
           case SDLK_RIGHT: {
-            if (dir_count > 0)
-              vis.current_state = DIRECTORIES;
+            if (event.key.keysym.mod & KMOD_SHIFT) {
+              vis.scrolling = 1;
+
+              int pos_cpy = adc->position + S_BUF_SIZE;
+              if (pos_cpy > (int)adc->length) {
+                pos_cpy = adc->length - S_BUF_SIZE;
+              }
+
+              adc->position = pos_cpy;
+            } else {
+              if (dir_count > 0)
+                vis.current_state = DIRECTORIES;
+            }
           } break;
           }
         } break;
@@ -331,7 +392,7 @@ int main(int argc, char **argv) {
       break;
 
     case PLAYBACK: {
-      if (vis.stream_flag) {
+      if (!vis.next_song_flag) {
         hamming_window(f_buffers->fft_in, f_data->hamming_values,
                        f_buffers->windowed);
         recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, S_BUF_SIZE);
@@ -340,7 +401,7 @@ int main(int argc, char **argv) {
         squash_to_log(f_buffers, f_data);
         visual_refine(f_buffers, f_data);
       }
-      if (!vis.stream_flag) {
+      if (vis.next_song_flag && !vis.scrolling) {
 
         nav_down(&key.file_cursor, &file_count);
         const char *search_key = file_text_buffer[key.file_cursor].text->name;
@@ -366,7 +427,7 @@ int main(int argc, char **argv) {
       break;
 
     case PLAYBACK: {
-      if (f_data->output_len > 0 && vis.stream_flag) {
+      if (f_data->output_len > 0) {
         render_draw_music(f_buffers->smear, f_buffers->smoothed,
                           &f_data->output_len, particle_buffer);
       }
