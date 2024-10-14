@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "SDL2/SDL_audio.h"
 #include "audiodefs.h"
 #include "main.h"
 #include <sndfile.h>
@@ -65,9 +66,9 @@ void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n) {
 } /*fft_func*/
 
 void extract_frequencies(FFTBuffers *bufs) {
-  for (int i = 0; i < M_BUF_SIZE; ++i) {
+  for (int i = 0; i < S_BUF_SIZE; ++i) {
     float real = crealf(bufs->out_raw[i]);
-    float imag = crealf(bufs->out_raw[i]);
+    float imag = cimagf(bufs->out_raw[i]);
     bufs->extracted[i] = sqrt(real * real + imag * imag);
     bufs->phases[i] = atan2(imag, real);
   }
@@ -162,12 +163,12 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
   data->max_ampl = 1.0f;
   data->max_phase = 1.0f;
 
-  for (float f = lowf; (size_t)f < HALF_BUFF_SIZE; f = ceilf(f * step)) {
+  for (float f = lowf; (size_t)f < M_BUF_SIZE; f = ceilf(f * step)) {
     float fs = ceilf(f * step);
     float a = 0.0f;
     float p = 0.0f;
 
-    for (size_t q = (size_t)f; q < HALF_BUFF_SIZE && q < (size_t)fs; ++q) {
+    for (size_t q = (size_t)f; q < M_BUF_SIZE && q < (size_t)fs; ++q) {
       float b = amp(bufs->extracted[q]);
       if (b > a) {
         a = b;
@@ -200,15 +201,14 @@ void hamming_window(float *in, const float *hamming_values, float *windowed) {
     int left = i * 2;
     int right = i * 2 + 1;
 
-    float summed = (in[left] + in[right]) / 2;
-    windowed[i] = summed;
-    windowed[i] *= hamming_values[i];
+    windowed[left] =  in[left] *hamming_values[left];
+    windowed[right] *= in[right] *hamming_values[right];
   }
 }
 
 void calculate_window(float *hamming_values) {
-  for (int i = 0; i < M_BUF_SIZE; ++i) {
-    float Nf = (float)M_BUF_SIZE;
+  for (int i = 0; i < S_BUF_SIZE; ++i) {
+    float Nf = (float)S_BUF_SIZE;
     float t = (float)i / (Nf - 1);
     hamming_values[i] = 0.54 - 0.46 * cosf(2 * M_PI * t);
   }
@@ -226,7 +226,8 @@ void zero_values(AudioDataContainer *adc) {
   adc->volume = 1.0;
 }
 
-bool read_audio_file(char *file_path, AudioDataContainer *adc) {
+bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
+
 
   SNDFILE *sndfile = NULL;
   SF_INFO sfinfo;
@@ -280,7 +281,7 @@ bool read_audio_file(char *file_path, AudioDataContainer *adc) {
   fprintf(stdout, "BYTES %zu\n", adc->bytes);
   fprintf(stdout, "SAMPLES %zu\n", adc->samples);
 
-  adc->buffer = (float *)calloc(adc->samples,adc->bytes);
+  adc->buffer = (float *)calloc(adc->samples, sizeof(float));
   if (!adc->buffer) {
     fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
@@ -303,6 +304,11 @@ bool read_audio_file(char *file_path, AudioDataContainer *adc) {
 bool load_song(AudioDataContainer *adc) {
   if (!adc) {
     return false;
+  }
+
+  if(SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_STOPPED){
+    pause_device();
+    SDL_CloseAudioDevice(vis.dev);
   }
 
   vis.spec.userdata = adc;

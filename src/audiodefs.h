@@ -52,16 +52,17 @@ struct AudioDataContainer {
   FFTBuffers *next;
 };
 
+//I squash stereo channels into a size of M_BUF_SIZE by summing and other means
 struct FFTBuffers {
   float fft_in[S_BUF_SIZE];
-  float windowed[M_BUF_SIZE];
-  Float_Complex out_raw[M_BUF_SIZE];
-  float extracted[M_BUF_SIZE];
-  float phases[M_BUF_SIZE];
-  float processed[HALF_BUFF_SIZE];
-  float processed_phases[HALF_BUFF_SIZE];
-  float smoothed[HALF_BUFF_SIZE];
-  float smear[HALF_BUFF_SIZE];
+  float windowed[S_BUF_SIZE];
+  Float_Complex out_raw[S_BUF_SIZE];
+  float extracted[S_BUF_SIZE];
+  float phases[S_BUF_SIZE];
+  float processed[M_BUF_SIZE];
+  float processed_phases[M_BUF_SIZE];
+  float smoothed[M_BUF_SIZE];
+  float smear[M_BUF_SIZE];
   FFTData *next;
 };
 
@@ -76,7 +77,7 @@ struct FFTData {
   int cell_width;
   float max_ampl;
   float max_phase;
-  float hamming_values[M_BUF_SIZE];
+  float hamming_values[S_BUF_SIZE];
   AudioDataContainer *next;
 };
 

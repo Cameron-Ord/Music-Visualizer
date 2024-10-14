@@ -5,7 +5,7 @@ size_t nav_down(size_t *cursor, const size_t *count) {
   int signed_count = (int)*count;
 
   signed_cursor++;
-  if(signed_cursor > signed_count - 1){
+  if (signed_cursor > signed_count - 1) {
     signed_cursor = 0;
   }
 
@@ -19,9 +19,9 @@ size_t nav_down(size_t *cursor, const size_t *count) {
 size_t nav_up(size_t *cursor, const size_t *count) {
   int signed_cursor = (int)*cursor;
   int signed_count = (int)*count;
-  
+
   signed_cursor--;
-  if(signed_cursor < 0){
+  if (signed_cursor < 0) {
     signed_cursor = signed_count - 1;
   }
 

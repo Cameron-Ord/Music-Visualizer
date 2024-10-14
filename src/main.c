@@ -104,21 +104,20 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  if(dir_contents && dir_count == 0){
+  if (dir_contents && dir_count == 0) {
     fprintf(stdout, "No directories!\n");
     free(dir_contents);
     dir_contents = NULL;
   }
 
-  TextBuffer * dir_text_buffer = NULL;
-  TextBuffer * file_text_buffer = NULL;
+  TextBuffer *dir_text_buffer = NULL;
+  TextBuffer *file_text_buffer = NULL;
 
   dir_text_buffer = create_fonts(dir_contents, &dir_count);
-  if(!dir_text_buffer){
+  if (!dir_text_buffer) {
     fprintf(stdout, "Fonts weren't created!\n");
     dir_text_buffer = NULL;
   }
-
 
   AudioDataContainer *adc = calloc(1, sizeof(AudioDataContainer));
   if (!adc) {
@@ -165,6 +164,166 @@ int main(int argc, char **argv) {
     render_bg();
     render_clear();
 
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      switch (event.type) {
+      default:
+        break;
+
+      case SDL_WINDOWEVENT: {
+        switch (event.window.event) {
+        case SDL_WINDOWEVENT_RESIZED: {
+          SDL_GetWindowSize(win.w, &win.width, &win.height);
+          rend.title_limit = get_title_limit(win.height);
+          font.char_limit = get_char_limit(win.width);
+
+          TextBuffer *original_dir = dir_text_buffer;
+          TextBuffer *original_files = file_text_buffer;
+
+          dir_text_buffer = create_fonts(dir_contents, &dir_count);
+          file_text_buffer = create_fonts(file_contents, &file_count);
+
+          if(original_dir){
+            free(original_dir);
+          }
+
+          if(original_files){
+            free(original_files);
+          }
+
+        } break;
+
+        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+          SDL_GetWindowSize(win.w, &win.width, &win.height);
+          rend.title_limit = get_title_limit(win.height);
+          font.char_limit = get_char_limit(win.width);
+
+                    TextBuffer *original_dir = dir_text_buffer;
+          TextBuffer *original_files = file_text_buffer;
+
+          dir_text_buffer = create_fonts(dir_contents, &dir_count);
+          file_text_buffer = create_fonts(file_contents, &file_count);
+
+          if(original_dir){
+            free(original_dir);
+          }
+
+          if(original_files){
+            free(original_files);
+          }
+
+        } break;
+        }
+      } break;
+
+      case SDL_KEYDOWN: {
+        switch (vis.current_state) {
+        default:
+          break;
+
+        case PLAYBACK: {
+          switch (event.key.keysym.sym) {
+          default:
+            break;
+          case SDLK_LEFT: {
+            if (file_count > 0)
+              vis.current_state = SONGS;
+          } break;
+
+          case SDLK_RIGHT: {
+            if (dir_count > 0)
+              vis.current_state = DIRECTORIES;
+          } break;
+          }
+        } break;
+
+        case SONGS: {
+          switch (event.key.keysym.sym) {
+          default:
+            break;
+
+          case SDLK_LEFT: {
+            if (dir_count > 0)
+              vis.current_state = DIRECTORIES;
+          } break;
+
+          case SDLK_RIGHT: {
+            if (vis.stream_flag)
+              vis.current_state = PLAYBACK;
+          } break;
+
+          case SDLK_UP: {
+            nav_up(&key.file_cursor, &file_count);
+          } break;
+
+          case SDLK_DOWN: {
+            nav_down(&key.file_cursor, &file_count);
+          } break;
+
+          case SDLK_SPACE: {
+            const char *search_key =
+                file_text_buffer[key.file_cursor].text->name;
+            const char *path_str = find_pathstr(search_key, file_contents);
+
+            if (read_audio_file(path_str, adc)) {
+              if(load_song(adc)){
+                vis.current_state = PLAYBACK;
+              }
+            } else {
+              pause_device();
+              SDL_CloseAudioDevice(vis.dev);
+            }
+
+          } break;
+          }
+
+        } break;
+
+        case DIRECTORIES: {
+          switch (event.key.keysym.sym) {
+          default:
+            break;
+
+          case SDLK_LEFT: {
+            if (vis.stream_flag) {
+              vis.current_state = PLAYBACK;
+            }
+          } break;
+
+          case SDLK_RIGHT: {
+            if (file_count > 0)
+              vis.current_state = SONGS;
+          } break;
+
+          case SDLK_UP: {
+            nav_up(&key.dir_cursor, &dir_count);
+          } break;
+
+          case SDLK_DOWN: {
+            nav_down(&key.dir_cursor, &dir_count);
+          } break;
+
+          case SDLK_SPACE: {
+            const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
+            const char *path_str = find_pathstr(search_key, dir_contents);
+            file_contents = find_files(&file_count, path_str);
+            file_text_buffer = create_fonts(file_contents, &file_count);
+            if (file_text_buffer) {
+              key.file_cursor = 0;
+              vis.current_state = SONGS;
+            }
+          } break;
+          }
+        } break;
+        }
+      } break;
+
+      case SDL_QUIT: {
+        vis.quit = true;
+
+      } break;
+      }
+    }
 
     switch (vis.current_state) {
     default:
@@ -172,15 +331,35 @@ int main(int argc, char **argv) {
 
     case PLAYBACK: {
       if (vis.stream_flag) {
-          hamming_window(f_buffers->fft_in, f_data->hamming_values,
-                         f_buffers->windowed);
-          recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
-          extract_frequencies(f_buffers);
-          freq_bin_algo(adc->SR, f_buffers->extracted);
-          squash_to_log(f_buffers, f_data);
-          visual_refine(f_buffers, f_data);
+
+        const uint32_t uint32_len = S_BUF_SIZE;
+        const uint32_t samples = uint32_len / sizeof(float);
+        const uint32_t remaining = (adc->length - adc->position);
+
+        const uint32_t copy = (samples < remaining) ? samples : remaining;
+
+        fft_push(&adc->position, f_buffers->fft_in, adc->buffer,
+                 copy * sizeof(float));
+        hamming_window(f_buffers->fft_in, f_data->hamming_values,
+                       f_buffers->windowed);
+        recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, S_BUF_SIZE);
+        extract_frequencies(f_buffers);
+        freq_bin_algo(adc->SR, f_buffers->extracted);
+        squash_to_log(f_buffers, f_data);
+        visual_refine(f_buffers, f_data);
       }
       if (!vis.stream_flag) {
+        nav_down(&key.file_cursor, &file_count);
+
+        const char *search_key = file_text_buffer[key.file_cursor].text->name;
+        const char *path_str = find_pathstr(search_key, file_contents);
+
+        if (read_audio_file(path_str, adc)) {
+          load_song(adc);
+        } else {
+          pause_device();
+          SDL_CloseAudioDevice(vis.dev);
+        }
       }
     } break;
     }
@@ -205,130 +384,6 @@ int main(int argc, char **argv) {
       assert(file_text_buffer != NULL);
       render_draw_text(dir_text_buffer, &dir_count, &key.dir_cursor);
     } break;
-    }
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      switch (event.type) {
-      default:
-        break;
-
-      case SDL_WINDOWEVENT: {
-        switch (event.window.event) {
-        case SDL_WINDOWEVENT_RESIZED: {
-          SDL_GetWindowSize(win.w, &win.width, &win.height);
-          rend.title_limit = get_title_limit(win.height);
-          font.char_limit = get_char_limit(win.width);
-
-        } break;
-
-        case SDL_WINDOWEVENT_SIZE_CHANGED: {
-          SDL_GetWindowSize(win.w, &win.width, &win.height);
-          rend.title_limit = get_title_limit(win.height);
-          font.char_limit = get_char_limit(win.width);
-
-        } break;
-        }
-      } break;
-
-      case SDL_KEYDOWN: {
-        switch (vis.current_state) {
-        default:
-          break;
-
-        case PLAYBACK: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
-          case SDLK_LEFT: {
-            if(file_count > 0)
-              vis.current_state = SONGS;
-          } break;
-
-          case SDLK_RIGHT: {
-            if(dir_count > 0)
-              vis.current_state = DIRECTORIES;
-          } break;
-          }
-        } break;
-
-        case SONGS: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
-
-          case SDLK_LEFT: {
-            if(dir_count > 0)
-              vis.current_state = DIRECTORIES;
-          } break;
-
-          case SDLK_RIGHT: {
-            if (vis.stream_flag) 
-              vis.current_state = PLAYBACK;
-          } break;
-
-          case SDLK_UP: {
-            nav_up(&key.file_cursor, &file_count);
-          } break;
-
-          case SDLK_DOWN: {
-            nav_down(&key.file_cursor, &file_count);
-          } break;
-
-          case SDLK_SPACE: {
-          } break;
-          }
-
-        } break;
-
-        case DIRECTORIES: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
-
-          case SDLK_LEFT: {
-            if (vis.stream_flag) {
-              vis.current_state = PLAYBACK;
-            }
-          } break;
-
-          case SDLK_RIGHT: {
-            if(file_count > 0)
-              vis.current_state = SONGS;
-          } break;
-
-          case SDLK_UP: {
-            nav_up(&key.dir_cursor, &dir_count);
-          } break;
-
-          case SDLK_DOWN: {
-            nav_down(&key.dir_cursor, &dir_count);
-          } break;
-
-          case SDLK_SPACE: {
-            const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
-            const char *path_str = find_pathstr(search_key, dir_contents);
-
-            printf("%s\n", path_str);
-
-            file_contents = find_files(&file_count, path_str);
-            file_text_buffer = create_fonts(file_contents, &file_count);
-            if(file_text_buffer){
-              key.file_cursor = 0;
-              vis.current_state = SONGS;
-              
-            }
-          } break;
-          }
-        } break;
-        }
-      } break;
-
-      case SDL_QUIT: {
-        vis.quit = true;
-
-      } break;
-      }
     }
 
     frame_time = SDL_GetTicks64() - frame_start;
@@ -361,19 +416,19 @@ int main(int argc, char **argv) {
     free(dir_contents);
   }
 
-//  if (file_contents) {
+  //  if (file_contents) {
   //  for (size_t i = 0; i < file_count; i++) {
-    //  if (file_contents[i].name) {
-     //   free(file_contents[i].name);
-     // }
+  //  if (file_contents[i].name) {
+  //   free(file_contents[i].name);
+  // }
 
-      //if (file_contents[i].path) {
-       // free(file_contents[i].path);
-     // }
-    //}
+  // if (file_contents[i].path) {
+  //  free(file_contents[i].path);
+  // }
+  //}
 
-   // free(file_contents);
- // }
+  // free(file_contents);
+  // }
 
   if (adc) {
     if (adc->buffer) {

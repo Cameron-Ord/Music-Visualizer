@@ -9,7 +9,7 @@
 // Audio functions
 void zero_values(AudioDataContainer *adc);
 void callback(void *userdata, uint8_t *stream, int length);
-bool read_audio_file(char *file_path, AudioDataContainer *adc);
+bool read_audio_file(const char *file_path, AudioDataContainer *adc);
 bool load_song(AudioDataContainer *adc);
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes);
 void calculate_window(float *hamming_values);
