@@ -5,34 +5,42 @@
 #include <sndfile.h>
 
 void callback(void *userdata, uint8_t *stream, int length) {
-  if(!userdata){
+  if (!userdata) {
     pause_device();
   }
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
   if (adc && adc->buffer) {
     const uint32_t file_length = adc->length;
-    uint32_t pos = adc->position;
 
-      const uint32_t uint32_len = (uint32_t)length;
-      const uint32_t samples = uint32_len / sizeof(float);
-      const uint32_t remaining = (file_length - pos);
+    const uint32_t uint32_len = (uint32_t)length;
+    const uint32_t samples = uint32_len / sizeof(float);
+    const uint32_t remaining = (file_length - adc->position);
 
-      const uint32_t copy = (samples < remaining) ? samples : remaining;
-     
-      if (stream && pos < file_length) {
-        float *f32_stream = (float *)stream;
+    const uint32_t copy = (samples < remaining) ? samples : remaining;
+
+    if (adc->position >= file_length) {
+      pause_device();
+    }
+
+    if (stream && vis.dev) {
+      float *f32_stream = (float *)stream;
+      if (f32_stream) {
         for (uint32_t i = 0; i < copy; i++) {
-          f32_stream[i] = adc->buffer[i + pos] * adc->volume;
+          f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
         }
-
-        pos += copy;
-        adc->position = pos;
-        if(adc->next){
-            fft_push(&adc->position, adc->next->fft_in, adc->buffer, copy);
-        }
-      } else {
-        pause_device();
       }
+
+      adc->position += copy;
+    }
+
+    if (adc->position >= file_length) {
+      pause_device();
+    }
+
+    if ((adc->position + copy) < file_length) {
+      fft_push(&adc->position, adc->next->fft_in, adc->buffer,
+               copy * sizeof(float));
+    }
   }
 }
 
@@ -95,7 +103,7 @@ float amp(float z) {
 }
 
 void freq_bin_algo(int sr, float *extracted) {
-  float freq_bin_size = (float)sr / M_BUF_SIZE;
+  float freq_bin_size = (float)sr / S_BUF_SIZE;
   const size_t buf_size = 3;
   float bin_sums[buf_size];
 
@@ -201,8 +209,8 @@ void hamming_window(float *in, const float *hamming_values, float *windowed) {
     int left = i * 2;
     int right = i * 2 + 1;
 
-    windowed[left] =  in[left] *hamming_values[left];
-    windowed[right] *= in[right] *hamming_values[right];
+    windowed[left] = in[left] * hamming_values[left];
+    windowed[right] *= in[right] * hamming_values[right];
   }
 }
 
@@ -228,6 +236,9 @@ void zero_values(AudioDataContainer *adc) {
 
 bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
 
+  if (vis.dev) {
+    SDL_CloseAudioDevice(vis.dev);
+  }
 
   SNDFILE *sndfile = NULL;
   SF_INFO sfinfo;
@@ -236,29 +247,27 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
     return false;
   }
 
-  zero_values(adc);
-  if(adc->buffer){
+  if (adc->buffer) {
     free(adc->buffer);
     adc->buffer = NULL;
   }
 
-    if(adc->next){
-        memset(adc->next->extracted, 0, sizeof(float) * M_BUF_SIZE);
-        memset(adc->next->fft_in, 0, sizeof(float) * S_BUF_SIZE);
-        memset(adc->next->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
-        memset(adc->next->phases, 0, sizeof(float) * M_BUF_SIZE);
-        memset(adc->next->processed_phases, 0, sizeof(float) * HALF_BUFF_SIZE);
-        memset(adc->next->processed, 0, sizeof(float) * HALF_BUFF_SIZE);
-        memset(adc->next->smear, 0, sizeof(float) * HALF_BUFF_SIZE);
-        memset(adc->next->smoothed, 0, sizeof(float) * HALF_BUFF_SIZE);
-        memset(adc->next->windowed, 0, sizeof(float) * M_BUF_SIZE);
-    }
-
+  if (adc->next) {
+    memset(adc->next->extracted, 0, sizeof(float) * S_BUF_SIZE);
+    memset(adc->next->fft_in, 0, sizeof(float) * S_BUF_SIZE);
+    memset(adc->next->out_raw, 0, sizeof(Float_Complex) * S_BUF_SIZE);
+    memset(adc->next->phases, 0, sizeof(float) * S_BUF_SIZE);
+    memset(adc->next->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->processed, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->smear, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->smoothed, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->windowed, 0, sizeof(float) * S_BUF_SIZE);
+  }
 
   memset(&sfinfo, 0, sizeof(SF_INFO));
 
   fprintf(stdout, "Reading file -> %s\n", file_path);
-
+  zero_values(adc);
   sndfile = sf_open(file_path, SFM_READ, &sfinfo);
   if (!sndfile) {
     fprintf(stderr, "Could not open file: %s -> %s\n", file_path,
@@ -272,7 +281,7 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
   adc->samples = sfinfo.frames * sfinfo.channels;
   adc->bytes = adc->samples * sizeof(float);
 
-  if(adc->channels != 2){
+  if (adc->channels != 2) {
     fprintf(stderr, "Must be a two channel audio file!\n");
     return false;
   }
@@ -306,11 +315,6 @@ bool load_song(AudioDataContainer *adc) {
     return false;
   }
 
-  if(SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_STOPPED){
-    pause_device();
-    SDL_CloseAudioDevice(vis.dev);
-  }
-
   vis.spec.userdata = adc;
   vis.spec.callback = callback;
   vis.spec.channels = adc->channels;
@@ -318,7 +322,7 @@ bool load_song(AudioDataContainer *adc) {
   vis.spec.format = AUDIO_F32SYS;
   vis.spec.samples = M_BUF_SIZE;
 
-  vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 0);
+  vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 1);
   if (!vis.dev) {
     return false;
   }
@@ -331,21 +335,25 @@ bool load_song(AudioDataContainer *adc) {
 }
 
 bool pause_device(void) {
-  if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PAUSED) {
-    SDL_PauseAudioDevice(vis.dev, true);
-    printf("Paused\n");
-    vis.stream_flag = false;
-    return true;
+  if (vis.dev) {
+    if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PAUSED) {
+      SDL_PauseAudioDevice(vis.dev, true);
+      vis.stream_flag = false;
+      return true;
+    }
   }
 
   return false;
 }
 
 bool resume_device(void) {
-  if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PLAYING) {
-    SDL_PauseAudioDevice(vis.dev, false);
-    vis.stream_flag = true;
-    return true;
+  if (vis.dev) {
+
+    if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PLAYING) {
+      SDL_PauseAudioDevice(vis.dev, false);
+      vis.stream_flag = true;
+      return true;
+    }
   }
 
   return false;

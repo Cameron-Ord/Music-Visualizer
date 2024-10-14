@@ -1,8 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 #include "filesystem.h"
-#include "particledef.h"
 #include "fontdef.h"
+#include "particledef.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -92,11 +92,12 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count);
 
 // Render functions
 void render_bg(void);
-void render_draw_text(TextBuffer *list_buf, const size_t *item_count, const size_t *cursor);
+void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
+                      const size_t *cursor);
 void render_clear(void);
 void render_present(void);
 void render_draw_music(const float *smear, const float *smoothed,
-                       const size_t *len, ParticleTrio* p_buffer);
+                       const size_t *len, ParticleTrio *p_buffer);
 
 // Events functions
 size_t nav_down(size_t *cursor, const size_t *count);

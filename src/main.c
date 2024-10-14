@@ -183,11 +183,11 @@ int main(int argc, char **argv) {
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
 
-          if(original_dir){
+          if (original_dir) {
             free(original_dir);
           }
 
-          if(original_files){
+          if (original_files) {
             free(original_files);
           }
 
@@ -198,17 +198,17 @@ int main(int argc, char **argv) {
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
 
-            TextBuffer *original_dir = dir_text_buffer;
+          TextBuffer *original_dir = dir_text_buffer;
           TextBuffer *original_files = file_text_buffer;
 
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
 
-          if(original_dir){
+          if (original_dir) {
             free(original_dir);
           }
 
-          if(original_files){
+          if (original_files) {
             free(original_files);
           }
 
@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
             const char *path_str = find_pathstr(search_key, file_contents);
 
             if (read_audio_file(path_str, adc)) {
-              if(load_song(adc)){
+              if (load_song(adc)) {
                 vis.current_state = PLAYBACK;
               }
             } else {
@@ -319,6 +319,7 @@ int main(int argc, char **argv) {
       } break;
 
       case SDL_QUIT: {
+        SDL_CloseAudioDevice(vis.dev);
         vis.quit = true;
 
       } break;
@@ -340,16 +341,21 @@ int main(int argc, char **argv) {
         visual_refine(f_buffers, f_data);
       }
       if (!vis.stream_flag) {
-        nav_down(&key.file_cursor, &file_count);
 
+        nav_down(&key.file_cursor, &file_count);
         const char *search_key = file_text_buffer[key.file_cursor].text->name;
         const char *path_str = find_pathstr(search_key, file_contents);
 
         if (read_audio_file(path_str, adc)) {
-          load_song(adc);
+          if (load_song(adc)) {
+            vis.current_state = PLAYBACK;
+          } else {
+            vis.current_state = SONGS;
+          }
         } else {
           pause_device();
           SDL_CloseAudioDevice(vis.dev);
+          vis.current_state = SONGS;
         }
       }
     } break;
@@ -383,10 +389,6 @@ int main(int argc, char **argv) {
     }
 
     render_present();
-  }
-
-  if (SDL_GetAudioDeviceStatus(vis.dev) > 0) {
-    SDL_CloseAudioDevice(vis.dev);
   }
 
   if (particle_buffer) {

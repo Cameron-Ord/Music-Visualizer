@@ -52,7 +52,7 @@ struct AudioDataContainer {
   FFTBuffers *next;
 };
 
-//I squash stereo channels into a size of M_BUF_SIZE by summing and other means
+// I squash stereo channels into a size of M_BUF_SIZE by summing and other means
 struct FFTBuffers {
   float fft_in[S_BUF_SIZE];
   float windowed[S_BUF_SIZE];
