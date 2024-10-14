@@ -28,10 +28,10 @@ void callback(void *userdata, uint8_t *stream, int length) {
         for (uint32_t i = 0; i < copy; i++) {
           f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
         }
-      } 
+      }
 
       adc->position += copy;
-    } else if(stream && vis.dev && vis.scrolling) {
+    } else if (stream && vis.dev && vis.scrolling) {
       float *f32_stream = (float *)stream;
       if (f32_stream) {
         for (uint32_t i = 0; i < copy; i++) {

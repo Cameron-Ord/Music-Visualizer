@@ -1,11 +1,12 @@
 #include "particles.h"
+#include "particledef.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 ParticleTrio *allocate_particle_buffer(size_t *particle_buffer_size) {
   ParticleTrio *particle_buffer =
-      (ParticleTrio *)malloc(sizeof(ParticleTrio) * 256);
+      (ParticleTrio *)malloc(sizeof(ParticleTrio) * 1024);
   if (!particle_buffer) {
     return NULL;
   }
@@ -16,7 +17,7 @@ ParticleTrio *allocate_particle_buffer(size_t *particle_buffer_size) {
     }
   }
 
-  *particle_buffer_size = 256;
+  *particle_buffer_size = 1024;
   return particle_buffer;
 }
 
@@ -44,9 +45,18 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
   return particle;
 }
 
-ParticleTrio *reallocate_particle_buffer(ParticleTrio *particle_buffer,
-                                         size_t *particle_buffer_size,
-                                         const size_t new_size) {}
+void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size) {
+  if (p_buffer) {
+    for (size_t i = 0; i < size; i++) {
+      for (size_t j = 0; j < PARTICLE_COUNT; j++) {
+        if (p_buffer[i].buf[j]) {
+          cull_dead_particle(p_buffer[i].buf[j]);
+          p_buffer[i].buf[j] = NULL;
+        }
+      }
+    }
+  }
+}
 
 void render_set_particles(ParticleTrio *particle_buffer, const SDL_Rect *end,
                           const SDL_Rect *start, size_t iter) {

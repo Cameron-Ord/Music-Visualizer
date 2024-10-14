@@ -267,7 +267,6 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-
               int pos_cpy = adc->position - S_BUF_SIZE;
               if (pos_cpy < 0) {
                 pos_cpy = 0;
@@ -326,13 +325,18 @@ int main(int argc, char **argv) {
                 file_text_buffer[key.file_cursor].text->name;
             const char *path_str = find_pathstr(search_key, file_contents);
 
+            KILL_PARTICLES(particle_buffer, particle_buffer_size);
+
             if (read_audio_file(path_str, adc)) {
               if (load_song(adc)) {
                 vis.current_state = PLAYBACK;
+              } else {
+                vis.current_state = SONGS;
               }
             } else {
               pause_device();
               SDL_CloseAudioDevice(vis.dev);
+              vis.current_state = SONGS;
             }
 
           } break;
@@ -406,6 +410,8 @@ int main(int argc, char **argv) {
         nav_down(&key.file_cursor, &file_count);
         const char *search_key = file_text_buffer[key.file_cursor].text->name;
         const char *path_str = find_pathstr(search_key, file_contents);
+
+        KILL_PARTICLES(particle_buffer, particle_buffer_size);
 
         if (read_audio_file(path_str, adc)) {
           if (load_song(adc)) {

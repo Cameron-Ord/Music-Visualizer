@@ -100,6 +100,7 @@ void render_clear(void);
 void render_present(void);
 void render_draw_music(const float *smear, const float *smoothed,
                        const size_t *len, ParticleTrio *p_buffer);
+void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 
 // Events functions
 size_t nav_down(size_t *cursor, const size_t *count);
