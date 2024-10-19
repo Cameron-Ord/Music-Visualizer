@@ -1,4 +1,5 @@
 #include "main.h"
+#include "SDL2/SDL_video.h"
 #include "audio.h"
 #include "audiodefs.h"
 #include "filesystem.h"
@@ -38,9 +39,22 @@ SDL_Color background = {41, 45, 62, 255};
 SDL_Color text = {103, 110, 149, 255};
 SDL_Color text_bg = {113, 124, 180, 255};
 
+
+int FPS = 60;
+
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
+
+  if(argc > 1){
+    FPS = atoi(argv[1]);
+    if(FPS > 0){
+      if(FPS < 30 || FPS > 360){
+        FPS = 60;
+      }
+    }
+  }
+
 
   srand(time(NULL));
 
@@ -73,11 +87,13 @@ int main(int argc, char **argv) {
   printf("Creating window..\n");
   win.w = (SDL_Window *)scp(SDL_CreateWindow(
       "Music Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_W,
-      WIN_H, SDL_WINDOW_RESIZABLE));
+      WIN_H, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN));
 
   printf("Creating renderer..\n");
   rend.r = (SDL_Renderer *)scp(SDL_CreateRenderer(
       win.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+
+  render_clear();
 
   win.height = WIN_H;
   win.width = WIN_W;
@@ -154,8 +170,9 @@ int main(int argc, char **argv) {
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
   SDL_EnableScreenSaver();
+  SDL_ShowWindow(win.w);
 
-  const int ticks_per_frame = (1000.0 / 60);
+  const int ticks_per_frame = (1000.0 / FPS);
   uint64_t frame_start;
   int frame_time;
 
