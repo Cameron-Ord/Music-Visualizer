@@ -183,6 +183,7 @@ Paths *win_find_files(size_t *count, const char *path) {
     fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
     return NULL;
   }
+  
   size_t path_length = strlen(path);
   if (path_length == 0) {
     fprintf(stderr, "Failed to get char len! -> %s\n", strerror(errno));
