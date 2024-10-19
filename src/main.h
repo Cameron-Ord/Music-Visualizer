@@ -90,7 +90,7 @@ int get_title_limit(int height);
 int get_char_limit(int width);
 
 // Font related functions
-TextBuffer *create_fonts(Paths *paths_buf, const size_t *count);
+TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count);
 
 // Render functions
 void render_bg(void);

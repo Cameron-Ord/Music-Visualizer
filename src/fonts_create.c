@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
+TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
   if (!paths_buf || !count) {
     fprintf(stderr,
@@ -59,7 +59,7 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
       if(name_buffer[locn] == 32){
         name_buffer[locn] = 46;
       }
-      
+
       locn = max_chars;
       name_buffer[locn++] = 46;
       name_buffer[locn++] = 46;
