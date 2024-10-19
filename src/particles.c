@@ -37,7 +37,7 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
     return NULL;
   }
 
-  particle->frame = rand() % 3;
+  particle->frame = rand() % 2;
   particle->h = MAX(1, (int)(bar_width * 0.1));
   particle->w = MAX(1, (int)(bar_width * 0.1));
 

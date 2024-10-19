@@ -367,13 +367,51 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
+            //I am overwritting possibly priorly allocated heap objects here so there are some crucial steps to make sure things get cleaned up correctly.
+
             const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
             const char *path_str = find_pathstr(search_key, dir_contents);
+
+            //Save the original pointer and file count
+            const size_t original_file_count = file_count;
+            Paths *original_file_contents = file_contents;
+
+            //Call the function to use a platform specific API to read from a directory
             file_contents = find_files(&file_count, path_str);
-            file_text_buffer = create_fonts(file_contents, &file_count);
-            if (file_text_buffer) {
-              key.file_cursor = 0;
-              vis.current_state = SONGS;
+            
+            if(file_count > 0 && file_contents){
+              TextBuffer *original_text_buffer = file_text_buffer;
+          
+              file_text_buffer = create_fonts(file_contents, &file_count);
+              if (file_text_buffer) {
+                //Free the original if it was allocated.
+                if(original_file_contents){
+                  free(original_file_contents);
+                }
+
+                if(original_text_buffer){
+                  free(original_text_buffer);
+                }
+
+                key.file_cursor = 0;
+                vis.current_state = SONGS;
+              } else {
+                free(file_contents);
+                
+                //Set the pointers back to the original pointers.
+                file_text_buffer = original_text_buffer;
+                file_contents = original_file_contents;
+                file_count = original_file_count;
+              }
+            } else {
+              //Free the newly allocated Paths struct (if it is not NULL)
+              if(file_contents){
+                free(file_contents);
+              }
+
+              //Set the pointers back to the original pointers.
+              file_contents = original_file_contents;
+              file_count = original_file_count;
             }
           } break;
           }
