@@ -368,6 +368,7 @@ int main(int argc, char **argv) {
 
           case SDLK_SPACE: {
             //I am overwritting possibly priorly allocated heap objects here so there are some crucial steps to make sure things get cleaned up correctly.
+            //Note that said cleanup isn't fully implemented yet as the allocated objects do contain heap allocated objects, so make sure to get that stuff done.
 
             const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
             const char *path_str = find_pathstr(search_key, dir_contents);
@@ -389,6 +390,7 @@ int main(int argc, char **argv) {
                   free(original_file_contents);
                 }
 
+                //Free the original if it was allocated.
                 if(original_text_buffer){
                   free(original_text_buffer);
                 }
