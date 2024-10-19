@@ -9,7 +9,7 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
   if (!paths_buf || !count) {
     fprintf(stderr,
             "Paths buf or counter was NULL! -> counter : %p - paths : %p\n",
-            (void *)paths_buf, (void *)count);
+            (void *)count, (void *)paths_buf);
     return NULL;
   }
 
@@ -56,7 +56,7 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
     if (paths_buf[i].name_length > max_chars) {
       size_t locn = max_chars - 1;
-      if(name_buffer[locn] == 32){
+      if (name_buffer[locn] == 32) {
         name_buffer[locn] = 46;
       }
 

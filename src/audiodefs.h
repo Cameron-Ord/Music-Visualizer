@@ -1,12 +1,15 @@
 #ifndef AUDIODEFS_H
 #define AUDIODEFS_H
-//4096
 
-#define M_BUF_SIZE (1<<13)
+#define M_BUF_SIZE (1 << 13)
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 
 #include <complex.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 // I stole this from tsoding cause I had originally written my complex numbers
 // stuff in C++ and im lazy. So thanks Tsoding, I love you.
@@ -21,7 +24,7 @@
 #define addcc(a, b) _FCbuild(crealf(a) + crealf(b), cimagf(a) + cimagf(b))
 #define subcc(a, b) _FCbuild(crealf(a) - crealf(b), cimagf(a) - cimagf(b))
 #else
-#define Float_Complex float complex
+#define Float_Complex float _Complex
 #define cfromreal(re) (re)
 #define cfromimag(im) ((im) * I)
 #define mulcc(a, b) ((a) * (b))

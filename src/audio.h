@@ -1,11 +1,6 @@
 #ifndef AUDIO_H
 #define AUDIO_H
-
 #include "audiodefs.h"
-#include <SDL2/SDL_audio.h>
-#include <stdbool.h>
-#include <stdint.h>
-
 // Audio functions
 void zero_values(AudioDataContainer *adc);
 void callback(void *userdata, uint8_t *stream, int length);

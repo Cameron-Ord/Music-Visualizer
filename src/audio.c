@@ -1,5 +1,4 @@
 #include "audio.h"
-#include "SDL2/SDL_audio.h"
 #include "audiodefs.h"
 #include "main.h"
 #include <sndfile.h>
@@ -55,10 +54,10 @@ void callback(void *userdata, uint8_t *stream, int length) {
 }
 
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
-  if(!bytes){
+  if (!bytes) {
     return;
   }
-  
+
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
   }
@@ -89,23 +88,23 @@ void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n) {
 
 void extract_frequencies(FFTBuffers *bufs) {
   for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
-    const size_t left = i * 2; 
-    const size_t right = i * 2 + 1; 
+    const size_t left = i * 2;
+    const size_t right = i * 2 + 1;
 
-    float real = 0.0f; 
+    float real = 0.0f;
     float imag = 0.0f;
-    
+
     real = crealf(bufs->out_raw[left]);
     imag = cimagf(bufs->out_raw[left]);
 
-    bufs->extracted[left] = sqrt(real * real + imag * imag);
-    bufs->phases[left] = atan2(imag, real);
+    bufs->extracted[left] = sqrtf(real * real + imag * imag);
+    bufs->phases[left] = atan2f(imag, real);
 
     real = crealf(bufs->out_raw[right]);
     imag = cimagf(bufs->out_raw[right]);
 
-    bufs->extracted[right] = sqrt(real * real + imag * imag);
-    bufs->phases[right] = atan2(imag, real);
+    bufs->extracted[right] = sqrtf(real * real + imag * imag);
+    bufs->phases[right] = atan2f(imag, real);
   }
 }
 

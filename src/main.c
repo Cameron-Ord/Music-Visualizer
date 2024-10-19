@@ -8,8 +8,13 @@
 #include "particles.h"
 #include "utils.h"
 
+#ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 #ifdef _WIN32
 Paths *(*find_directories)(size_t *) = &win_find_directories;
@@ -18,13 +23,12 @@ Paths *(*find_files)(size_t *, const char *) = &win_find_files;
 
 #ifdef __linux__
 Paths *(*find_directories)(size_t *) = &unix_find_directories;
-Paths *(*find_files)(size_t *, char *) = &unix_find_files;
+Paths *(*find_files)(size_t *, const char *) = &unix_find_files;
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <math.h>
 #include <time.h>
 
 Window win;
@@ -39,23 +43,22 @@ SDL_Color background = {41, 45, 62, 255};
 SDL_Color text = {103, 110, 149, 255};
 SDL_Color text_bg = {113, 124, 180, 255};
 
-
 int FPS = 60;
 
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
 
-  if(argc > 1){
+  if (argc > 1) {
     FPS = atoi(argv[1]);
-    if(FPS > 0){
-      if(FPS < 30 || FPS > 360){
+    if (FPS > 0) {
+      if (FPS < 30 || FPS > 360) {
         FPS = 60;
       }
     }
   }
 
-  fprintf(stdout,"Set FPS -> %d\n", FPS);
+  fprintf(stdout, "Set FPS -> %d\n", FPS);
 
   srand(time(NULL));
 
@@ -200,14 +203,21 @@ int main(int argc, char **argv) {
           TextBuffer *original_files = file_text_buffer;
 
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
-          file_text_buffer = create_fonts(file_contents, &file_count);
-
-          if (original_dir) {
-            free(original_dir);
+          if (!dir_text_buffer) {
+            dir_text_buffer = original_dir;
+          } else {
+            if (original_dir) {
+              free(original_dir);
+            }
           }
 
-          if (original_files) {
-            free(original_files);
+          file_text_buffer = create_fonts(file_contents, &file_count);
+          if (!file_text_buffer) {
+            file_text_buffer = original_files;
+          } else {
+            if (original_files) {
+              free(original_files);
+            }
           }
 
         } break;
@@ -221,14 +231,21 @@ int main(int argc, char **argv) {
           TextBuffer *original_files = file_text_buffer;
 
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
-          file_text_buffer = create_fonts(file_contents, &file_count);
-
-          if (original_dir) {
-            free(original_dir);
+          if (!dir_text_buffer) {
+            dir_text_buffer = original_dir;
+          } else {
+            if (original_dir) {
+              free(original_dir);
+            }
           }
 
-          if (original_files) {
-            free(original_files);
+          file_text_buffer = create_fonts(file_contents, &file_count);
+          if (!file_text_buffer) {
+            file_text_buffer = original_files;
+          } else {
+            if (original_files) {
+              free(original_files);
+            }
           }
 
         } break;
@@ -385,31 +402,35 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            //I am overwritting possibly priorly allocated heap objects here so there are some crucial steps to make sure things get cleaned up correctly.
-            //Note that said cleanup isn't fully implemented yet as the allocated objects do contain heap allocated objects, so make sure to get that stuff done.
+            // I am overwritting possibly priorly allocated heap objects here so
+            // there are some crucial steps to make sure things get cleaned up
+            // correctly. Note that said cleanup isn't fully implemented yet as
+            // the allocated objects do contain heap allocated objects, so make
+            // sure to get that stuff done.
 
             const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
             const char *path_str = find_pathstr(search_key, dir_contents);
 
-            //Save the original pointer and file count
+            // Save the original pointer and file count
             const size_t original_file_count = file_count;
             Paths *original_file_contents = file_contents;
 
-            //Call the function to use a platform specific API to read from a directory
+            // Call the function to use a platform specific API to read from a
+            // directory
             file_contents = find_files(&file_count, path_str);
-            
-            if(file_count > 0 && file_contents){
+
+            if (file_count > 0 && file_contents) {
               TextBuffer *original_text_buffer = file_text_buffer;
-          
+
               file_text_buffer = create_fonts(file_contents, &file_count);
               if (file_text_buffer) {
-                //Free the original if it was allocated.
-                if(original_file_contents){
+                // Free the original if it was allocated.
+                if (original_file_contents) {
                   free(original_file_contents);
                 }
 
-                //Free the original if it was allocated.
-                if(original_text_buffer){
+                // Free the original if it was allocated.
+                if (original_text_buffer) {
                   free(original_text_buffer);
                 }
 
@@ -417,19 +438,19 @@ int main(int argc, char **argv) {
                 vis.current_state = SONGS;
               } else {
                 free(file_contents);
-                
-                //Set the pointers back to the original pointers.
+
+                // Set the pointers back to the original pointers.
                 file_text_buffer = original_text_buffer;
                 file_contents = original_file_contents;
                 file_count = original_file_count;
               }
             } else {
-              //Free the newly allocated Paths struct (if it is not NULL)
-              if(file_contents){
+              // Free the newly allocated Paths struct (if it is not NULL)
+              if (file_contents) {
                 free(file_contents);
               }
 
-              //Set the pointers back to the original pointers.
+              // Set the pointers back to the original pointers.
               file_contents = original_file_contents;
               file_count = original_file_count;
             }
@@ -454,7 +475,7 @@ int main(int argc, char **argv) {
     case PLAYBACK: {
       if (!vis.next_song_flag) {
         float tmp[M_BUF_SIZE];
-        memcpy(tmp, f_buffers->fft_in, sizeof(float)*M_BUF_SIZE);
+        memcpy(tmp, f_buffers->fft_in, sizeof(float) * M_BUF_SIZE);
         hamming_window(f_buffers->fft_in, f_data->hamming_values,
                        f_buffers->windowed);
         recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
@@ -576,9 +597,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-int get_char_limit(int width) { return MIN(175, MAX(8, (width - 200) / 12)); }
+int get_char_limit(int width) { return MIN(175, MAX(8, (width - 200) / 18)); }
 
-int get_title_limit(int height) { return MIN(24, MAX(1, (height - 100) / 32)); }
+int get_title_limit(int height) { return MIN(6, MAX(1, (height - 200) / 22)); }
 
 void *scp(void *ptr) {
   if (!ptr) {

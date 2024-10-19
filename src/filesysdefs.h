@@ -2,6 +2,7 @@
 #define FILESYSDEFS_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct {
   size_t dir_count;

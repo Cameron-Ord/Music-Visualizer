@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winnt.h>
 
 #ifdef _WIN32
 Paths *win_find_directories(size_t *count) {
@@ -36,7 +35,7 @@ Paths *win_find_directories(size_t *count) {
   char search_path[MAX_PATH];
 
   size_t total_length =
-      get_length(strlen("\\"), strlen(music_dir), strlen(home));
+      get_length(3, strlen("\\"), strlen(music_dir), strlen(home));
   if (total_length > MAX_PATH) {
     fprintf(
         stderr,
@@ -183,7 +182,7 @@ Paths *win_find_files(size_t *count, const char *path) {
     fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
     return NULL;
   }
-  
+
   size_t path_length = strlen(path);
   if (path_length == 0) {
     fprintf(stderr, "Failed to get char len! -> %s\n", strerror(errno));
@@ -305,52 +304,243 @@ Paths *win_find_files(size_t *count, const char *path) {
 #endif
 
 // This is not properly implemented yet
-#ifdef __LINUX__
-char **unix_find_directories(size_t *count, FileSys *files) {
-  char *home = getenv("HOME");
-  char *music_dir = "Music/MVSource";
+#ifdef __linux__
+Paths *unix_find_directories(size_t *count) {
 
-  char search_path[260];
-  snprintf(search_path, sizeof(search_path), "%s%s%s", home, "/", music_dir);
+  char *home = getenv("HOME");
+  if (!home) {
+    fprintf(stderr, "Failed to get home path! -> %s\n", strerror(errno));
+    return NULL;
+  }
+  char *music_dir = "Music/MVSource";
+  char search_path[PATH_MAX];
+
+  size_t total_length =
+      get_length(3, strlen("/"), strlen(music_dir), strlen(home));
+
+  if (total_length > PATH_MAX) {
+    fprintf(
+        stderr,
+        "Total path length exceeds allocated path buffer! -> NULL RETURN\n");
+    return NULL;
+  }
+
+  snprintf(search_path, sizeof(search_path), "%s/%s", home, music_dir);
 
   DIR *dir = opendir(search_path);
+  if (!dir) {
+    fprintf(stderr, "Failed to open directory! -> %s\n", strerror(errno));
+    return NULL;
+  }
+
+  fprintf(stdout, "SEARCH_PATH -> %s\n", search_path);
 
   size_t default_size = 6;
 
-  char **dir_buffer = malloc(sizeof(char *) * default_size);
-  if (!dir_buffer) {
+  Paths *dpaths = calloc(default_size, sizeof(Paths));
+  if (!dpaths) {
     fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
     return NULL;
   }
+
+  bool search_broken = false;
 
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
     if (strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0) {
       if (*count >= default_size) {
-        dir_buffer = realloc(dir_buffer, sizeof(char *) * (*count));
-        if (!dir_buffer) {
-          fprintf(stderr, "Could not reallocate pointer! -> %s\n",
+        size_t new_size = default_size * 2;
+        Paths *temp_buffer = (Paths *)realloc(dpaths, sizeof(Paths) * new_size);
+        if (!temp_buffer) {
+          fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
                   strerror(errno));
-          return NULL;
+          search_broken = true;
+          break;
         }
+
+        dpaths = temp_buffer;
+        default_size = new_size;
       }
 
       size_t file_name_length = strlen(entry->d_name);
-      dir_buffer[*count] = malloc((file_name_length + 1) * sizeof(char));
-      if (!dir_buffer[*count]) {
-        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
-        return NULL;
+      char *dir_buf = (char *)malloc((file_name_length + 1) * sizeof(char));
+      if (!dir_buf) {
+        fprintf(stderr, "Could not allocate memory for directory name! -> %s\n",
+                strerror(errno));
+        search_broken = true;
+        break;
       }
 
-      strcpy(dir_buffer[*count], entry->d_name);
+      strcpy(dir_buf, entry->d_name);
+
+      const size_t music_dirpath_len = strlen(music_dir);
+      const size_t home_path_len = strlen(home);
+      const size_t dir_buf_len = strlen(dir_buf);
+      const size_t slash_len = strlen("/");
+
+      size_t path_ttl_length = get_length(5, music_dirpath_len, home_path_len,
+                                          dir_buf_len, slash_len, slash_len);
+
+      char *path_buf = NULL;
+      if (path_ttl_length > PATH_MAX) {
+        fprintf(stderr, "Path length exceeds max!\n");
+        free(dir_buf);
+        free(dpaths);
+        search_broken = true;
+        break;
+      }
+
+      path_buf = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+      if (!path_buf) {
+        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
+        search_broken = true;
+        break;
+      }
+
+      snprintf(path_buf, path_ttl_length + 1, "%s/%s/%s", home, music_dir,
+               dir_buf);
+
+      printf("\n");
+      printf("Added directory -> %s\n", dir_buf);
+      printf("Added path -> %s\n", path_buf);
+      printf("\n");
+
+      dpaths[*count].path = path_buf;
+      dpaths[*count].path_length = path_ttl_length;
+      dpaths[*count].name = dir_buf;
+      dpaths[*count].name_length = file_name_length;
 
       (*count)++;
     }
   }
 
+  if (search_broken) {
+    for (size_t i = 0; i < *count; i++) {
+      if (dpaths[i].name) {
+        free(dpaths[i].name);
+        dpaths[i].name = NULL;
+      }
+
+      if (dpaths[i].path) {
+        free(dpaths[i].path);
+        dpaths[i].path = NULL;
+      }
+    }
+
+    free_ptrs(2, home, dpaths);
+    closedir(dir);
+    return NULL;
+  }
+
   closedir(dir);
-  return dir_buffer;
+  return dpaths;
 }
 
-Paths *unix_find_files(size_t *count, char *path) { return NULL; }
+Paths *unix_find_files(size_t *count, const char *path) {
+  DIR *dir = opendir(path);
+  if (!dir) {
+    fprintf(stderr, "Failed to open directory! -> %s\n", strerror(errno));
+    return NULL;
+  }
+
+  fprintf(stdout, "SEARCH_PATH -> %s\n", path);
+
+  size_t default_size = 6;
+
+  Paths *fpaths = calloc(default_size, sizeof(Paths));
+  if (!fpaths) {
+    fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
+    return NULL;
+  }
+
+  bool search_broken = false;
+  *count = 0;
+
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != NULL) {
+    if (strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0) {
+      if (*count >= default_size) {
+        size_t new_size = default_size * 2;
+        Paths *temp_buffer = realloc(fpaths, sizeof(Paths) * new_size);
+        if (!temp_buffer) {
+          fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
+                  strerror(errno));
+          search_broken = true;
+          break;
+        }
+
+        fpaths = temp_buffer;
+        default_size = new_size;
+      }
+
+      size_t file_name_length = strlen(entry->d_name);
+      char *dir_buf = (char *)malloc((file_name_length + 1) * sizeof(char));
+      if (!dir_buf) {
+        fprintf(stderr, "Could not allocate memory for directory name! -> %s\n",
+                strerror(errno));
+        search_broken = true;
+        break;
+      }
+
+      strcpy(dir_buf, entry->d_name);
+
+      const size_t music_dirpath_len = strlen(path);
+      const size_t dir_buf_len = strlen(dir_buf);
+      const size_t slash_len = strlen("/");
+
+      size_t path_ttl_length =
+          get_length(4, music_dirpath_len, dir_buf_len, slash_len, slash_len);
+
+      if (path_ttl_length > 4096) {
+        fprintf(stderr, "Path length exceeds max!\n");
+        free(dir_buf);
+        free(fpaths);
+        search_broken = true;
+        break;
+      }
+
+      char *path_buf = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+      if (!path_buf) {
+        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
+        search_broken = true;
+        break;
+      }
+
+      snprintf(path_buf, path_ttl_length + 1, "%s/%s", path, dir_buf);
+
+      printf("\n");
+      printf("Added directory -> %s\n", dir_buf);
+      printf("Added path -> %s\n", path_buf);
+      printf("\n");
+
+      fpaths[*count].path = path_buf;
+      fpaths[*count].path_length = path_ttl_length;
+      fpaths[*count].name = dir_buf;
+      fpaths[*count].name_length = file_name_length;
+
+      (*count)++;
+    }
+  }
+
+  if (search_broken) {
+    for (size_t i = 0; i < *count; i++) {
+      if (fpaths[i].name) {
+        free(fpaths[i].name);
+        fpaths[i].name = NULL;
+      }
+
+      if (fpaths[i].path) {
+        free(fpaths[i].path);
+        fpaths[i].path = NULL;
+      }
+    }
+
+    free_ptrs(1, fpaths);
+    closedir(dir);
+    return NULL;
+  }
+
+  closedir(dir);
+  return fpaths;
+}
 #endif

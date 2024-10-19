@@ -1,6 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
-#include "filesystem.h"
+
+#include "filesysdefs.h"
 #include "fontdef.h"
 #include "particledef.h"
 

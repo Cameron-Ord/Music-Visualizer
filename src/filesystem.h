@@ -1,7 +1,6 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 #include "filesysdefs.h"
-#include <stdint.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,7 +11,7 @@ Paths *win_find_files(size_t *count, const char *path);
 #ifdef __linux__
 #include <dirent.h>
 Paths *unix_find_directories(size_t *count);
-Paths *unix_find_files(size_t *count, char *path);
+Paths *unix_find_files(size_t *count, const char *path);
 #endif
 
 #endif

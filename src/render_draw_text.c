@@ -13,24 +13,22 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
     iter_count = *item_count;
   }
 
-  int pixel_inc = win.height / (iter_count + 1);
-  int p_accumulate = win.height -  (win.height / 2);
-  const int half_scr = p_accumulate;
+  int pixel_inc = (win.height * 0.5) / (iter_count + 1);
+  int p_accumulate = win.height * 0.5;
 
   for (size_t i = 0; i < iter_count; i++) {
     // wrap around
     size_t locn = (*cursor + i) % *item_count;
-    list_buf[locn].text->rect.x = 50;
-    list_buf[locn].text->rect.y = p_accumulate;
+
+    list_buf[locn].text->rect.x =
+        (win.width * 0.5) - (list_buf[locn].text->rect.w * 0.5);
+    list_buf[locn].text->rect.y =
+        p_accumulate - (list_buf[locn].text->rect.h * 0.5);
 
     scc(SDL_RenderCopy(rend.r, list_buf[locn].text->tex, NULL,
                        &list_buf[locn].text->rect));
-    
-    p_accumulate += pixel_inc;
 
-    if(p_accumulate >= win.height){
-      p_accumulate = pixel_inc;
-    }
+    p_accumulate += pixel_inc;
   }
 
   size_t bg_locn = (*cursor) % *item_count;

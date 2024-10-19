@@ -9,9 +9,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 
 if(WIN32)
-  set(CMAKE_REQUIRED_FLAGS "-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile")
+  set(CMAKE_REQUIRED_FLAGS "-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm")
 else()
-  set(CMAKE_REQUIRED_FLAGS "-lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile")
+  set(CMAKE_REQUIRED_FLAGS "-lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm")
 endif()
 
 find_library(SDL2_LIBRARY NAMES SDL2)
@@ -66,9 +66,9 @@ endif()
 
 if(WIN32)
   target_compile_definitions(Vis PUBLIC SDL_MAIN_HANDLED)
-  target_link_libraries(Vis ${SDL2_LIBRARY_MAIN} ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
+  target_link_libraries(Vis ${SDL2_LIBRARY_MAIN} ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY} m)
 else()
-  target_link_libraries(Vis ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY})
+  target_link_libraries(Vis ${SDL2_LIBRARY} ${SDL2_TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${LIBSNDFILE_LIBRARY} m)
 endif()
 
 
