@@ -55,6 +55,10 @@ void callback(void *userdata, uint8_t *stream, int length) {
 }
 
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
+  if(!bytes){
+    return;
+  }
+  
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
   }
@@ -84,11 +88,24 @@ void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n) {
 } /*fft_func*/
 
 void extract_frequencies(FFTBuffers *bufs) {
-  for (int i = 0; i < S_BUF_SIZE; ++i) {
-    float real = crealf(bufs->out_raw[i]);
-    float imag = cimagf(bufs->out_raw[i]);
-    bufs->extracted[i] = sqrt(real * real + imag * imag);
-    bufs->phases[i] = atan2(imag, real);
+  for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
+    const size_t left = i * 2; 
+    const size_t right = i * 2 + 1; 
+
+    float real = 0.0f; 
+    float imag = 0.0f;
+    
+    real = crealf(bufs->out_raw[left]);
+    imag = cimagf(bufs->out_raw[left]);
+
+    bufs->extracted[left] = sqrt(real * real + imag * imag);
+    bufs->phases[left] = atan2(imag, real);
+
+    real = crealf(bufs->out_raw[right]);
+    imag = cimagf(bufs->out_raw[right]);
+
+    bufs->extracted[right] = sqrt(real * real + imag * imag);
+    bufs->phases[right] = atan2(imag, real);
   }
 }
 
@@ -113,7 +130,7 @@ float amp(float z) {
 }
 
 void freq_bin_algo(int sr, float *extracted) {
-  float freq_bin_size = (float)sr / S_BUF_SIZE;
+  float freq_bin_size = (float)sr / M_BUF_SIZE;
   const size_t buf_size = 3;
   float bin_sums[buf_size];
 
@@ -181,12 +198,12 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
   data->max_ampl = 1.0f;
   data->max_phase = 1.0f;
 
-  for (float f = lowf; (size_t)f < M_BUF_SIZE; f = ceilf(f * step)) {
+  for (float f = lowf; (size_t)f < HALF_BUFF_SIZE; f = ceilf(f * step)) {
     float fs = ceilf(f * step);
     float a = 0.0f;
     float p = 0.0f;
 
-    for (size_t q = (size_t)f; q < M_BUF_SIZE && q < (size_t)fs; ++q) {
+    for (size_t q = (size_t)f; q < HALF_BUFF_SIZE && q < (size_t)fs; ++q) {
       float b = amp(bufs->extracted[q]);
       if (b > a) {
         a = b;
@@ -215,7 +232,7 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
 
 void hamming_window(float *in, const float *hamming_values, float *windowed) {
   /*Iterate for the size of a single channel*/
-  for (int i = 0; i < M_BUF_SIZE; ++i) {
+  for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
     int left = i * 2;
     int right = i * 2 + 1;
 
@@ -225,8 +242,8 @@ void hamming_window(float *in, const float *hamming_values, float *windowed) {
 }
 
 void calculate_window(float *hamming_values) {
-  for (int i = 0; i < S_BUF_SIZE; ++i) {
-    float Nf = (float)S_BUF_SIZE;
+  for (int i = 0; i < M_BUF_SIZE; ++i) {
+    float Nf = (float)M_BUF_SIZE;
     float t = (float)i / (Nf - 1);
     hamming_values[i] = 0.54 - 0.46 * cosf(2 * M_PI * t);
   }
@@ -263,15 +280,15 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
   }
 
   if (adc->next) {
-    memset(adc->next->extracted, 0, sizeof(float) * S_BUF_SIZE);
-    memset(adc->next->fft_in, 0, sizeof(float) * S_BUF_SIZE);
-    memset(adc->next->out_raw, 0, sizeof(Float_Complex) * S_BUF_SIZE);
-    memset(adc->next->phases, 0, sizeof(float) * S_BUF_SIZE);
+    memset(adc->next->extracted, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->fft_in, 0, sizeof(float) * M_BUF_SIZE);
+    memset(adc->next->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
+    memset(adc->next->phases, 0, sizeof(float) * M_BUF_SIZE);
     memset(adc->next->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
     memset(adc->next->processed, 0, sizeof(float) * M_BUF_SIZE);
     memset(adc->next->smear, 0, sizeof(float) * M_BUF_SIZE);
     memset(adc->next->smoothed, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->windowed, 0, sizeof(float) * S_BUF_SIZE);
+    memset(adc->next->windowed, 0, sizeof(float) * M_BUF_SIZE);
   }
 
   memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -331,7 +348,7 @@ bool load_song(AudioDataContainer *adc) {
   vis.spec.channels = adc->channels;
   vis.spec.freq = adc->SR;
   vis.spec.format = AUDIO_F32SYS;
-  vis.spec.samples = M_BUF_SIZE;
+  vis.spec.samples = M_BUF_SIZE / adc->channels;
 
   vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 1);
   if (!vis.dev) {

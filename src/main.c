@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  fprintf(stdout,"Set FPS -> %d\n", FPS);
 
   srand(time(NULL));
 
@@ -282,7 +283,7 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position - S_BUF_SIZE;
+              int pos_cpy = adc->position - M_BUF_SIZE;
               if (pos_cpy < 0) {
                 pos_cpy = 0;
               }
@@ -298,9 +299,9 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position + S_BUF_SIZE;
+              int pos_cpy = adc->position + M_BUF_SIZE;
               if (pos_cpy > (int)adc->length) {
-                pos_cpy = adc->length - S_BUF_SIZE;
+                pos_cpy = adc->length - M_BUF_SIZE;
               }
 
               adc->position = pos_cpy;
@@ -452,9 +453,11 @@ int main(int argc, char **argv) {
 
     case PLAYBACK: {
       if (!vis.next_song_flag) {
+        float tmp[M_BUF_SIZE];
+        memcpy(tmp, f_buffers->fft_in, sizeof(float)*M_BUF_SIZE);
         hamming_window(f_buffers->fft_in, f_data->hamming_values,
                        f_buffers->windowed);
-        recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, S_BUF_SIZE);
+        recursive_fft(f_buffers->windowed, 1, f_buffers->out_raw, M_BUF_SIZE);
         extract_frequencies(f_buffers);
         freq_bin_algo(adc->SR, f_buffers->extracted);
         squash_to_log(f_buffers, f_data);

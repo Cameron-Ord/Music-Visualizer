@@ -1,8 +1,8 @@
 #ifndef AUDIODEFS_H
 #define AUDIODEFS_H
 //4096
-#define M_BUF_SIZE (1<<12)
-#define S_BUF_SIZE (M_BUF_SIZE * 2)
+
+#define M_BUF_SIZE (1<<13)
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 
 #include <complex.h>
@@ -54,11 +54,11 @@ struct AudioDataContainer {
 
 // I squash stereo channels into a size of M_BUF_SIZE by summing and other means
 struct FFTBuffers {
-  float fft_in[S_BUF_SIZE];
-  float windowed[S_BUF_SIZE];
-  Float_Complex out_raw[S_BUF_SIZE];
-  float extracted[S_BUF_SIZE];
-  float phases[S_BUF_SIZE];
+  float fft_in[M_BUF_SIZE];
+  float windowed[M_BUF_SIZE];
+  Float_Complex out_raw[M_BUF_SIZE];
+  float extracted[M_BUF_SIZE];
+  float phases[M_BUF_SIZE];
   float processed[M_BUF_SIZE];
   float processed_phases[M_BUF_SIZE];
   float smoothed[M_BUF_SIZE];
@@ -77,7 +77,7 @@ struct FFTData {
   int cell_width;
   float max_ampl;
   float max_phase;
-  float hamming_values[S_BUF_SIZE];
+  float hamming_values[M_BUF_SIZE];
   AudioDataContainer *next;
 };
 
