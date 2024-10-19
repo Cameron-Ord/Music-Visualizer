@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  fprintf(stdout, "Set FPS -> %d\n", FPS);
+  fprintf(stdout, "FPS TARGET -> %d\n", FPS);
 
   srand(time(NULL));
 
@@ -300,7 +300,7 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position - M_BUF_SIZE;
+              int pos_cpy = adc->position - (M_BUF_SIZE * 4);
               if (pos_cpy < 0) {
                 pos_cpy = 0;
               }
@@ -316,7 +316,7 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position + M_BUF_SIZE;
+              int pos_cpy = adc->position + (M_BUF_SIZE * 4);
               if (pos_cpy > (int)adc->length) {
                 pos_cpy = adc->length - M_BUF_SIZE;
               }
@@ -402,11 +402,6 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            // I am overwritting possibly priorly allocated heap objects here so
-            // there are some crucial steps to make sure things get cleaned up
-            // correctly. Note that said cleanup isn't fully implemented yet as
-            // the allocated objects do contain heap allocated objects, so make
-            // sure to get that stuff done.
 
             const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
             const char *path_str = find_pathstr(search_key, dir_contents);
@@ -417,6 +412,9 @@ int main(int argc, char **argv) {
 
             // Call the function to use a platform specific API to read from a
             // directory
+
+            // this, in general, needs to be fixed by using realloc and some
+            // other changes
             file_contents = find_files(&file_count, path_str);
 
             if (file_count > 0 && file_contents) {
@@ -483,9 +481,8 @@ int main(int argc, char **argv) {
         freq_bin_algo(adc->SR, f_buffers->extracted);
         squash_to_log(f_buffers, f_data);
         visual_refine(f_buffers, f_data);
-      }
-      if (vis.next_song_flag && !vis.scrolling) {
 
+      } else if (vis.next_song_flag && !vis.scrolling) {
         nav_down(&key.file_cursor, &file_count);
         const char *search_key = file_text_buffer[key.file_cursor].text->name;
         const char *path_str = find_pathstr(search_key, file_contents);

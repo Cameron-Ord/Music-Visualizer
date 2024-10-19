@@ -86,6 +86,7 @@ void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n) {
 
 } /*fft_func*/
 
+// Probably the most expensive thing here.
 void extract_frequencies(FFTBuffers *bufs) {
   for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
     const size_t left = i * 2;
@@ -94,16 +95,18 @@ void extract_frequencies(FFTBuffers *bufs) {
     float real = 0.0f;
     float imag = 0.0f;
 
+    // Logf is applied later so we just square it instead of sqrt
+
     real = crealf(bufs->out_raw[left]);
     imag = cimagf(bufs->out_raw[left]);
 
-    bufs->extracted[left] = sqrtf(real * real + imag * imag);
+    bufs->extracted[left] = (real * real + imag * imag);
     bufs->phases[left] = atan2f(imag, real);
 
     real = crealf(bufs->out_raw[right]);
     imag = cimagf(bufs->out_raw[right]);
 
-    bufs->extracted[right] = sqrtf(real * real + imag * imag);
+    bufs->extracted[right] = (real * real + imag * imag);
     bufs->phases[right] = atan2f(imag, real);
   }
 }

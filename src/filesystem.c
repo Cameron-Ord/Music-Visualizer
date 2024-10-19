@@ -115,11 +115,6 @@ Paths *win_find_directories(size_t *count) {
                    music_dir_no_wc, dir_buffer);
         }
 
-        printf("\n");
-        printf("Added directory -> %s\n", dir_buffer);
-        printf("Added path -> %s\n", path_buffer);
-        printf("\n");
-
         paths[*count].path = path_buffer;
         paths[*count].path_length = path_ttl_length;
         paths[*count].name = dir_buffer;
@@ -261,11 +256,6 @@ Paths *win_find_files(size_t *count, const char *path) {
           snprintf(path_buffer, path_ttl_length + 1, "%s%s", path, file_buffer);
         }
 
-        printf("\n");
-        printf("Added file -> %s\n", file_buffer);
-        printf("Added path -> %s\n", path_buffer);
-        printf("\n");
-
         fpaths[*count].path = path_buffer;
         fpaths[*count].path_length = path_ttl_length;
         fpaths[*count].name = file_buffer;
@@ -400,11 +390,6 @@ Paths *unix_find_directories(size_t *count) {
       snprintf(path_buf, path_ttl_length + 1, "%s/%s/%s", home, music_dir,
                dir_buf);
 
-      printf("\n");
-      printf("Added directory -> %s\n", dir_buf);
-      printf("Added path -> %s\n", path_buf);
-      printf("\n");
-
       dpaths[*count].path = path_buf;
       dpaths[*count].path_length = path_ttl_length;
       dpaths[*count].name = dir_buf;
@@ -507,11 +492,6 @@ Paths *unix_find_files(size_t *count, const char *path) {
       }
 
       snprintf(path_buf, path_ttl_length + 1, "%s/%s", path, dir_buf);
-
-      printf("\n");
-      printf("Added directory -> %s\n", dir_buf);
-      printf("Added path -> %s\n", path_buf);
-      printf("\n");
 
       fpaths[*count].path = path_buf;
       fpaths[*count].path_length = path_ttl_length;
