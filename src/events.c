@@ -9,8 +9,6 @@ size_t nav_down(size_t *cursor, const size_t *count) {
     signed_cursor = 0;
   }
 
-  printf("%d\n", signed_cursor);
-
   *cursor = (size_t)signed_cursor;
 
   return (size_t)signed_cursor;
@@ -25,7 +23,6 @@ size_t nav_up(size_t *cursor, const size_t *count) {
     signed_cursor = signed_count - 1;
   }
 
-  printf("%d\n", signed_cursor);
   *cursor = (size_t)signed_cursor;
 
   return (size_t)signed_cursor;

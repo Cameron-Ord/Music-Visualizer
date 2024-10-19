@@ -1,6 +1,4 @@
 #include "main.h"
-#include "SDL2/SDL_audio.h"
-#include "SDL2/SDL_keycode.h"
 #include "audio.h"
 #include "audiodefs.h"
 #include "filesystem.h"
@@ -8,9 +6,6 @@
 #include "particledef.h"
 #include "particles.h"
 #include "utils.h"
-#include <assert.h>
-#include <math.h>
-#include <time.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -27,6 +22,9 @@ Paths *(*find_files)(size_t *, char *) = &unix_find_files;
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#include <math.h>
+#include <time.h>
 
 Window win;
 Renderer rend;

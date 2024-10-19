@@ -1,8 +1,8 @@
 #ifndef PARTICLEDEF_H
 #define PARTICLEDEF_H
 
-#define MAX_FRAME_TIME 6
-#define PARTICLE_COUNT 24
+#define MAX_FRAME_TIME 4
+#define PARTICLE_COUNT 32
 #include <SDL2/SDL_render.h>
 #include <stdbool.h>
 

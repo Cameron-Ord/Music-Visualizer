@@ -21,8 +21,6 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
 
   memset(text_buffer, 0, sizeof(TextBuffer) * (*count));
 
-  printf("COUNT : %zu\n", *count);
-
   for (size_t i = 0; i < *count; i++) {
     Text *text = (Text *)malloc(sizeof(Text));
     if (!text) {
@@ -50,21 +48,26 @@ TextBuffer *create_fonts(Paths *paths_buf, const size_t *count) {
     text->name = name;
     text->id = i;
 
-    char name_buffer[paths_buf[i].name_length + 1];
+    const size_t tmp_size = paths_buf[i].name_length + 64;
+    char name_buffer[tmp_size];
 
     strncpy(name_buffer, name, paths_buf[i].name_length);
     const size_t max_chars = get_char_limit(win.width);
 
-    name_buffer[paths_buf[i].name_length] = '\0';
-
     if (paths_buf[i].name_length > max_chars) {
-      name_buffer[max_chars] = '\0';
+      size_t locn = max_chars - 1;
+      if(name_buffer[locn] == 32){
+        name_buffer[locn] = 46;
+      }
+      
+      locn = max_chars;
+      name_buffer[locn++] = 46;
+      name_buffer[locn++] = 46;
+      name_buffer[locn++] = 46;
+      name_buffer[locn++] = '\0';
+    } else {
+      name_buffer[paths_buf[i].name_length] = '\0';
     }
-
-    // We are simply giving the pointer to the name located in the Paths struct,
-    // as long as that memory is valid, this is valid too. The value cannot be
-    // changed from this pointer. If the original is ever deallocated, this will
-    // be invalidated.
 
     assert(font.font != NULL);
     text->surf = TTF_RenderText_Blended(font.font, name_buffer, vis.text);

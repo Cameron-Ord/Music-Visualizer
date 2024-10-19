@@ -1,23 +1,30 @@
 #include "particles.h"
 #include "particledef.h"
 
+#ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+const size_t DEFAULT_PBUFFER_SIZE = 1024;
 
 ParticleTrio *allocate_particle_buffer(size_t *particle_buffer_size) {
   ParticleTrio *particle_buffer =
-      (ParticleTrio *)malloc(sizeof(ParticleTrio) * 1024);
+      (ParticleTrio *)malloc(sizeof(ParticleTrio) * DEFAULT_PBUFFER_SIZE);
   if (!particle_buffer) {
     return NULL;
   }
 
-  for (size_t i = 0; i < 256; i++) {
+  for (size_t i = 0; i < DEFAULT_PBUFFER_SIZE; i++) {
     for (size_t j = 0; j < PARTICLE_COUNT; j++) {
       particle_buffer[i].buf[j] = NULL;
     }
   }
 
-  *particle_buffer_size = 1024;
+  *particle_buffer_size = DEFAULT_PBUFFER_SIZE;
   return particle_buffer;
 }
 

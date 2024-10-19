@@ -8,6 +8,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
   if (!userdata) {
     pause_device();
   }
+
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
   if (adc && adc->buffer) {
     const uint32_t file_length = adc->length;
@@ -18,7 +19,8 @@ void callback(void *userdata, uint8_t *stream, int length) {
 
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    if (adc->position >= file_length && !vis.scrolling) {
+    if ((adc->position + copy) > file_length && !vis.scrolling) {
+      vis.next_song_flag = 1;
       pause_device();
     }
 
@@ -29,8 +31,8 @@ void callback(void *userdata, uint8_t *stream, int length) {
           f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
         }
       }
-
       adc->position += copy;
+
     } else if (stream && vis.dev && vis.scrolling) {
       float *f32_stream = (float *)stream;
       if (f32_stream) {
@@ -40,7 +42,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
       }
     }
 
-    if (adc->position >= file_length && !vis.scrolling) {
+    if ((adc->position + copy) > file_length && !vis.scrolling) {
       vis.next_song_flag = 1;
       pause_device();
     }
