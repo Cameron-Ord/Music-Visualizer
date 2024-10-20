@@ -32,19 +32,25 @@ int particle_is_dead(int frame) { return frame > MAX_FRAME_TIME; }
 
 Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
                                  int bar_height) {
+
+  // p_height uses the width in order to maintain the aspect ratio.
+  int p_height = MAX(1, (int)(bar_width * 0.1));
+  int p_width = MAX(1, (int)(bar_width * 0.1));
+
+  // If it doesn't meet this criteria, just return NULL without ever calling
+  // malloc
+  if (bar_height < 50 || bar_width <= p_width) {
+    return NULL;
+  }
+
   Particle *particle = (Particle *)malloc(sizeof(Particle));
   if (!particle) {
     return NULL;
   }
 
   particle->frame = rand() % 2;
-  particle->h = MAX(1, (int)(bar_width * 0.1));
-  particle->w = MAX(1, (int)(bar_width * 0.1));
-
-  if (bar_height < 25 || bar_width <= particle->w) {
-    free(particle);
-    return NULL;
-  }
+  particle->h = p_height;
+  particle->w = p_width;
 
   particle->x = bar_x + rand() % (bar_width - particle->w);
   particle->y = bar_y + rand() % (bar_height - particle->h);

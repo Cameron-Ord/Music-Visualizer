@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "main.h"
+#include "particledef.h"
 #include "particles.h"
 
 size_t set_length = 0;
@@ -35,8 +36,6 @@ void render_draw_music(const float *smear, const float *smoothed,
     SDL_Rect start_box = {start_x_pos, start_y_pos, cell_width,
                           start_bar_height};
 
-    render_set_particles(p_buffer, &end_box, &start_box, i);
-
     if (end_box.y > start_box.y) {
       scc(SDL_SetRenderDrawColor(rend.r, vis.secondary.r, vis.secondary.g,
                                  vis.secondary.b, vis.secondary.a));
@@ -46,6 +45,13 @@ void render_draw_music(const float *smear, const float *smoothed,
     scc(SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g,
                                vis.primary.b, vis.primary.a));
     scc(SDL_RenderFillRect(rend.r, &end_box));
+
+    // If the window is too small, don't bother with particles.
+    if (win.width < 400) {
+      continue;
+    }
+
+    render_set_particles(p_buffer, &end_box, &start_box, i);
 
     if (p_buffer) {
       for (size_t j = 0; j < PARTICLE_COUNT; j++) {

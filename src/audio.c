@@ -18,6 +18,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
     if ((adc->position + copy) > file_length && !vis.scrolling) {
+      vis.stream_flag = false;
       vis.next_song_flag = 1;
       pause_device();
     }
@@ -41,6 +42,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
     }
 
     if ((adc->position + copy) > file_length && !vis.scrolling) {
+      vis.stream_flag = false;
       vis.next_song_flag = 1;
       pause_device();
     }
@@ -172,6 +174,7 @@ bool load_song(AudioDataContainer *adc) {
     return false;
   }
 
+  vis.stream_flag = true;
   return true;
 }
 
@@ -179,7 +182,6 @@ bool pause_device(void) {
   if (vis.dev) {
     if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PAUSED) {
       SDL_PauseAudioDevice(vis.dev, true);
-      vis.stream_flag = false;
       return true;
     }
   }
@@ -191,7 +193,6 @@ bool resume_device(void) {
   if (vis.dev) {
     if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PLAYING) {
       SDL_PauseAudioDevice(vis.dev, false);
-      vis.stream_flag = true;
       return true;
     }
   }

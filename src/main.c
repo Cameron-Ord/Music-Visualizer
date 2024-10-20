@@ -7,6 +7,7 @@
 #include "particledef.h"
 #include "particles.h"
 #include "utils.h"
+#include <SDL2/SDL_audio.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -262,15 +263,27 @@ int main(int argc, char **argv) {
           default:
             break;
 
-          case SDLK_p: {
+          case SDLK_s: {
             if (vis.dev) {
               switch (SDL_GetAudioDeviceStatus(vis.dev)) {
               default:
                 break;
 
-              case SDL_AUDIO_STOPPED: {
+              case SDL_AUDIO_PLAYING: {
+                SDL_CloseAudioDevice(vis.dev);
+                vis.stream_flag = false;
+                vis.current_state = SONGS;
+                break;
+              }
+              }
+            }
+          } break;
 
-              } break;
+          case SDLK_p: {
+            if (vis.dev) {
+              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
+              default:
+                break;
 
               case SDL_AUDIO_PAUSED: {
                 resume_device();
@@ -282,36 +295,94 @@ int main(int argc, char **argv) {
               }
             }
           } break;
+
           case SDLK_LEFT: {
-            if (event.key.keysym.mod & KMOD_SHIFT) {
-              vis.scrolling = 1;
+            if (vis.dev) {
+              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
+              default:
+                break;
 
-              int pos_cpy = adc->position - (1 << 14);
-              if (pos_cpy < 0) {
-                pos_cpy = 0;
+              case SDL_AUDIO_PLAYING: {
+                if (event.key.keysym.mod & KMOD_SHIFT) {
+                  vis.scrolling = 1;
+
+                  int pos_cpy = adc->position - (1 << 15);
+                  if (pos_cpy < 0) {
+                    pos_cpy = 0;
+                  }
+
+                  adc->position = pos_cpy;
+                } else {
+                  if (file_count > 0)
+                    vis.current_state = SONGS;
+                }
+              } break;
+
+              case SDL_AUDIO_PAUSED: {
+                if (event.key.keysym.mod & KMOD_SHIFT) {
+                  resume_device();
+                  vis.scrolling = 1;
+
+                  int pos_cpy = adc->position - (1 << 15);
+                  if (pos_cpy < 0) {
+                    pos_cpy = 0;
+                  }
+
+                  adc->position = pos_cpy;
+                } else {
+                  if (file_count > 0)
+                    vis.current_state = SONGS;
+                }
+
+              } break;
               }
-
-              adc->position = pos_cpy;
-            } else {
-              if (file_count > 0)
-                vis.current_state = SONGS;
             }
+
           } break;
 
           case SDLK_RIGHT: {
-            if (event.key.keysym.mod & KMOD_SHIFT) {
-              vis.scrolling = 1;
+            if (vis.dev) {
+              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
+              default:
+                break;
 
-              int pos_cpy = adc->position + (1 << 14);
-              if (pos_cpy > (int)adc->length) {
-                pos_cpy = adc->length - M_BUF_SIZE;
+              case SDL_AUDIO_PLAYING: {
+                if (event.key.keysym.mod & KMOD_SHIFT) {
+                  vis.scrolling = 1;
+
+                  int pos_cpy = adc->position + (1 << 15);
+                  if (pos_cpy > (int)adc->length) {
+                    pos_cpy = adc->length - M_BUF_SIZE;
+                  }
+
+                  adc->position = pos_cpy;
+                } else {
+                  if (dir_count > 0)
+                    vis.current_state = DIRECTORIES;
+                }
+
+              } break;
+
+              case SDL_AUDIO_PAUSED: {
+                if (event.key.keysym.mod & KMOD_SHIFT) {
+                  resume_device();
+                  vis.scrolling = 1;
+
+                  int pos_cpy = adc->position + (1 << 15);
+                  if (pos_cpy > (int)adc->length) {
+                    pos_cpy = adc->length - M_BUF_SIZE;
+                  }
+
+                  adc->position = pos_cpy;
+                } else {
+                  if (dir_count > 0)
+                    vis.current_state = DIRECTORIES;
+                }
+
+              } break;
               }
-
-              adc->position = pos_cpy;
-            } else {
-              if (dir_count > 0)
-                vis.current_state = DIRECTORIES;
             }
+
           } break;
           }
         } break;
@@ -423,56 +494,61 @@ int main(int argc, char **argv) {
     default:
       break;
 
-    case PLAYBACK: {
-      if (!vis.next_song_flag) {
-        float tmp[M_BUF_SIZE];
-        memcpy(tmp, f_buffers->fft_in, sizeof(float) * M_BUF_SIZE);
-        hamming_window(tmp, f_data->hamming_values, f_buffers->windowed);
-        iter_fft(f_buffers->windowed, f_buffers->out_raw, M_BUF_SIZE);
-        extract_frequencies(f_buffers);
-        freq_bin_algo(adc->SR, f_buffers->extracted);
-        squash_to_log(f_buffers, f_data);
-        visual_refine(f_buffers, f_data);
-
-      } else if (vis.next_song_flag && !vis.scrolling) {
-        nav_down(&key.file_cursor, &file_count);
-        const char *search_key = file_text_buffer[key.file_cursor].text->name;
-        const char *path_str = find_pathstr(search_key, file_contents);
-
-        KILL_PARTICLES(particle_buffer, particle_buffer_size);
-
-        if (read_audio_file(path_str, adc)) {
-          if (load_song(adc)) {
-            vis.current_state = PLAYBACK;
-          } else {
-            vis.current_state = SONGS;
-          }
-        } else {
-          pause_device();
-          SDL_CloseAudioDevice(vis.dev);
-          vis.current_state = SONGS;
-        }
-      }
-    } break;
-    }
-
-    switch (vis.current_state) {
-    default:
-      break;
-
-    case PLAYBACK: {
-      if (f_data->output_len > 0) {
-        render_draw_music(f_buffers->smear, f_buffers->smoothed,
-                          &f_data->output_len, particle_buffer);
-      }
-    } break;
-
     case SONGS: {
       render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
     } break;
 
     case DIRECTORIES: {
       render_draw_text(dir_text_buffer, &dir_count, &key.dir_cursor);
+    } break;
+
+    case PLAYBACK: {
+      if (vis.dev) {
+        switch (vis.next_song_flag) {
+        case 1: {
+          if (!vis.scrolling) {
+            nav_down(&key.file_cursor, &file_count);
+            const char *search_key =
+                file_text_buffer[key.file_cursor].text->name;
+            const char *path_str = find_pathstr(search_key, file_contents);
+
+            KILL_PARTICLES(particle_buffer, particle_buffer_size);
+
+            if (read_audio_file(path_str, adc)) {
+              if (load_song(adc)) {
+                vis.current_state = PLAYBACK;
+              } else {
+                vis.current_state = SONGS;
+              }
+            } else {
+              pause_device();
+              SDL_CloseAudioDevice(vis.dev);
+              vis.current_state = SONGS;
+            }
+          }
+        } break;
+
+        case 0: {
+          int status = SDL_GetAudioDeviceStatus(vis.dev);
+          if (status == SDL_AUDIO_PLAYING) {
+            float tmp[M_BUF_SIZE];
+            memcpy(tmp, f_buffers->fft_in, sizeof(float) * M_BUF_SIZE);
+            hamming_window(tmp, f_data->hamming_values, f_buffers->windowed);
+            iter_fft(f_buffers->windowed, f_buffers->out_raw, M_BUF_SIZE);
+            extract_frequencies(f_buffers);
+            freq_bin_algo(adc->SR, f_buffers->extracted);
+            squash_to_log(f_buffers, f_data);
+            visual_refine(f_buffers, f_data);
+          }
+
+          if (f_data->output_len > 0) {
+            render_draw_music(f_buffers->smear, f_buffers->smoothed,
+                              &f_data->output_len, particle_buffer);
+          }
+
+        } break;
+        }
+      }
     } break;
     }
 
@@ -524,7 +600,7 @@ int main(int argc, char **argv) {
 
 int get_char_limit(int width) { return MIN(175, MAX(8, (width - 200) / 18)); }
 
-int get_title_limit(int height) { return MIN(6, MAX(1, (height - 200) / 22)); }
+int get_title_limit(int height) { return MIN(6, MAX(1, (height - 300) / 22)); }
 
 void *scp(void *ptr) {
   if (!ptr) {
