@@ -1,13 +1,9 @@
 #include "main.h"
-#include "SDL2/SDL_video.h"
 #include "audio.h"
-#include "audiodefs.h"
 #include "filesystem.h"
 #include "fontdef.h"
-#include "particledef.h"
 #include "particles.h"
 #include "utils.h"
-#include <SDL2/SDL_audio.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -76,6 +72,8 @@ int main(int argc, char **argv) {
   key.file_list_index = 0;
   key.dir_list_index = 0;
 
+  vis.target_frames = FPS;
+  vis.draw_state = FREQ_DOMAIN;
   vis.next_song_flag = 0;
   vis.scrolling = 0;
   vis.quit = false;
@@ -543,7 +541,8 @@ int main(int argc, char **argv) {
 
           if (f_data->output_len > 0) {
             render_draw_music(f_buffers->smear, f_buffers->smoothed,
-                              &f_data->output_len, particle_buffer);
+                              f_buffers->windowed, &f_data->output_len,
+                              particle_buffer);
           }
 
         } break;

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 typedef enum { DIRECTORIES = 0, SONGS = 1, PLAYBACK = 2 } USER_STATE;
+typedef enum { FREQ_DOMAIN = 0, TIME_DOMAIN = 1 } DRAW_STATE;
 
 #define FONT_PATH "dogicapixel.ttf"
 #define DEFAULT_TABLE_SIZE 1024
@@ -29,6 +30,8 @@ typedef struct {
   int scrolling;
   bool quit;
   int current_state;
+  int draw_state;
+  int target_frames;
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color background;
@@ -100,7 +103,8 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
 void render_clear(void);
 void render_present(void);
 void render_draw_music(const float *smear, const float *smoothed,
-                       const size_t *len, ParticleTrio *p_buffer);
+                       const float *windowed, const size_t *len,
+                       ParticleTrio *p_buffer);
 void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 
 // Events functions

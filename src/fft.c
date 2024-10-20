@@ -1,7 +1,6 @@
-
 #include "audio.h"
 #include "audiodefs.h"
-
+#include "main.h"
 size_t bit_reverse(size_t index, size_t log2n) {
   size_t reversed = 0;
   for (size_t i = 0; i < log2n; i++) {
@@ -89,15 +88,15 @@ void extract_frequencies(FFTBuffers *bufs) {
 }
 
 void visual_refine(FFTBuffers *bufs, FFTData *data) {
-  const int FPS = 60;
   for (size_t i = 0; i < data->output_len; ++i) {
     bufs->processed_phases[i] /= data->max_phase;
     bufs->processed[i] /= data->max_ampl;
 
-    bufs->smoothed[i] +=
-        (bufs->processed[i] - bufs->smoothed[i]) * 7 * (1.0 / FPS);
+    bufs->smoothed[i] += (bufs->processed[i] - bufs->smoothed[i]) * 8 *
+                         (1.0 / vis.target_frames);
 
-    bufs->smear[i] += (bufs->smoothed[i] - bufs->smear[i]) * 6 * (1.0 / FPS);
+    bufs->smear[i] +=
+        (bufs->smoothed[i] - bufs->smear[i]) * 4 * (1.0 / vis.target_frames);
   }
 }
 
