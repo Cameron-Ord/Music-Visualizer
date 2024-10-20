@@ -1,5 +1,6 @@
 #include "fontdef.h"
 #include "main.h"
+#include "utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -7,9 +8,6 @@
 TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
   if (!paths_buf || !count) {
-    fprintf(stderr,
-            "Paths buf or counter was NULL! -> counter : %p - paths : %p\n",
-            (void *)count, (void *)paths_buf);
     return NULL;
   }
 
@@ -21,12 +19,13 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
   memset(text_buffer, 0, sizeof(TextBuffer) * (*count));
 
+  bool loop_broken = false;
   for (size_t i = 0; i < *count; i++) {
     Text *text = (Text *)malloc(sizeof(Text));
     if (!text) {
       fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
-      free(text_buffer);
-      return NULL;
+      loop_broken = true;
+      break;
     }
 
     memset(text, 0, sizeof(Text));
@@ -35,17 +34,22 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
     text->tex = NULL;
 
     if (!paths_buf[i].name) {
-      free(text);
-      text = NULL;
-      fprintf(stderr, "Path name is NULL! -> continue\n");
-      continue;
+      fprintf(stderr, "Path name is NULL!\n");
+      loop_broken = true;
+      break;
     }
 
-    // Man just be careful with this, if you seg fault when creating fonts check
-    // here first.
     const char *name = paths_buf[i].name;
 
-    text->name = name;
+    text->name = malloc(paths_buf[i].name_length + 64);
+    if (!text->name) {
+      fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+      loop_broken = true;
+      break;
+    }
+
+    strncpy(text->name, name, paths_buf[i].name_length);
+    text->name[paths_buf[i].name_length] = '\0';
     text->id = i;
 
     const size_t tmp_size = paths_buf[i].name_length + 64;
@@ -69,26 +73,20 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
       name_buffer[paths_buf[i].name_length] = '\0';
     }
 
-    assert(font.font != NULL);
     text->surf = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
     if (!text->surf) {
       text->surf = NULL;
-      free(text);
-      free(text_buffer);
-      return NULL;
+      loop_broken = true;
+      break;
     }
-    assert(text->surf != NULL);
 
     text->tex = SDL_CreateTextureFromSurface(rend.r, text->surf);
     if (!text->tex) {
       text->tex = NULL;
-      SDL_FreeSurface(text->surf);
-      free(text);
-      free(text_buffer);
-      return NULL;
+      loop_broken = true;
+      break;
     }
 
-    assert(text->tex != NULL);
     text->width = text->surf->w;
     text->height = text->surf->h;
     SDL_Rect text_rect = {.x = 0, .y = 0, text->width, text->height};
@@ -96,11 +94,15 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
     SDL_FreeSurface(text->surf);
     text->surf = NULL;
-
     text->is_valid = true;
 
     // Assign the pointer created in the current iteration
     text_buffer[i].text = text;
+  }
+
+  if (loop_broken) {
+    text_buffer = free_text_buffer(text_buffer, count);
+    text_buffer = NULL;
   }
 
   return text_buffer;

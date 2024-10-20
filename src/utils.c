@@ -2,6 +2,49 @@
 #include <stdlib.h>
 #include <string.h>
 
+void *free_paths(Paths *buf, const size_t *count) {
+  for (size_t i = 0; i < *count; i++) {
+    if (buf && buf[i].name) {
+      free(buf[i].name);
+      buf[i].name_length = 0;
+    }
+
+    if (buf && buf[i].path) {
+      free(buf[i].path);
+      buf[i].path_length = 0;
+    }
+  }
+
+  if (buf) {
+    free(buf);
+  }
+
+  return NULL;
+}
+
+void *free_text_buffer(TextBuffer *buf, const size_t *count) {
+  for (size_t i = 0; i < *count; i++) {
+    if (buf && buf[i].text) {
+      Text *t = buf[i].text;
+      if (t->is_valid && t->name) {
+        free(t->name);
+      }
+
+      if (t->is_valid && t->tex) {
+        SDL_DestroyTexture(t->tex);
+      }
+
+      free(t);
+    }
+  }
+
+  if (buf) {
+    free(buf);
+  }
+
+  return NULL;
+}
+
 size_t get_length(size_t size, ...) {
   va_list args;
   va_start(args, size);

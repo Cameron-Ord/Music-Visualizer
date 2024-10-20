@@ -7,7 +7,7 @@
 
 void free_ptrs(size_t size, ...);
 size_t get_length(size_t size, ...);
-void *free_text_buffer(TextBuffer *buf);
-void *free_paths(Paths *buf);
+void *free_text_buffer(TextBuffer *buf, const size_t *count);
+void *free_paths(Paths *buf, const size_t *count);
 const char *find_pathstr(const char *search_key, Paths *buffer);
 #endif

@@ -13,7 +13,7 @@ typedef struct {
   int height;
   size_t id;
   bool is_valid;
-  const char *name;
+  char *name;
 } Text;
 
 // TextBuffer is heap allocated

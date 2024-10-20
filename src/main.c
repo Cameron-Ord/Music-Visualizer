@@ -199,26 +199,19 @@ int main(int argc, char **argv) {
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
 
-          TextBuffer *original_dir = dir_text_buffer;
+          TextBuffer *original_dirs = dir_text_buffer;
           TextBuffer *original_files = file_text_buffer;
 
-          dir_text_buffer = create_fonts(dir_contents, &dir_count);
-          if (!dir_text_buffer) {
-            dir_text_buffer = original_dir;
-          } else {
-            if (original_dir) {
-              free(original_dir);
-            }
-          }
+          size_t original_file_count = file_count;
+          size_t original_dir_count = dir_count;
 
+          // If these fail, text just won't be rendered.
+          dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
-          if (!file_text_buffer) {
-            file_text_buffer = original_files;
-          } else {
-            if (original_files) {
-              free(original_files);
-            }
-          }
+
+          original_dirs = free_text_buffer(original_dirs, &original_dir_count);
+          original_files =
+              free_text_buffer(original_files, &original_file_count);
 
         } break;
 
@@ -227,26 +220,19 @@ int main(int argc, char **argv) {
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
 
-          TextBuffer *original_dir = dir_text_buffer;
+          TextBuffer *original_dirs = dir_text_buffer;
           TextBuffer *original_files = file_text_buffer;
 
-          dir_text_buffer = create_fonts(dir_contents, &dir_count);
-          if (!dir_text_buffer) {
-            dir_text_buffer = original_dir;
-          } else {
-            if (original_dir) {
-              free(original_dir);
-            }
-          }
+          size_t original_file_count = file_count;
+          size_t original_dir_count = dir_count;
 
+          // If these fail, text just won't be rendered.
+          dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
-          if (!file_text_buffer) {
-            file_text_buffer = original_files;
-          } else {
-            if (original_files) {
-              free(original_files);
-            }
-          }
+
+          original_dirs = free_text_buffer(original_dirs, &original_dir_count);
+          original_files =
+              free_text_buffer(original_files, &original_file_count);
 
         } break;
         }
@@ -300,7 +286,7 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position - (M_BUF_SIZE * 4);
+              int pos_cpy = adc->position - (1 << 14);
               if (pos_cpy < 0) {
                 pos_cpy = 0;
               }
@@ -316,7 +302,7 @@ int main(int argc, char **argv) {
             if (event.key.keysym.mod & KMOD_SHIFT) {
               vis.scrolling = 1;
 
-              int pos_cpy = adc->position + (M_BUF_SIZE * 4);
+              int pos_cpy = adc->position + (1 << 14);
               if (pos_cpy > (int)adc->length) {
                 pos_cpy = adc->length - M_BUF_SIZE;
               }
@@ -402,56 +388,23 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-
             const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
             const char *path_str = find_pathstr(search_key, dir_contents);
 
-            // Save the original pointer and file count
-            const size_t original_file_count = file_count;
-            Paths *original_file_contents = file_contents;
+            file_contents = free_paths(file_contents, &file_count);
+            file_text_buffer = free_text_buffer(file_text_buffer, &file_count);
 
-            // Call the function to use a platform specific API to read from a
-            // directory
-
-            // this, in general, needs to be fixed by using realloc and some
-            // other changes
             file_contents = find_files(&file_count, path_str);
-
             if (file_count > 0 && file_contents) {
-              TextBuffer *original_text_buffer = file_text_buffer;
-
               file_text_buffer = create_fonts(file_contents, &file_count);
               if (file_text_buffer) {
-                // Free the original if it was allocated.
-                if (original_file_contents) {
-                  free(original_file_contents);
-                }
-
-                // Free the original if it was allocated.
-                if (original_text_buffer) {
-                  free(original_text_buffer);
-                }
-
                 key.file_cursor = 0;
                 vis.current_state = SONGS;
               } else {
-                free(file_contents);
-
-                // Set the pointers back to the original pointers.
-                file_text_buffer = original_text_buffer;
-                file_contents = original_file_contents;
-                file_count = original_file_count;
+                file_contents = free_paths(file_contents, &file_count);
               }
-            } else {
-              // Free the newly allocated Paths struct (if it is not NULL)
-              if (file_contents) {
-                free(file_contents);
-              }
-
-              // Set the pointers back to the original pointers.
-              file_contents = original_file_contents;
-              file_count = original_file_count;
             }
+
           } break;
           }
         } break;
@@ -515,12 +468,10 @@ int main(int argc, char **argv) {
     } break;
 
     case SONGS: {
-      assert(file_text_buffer != NULL);
       render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
     } break;
 
     case DIRECTORIES: {
-      assert(file_text_buffer != NULL);
       render_draw_text(dir_text_buffer, &dir_count, &key.dir_cursor);
     } break;
     }
@@ -533,37 +484,15 @@ int main(int argc, char **argv) {
     render_present();
   }
 
+  file_contents = free_paths(file_contents, &file_count);
+  dir_contents = free_paths(dir_contents, &dir_count);
+
+  dir_text_buffer = free_text_buffer(dir_text_buffer, &dir_count);
+  file_text_buffer = free_text_buffer(file_text_buffer, &file_count);
+
   if (particle_buffer) {
     free(particle_buffer);
   }
-
-  if (dir_contents) {
-    for (size_t i = 0; i < dir_count; i++) {
-      if (dir_contents[i].name) {
-        free(dir_contents[i].name);
-      }
-
-      if (dir_contents[i].path) {
-        free(dir_contents[i].path);
-      }
-    }
-
-    free(dir_contents);
-  }
-
-  //  if (file_contents) {
-  //  for (size_t i = 0; i < file_count; i++) {
-  //  if (file_contents[i].name) {
-  //   free(file_contents[i].name);
-  // }
-
-  // if (file_contents[i].path) {
-  //  free(file_contents[i].path);
-  // }
-  //}
-
-  // free(file_contents);
-  // }
 
   if (adc) {
     if (adc->buffer) {
