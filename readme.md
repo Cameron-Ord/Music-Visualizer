@@ -6,7 +6,7 @@
 ## Music Visualizer
 I am making this for myself only, but if you wanna use it, check out the build section. Note that as of right now it will not work on linux as I have not completely implemented the filesystem search
 
- - [Video Demo](https://www.youtube.com/watch?v=qE6I1ugg0zY)
+ - [Video Demo](https://www.youtube.com/watch?v=1nbQFn9GrdY)
 ### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
  
@@ -53,6 +53,7 @@ Building is relatively painless. Just make sure you have the afforementioned lib
 
 ## Build steps for windows
 You can simply run the **win64_make.sh** script inside the working directory of the project but I will give a rundown of what it does here.
+Essentially I am just using the packages dev from MSYS2, which use MinGW.
 
 ```
     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
