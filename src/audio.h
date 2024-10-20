@@ -12,6 +12,7 @@ void hamming_window(float *in, const float *hamming_values, float *windowed);
 bool pause_device(void);
 bool resume_device(void);
 void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n);
+void iter_fft(float *in, Float_Complex *out, size_t size);
 void freq_bin_algo(int sr, float *extracted);
 void squash_to_log(FFTBuffers *bufs, FFTData *data);
 float amp(float z);
