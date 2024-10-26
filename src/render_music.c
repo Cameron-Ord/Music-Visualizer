@@ -11,8 +11,6 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-size_t set_length = 0;
-
 float time_sm[M_BUF_SIZE];
 
 // bufs->smoothed[i] += (bufs->processed[i] - bufs->smoothed[i]) * 7 * (1.0 /
@@ -59,15 +57,47 @@ void render_draw_music(const float *smear, const float *smoothed,
     }
   } break;
   case FREQ_DOMAIN: {
-    float cell_width_scale = (float)w / *len;
+    int cell_width = w / (int)*len;
+    size_t buf_iter = *len;
 
-    set_length = (size_t)(cell_width_scale < 2.0 ? (*len / 2) : *len);
+    const int MINIMUM_CELL_WIDTH = 8;
 
-    const int cell_width = w / (int)set_length;
+    float smooth_cpy[*len];
+    float smear_cpy[*len];
 
-    for (size_t i = 0; i < set_length; i++) {
-      const float start = smear[i];
-      const float end = smoothed[i];
+    if (cell_width < MINIMUM_CELL_WIDTH) {
+      cell_width = MINIMUM_CELL_WIDTH;
+    }
+
+    int req_width = cell_width * *len;
+    if (req_width > w) {
+      memset(smooth_cpy, 0, sizeof(float) * *len);
+      memset(smear_cpy, 0, sizeof(float) * *len);
+
+      int down_sampling = 2;
+      const int _tmp_iter = buf_iter / down_sampling;
+      const int tmp_width = w / _tmp_iter;
+
+      if (tmp_width < MINIMUM_CELL_WIDTH) {
+        down_sampling *= 2;
+      }
+
+      for (size_t i = 0; i < buf_iter / down_sampling; i++) {
+        smooth_cpy[i] = smoothed[i * down_sampling];
+        smear_cpy[i] = smear[i * down_sampling];
+      }
+
+      buf_iter /= down_sampling;
+      cell_width = w / buf_iter;
+
+    } else {
+      memcpy(smooth_cpy, smoothed, sizeof(float) * *len);
+      memcpy(smear_cpy, smear, sizeof(float) * *len);
+    }
+
+    for (size_t i = 0; i < buf_iter; ++i) {
+      const float start = smear_cpy[i];
+      const float end = smooth_cpy[i];
 
       const int space = cell_width + cell_width / 2;
 

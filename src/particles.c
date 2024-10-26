@@ -39,7 +39,7 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
 
   // If it doesn't meet this criteria, just return NULL without ever calling
   // malloc
-  if (bar_height < 50 || bar_width <= p_width) {
+  if (bar_height < 25 || bar_width <= p_width) {
     return NULL;
   }
 
