@@ -69,16 +69,16 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
     SDL_Rect last_rect = list_buf[last_locn].text->rect;
     const int distance = text_rect.y - last_rect.y;
 
-    int line_x = (win.width * 0.5) - (last_rect.w * 0.5);
+    int line_x = (win.width * 0.5) - ((last_rect.w - 10) * 0.5);
     int line_y = text_rect.y - (distance * 0.5);
-    int line_w = last_rect.w;
+    int line_w = last_rect.w - 10;
     int line_h = 4;
 
     SDL_Rect line = {line_x, line_y + (line_h * 0.5), line_w, line_h};
 
-    int line_x_shadow = (win.width * 0.5) - (last_rect.w * 0.5);
+    int line_x_shadow = (win.width * 0.5) - ((last_rect.w - 4) * 0.5);
     int line_y_shadow = text_rect.y - (distance * 0.5);
-    int line_w_shadow = last_rect.w;
+    int line_w_shadow = last_rect.w - 4;
     int line_h_shadow = 8;
 
     SDL_Rect line_shadow = {line_x_shadow, line_y_shadow, line_w_shadow,

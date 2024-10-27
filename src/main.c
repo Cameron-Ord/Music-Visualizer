@@ -606,7 +606,7 @@ int get_char_limit(int width) {
   if (width < 100) {
     return 1;
   }
-  return MIN(225, MAX(8, (width - sub_amount) / 12));
+  return MIN(150, MAX(8, (width - sub_amount) / 10));
 }
 
 int get_title_limit(int height) {
