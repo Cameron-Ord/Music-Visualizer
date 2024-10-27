@@ -30,8 +30,12 @@ void *free_text_buffer(TextBuffer *buf, const size_t *count) {
         free(t->name);
       }
 
-      if (t->is_valid && t->tex) {
-        SDL_DestroyTexture(t->tex);
+      if (t->is_valid && t->tex[0]) {
+        SDL_DestroyTexture(t->tex[0]);
+      }
+
+      if (t->is_valid && t->tex[1]) {
+        SDL_DestroyTexture(t->tex[1]);
       }
 
       free(t);

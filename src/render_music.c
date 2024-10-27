@@ -115,9 +115,12 @@ void render_draw_music(const float *smear, const float *smoothed,
                             start_bar_height};
 
       if (end_box.y > start_box.y) {
-        scc(SDL_SetRenderDrawColor(rend.r, vis.secondary.r, vis.secondary.g,
-                                   vis.secondary.b, vis.secondary.a));
+        scc(SDL_SetRenderDrawColor(rend.r, vis.secondary_bg.r,
+                                   vis.secondary_bg.g, vis.secondary_bg.b,
+                                   vis.secondary_bg.a));
         scc(SDL_RenderFillRect(rend.r, &start_box));
+      } else {
+        kill_invalid_particles(p_buffer[i].buf);
       }
 
       scc(SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g,
@@ -129,6 +132,7 @@ void render_draw_music(const float *smear, const float *smoothed,
         continue;
       }
 
+      // Probably want to put this in the above condition later
       render_set_particles(p_buffer, &end_box, &start_box, i);
 
       if (p_buffer) {
@@ -139,9 +143,12 @@ void render_draw_music(const float *smear, const float *smoothed,
             int p_x = p_buffer[i].buf[j]->x;
             int p_y = p_buffer[i].buf[j]->y;
 
+            SDL_Color particle_colour = vis.primary;
+
             SDL_Rect particle_rect = {p_x, p_y, p_wid, p_hei};
-            scc(SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g,
-                                       vis.primary.b, vis.primary.a));
+            scc(SDL_SetRenderDrawColor(rend.r, particle_colour.r,
+                                       particle_colour.g, particle_colour.b,
+                                       particle_colour.a));
             scc(SDL_RenderFillRect(rend.r, &particle_rect));
 
             p_buffer[i].buf[j]->frame++;

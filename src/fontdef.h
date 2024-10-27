@@ -6,8 +6,8 @@
 
 // TextBuffer is heap allocated and pointed to in TextBuffer
 typedef struct {
-  SDL_Texture *tex;
-  SDL_Surface *surf;
+  SDL_Texture *tex[2];
+  SDL_Surface *surf[2];
   SDL_Rect rect;
   int width;
   int height;

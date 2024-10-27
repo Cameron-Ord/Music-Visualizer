@@ -4,6 +4,8 @@
 #include "particledef.h"
 
 int particle_is_dead(int frame);
+int particle_is_dying(int frame);
+void kill_invalid_particles(Particle **buf);
 Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
                                  int bar_height);
 void cull_dead_particle(Particle *dead_particle);

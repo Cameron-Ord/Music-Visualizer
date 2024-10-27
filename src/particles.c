@@ -29,17 +29,20 @@ ParticleTrio *allocate_particle_buffer(size_t *particle_buffer_size) {
 }
 
 int particle_is_dead(int frame) { return frame > MAX_FRAME_TIME; }
+int particle_is_dying(int frame) {
+  return frame >= (floorf(MAX_FRAME_TIME * 0.75));
+}
 
 Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
                                  int bar_height) {
 
   // p_height uses the width in order to maintain the aspect ratio.
-  int p_height = MAX(1, (int)(floorf(bar_width * 0.1)));
-  int p_width = MAX(1, (int)(floorf(bar_width * 0.1)));
+  int p_height = MAX(1, (int)(floorf(bar_width * 0.175)));
+  int p_width = MAX(1, (int)(floorf(bar_width * 0.175)));
 
   // If it doesn't meet this criteria, just return NULL without ever calling
   // malloc
-  if (bar_height < 25 || bar_width <= p_width) {
+  if (bar_height < 40 || bar_width <= p_width) {
     return NULL;
   }
 
@@ -48,7 +51,7 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
     return NULL;
   }
 
-  particle->frame = rand() % 2;
+  particle->frame = rand() % 3;
   particle->h = p_height;
   particle->w = p_width;
 
@@ -71,9 +74,19 @@ void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size) {
   }
 }
 
+void kill_invalid_particles(Particle **buf) {
+  if (buf) {
+    for (size_t i = 0; i < PARTICLE_COUNT; i++) {
+      if (buf[i]) {
+        cull_dead_particle(buf[i]);
+        buf[i] = NULL;
+      }
+    }
+  }
+}
+
 void render_set_particles(ParticleTrio *particle_buffer, const SDL_Rect *end,
                           const SDL_Rect *start, size_t iter) {
-
   if (particle_buffer) {
     for (size_t p = 0; p < PARTICLE_COUNT; p++) {
       if (particle_buffer[iter].buf[p] != NULL) {

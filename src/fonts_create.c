@@ -30,8 +30,10 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
     memset(text, 0, sizeof(Text));
     text->is_valid = false;
-    text->surf = NULL;
-    text->tex = NULL;
+    text->surf[0] = NULL;
+    text->tex[0] = NULL;
+    text->surf[1] = NULL;
+    text->tex[1] = NULL;
 
     if (!paths_buf[i].name) {
       fprintf(stderr, "Path name is NULL!\n");
@@ -73,27 +75,45 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
       name_buffer[paths_buf[i].name_length] = '\0';
     }
 
-    text->surf = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
-    if (!text->surf) {
-      text->surf = NULL;
+    text->surf[0] = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
+    if (!text->surf[0]) {
+      text->surf[0] = NULL;
       loop_broken = true;
       break;
     }
 
-    text->tex = SDL_CreateTextureFromSurface(rend.r, text->surf);
-    if (!text->tex) {
-      text->tex = NULL;
+    text->tex[0] = SDL_CreateTextureFromSurface(rend.r, text->surf[0]);
+    if (!text->tex[0]) {
+      text->tex[0] = NULL;
       loop_broken = true;
       break;
     }
 
-    text->width = text->surf->w;
-    text->height = text->surf->h;
+    text->surf[1] =
+        TTF_RenderText_Blended(font.font, name_buffer, vis.secondary);
+    if (!text->surf[1]) {
+      text->surf[1] = NULL;
+      loop_broken = true;
+      break;
+    }
+
+    text->tex[1] = SDL_CreateTextureFromSurface(rend.r, text->surf[1]);
+    if (!text->tex[1]) {
+      text->tex[1] = NULL;
+      loop_broken = true;
+      break;
+    }
+
+    text->width = text->surf[0]->w;
+    text->height = text->surf[0]->h;
     SDL_Rect text_rect = {.x = 0, .y = 0, text->width, text->height};
     text->rect = text_rect;
 
-    SDL_FreeSurface(text->surf);
-    text->surf = NULL;
+    SDL_FreeSurface(text->surf[0]);
+    SDL_FreeSurface(text->surf[1]);
+
+    text->surf[0] = NULL;
+    text->surf[1] = NULL;
     text->is_valid = true;
 
     // Assign the pointer created in the current iteration

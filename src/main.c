@@ -34,11 +34,13 @@ Font font;
 Visualizer vis;
 Events key;
 
-SDL_Color primary = {130, 170, 255, 255};
-SDL_Color secondary = {68, 66, 103, 255};
-SDL_Color background = {41, 45, 62, 255};
-SDL_Color text = {103, 110, 149, 255};
-SDL_Color text_bg = {113, 124, 180, 255};
+SDL_Color primary = {112, 176, 255, 255};    // aB
+SDL_Color secondary = {122, 248, 202, 255};  // Green
+SDL_Color background = {34, 36, 54, 255};    // Dark Grey
+SDL_Color secondary_bg = {47, 51, 77, 255};  // Lighter-Dark Grey
+SDL_Color foreground = {200, 211, 245, 255}; // White - Grey
+SDL_Color text = {130, 139, 184, 255};       // Light Grey
+SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
 
@@ -81,8 +83,10 @@ int main(int argc, char **argv) {
   vis.primary = primary;
   vis.secondary = secondary;
   vis.background = background;
+  vis.secondary_bg = secondary_bg;
   vis.text = text;
-  vis.text_bg = text_bg;
+  vis.foreground = foreground;
+  vis.tertiary = tertiary;
 
   win.w = NULL;
   rend.r = NULL;
@@ -597,9 +601,18 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-int get_char_limit(int width) { return MIN(175, MAX(8, (width - 200) / 18)); }
+int get_char_limit(int width) {
+  const int sub_amount = width * 0.5;
+  if (width < 100) {
+    return 1;
+  }
+  return MIN(225, MAX(8, (width - sub_amount) / 12));
+}
 
-int get_title_limit(int height) { return MIN(6, MAX(1, (height - 300) / 22)); }
+int get_title_limit(int height) {
+  const int sub_amount = height * 0.75;
+  return MIN(16, MAX(1, (height - sub_amount) / 16));
+}
 
 void *scp(void *ptr) {
   if (!ptr) {
