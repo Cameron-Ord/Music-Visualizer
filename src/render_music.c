@@ -144,11 +144,13 @@ void render_draw_music(const float *smear, const float *smoothed,
             int p_y = p_buffer[i].buf[j]->y;
 
             SDL_Color particle_colour = vis.primary;
+            int rand_alpha_factor = (rand() % 255) + 1;
+            float alpha_mul = (float)rand_alpha_factor / 255;
 
             SDL_Rect particle_rect = {p_x, p_y, p_wid, p_hei};
             scc(SDL_SetRenderDrawColor(rend.r, particle_colour.r,
                                        particle_colour.g, particle_colour.b,
-                                       particle_colour.a));
+                                       particle_colour.a * alpha_mul));
             scc(SDL_RenderFillRect(rend.r, &particle_rect));
 
             p_buffer[i].buf[j]->frame++;
