@@ -13,8 +13,11 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
     iter_count = *item_count;
   }
 
-  int pixel_inc = win.height / (iter_count + 1);
-  int p_accumulate = win.height * 0.5;
+  const int iter_divisor = iter_count + 1;
+
+  int pixel_inc = win.height / iter_divisor;
+  int p_accumulate = pixel_inc * (iter_divisor / 2);
+  int p_max = pixel_inc * iter_divisor;
 
   int last_locn = 0;
   int line_flag = 0;
@@ -28,13 +31,13 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
     // That way, when the increment goes over and there are still remaining
     // elements, then and only then does this conditional check and assignments
     // execute
-    if (p_accumulate >= (win.height - list_buf[locn].text->height)) {
+    if (p_accumulate >= p_max) {
       p_accumulate = pixel_inc;
       line_flag = 1;
     }
 
     SDL_Texture *font_tex_ptr = NULL;
-    if (p_accumulate == win.height * 0.5) {
+    if (i == 0) {
       font_tex_ptr = list_buf[locn].text->tex[1];
     } else {
       font_tex_ptr = list_buf[locn].text->tex[0];
