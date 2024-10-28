@@ -250,7 +250,6 @@ int main(int argc, char **argv) {
   }
 
 #endif
-
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
   written = 0;

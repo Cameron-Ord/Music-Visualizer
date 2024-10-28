@@ -1,8 +1,12 @@
 working_dir=$(pwd)
 
 echo "Link with lua? y/n"
-$link_with_lua
-read $link_with_lua
+read link_with_lua
+
+build_dir=build
+if [ -d $build_dir ]; then
+  rm -r $build_dir
+fi
 
 if [[ "$link_with_lua" == "y" || "$link_with_lua" == "Y" ]]; then
   echo "building with lua.."

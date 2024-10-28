@@ -21,11 +21,9 @@ The program relies on directories located in the **~/Music dir located in the ho
 
 ### Configuration
 
-> As of right now, you will have to place MVSource inside the Music directory yourself.
-- ```MVSource``` which is where your music will be located. **The program expects folders inside this directory**, of which contain the audio files.
+- ```MVSource``` which is where your music will be located. **The program expects folders inside this directory**, of which contain the audio files. If you used one of my build scripts, these folders are created automatically for you.
 
 - If you compiled with Lua lib, you can change some settings in the config.lua.
----
 
 ## Controls
 **General controls**
@@ -59,27 +57,13 @@ My program depends on these libs:
 Building is relatively painless. Just make sure you have the afforementioned libs installed so that **CMake** can search for them.
 
 ## Build steps for linux
-- ```mkdir build```
-- ```cd build && cmake ..```
-- ```cmake --build .``` or just ```make```
+- Simply run the ```unix_build.sh``` bash script. It will ask if you wish to link with lua, so you can use the config.lua.
+
 
 ## Build steps for windows
-You can simply run the **win64_make.sh** script inside the working directory of the project but I will give a rundown of what it does here.
-Essentially I am just using the packages dev from MSYS2, which use MinGW.
+- Run the ```win64_make.sh``` bash script inside a git bash terminal. 
 
-```
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DCMAKE_C_COMPILER=/c/msys64/mingw64/bin/gcc.exe \
-        -DCMAKE_CXX_COMPILER=/c/msys64/mingw64/bin/g++.exe \
-        -S. \
-        -B./build \
-        -G "MinGW Makefiles"
-```
-
-
-- ```cd build```
-- ```mingw32-make```
+**AS OF RIGHT NOW THIS WILL NOT WORK, AS I AM CHANGING SOME STUFF WITH THE BUILD PROCESS, SO ONLY LINUX BUILDS WILL WORK CURRENTLY**.
 
 
 
