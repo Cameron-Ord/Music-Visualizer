@@ -10,9 +10,8 @@ I am making this for myself only, but if you wanna use it, check out the build s
 
 ### Gallery
 
-![image]("example/desktop1.png")
----
-![image]("example/desktop2.png")
+![image](example/desktop1.png)
+![image](example/desktop2.png)
 
 ### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
