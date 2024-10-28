@@ -59,6 +59,8 @@ Building is relatively painless. Just make sure you have the afforementioned lib
 ## Build steps for linux
 - Simply run the ```unix_build.sh``` bash script. It will ask if you wish to link with lua, so you can use the config.lua.
 
+The program will be executable from anywhere and you can launch it using ```Vis```
+
 
 ## Build steps for windows
 - Run the ```win64_make.sh``` bash script inside a git bash terminal. 
