@@ -3,6 +3,7 @@ Config = {
 	FPS = 120,
 	smearing = 12,
 	smoothing = 14,
+	-- 0 For Frequency Domain, 1 for Time Domain (not properly implemented)
 	freq_draw_type = 0,
 	-- Colour palette
 	primary = { 112, 176, 255, 255 },

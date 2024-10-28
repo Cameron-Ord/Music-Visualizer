@@ -156,7 +156,64 @@ int main(int argc, char **argv) {
     lua_getfield(L, -1, "freq_draw_type");
     vis.draw_state = lua_tointeger(L, -1);
     lua_pop(L, 1);
+
+    const char *fields[] = {"primary",    "secondary",    "tertiary",
+                            "background", "secondary_bg", "foreground",
+                            "text"};
+
+    SDL_Color *color_ptrs[] = {
+        &vis.primary,      &vis.secondary,  &vis.tertiary, &vis.background,
+        &vis.secondary_bg, &vis.foreground, &vis.text};
+
+    const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
+    for (size_t i = 0; i < col_size; i++) {
+      lua_getfield(L, -1, fields[i]);
+      for (size_t j = 0; j < 4; j++) {
+
+        /*
+          int lua_gettable (lua_State *L, int index);
+
+          Pushes onto the stack the value t[k], where t is the value at the
+          given index and k is the value at the top of the stack.
+
+          This function pops the key from the stack, pushing the resulting value
+          in its place. As in Lua, this function may trigger a metamethod for
+          the "index" event (see §2.4).
+        */
+
+        // push index onto the stack
+        lua_pushinteger(L, j + 1);
+        // get the j-th value from the table (array)
+        lua_gettable(L, -2);
+        switch (j) {
+        case 0: {
+          color_ptrs[i]->r = lua_tointeger(L, -1);
+        } break;
+
+        case 1: {
+          color_ptrs[i]->g = lua_tointeger(L, -1);
+        } break;
+
+        case 2: {
+          color_ptrs[i]->b = lua_tointeger(L, -1);
+        } break;
+
+        case 3: {
+          color_ptrs[i]->a = lua_tointeger(L, -1);
+        } break;
+        }
+
+        lua_pop(L, 1);
+      }
+
+      lua_pop(L, 1);
+    }
+
     lua_pop(L, 1);
+  }
+
+  if (L && !lua_failed) {
+    lua_close(L);
   }
 
 #endif
@@ -658,10 +715,6 @@ int main(int argc, char **argv) {
   if (win.w) {
     SDL_DestroyWindow(win.w);
   }
-
-#ifdef LUA_FLAG
-  lua_close(L);
-#endif
 
   TTF_Quit();
   SDL_Quit();

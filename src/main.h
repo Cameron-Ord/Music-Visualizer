@@ -39,7 +39,6 @@ typedef struct {
   SDL_Color background;
   SDL_Color secondary_bg;
   SDL_Color text;
-  SDL_Color text_bg;
   SDL_Color foreground;
   SDL_Color tertiary;
 } Visualizer;
