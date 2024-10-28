@@ -1,8 +1,8 @@
 Config = {
 	-- Rendering config
-	FPS = 60,
-	smearing = 6,
-	smoothing = 8,
+	FPS = 120,
+	smearing = 12,
+	smoothing = 14,
 	freq_draw_type = 0,
 	-- Colour palette
 	primary = { 112, 176, 255, 255 },

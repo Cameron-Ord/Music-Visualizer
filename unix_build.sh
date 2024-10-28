@@ -11,3 +11,4 @@ make -j$(nproc)
 
 cd $working_dir
 cp assets/dogicapixel.ttf bin/
+cp lua/config.lua bin/

@@ -69,8 +69,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  fprintf(stdout, "FPS TARGET -> %d\n", FPS);
-
   srand(time(NULL));
 
   const char *platform = SDL_GetPlatform();
@@ -163,6 +161,8 @@ int main(int argc, char **argv) {
 
 #endif
 
+  fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
+
   printf("Opening font..\n");
 
   font.font = (TTF_Font *)scp(TTF_OpenFont(FONT_PATH, font.size));
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
   SDL_EnableScreenSaver();
   SDL_ShowWindow(win.w);
 
-  const int ticks_per_frame = (1000.0 / FPS);
+  const int ticks_per_frame = (1000.0 / vis.target_frames);
   uint64_t frame_start;
   int frame_time;
 
