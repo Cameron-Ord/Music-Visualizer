@@ -7,7 +7,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-
 if(WIN32)
   set(CMAKE_REQUIRED_FLAGS "-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lsndfile -lm")
 else()
@@ -25,6 +24,8 @@ endif()
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   target_compile_options(Vis PRIVATE -Wall -Wextra -pedantic)
 endif()
+
+target_link_libraries(Vis m)
 
 find_library(SDL2_LIBRARY NAMES SDL2)
 find_library(SDL2_LIBRARY_MAIN NAMES SDL2main)
@@ -107,7 +108,6 @@ else()
 endif()
 message("")
 
-target_link_libraries(Vis m)
 
 
 

@@ -4,8 +4,13 @@
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
-
 #include <stdio.h>
+
+#ifdef LUA_FLAG
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+#endif
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -112,6 +117,17 @@ int main(int argc, char **argv) {
   font.font = NULL;
   font.char_limit = 0;
   font.size = 16;
+
+#ifdef LUA_FLAG
+  lua_State *L = luaL_newstate();
+  assert(L != NULL);
+  luaL_openlibs(L);
+
+  if (luaL_dostring(L, "print('Lua state ready')") != LUA_OK) {
+    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
+#endif
 
   printf("Opening font..\n");
 
@@ -608,6 +624,10 @@ int main(int argc, char **argv) {
   if (win.w) {
     SDL_DestroyWindow(win.w);
   }
+
+#ifdef LUA_FLAG
+  lua_close(L);
+#endif
 
   TTF_Quit();
   SDL_Quit();
