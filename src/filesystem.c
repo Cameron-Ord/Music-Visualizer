@@ -8,6 +8,8 @@
 #include <string.h>
 
 #ifdef _WIN32
+int win_mkdir(const char *path) { return 0; }
+
 Paths *win_find_directories(size_t *count) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
@@ -293,8 +295,19 @@ Paths *win_find_files(size_t *count, const char *path) {
 
 #endif
 
-// This is not properly implemented yet
 #ifdef __linux__
+#include <sys/stat.h>
+
+int unix_mkdir(const char *path) {
+  char *home = getenv("HOME");
+
+  char mkpath[PATH_MAX];
+  snprintf(mkpath, sizeof(mkpath), "%s/%s", home, path);
+  mkdir(mkpath, 0755);
+
+  return 0;
+}
+
 Paths *unix_find_directories(size_t *count) {
 
   char *home = getenv("HOME");

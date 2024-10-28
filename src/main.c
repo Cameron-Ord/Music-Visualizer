@@ -5,6 +5,8 @@
 #include "particles.h"
 #include "utils.h"
 
+#include <stdio.h>
+
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -16,11 +18,13 @@
 #ifdef _WIN32
 Paths *(*find_directories)(size_t *) = &win_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &win_find_files;
+void *(*make_directory_proxy)(const char *) = &win_mkdir;
 #endif
 
 #ifdef __linux__
 Paths *(*find_directories)(size_t *) = &unix_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &unix_find_files;
+int (*make_directory_proxy)(const char *) = &unix_mkdir;
 #endif
 
 #include <assert.h>
@@ -120,6 +124,7 @@ int main(int argc, char **argv) {
   size_t file_count = 0;
 
   printf("Finding directories..\n");
+
   Paths *dir_contents = find_directories(&dir_count);
   Paths *file_contents = NULL;
 
@@ -198,6 +203,8 @@ int main(int argc, char **argv) {
       case SDL_WINDOWEVENT: {
         switch (event.window.event) {
         case SDL_WINDOWEVENT_RESIZED: {
+          render_clear();
+
           SDL_GetWindowSize(win.w, &win.width, &win.height);
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
@@ -219,6 +226,8 @@ int main(int argc, char **argv) {
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
+          render_clear();
+
           SDL_GetWindowSize(win.w, &win.width, &win.height);
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
@@ -413,24 +422,25 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            const char *search_key =
-                file_text_buffer[key.file_cursor].text->name;
-            const char *path_str = find_pathstr(search_key, file_contents);
+            if (file_text_buffer) {
+              const char *search_key =
+                  file_text_buffer[key.file_cursor].text->name;
+              const char *path_str = find_pathstr(search_key, file_contents);
 
-            KILL_PARTICLES(particle_buffer, particle_buffer_size);
+              KILL_PARTICLES(particle_buffer, particle_buffer_size);
 
-            if (read_audio_file(path_str, adc)) {
-              if (load_song(adc)) {
-                vis.current_state = PLAYBACK;
+              if (read_audio_file(path_str, adc)) {
+                if (load_song(adc)) {
+                  vis.current_state = PLAYBACK;
+                } else {
+                  vis.current_state = SONGS;
+                }
               } else {
+                pause_device();
+                SDL_CloseAudioDevice(vis.dev);
                 vis.current_state = SONGS;
               }
-            } else {
-              pause_device();
-              SDL_CloseAudioDevice(vis.dev);
-              vis.current_state = SONGS;
             }
-
           } break;
           }
 
@@ -461,23 +471,26 @@ int main(int argc, char **argv) {
           } break;
 
           case SDLK_SPACE: {
-            const char *search_key = dir_text_buffer[key.dir_cursor].text->name;
-            const char *path_str = find_pathstr(search_key, dir_contents);
+            if (dir_text_buffer) {
+              const char *search_key =
+                  dir_text_buffer[key.dir_cursor].text->name;
+              const char *path_str = find_pathstr(search_key, dir_contents);
 
-            file_contents = free_paths(file_contents, &file_count);
-            file_text_buffer = free_text_buffer(file_text_buffer, &file_count);
+              file_contents = free_paths(file_contents, &file_count);
+              file_text_buffer =
+                  free_text_buffer(file_text_buffer, &file_count);
 
-            file_contents = find_files(&file_count, path_str);
-            if (file_count > 0 && file_contents) {
-              file_text_buffer = create_fonts(file_contents, &file_count);
-              if (file_text_buffer) {
-                key.file_cursor = 0;
-                vis.current_state = SONGS;
-              } else {
-                file_contents = free_paths(file_contents, &file_count);
+              file_contents = find_files(&file_count, path_str);
+              if (file_count > 0 && file_contents) {
+                file_text_buffer = create_fonts(file_contents, &file_count);
+                if (file_text_buffer) {
+                  key.file_cursor = 0;
+                  vis.current_state = SONGS;
+                } else {
+                  file_contents = free_paths(file_contents, &file_count);
+                }
               }
             }
-
           } break;
           }
         } break;
