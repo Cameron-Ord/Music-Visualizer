@@ -1,4 +1,5 @@
 #include "filesystem.h"
+#include "main.h"
 #include "utils.h"
 
 #include <errno.h>
@@ -309,17 +310,11 @@ int unix_mkdir(const char *path) {
 }
 
 Paths *unix_find_directories(size_t *count) {
-
-  char *home = getenv("HOME");
-  if (!home) {
-    fprintf(stderr, "Failed to get home path! -> %s\n", strerror(errno));
-    return NULL;
-  }
   char *music_dir = "Music/MVSource";
   char search_path[PATH_MAX];
 
   size_t total_length =
-      get_length(3, strlen("/"), strlen(music_dir), strlen(home));
+      get_length(3, strlen("/"), strlen(music_dir), strlen(vis.home));
 
   if (total_length > PATH_MAX) {
     fprintf(
@@ -328,7 +323,7 @@ Paths *unix_find_directories(size_t *count) {
     return NULL;
   }
 
-  snprintf(search_path, sizeof(search_path), "%s/%s", home, music_dir);
+  snprintf(search_path, sizeof(search_path), "%s/%s", vis.home, music_dir);
 
   DIR *dir = opendir(search_path);
   if (!dir) {
@@ -377,7 +372,7 @@ Paths *unix_find_directories(size_t *count) {
       strcpy(dir_buf, entry->d_name);
 
       const size_t music_dirpath_len = strlen(music_dir);
-      const size_t home_path_len = strlen(home);
+      const size_t home_path_len = strlen(vis.home);
       const size_t dir_buf_len = strlen(dir_buf);
       const size_t slash_len = strlen("/");
 
@@ -400,7 +395,7 @@ Paths *unix_find_directories(size_t *count) {
         break;
       }
 
-      snprintf(path_buf, path_ttl_length + 1, "%s/%s/%s", home, music_dir,
+      snprintf(path_buf, path_ttl_length + 1, "%s/%s/%s", vis.home, music_dir,
                dir_buf);
 
       dpaths[*count].path = path_buf;
@@ -425,7 +420,7 @@ Paths *unix_find_directories(size_t *count) {
       }
     }
 
-    free_ptrs(2, home, dpaths);
+    free_ptrs(1, dpaths);
     closedir(dir);
     return NULL;
   }

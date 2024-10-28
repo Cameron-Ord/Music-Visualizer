@@ -16,24 +16,31 @@
 typedef enum { DIRECTORIES = 0, SONGS = 1, PLAYBACK = 2 } USER_STATE;
 typedef enum { FREQ_DOMAIN = 0, TIME_DOMAIN = 1 } DRAW_STATE;
 
-#define FONT_PATH "dogicapixel.ttf"
-#define DEFAULT_TABLE_SIZE 1024
-
 #define WIN_W 600
 #define WIN_H 400
 
 typedef struct {
+  // Audio devices
   SDL_AudioDeviceID dev;
   SDL_AudioSpec spec;
+
+  // Boolean flags
   bool stream_flag;
+  bool quit;
+
+  // Integer flags
   int next_song_flag;
   int scrolling;
-  bool quit;
   int current_state;
   int draw_state;
+
+  // Application variables
   int target_frames;
   int smearing;
   int smoothing;
+  char *home;
+
+  // Colors
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color background;

@@ -12,9 +12,6 @@
 #include <lualib.h>
 #endif
 
-#define SDL_COLOR(r, g, b, a)                                                  \
-  { (r), (g), (b), (a) }
-
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -24,12 +21,16 @@
 #endif
 
 #ifdef _WIN32
+#define HOME "USERPROFILE"
+#define ASSETS_DIR "\\Documents\\MVis\\"
 Paths *(*find_directories)(size_t *) = &win_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &win_find_files;
 void *(*make_directory_proxy)(const char *) = &win_mkdir;
 #endif
 
 #ifdef __linux__
+#define HOME "HOME"
+#define ASSETS_DIR "/.local/share/MVis/"
 Paths *(*find_directories)(size_t *) = &unix_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &unix_find_files;
 int (*make_directory_proxy)(const char *) = &unix_mkdir;
@@ -77,6 +78,12 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+  char *home = getenv(HOME);
+  if (!home) {
+    fprintf(stderr, "Failed to get home environment! -> %s\n", strerror(errno));
+    return 1;
+  }
+
   fprintf(stdout, "Starting..\n");
 
   key.dir_cursor = 0;
@@ -85,6 +92,7 @@ int main(int argc, char **argv) {
   key.dir_list_index = 0;
 
   // Assign default values
+  vis.home = home;
   vis.smearing = 6;
   vis.smoothing = 8;
   vis.target_frames = FPS;
@@ -120,7 +128,30 @@ int main(int argc, char **argv) {
   font.char_limit = 0;
   font.size = 16;
 
+  int written = 0;
+  char *path_buffer = NULL;
+  size_t path_size = 0;
+
 #ifdef LUA_FLAG
+  const char *config_name = "config.lua";
+  path_size =
+      get_length(3, strlen(config_name), strlen(home), strlen(ASSETS_DIR));
+
+  path_buffer = malloc(path_size + 1);
+  if (!path_buffer) {
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    return 1;
+  }
+
+  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
+                     config_name);
+  if (written <= 0) {
+    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
+    return 1;
+  }
+
+  printf("Lua config path -> %s\n", path_buffer);
+
   lua_State *L = luaL_newstate();
   assert(L != NULL);
   luaL_openlibs(L);
@@ -133,11 +164,13 @@ int main(int argc, char **argv) {
     lua_failed = true;
   }
 
-  if (luaL_dofile(L, "config.lua") != LUA_OK) {
+  if (luaL_dofile(L, path_buffer) != LUA_OK) {
     fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
     lua_failed = true;
   }
+
+  free(path_buffer);
 
   if (!lua_failed) {
     lua_getglobal(L, "Config");
@@ -220,9 +253,32 @@ int main(int argc, char **argv) {
 
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
-  printf("Opening font..\n");
+  written = 0;
+  path_buffer = NULL;
+  path_size = 0;
 
-  font.font = (TTF_Font *)scp(TTF_OpenFont(FONT_PATH, font.size));
+  printf("Opening font..\n");
+  const char *font_name = "dogicapixel.ttf";
+  path_size =
+      get_length(3, strlen(font_name), strlen(home), strlen(ASSETS_DIR));
+
+  path_buffer = malloc(path_size + 1);
+  if (!path_buffer) {
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    return 1;
+  }
+
+  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
+                     font_name);
+  if (written <= 0) {
+    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
+    return 1;
+  }
+
+  printf("Font path -> %s\n", path_buffer);
+  font.font = (TTF_Font *)scp(TTF_OpenFont(path_buffer, font.size));
+
+  free(path_buffer);
 
   rend.title_limit = get_title_limit(win.height);
   font.char_limit = get_char_limit(win.width);
@@ -736,7 +792,7 @@ int get_title_limit(int height) {
 
 void *scp(void *ptr) {
   if (!ptr) {
-    fprintf(stderr, "SDL failed to create PTR! -> %s", SDL_GetError());
+    fprintf(stderr, "SDL failed to create PTR! -> %s\n", SDL_GetError());
     exit(EXIT_FAILURE);
   }
 
@@ -745,7 +801,7 @@ void *scp(void *ptr) {
 
 int scc(int code) {
   if (code < 0) {
-    fprintf(stderr, "SDL code execution failed! -> %s", SDL_GetError());
+    fprintf(stderr, "SDL code execution failed! -> %s\n", SDL_GetError());
     exit(EXIT_FAILURE);
   }
 
