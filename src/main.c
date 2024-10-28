@@ -12,6 +12,9 @@
 #include <lualib.h>
 #endif
 
+#define SDL_COLOR(r, g, b, a)                                                  \
+  { (r), (g), (b), (a) }
+
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -83,6 +86,9 @@ int main(int argc, char **argv) {
   key.file_list_index = 0;
   key.dir_list_index = 0;
 
+  // Assign default values
+  vis.smearing = 6;
+  vis.smoothing = 8;
   vis.target_frames = FPS;
   vis.draw_state = FREQ_DOMAIN;
   vis.next_song_flag = 0;
@@ -109,8 +115,6 @@ int main(int argc, char **argv) {
   rend.r = (SDL_Renderer *)scp(SDL_CreateRenderer(
       win.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
-  render_clear();
-
   win.height = WIN_H;
   win.width = WIN_W;
 
@@ -123,10 +127,40 @@ int main(int argc, char **argv) {
   assert(L != NULL);
   luaL_openlibs(L);
 
-  if (luaL_dostring(L, "print('Lua state ready')") != LUA_OK) {
+  bool lua_failed = false;
+
+  if (luaL_dostring(L, "print('Lua state initialized!')") != LUA_OK) {
     fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
+    lua_failed = true;
   }
+
+  if (luaL_dofile(L, "config.lua") != LUA_OK) {
+    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    lua_failed = true;
+  }
+
+  if (!lua_failed) {
+    lua_getglobal(L, "Config");
+    lua_getfield(L, -1, "FPS");
+    vis.target_frames = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "smearing");
+    vis.smearing = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "smoothing");
+    vis.smoothing = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "freq_draw_type");
+    vis.draw_state = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_pop(L, 1);
+  }
+
 #endif
 
   printf("Opening font..\n");

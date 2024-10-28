@@ -92,11 +92,11 @@ void visual_refine(FFTBuffers *bufs, FFTData *data) {
     bufs->processed_phases[i] /= data->max_phase;
     bufs->processed[i] /= data->max_ampl;
 
-    bufs->smoothed[i] += (bufs->processed[i] - bufs->smoothed[i]) * 8 *
-                         (1.0 / vis.target_frames);
+    bufs->smoothed[i] += (bufs->processed[i] - bufs->smoothed[i]) *
+                         vis.smoothing * (1.0 / vis.target_frames);
 
-    bufs->smear[i] +=
-        (bufs->smoothed[i] - bufs->smear[i]) * 4 * (1.0 / vis.target_frames);
+    bufs->smear[i] += (bufs->smoothed[i] - bufs->smear[i]) * vis.smearing *
+                      (1.0 / vis.target_frames);
   }
 }
 

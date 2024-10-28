@@ -32,6 +32,8 @@ typedef struct {
   int current_state;
   int draw_state;
   int target_frames;
+  int smearing;
+  int smoothing;
   SDL_Color primary;
   SDL_Color secondary;
   SDL_Color background;
