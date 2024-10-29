@@ -5,6 +5,8 @@ Config = {
 	smoothing = 14,
 	-- 0 For Frequency Domain, 1 for Time Domain (not properly implemented)
 	freq_draw_type = 0,
+	-- For particles. 1 for on, 0 for off.
+	enable_particles = 1,
 	-- Colour palette
 	primary = { 112, 176, 255, 255 },
 	secondary = { 122, 248, 202, 255 },
