@@ -9,36 +9,16 @@
 #include <string.h>
 
 #ifdef _WIN32
-int win_mkdir(const char *path) { return 0; }
-
 Paths *win_find_directories(size_t *count) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
-
-  size_t size;
-  if (getenv_s(&size, NULL, 0, "USERPROFILE") != 0) {
-    fprintf(stderr, "Failed to get USERPROFILE size.\n");
-    return NULL;
-  }
-
-  char *home = (char *)malloc(size);
-  if (!home) {
-    fprintf(stderr, "Memory allocation for home failed.\n");
-    return NULL;
-  }
-
-  if (getenv_s(&size, home, size, "USERPROFILE") != 0) {
-    fprintf(stderr, "Failed to get USERPROFILE.\n");
-    free(home);
-    return NULL;
-  }
 
   char *music_dir = "Music\\MVSource\\*";
   char *music_dir_no_wc = "Music\\MVSource\\";
   char search_path[MAX_PATH];
 
   size_t total_length =
-      get_length(3, strlen("\\"), strlen(music_dir), strlen(home));
+      get_length(3, strlen("\\"), strlen(music_dir), strlen(vis.home));
   if (total_length > MAX_PATH) {
     fprintf(
         stderr,
@@ -46,7 +26,7 @@ Paths *win_find_directories(size_t *count) {
     return NULL;
   }
 
-  snprintf(search_path, sizeof(search_path), "%s\\%s", home, music_dir);
+  snprintf(search_path, sizeof(search_path), "%s\\%s", vis.home, music_dir);
 
   fprintf(stdout, "SEARCH PATH -> %s\n", search_path);
 
@@ -60,7 +40,6 @@ Paths *win_find_directories(size_t *count) {
   h_find = FindFirstFile(search_path, &find_file_data);
   if (h_find == INVALID_HANDLE_VALUE) {
     fprintf(stderr, "Could not read filesystem! -> %s\n", search_path);
-    free(home);
     return NULL;
   }
 
@@ -101,7 +80,7 @@ Paths *win_find_directories(size_t *count) {
         strcpy_s(dir_buffer, file_name_length + 1, find_file_data.cFileName);
 
         size_t path_ttl_length =
-            get_length(5, strlen(music_dir_no_wc), strlen(home), strlen("\\"),
+            get_length(5, strlen(music_dir_no_wc), strlen(vis.home), strlen("\\"),
                        strlen(dir_buffer), strlen("\\"));
 
         char *path_buffer = NULL;
@@ -114,7 +93,7 @@ Paths *win_find_directories(size_t *count) {
             break;
           }
 
-          snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s\\", home,
+          snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s\\", vis.home,
                    music_dir_no_wc, dir_buffer);
         }
 
@@ -142,37 +121,18 @@ Paths *win_find_directories(size_t *count) {
       }
     }
 
-    free_ptrs(2, home, paths);
+    free_ptrs(1, paths);
     FindClose(h_find);
     return NULL;
   }
 
   FindClose(h_find);
-  free(home);
   return paths;
 }
 
 Paths *win_find_files(size_t *count, const char *path) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
-
-  size_t size;
-  if (getenv_s(&size, NULL, 0, "USERPROFILE") != 0) {
-    fprintf(stderr, "Failed to get USERPROFILE size.\n");
-    return NULL;
-  }
-
-  char *home = (char *)malloc(size);
-  if (!home) {
-    fprintf(stderr, "Memory allocation for home failed.\n");
-    return NULL;
-  }
-
-  if (getenv_s(&size, home, size, "USERPROFILE") != 0) {
-    fprintf(stderr, "Failed to get USERPROFILE.\n");
-    free(home);
-    return NULL;
-  }
 
   size_t default_size = 6;
   Paths *fpaths = calloc(default_size, sizeof(Paths));
@@ -184,7 +144,6 @@ Paths *win_find_files(size_t *count, const char *path) {
   size_t path_length = strlen(path);
   if (path_length == 0) {
     fprintf(stderr, "Failed to get char len! -> %s\n", strerror(errno));
-    free(home);
     return NULL;
   }
 
@@ -203,7 +162,6 @@ Paths *win_find_files(size_t *count, const char *path) {
   if (h_find == INVALID_HANDLE_VALUE) {
     fprintf(stderr, "Could not read filesystem! -> %s\n", path_cpy);
     free(path_cpy);
-    free(home);
     return NULL;
   }
 
@@ -283,13 +241,12 @@ Paths *win_find_files(size_t *count, const char *path) {
       }
     }
 
-    free_ptrs(3, home, path_cpy, fpaths);
+    free_ptrs(2, path_cpy, fpaths);
     FindClose(h_find);
     return NULL;
   }
 
   free(path_cpy);
-  free(home);
 
   return fpaths;
 }
@@ -297,18 +254,6 @@ Paths *win_find_files(size_t *count, const char *path) {
 #endif
 
 #ifdef __linux__
-#include <sys/stat.h>
-
-int unix_mkdir(const char *path) {
-  char *home = getenv("HOME");
-
-  char mkpath[PATH_MAX];
-  snprintf(mkpath, sizeof(mkpath), "%s/%s", home, path);
-  mkdir(mkpath, 0755);
-
-  return 0;
-}
-
 Paths *unix_find_directories(size_t *count) {
   char *music_dir = "Music/MVSource";
   char search_path[PATH_MAX];

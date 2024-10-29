@@ -65,7 +65,6 @@ The program will be executable from anywhere and you can launch it using ```Vis`
 ## Build steps for windows
 - Run the ```win64_make.sh``` bash script inside a git bash terminal. 
 
-**AS OF RIGHT NOW THIS WILL NOT WORK, AS I AM CHANGING SOME STUFF WITH THE BUILD PROCESS, SO ONLY LINUX BUILDS WILL WORK CURRENTLY**.
 
 
 

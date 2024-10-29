@@ -22,10 +22,9 @@
 
 #ifdef _WIN32
 #define HOME "USERPROFILE"
-#define ASSETS_DIR "\\Documents\\MVis\\"
+#define ASSETS_DIR "\\Documents\\share\\MVis\\"
 Paths *(*find_directories)(size_t *) = &win_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &win_find_files;
-void *(*make_directory_proxy)(const char *) = &win_mkdir;
 #endif
 
 #ifdef __linux__
@@ -33,7 +32,6 @@ void *(*make_directory_proxy)(const char *) = &win_mkdir;
 #define ASSETS_DIR "/.local/share/MVis/"
 Paths *(*find_directories)(size_t *) = &unix_find_directories;
 Paths *(*find_files)(size_t *, const char *) = &unix_find_files;
-int (*make_directory_proxy)(const char *) = &unix_mkdir;
 #endif
 
 #include <assert.h>
