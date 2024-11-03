@@ -362,6 +362,8 @@ int main(int argc, char **argv) {
 
   text_input_buffer[0] = '\0';
 
+  SDL_StopTextInput();
+
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 
@@ -460,12 +462,22 @@ int main(int argc, char **argv) {
           break;
 
         case SEARCHING_DIRS: {
+          if(event.key.keysym.sym == SDLK_RETURN){
+            for(size_t i = 0; i < dir_count; i++){
+              char* result = strstr(dir_text_buffer[i].text->name, text_input_buffer);
+              if(result){
+                printf("Found %s at position %zu\n", text_input_buffer, result - dir_text_buffer[i].text->name);
+              }
+            }
+          }
+
           if(event.key.keysym.sym == SDLK_BACKSPACE){
             remove_char(&text_input_buffer, &input_buf_position, &inputbuf_size);
           }
 
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             vis.current_state = DIRECTORIES;
+            SDL_StopTextInput();
           }
         } break;
 
@@ -663,6 +675,7 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_DIRS;
+            SDL_StartTextInput();
           } break;
 
           case SDLK_LEFT: {
