@@ -1,6 +1,7 @@
 #ifndef AUDIODEFS_H
 #define AUDIODEFS_H
 
+#define S_BUF_SIZE (1 << 14)
 #define M_BUF_SIZE (1 << 13)
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 

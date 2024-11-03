@@ -80,8 +80,8 @@ Paths *win_find_directories(size_t *count) {
         strcpy_s(dir_buffer, file_name_length + 1, find_file_data.cFileName);
 
         size_t path_ttl_length =
-            get_length(5, strlen(music_dir_no_wc), strlen(vis.home), strlen("\\"),
-                       strlen(dir_buffer), strlen("\\"));
+            get_length(5, strlen(music_dir_no_wc), strlen(vis.home),
+                       strlen("\\"), strlen(dir_buffer), strlen("\\"));
 
         char *path_buffer = NULL;
         if (path_ttl_length < MAX_PATH) {
@@ -254,31 +254,64 @@ Paths *win_find_files(size_t *count, const char *path) {
 #endif
 
 #ifdef __linux__
+
+static Paths *reallocate_paths_buffer(Paths *old_ptr, const size_t new_size);
+static char *allocate_char_buffer(const size_t bufsize);
+static int check_path_bounds(size_t size);
+
+static int check_path_bounds(size_t size) { return size > PATH_MAX; }
+
+static char *allocate_char_buffer(const size_t bufsize) {
+  char *buf = malloc(bufsize);
+  if (!buf) {
+    ERRNO_CALLBACK("Could not allocate pointer!", strerror(errno));
+    return NULL;
+  }
+
+  return buf;
+}
+
+static Paths *reallocate_paths_buffer(Paths *old_ptr, const size_t new_size) {
+  Paths *temp_buffer = (Paths *)realloc(old_ptr, sizeof(Paths) * new_size);
+  if (!temp_buffer) {
+    ERRNO_CALLBACK("Could not allocate pointer!", strerror(errno));
+    return NULL;
+  }
+
+  return temp_buffer;
+}
+
 Paths *unix_find_directories(size_t *count) {
   char *music_dir = "Music/MVSource";
-  char search_path[PATH_MAX];
+  char *search_path = NULL;
+  int written = 0;
 
   size_t total_length =
       get_length(3, strlen("/"), strlen(music_dir), strlen(vis.home));
 
-  if (total_length > PATH_MAX) {
-    fprintf(
-        stderr,
-        "Total path length exceeds allocated path buffer! -> NULL RETURN\n");
+  search_path = malloc(total_length + 16);
+  if (!search_path) {
+    ERRNO_CALLBACK("Could not allocate pointer", strerror(errno));
     return NULL;
   }
 
-  snprintf(search_path, sizeof(search_path), "%s/%s", vis.home, music_dir);
+  written =
+      snprintf(search_path, total_length + 1, "%s/%s", vis.home, music_dir);
+  if (written <= 0) {
+    ERRNO_CALLBACK("Could not concatenate char buffer!", strerror(errno));
+    free(search_path);
+    return NULL;
+  }
 
+  printf("Search path -> %s\n", search_path);
   DIR *dir = opendir(search_path);
   if (!dir) {
-    fprintf(stderr, "Failed to open directory! -> %s\n", strerror(errno));
+    free(search_path);
+    ERRNO_CALLBACK("Failed to open directory!", strerror(errno));
     return NULL;
   }
 
-  fprintf(stdout, "SEARCH_PATH -> %s\n", search_path);
-
-  size_t default_size = 6;
+  size_t default_size = 4;
 
   Paths *dpaths = calloc(default_size, sizeof(Paths));
   if (!dpaths) {
@@ -293,23 +326,19 @@ Paths *unix_find_directories(size_t *count) {
     if (strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0) {
       if (*count >= default_size) {
         size_t new_size = default_size * 2;
-        Paths *temp_buffer = (Paths *)realloc(dpaths, sizeof(Paths) * new_size);
-        if (!temp_buffer) {
-          fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
-                  strerror(errno));
+
+        dpaths = reallocate_paths_buffer(dpaths, new_size);
+        if (!dpaths) {
           search_broken = true;
           break;
         }
 
-        dpaths = temp_buffer;
         default_size = new_size;
       }
 
       size_t file_name_length = strlen(entry->d_name);
-      char *dir_buf = (char *)malloc((file_name_length + 1) * sizeof(char));
+      char *dir_buf = allocate_char_buffer(file_name_length + 1);
       if (!dir_buf) {
-        fprintf(stderr, "Could not allocate memory for directory name! -> %s\n",
-                strerror(errno));
         search_broken = true;
         break;
       }
@@ -325,17 +354,16 @@ Paths *unix_find_directories(size_t *count) {
                                           dir_buf_len, slash_len, slash_len);
 
       char *path_buf = NULL;
-      if (path_ttl_length > PATH_MAX) {
-        fprintf(stderr, "Path length exceeds max!\n");
+      if (check_path_bounds(path_ttl_length)) {
+        ERRNO_CALLBACK("Path exceeds MAX_PATH!", "No Error");
         free(dir_buf);
         free(dpaths);
         search_broken = true;
         break;
       }
 
-      path_buf = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+      path_buf = allocate_char_buffer(path_ttl_length + 1);
       if (!path_buf) {
-        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
         search_broken = true;
         break;
       }
@@ -365,10 +393,12 @@ Paths *unix_find_directories(size_t *count) {
       }
     }
 
-    free_ptrs(1, dpaths);
+    free_ptrs(2, dpaths, search_path);
     closedir(dir);
     return NULL;
   }
+
+  free_ptrs(1, search_path);
 
   closedir(dir);
   return dpaths;
@@ -383,7 +413,7 @@ Paths *unix_find_files(size_t *count, const char *path) {
 
   fprintf(stdout, "SEARCH_PATH -> %s\n", path);
 
-  size_t default_size = 6;
+  size_t default_size = 4;
 
   Paths *fpaths = calloc(default_size, sizeof(Paths));
   if (!fpaths) {
@@ -399,23 +429,19 @@ Paths *unix_find_files(size_t *count, const char *path) {
     if (strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0) {
       if (*count >= default_size) {
         size_t new_size = default_size * 2;
-        Paths *temp_buffer = realloc(fpaths, sizeof(Paths) * new_size);
-        if (!temp_buffer) {
-          fprintf(stderr, "Could not reallocate pointer buffer! -> %s\n",
-                  strerror(errno));
+
+        fpaths = reallocate_paths_buffer(fpaths, new_size);
+        if (!fpaths) {
           search_broken = true;
           break;
         }
 
-        fpaths = temp_buffer;
         default_size = new_size;
       }
 
       size_t file_name_length = strlen(entry->d_name);
-      char *dir_buf = (char *)malloc((file_name_length + 1) * sizeof(char));
+      char *dir_buf = allocate_char_buffer(file_name_length + 1);
       if (!dir_buf) {
-        fprintf(stderr, "Could not allocate memory for directory name! -> %s\n",
-                strerror(errno));
         search_broken = true;
         break;
       }
@@ -429,17 +455,16 @@ Paths *unix_find_files(size_t *count, const char *path) {
       size_t path_ttl_length =
           get_length(4, music_dirpath_len, dir_buf_len, slash_len, slash_len);
 
-      if (path_ttl_length > 4096) {
-        fprintf(stderr, "Path length exceeds max!\n");
+      if (check_path_bounds(path_ttl_length)) {
+        ERRNO_CALLBACK("Path length exceeds MAX!", "No Error");
         free(dir_buf);
         free(fpaths);
         search_broken = true;
         break;
       }
 
-      char *path_buf = (char *)malloc(sizeof(char) * (path_ttl_length + 1));
+      char *path_buf = allocate_char_buffer(path_ttl_length + 1);
       if (!path_buf) {
-        fprintf(stderr, "Could not allocate pointer! -> %s\n", strerror(errno));
         search_broken = true;
         break;
       }

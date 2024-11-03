@@ -60,6 +60,8 @@ void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
   }
 
   if (buffer && in) {
+    size_t samples = bytes / sizeof(float);
+    // memmove(in + samples, in, bytes);
     memcpy(in, buffer + *pos, bytes);
   }
 }

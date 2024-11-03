@@ -4,6 +4,7 @@
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
+#include <SDL2/SDL_render.h>
 #include <stdio.h>
 
 #ifdef LUA_FLAG
@@ -363,7 +364,6 @@ int main(int argc, char **argv) {
       case SDL_WINDOWEVENT: {
         switch (event.window.event) {
         case SDL_WINDOWEVENT_RESIZED: {
-          render_clear();
 
           SDL_GetWindowSize(win.w, &win.width, &win.height);
           rend.title_limit = get_title_limit(win.height);
@@ -386,7 +386,6 @@ int main(int argc, char **argv) {
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-          render_clear();
 
           SDL_GetWindowSize(win.w, &win.width, &win.height);
           rend.title_limit = get_title_limit(win.height);

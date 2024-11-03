@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+void SDL_ERR_CALLBACK(const char *msg) {
+  fprintf(stderr, "SDL Error -> %s\n", msg);
+}
+
+void ERRNO_CALLBACK(const char *prefix, const char *msg) {
+  fprintf(stderr, "%s -> %s\n", prefix, msg);
+}
+
 void *free_paths(Paths *buf, const size_t *count) {
   for (size_t i = 0; i < *count; i++) {
     if (buf && buf[i].name) {
