@@ -56,6 +56,9 @@ SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
 
+static void remove_char(char **buf, size_t *pos, size_t *size);
+static void append_char(const char *c, char** buf, size_t *pos, size_t *size);
+
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
@@ -349,6 +352,16 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
+  size_t inputbuf_size = 1;
+  size_t input_buf_position = 0;
+  char *text_input_buffer = malloc(inputbuf_size + 1);
+  if(!text_input_buffer){
+    ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  text_input_buffer[0] = '\0';
+
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 
@@ -367,11 +380,14 @@ int main(int argc, char **argv) {
           break;
 
         case SEARCHING_DIRS: {
-          printf("%s\n", event.text.text);
+          const char *text = event.text.text;
+          size_t len = strlen(text);
+          for(size_t i = 0; i < len; i++){
+            append_char(&text[i], &text_input_buffer, &input_buf_position, &inputbuf_size);
+          }
         } break;
 
         case SEARCHING_SONGS: {
-          printf("%s\n", event.text.text);
         } break;
         }
       } break;
@@ -444,6 +460,10 @@ int main(int argc, char **argv) {
           break;
 
         case SEARCHING_DIRS: {
+          if(event.key.keysym.sym == SDLK_BACKSPACE){
+            remove_char(&text_input_buffer, &input_buf_position, &inputbuf_size);
+          }
+
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             vis.current_state = DIRECTORIES;
           }
@@ -807,6 +827,40 @@ int main(int argc, char **argv) {
   SDL_Quit();
   return 0;
 }
+
+static void remove_char(char **buf, size_t *pos, size_t *size){
+  (*buf)[*pos] = '\0';
+  
+  (*pos)--;
+  (*size)--;
+
+  if(*size < 1){
+    *pos = 0;
+    *size = 1;
+    return;
+  }
+
+  *buf = realloc(*buf, *size + 1);
+  if(!buf){
+    ERRNO_CALLBACK("realloc failed!", strerror(errno));
+    return;
+  }
+}
+
+static void append_char(const char *c, char** buf, size_t *pos, size_t *size){
+  (*buf)[*pos] = *c;
+  (*buf)[*size] = '\0';
+
+  (*pos)++;
+  (*size)++;
+
+  //Handle this more gracefully later on.
+  *buf = realloc(*buf, *size + 1);
+  if(!buf){
+    ERRNO_CALLBACK("realloc failed!", strerror(errno));
+    return;
+  }
+} 
 
 int get_char_limit(int width) {
   const int sub_amount = width * 0.5;

@@ -62,13 +62,13 @@ local_bin_dir=bin
 if [ -d $bin_dir ]; then
   if [ -d $local_bin_dir ]; then
     echo "Copying executable to $bin_dir"
-    cp bin/Vis $bin_dir
+    cp bin/MVis $bin_dir
   fi
 else
   echo "Creating directory $bin_dir"
   mkdir -p $bin_dir
     if [ -d $local_bin_dir ]; then
     echo "Copying executable to $bin_dir"
-    cp bin/Vis $bin_dir
+    cp bin/MVis $bin_dir
   fi
 fi
