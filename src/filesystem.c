@@ -258,6 +258,11 @@ Paths *win_find_files(size_t *count, const char *path) {
 static Paths *reallocate_paths_buffer(Paths *old_ptr, const size_t new_size);
 static char *allocate_char_buffer(const size_t bufsize);
 static int check_path_bounds(size_t size);
+static int check_ascii_bounds(unsigned char character);
+
+static int check_ascii_bounds(unsigned char character) {
+  return character > 127;
+}
 
 static int check_path_bounds(size_t size) { return size > PATH_MAX; }
 
@@ -405,6 +410,7 @@ Paths *unix_find_directories(size_t *count) {
 }
 
 Paths *unix_find_files(size_t *count, const char *path) {
+  int written = 0;
   DIR *dir = opendir(path);
   if (!dir) {
     fprintf(stderr, "Failed to open directory! -> %s\n", strerror(errno));
@@ -440,40 +446,94 @@ Paths *unix_find_files(size_t *count, const char *path) {
       }
 
       size_t file_name_length = strlen(entry->d_name);
-      char *dir_buf = allocate_char_buffer(file_name_length + 1);
-      if (!dir_buf) {
+
+      // Don't call free() if it fails here as it will just cause a double free
+      char *file_buf[2];
+      file_buf[0] = allocate_char_buffer(file_name_length + 1);
+      if (!file_buf[0]) {
         search_broken = true;
         break;
       }
 
-      strcpy(dir_buf, entry->d_name);
+      file_buf[1] = allocate_char_buffer(file_name_length + 1);
+      if (!file_buf[1]) {
+        search_broken = true;
+        break;
+      }
+
+      strcpy(file_buf[0], entry->d_name);
+      strcpy(file_buf[1], entry->d_name);
+
+      bool contains_non_ascii = false;
+      for (size_t f = 0; f < file_name_length; f++) {
+        if (check_ascii_bounds(file_buf[1][f])) {
+          file_buf[1][f] = 95;
+          contains_non_ascii = true;
+        }
+      }
 
       const size_t music_dirpath_len = strlen(path);
-      const size_t dir_buf_len = strlen(dir_buf);
+      const size_t file_buf_len = strlen(file_buf[0]);
       const size_t slash_len = strlen("/");
 
       size_t path_ttl_length =
-          get_length(4, music_dirpath_len, dir_buf_len, slash_len, slash_len);
+          get_length(4, music_dirpath_len, file_buf_len, slash_len, slash_len);
 
       if (check_path_bounds(path_ttl_length)) {
         ERRNO_CALLBACK("Path length exceeds MAX!", "No Error");
-        free(dir_buf);
+        free(file_buf[0]);
         free(fpaths);
         search_broken = true;
         break;
       }
 
-      char *path_buf = allocate_char_buffer(path_ttl_length + 1);
-      if (!path_buf) {
+      char *path_buf[2];
+      path_buf[0] = allocate_char_buffer(path_ttl_length + 1);
+      if (!path_buf[0]) {
         search_broken = true;
         break;
       }
 
-      snprintf(path_buf, path_ttl_length + 1, "%s/%s", path, dir_buf);
+      path_buf[1] = allocate_char_buffer(path_ttl_length + 1);
+      if (!path_buf[1]) {
+        search_broken = true;
+        break;
+      }
 
-      fpaths[*count].path = path_buf;
+      written = snprintf(path_buf[0], path_ttl_length + 1, "%s/%s", path,
+                         file_buf[0]);
+      if (written <= 0) {
+        ERRNO_CALLBACK("Failed to concatenate!", strerror(errno));
+        search_broken = true;
+        break;
+      }
+
+      written = snprintf(path_buf[1], path_ttl_length + 1, "%s/%s", path,
+                         file_buf[1]);
+      if (written <= 0) {
+        ERRNO_CALLBACK("Failed to concatenate!", strerror(errno));
+        search_broken = true;
+        break;
+      }
+
+      char *fn_ptr = file_buf[0];
+      char *fpath_ptr = path_buf[0];
+
+      if (contains_non_ascii) {
+        rename(path_buf[0], path_buf[1]);
+        fn_ptr = file_buf[1];
+        fpath_ptr = path_buf[1];
+
+        free(path_buf[0]);
+        free(file_buf[0]);
+      } else {
+        free(file_buf[1]);
+        free(path_buf[1]);
+      }
+
+      fpaths[*count].path = fpath_ptr;
       fpaths[*count].path_length = path_ttl_length;
-      fpaths[*count].name = dir_buf;
+      fpaths[*count].name = fn_ptr;
       fpaths[*count].name_length = file_name_length;
 
       (*count)++;

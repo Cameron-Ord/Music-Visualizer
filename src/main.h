@@ -13,7 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef enum { DIRECTORIES = 0, SONGS = 1, PLAYBACK = 2 } USER_STATE;
+typedef enum {
+  DIRECTORIES = 0,
+  SONGS = 1,
+  PLAYBACK = 2,
+  SEARCHING_SONGS = 3,
+  SEARCHING_DIRS = 4
+} USER_STATE;
 typedef enum { FREQ_DOMAIN = 0, TIME_DOMAIN = 1 } DRAW_STATE;
 
 #define WIN_W 600

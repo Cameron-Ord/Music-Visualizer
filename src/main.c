@@ -4,6 +4,7 @@
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 #include <stdio.h>
 
@@ -361,6 +362,21 @@ int main(int argc, char **argv) {
       default:
         break;
 
+      case SDL_TEXTINPUT: {
+        switch (vis.current_state) {
+        default:
+          break;
+
+        case SEARCHING_DIRS: {
+          printf("%s\n", event.text.text);
+        } break;
+
+        case SEARCHING_SONGS: {
+          printf("%s\n", event.text.text);
+        } break;
+        }
+      } break;
+
       case SDL_WINDOWEVENT: {
         switch (event.window.event) {
         case SDL_WINDOWEVENT_RESIZED: {
@@ -427,6 +443,18 @@ int main(int argc, char **argv) {
         switch (vis.current_state) {
         default:
           break;
+
+        case SEARCHING_DIRS: {
+          if (event.key.keysym.sym == SDLK_ESCAPE) {
+            vis.current_state = DIRECTORIES;
+          }
+        } break;
+
+        case SEARCHING_SONGS: {
+          if (event.key.keysym.sym == SDLK_ESCAPE) {
+            vis.current_state = SONGS;
+          }
+        } break;
 
         case PLAYBACK: {
           switch (event.key.keysym.sym) {
@@ -562,6 +590,10 @@ int main(int argc, char **argv) {
           default:
             break;
 
+          case SDLK_s: {
+            vis.current_state = SEARCHING_SONGS;
+          } break;
+
           case SDLK_LEFT: {
             if (dir_count > 0)
               vis.current_state = DIRECTORIES;
@@ -609,6 +641,10 @@ int main(int argc, char **argv) {
           switch (event.key.keysym.sym) {
           default:
             break;
+
+          case SDLK_s: {
+            vis.current_state = SEARCHING_DIRS;
+          } break;
 
           case SDLK_LEFT: {
             if (vis.stream_flag) {
