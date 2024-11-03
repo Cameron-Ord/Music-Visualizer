@@ -6,7 +6,6 @@
 #include "utils.h"
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
-#include <stdio.h>
 
 #ifdef LUA_FLAG
 #include <lauxlib.h>
