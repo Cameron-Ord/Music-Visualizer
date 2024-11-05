@@ -7,6 +7,8 @@
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 
+#define DEFAULT_INPUT_BUFFER_SIZE 24
+
 #ifdef LUA_FLAG
 #include <lauxlib.h>
 #include <lua.h>
@@ -46,7 +48,7 @@ Font font;
 Visualizer vis;
 Events key;
 
-SDL_Color primary = {112, 176, 255, 255};    // aB
+SDL_Color primary = {112, 176, 255, 255};
 SDL_Color secondary = {122, 248, 202, 255};  // Green
 SDL_Color background = {34, 36, 54, 255};    // Dark Grey
 SDL_Color secondary_bg = {47, 51, 77, 255};  // Lighter-Dark Grey
@@ -57,7 +59,7 @@ SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 int FPS = 60;
 
 static void remove_char(char **buf, size_t *pos, size_t *size);
-static void append_char(const char *c, char** buf, size_t *pos, size_t *size);
+static void append_char(const char *c, char **buf, size_t *pos, size_t *size);
 
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
@@ -352,17 +354,27 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
-  size_t inputbuf_size = 1;
+  size_t input_buf_size = DEFAULT_INPUT_BUFFER_SIZE;
   size_t input_buf_position = 0;
-  char *text_input_buffer = malloc(inputbuf_size + 1);
-  if(!text_input_buffer){
+  char *text_input_buffer = malloc(input_buf_size + 1);
+  if (!text_input_buffer) {
     ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
     exit(EXIT_FAILURE);
   }
 
   text_input_buffer[0] = '\0';
-
   SDL_StopTextInput();
+
+  size_t filter_size = DEFAULT_FILTER_SIZE;
+  TextBuffer *filtered_tb = malloc(sizeof(TextBuffer) * filter_size);
+  if (!filtered_tb) {
+    ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  for (size_t i = 0; i < filter_size; i++) {
+    filtered_tb[i].text = NULL;
+  }
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -384,8 +396,9 @@ int main(int argc, char **argv) {
         case SEARCHING_DIRS: {
           const char *text = event.text.text;
           size_t len = strlen(text);
-          for(size_t i = 0; i < len; i++){
-            append_char(&text[i], &text_input_buffer, &input_buf_position, &inputbuf_size);
+          for (size_t i = 0; i < len; i++) {
+            append_char(&text[i], &text_input_buffer, &input_buf_position,
+                        &input_buf_position);
           }
         } break;
 
@@ -412,10 +425,14 @@ int main(int argc, char **argv) {
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
 
+          //TODO!
+          //Need to replace filtered_tb list with the new text structs. (Easiest way is to simply compare str names before freeing the originals)
+          //For now I will just make the stuff NULL so it doesnt cause invalid access and crash.
+          
+          filtered_tb = zero_filter(filtered_tb, &filter_size);
           original_dirs = free_text_buffer(original_dirs, &original_dir_count);
           original_files =
               free_text_buffer(original_files, &original_file_count);
-
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
@@ -433,6 +450,12 @@ int main(int argc, char **argv) {
           // If these fail, text just won't be rendered.
           dir_text_buffer = create_fonts(dir_contents, &dir_count);
           file_text_buffer = create_fonts(file_contents, &file_count);
+
+          //TODO!
+          //Need to replace filtered_tb list with the new text structs. (Easiest way is to simply compare str names before freeing the originals)
+          //For now I will just make the stuff NULL so it doesnt cause invalid access and crash.
+
+          filtered_tb = zero_filter(filtered_tb, &filter_size);
 
           original_dirs = free_text_buffer(original_dirs, &original_dir_count);
           original_files =
@@ -462,17 +485,15 @@ int main(int argc, char **argv) {
           break;
 
         case SEARCHING_DIRS: {
-          if(event.key.keysym.sym == SDLK_RETURN){
-            for(size_t i = 0; i < dir_count; i++){
-              char* result = strstr(dir_text_buffer[i].text->name, text_input_buffer);
-              if(result){
-                printf("Found %s at position %zu\n", text_input_buffer, result - dir_text_buffer[i].text->name);
-              }
-            }
+          if (event.key.keysym.sym == SDLK_RETURN) {
+            filtered_tb = zero_filter(filtered_tb, &filter_size);
+            do_search(text_input_buffer, &dir_count, &filter_size,
+                      dir_text_buffer, &filtered_tb);
           }
 
-          if(event.key.keysym.sym == SDLK_BACKSPACE){
-            remove_char(&text_input_buffer, &input_buf_position, &inputbuf_size);
+          if (event.key.keysym.sym == SDLK_BACKSPACE) {
+            remove_char(&text_input_buffer, &input_buf_position,
+                        &input_buf_position);
           }
 
           if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -675,6 +696,7 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_DIRS;
+            key.dir_cursor = 0;
             SDL_StartTextInput();
           } break;
 
@@ -735,6 +757,10 @@ int main(int argc, char **argv) {
     switch (vis.current_state) {
     default:
       break;
+
+    case SEARCHING_DIRS: {
+      render_draw_text(filtered_tb, &filter_size, &key.file_cursor);
+    } break;
 
     case SONGS: {
       render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
@@ -841,39 +867,45 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-static void remove_char(char **buf, size_t *pos, size_t *size){
+static void remove_char(char **buf, size_t *pos, size_t *size) {
   (*buf)[*pos] = '\0';
-  
-  (*pos)--;
-  (*size)--;
 
-  if(*size < 1){
-    *pos = 0;
-    *size = 1;
-    return;
+  int signed_index = (int)*pos;
+  signed_index--;
+
+  if (signed_index < 0) {
+    signed_index = 0;
   }
 
-  *buf = realloc(*buf, *size + 1);
-  if(!buf){
-    ERRNO_CALLBACK("realloc failed!", strerror(errno));
-    return;
+  *pos = signed_index;
+  if ((*pos + 1) < DEFAULT_INPUT_BUFFER_SIZE &&
+      *size > DEFAULT_INPUT_BUFFER_SIZE) {
+    const size_t new_size = DEFAULT_INPUT_BUFFER_SIZE + 1;
+    char *tmp = realloc(*buf, new_size);
+    if (!buf) {
+      ERRNO_CALLBACK("realloc failed!", strerror(errno));
+      return;
+    }
+    *buf = tmp;
   }
 }
 
-static void append_char(const char *c, char** buf, size_t *pos, size_t *size){
+static void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
   (*buf)[*pos] = *c;
-  (*buf)[*size] = '\0';
-
   (*pos)++;
-  (*size)++;
 
-  //Handle this more gracefully later on.
-  *buf = realloc(*buf, *size + 1);
-  if(!buf){
-    ERRNO_CALLBACK("realloc failed!", strerror(errno));
-    return;
+  if ((*pos + 1) >= *size) {
+    size_t new_buf_size = (*size * 2) + 1;
+    char *tmp = realloc(*buf, new_buf_size);
+    if (!buf) {
+      ERRNO_CALLBACK("realloc failed!", strerror(errno));
+      return;
+    }
+    *buf = tmp;
   }
-} 
+
+  (*buf)[*pos] = '\0';
+}
 
 int get_char_limit(int width) {
   const int sub_amount = width * 0.5;

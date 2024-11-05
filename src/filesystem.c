@@ -45,7 +45,6 @@ static Paths *reallocate_paths_buffer(Paths *old_ptr, const size_t new_size) {
   return temp_buffer;
 }
 
-
 Paths *win_find_directories(size_t *count) {
   WIN32_FIND_DATA find_file_data;
   HANDLE h_find;
@@ -58,13 +57,14 @@ Paths *win_find_directories(size_t *count) {
       get_length(3, strlen("\\"), strlen(music_dir), strlen(vis.home));
 
   char *search_path = malloc(total_length + 16);
-  if(!search_path){
+  if (!search_path) {
     ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
     return NULL;
   }
 
-  written = snprintf(search_path, total_length + 1, "%s\\%s", vis.home, music_dir);
-  if(written <= 0){
+  written =
+      snprintf(search_path, total_length + 1, "%s\\%s", vis.home, music_dir);
+  if (written <= 0) {
     ERRNO_CALLBACK("Failed to concatenate!", strerror(errno));
     return NULL;
   }
@@ -127,17 +127,17 @@ Paths *win_find_directories(size_t *count) {
           find_file_broken = true;
           break;
         }
-        
+
         path_buffer = allocate_char_buffer(path_ttl_length + 1);
-        if(!path_buffer){
+        if (!path_buffer) {
           free(dir_buffer);
           find_file_broken = true;
           break;
         }
-        
-        written = snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s\\", vis.home,
-                  music_dir_no_wc, dir_buffer);
-        if(written <= 0){
+
+        written = snprintf(path_buffer, path_ttl_length + 1, "%s\\%s%s\\",
+                           vis.home, music_dir_no_wc, dir_buffer);
+        if (written <= 0) {
           ERRNO_CALLBACK("Failed to concatenate!", strerror(errno));
           free(dir_buffer);
           free(path_buffer);
@@ -234,7 +234,6 @@ Paths *win_find_files(size_t *count, const char *path) {
           default_size = new_size;
         }
 
-        
         fpaths[*count].path = NULL;
         fpaths[*count].path_length = 0;
         fpaths[*count].name = NULL;
@@ -261,14 +260,15 @@ Paths *win_find_files(size_t *count, const char *path) {
         }
 
         path_buffer = malloc(path_ttl_length + 1);
-        if(!path_buffer){
+        if (!path_buffer) {
           free(file_buffer);
           find_file_broken = true;
           break;
         }
 
-        written = snprintf(path_buffer, path_ttl_length + 1, "%s%s", path, file_buffer);
-        if(written <= 0){
+        written = snprintf(path_buffer, path_ttl_length + 1, "%s%s", path,
+                           file_buffer);
+        if (written <= 0) {
           ERRNO_CALLBACK("Failed to concatenate!", strerror(errno));
           free(file_buffer);
           free(path_buffer);
