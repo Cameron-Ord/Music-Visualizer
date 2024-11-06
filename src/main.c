@@ -92,6 +92,7 @@ int main(int argc, char **argv) {
 
   key.dir_cursor = 0;
   key.file_cursor = 0;
+  key.search_cursor = 0;
   key.file_list_index = 0;
   key.dir_list_index = 0;
 
@@ -366,6 +367,7 @@ int main(int argc, char **argv) {
   SDL_StopTextInput();
 
   size_t filter_size = DEFAULT_FILTER_SIZE;
+  size_t filter_count = 0;
   TextBuffer *filtered_tb = malloc(sizeof(TextBuffer) * filter_size);
   if (!filtered_tb) {
     ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
@@ -374,6 +376,8 @@ int main(int argc, char **argv) {
 
   filtered_tb = zero_filter(filtered_tb, &filter_size);
   Text* search_text = NULL;
+
+  int LAST_STATE = DIRECTORIES;
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -406,6 +410,7 @@ int main(int argc, char **argv) {
         } break;
 
         case SEARCHING_SONGS: {
+
         } break;
         }
       } break;
@@ -489,12 +494,21 @@ int main(int argc, char **argv) {
         default:
           break;
 
+        case DISPLAY_SEARCH:{
+          if (event.key.keysym.sym == SDLK_ESCAPE) {
+            vis.current_state = LAST_STATE;
+            SDL_StartTextInput();
+          }
+        }break;
+
         case SEARCHING_DIRS: {
           if (event.key.keysym.sym == SDLK_RETURN) {
             filtered_tb = zero_filter(filtered_tb, &filter_size);
             do_search(text_input_buffer, &dir_count, &filter_size,
                       dir_text_buffer, &filtered_tb);
+            LAST_STATE = vis.current_state;
             vis.current_state = DISPLAY_SEARCH;
+            filter_count = determine_new_size(&filter_size, filtered_tb);
           }
 
           if (event.key.keysym.sym == SDLK_BACKSPACE) {
@@ -514,6 +528,7 @@ int main(int argc, char **argv) {
         case SEARCHING_SONGS: {
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             vis.current_state = SONGS;
+            SDL_StopTextInput();
           }
         } break;
 
@@ -653,6 +668,8 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_SONGS;
+            key.search_cursor = 0;
+            SDL_StartTextInput();
           } break;
 
           case SDLK_LEFT: {
@@ -705,7 +722,7 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_DIRS;
-            key.dir_cursor = 0;
+            key.search_cursor = 0;
             SDL_StartTextInput();
           } break;
 
@@ -766,13 +783,17 @@ int main(int argc, char **argv) {
     switch (vis.current_state) {
     default:
       break;
+    
+    case SEARCHING_SONGS:{
+      render_draw_search_text(search_text);
+    } break;
 
     case SEARCHING_DIRS: {
       render_draw_search_text(search_text);
     } break;
 
     case DISPLAY_SEARCH:{
-      render_draw_text(filtered_tb, &filter_size, &key.dir_cursor);
+      //render_draw_text(filtered_tb, &filter_count, &key.search_cursor);
     }break;
 
     case SONGS: {

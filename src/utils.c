@@ -126,9 +126,11 @@ void do_search(char *text_input_buf, const size_t *count, size_t *filter_size,
     if (!(*filtered)[i].text) {
       (*filtered)[i].text = null_replace(i, filter_size, *filtered);
     }
+
+    if((*filtered)[i].text)
+      printf("%s\n", (*filtered)[i].text->name);
   }
 
-  //  *filter_size = determine_new_size(filter_size, *filtered);
   //  printf("new size: %zu\n", *filter_size);
 
   // if(*filter_size == 0){

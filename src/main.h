@@ -73,6 +73,7 @@ typedef struct {
   size_t file_list_index;
   size_t file_cursor;
   size_t dir_cursor;
+  size_t search_cursor;
 } Events;
 
 typedef struct {
