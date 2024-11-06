@@ -16,8 +16,6 @@ size_t determine_new_size(const size_t *size, TextBuffer *buf) {
       // return the iter position as the size, since the current iter is null.
       // if we did i + 1 it would include the null value, which we dont want.
       return i;
-    } else {
-      printf("other %s\n", buf[i].text->name);
     }
   }
 
@@ -101,35 +99,25 @@ void *destroy_search_text(Text* s){
   return NULL;
 }
 
-void do_search(char *text_input_buf, const size_t *count, size_t *filter_size,
-               const TextBuffer *base, TextBuffer **filtered) {
+size_t do_search(char *text_input_buf, const size_t *count, const TextBuffer *base, TextBuffer **filtered) {
+  size_t filter_count = 0;
   for (size_t i = 0; i < *count; i++) {
-    if ((i + 1) > *filter_size) {
-      *filter_size = *filter_size * 2;
-      TextBuffer *tmp = realloc(*filtered, sizeof(TextBuffer) * *filter_size);
-      if (!tmp) {
-        ERRNO_CALLBACK("realloc failed!", strerror(errno));
-        exit(EXIT_FAILURE);
-      }
-      *filtered = tmp;
-    }
-
     char *result = strstr(base[i].text->name, text_input_buf);
     if (result) {
       (*filtered)[i].text = base[i].text;
+      filter_count += 1;
     } else {
       (*filtered)[i].text = NULL;
     }
   }
 
-  for (size_t i = 0; i < *filter_size; i++) {
+  for (size_t i = 0; i < *count; i++) {
     if (!(*filtered)[i].text) {
-      (*filtered)[i].text = null_replace(i, filter_size, *filtered);
+      (*filtered)[i].text = null_replace(i, count, *filtered);
     }
-
-    if((*filtered)[i].text)
-      printf("%s\n", (*filtered)[i].text->name);
   }
+
+  return filter_count;
 
   //  printf("new size: %zu\n", *filter_size);
 

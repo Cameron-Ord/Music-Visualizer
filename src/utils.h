@@ -18,5 +18,5 @@ const char *find_pathstr(const char *search_key, Paths *buffer);
 Text *null_replace(size_t i, const size_t *filter_size, TextBuffer *filtered_tb);
 size_t determine_new_size(const size_t *size, TextBuffer *buf);
 TextBuffer* zero_filter(TextBuffer *buf, const size_t *size);
-void do_search(char* text_input_buf, const size_t *count, size_t *filter_size, const TextBuffer *base, TextBuffer **filtered);
+size_t do_search(char* text_input_buf, const size_t *count, const TextBuffer *base, TextBuffer **filtered);
 #endif

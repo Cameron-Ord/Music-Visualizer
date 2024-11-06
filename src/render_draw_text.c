@@ -12,8 +12,7 @@ void render_draw_search_text(Text* text){
 
 void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
                       const size_t *cursor) {
-
-  if (!list_buf || !item_count || !cursor || !rend.r) {
+  if(*item_count <= 0){
     return;
   }
 

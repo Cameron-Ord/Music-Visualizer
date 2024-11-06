@@ -366,15 +366,8 @@ int main(int argc, char **argv) {
   text_input_buffer[0] = '\0';
   SDL_StopTextInput();
 
-  size_t filter_size = DEFAULT_FILTER_SIZE;
   size_t filter_count = 0;
-  TextBuffer *filtered_tb = malloc(sizeof(TextBuffer) * filter_size);
-  if (!filtered_tb) {
-    ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
-    exit(EXIT_FAILURE);
-  }
-
-  filtered_tb = zero_filter(filtered_tb, &filter_size);
+  TextBuffer *filtered_tb = NULL;
   Text* search_text = NULL;
 
   int LAST_STATE = DIRECTORIES;
@@ -410,7 +403,16 @@ int main(int argc, char **argv) {
         } break;
 
         case SEARCHING_SONGS: {
+          const char *text = event.text.text;
+          size_t len = strlen(text);
+          for (size_t i = 0; i < len; i++) {
+            append_char(&text[i], &text_input_buffer, &input_buf_position,
+                        &input_buf_size);
+          }
 
+          //Send the position along with the size so we know where to assign the null terminator.
+          search_text = destroy_search_text(search_text);
+          search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
         } break;
         }
       } break;
@@ -437,7 +439,6 @@ int main(int argc, char **argv) {
           //Need to replace filtered_tb list with the new text structs. (Easiest way is to simply compare str names before freeing the originals)
           //For now I will just make the stuff NULL so it doesnt cause invalid access and crash.
           
-          filtered_tb = zero_filter(filtered_tb, &filter_size);
           original_dirs = free_text_buffer(original_dirs, &original_dir_count);
           original_files =
               free_text_buffer(original_files, &original_file_count);
@@ -464,8 +465,6 @@ int main(int argc, char **argv) {
           //TODO!
           //Need to replace filtered_tb list with the new text structs. (Easiest way is to simply compare str names before freeing the originals)
           //For now I will just make the stuff NULL so it doesnt cause invalid access and crash.
-
-          filtered_tb = zero_filter(filtered_tb, &filter_size);
 
           original_dirs = free_text_buffer(original_dirs, &original_dir_count);
           original_files =
@@ -503,13 +502,39 @@ int main(int argc, char **argv) {
 
         case SEARCHING_DIRS: {
           if (event.key.keysym.sym == SDLK_RETURN) {
-            filtered_tb = zero_filter(filtered_tb, &filter_size);
-            do_search(text_input_buffer, &dir_count, &filter_size,
-                      dir_text_buffer, &filtered_tb);
-            LAST_STATE = vis.current_state;
-            vis.current_state = DISPLAY_SEARCH;
-            filter_count = determine_new_size(&filter_size, filtered_tb);
-            SDL_StopTextInput();
+            if(filtered_tb){
+              //Since filtered_tb just holds Text struct pointers that were heap allocated earlier, we just free the filtered buffer itself and not 
+              //the underlying data it holds (that would be bad)
+              free(filtered_tb);
+              filtered_tb = NULL;
+            }
+
+            filtered_tb = malloc(sizeof(TextBuffer)* dir_count);
+            if(!filtered_tb){
+              ERRNO_CALLBACK("malloc failed!", strerror(errno));
+              exit(EXIT_FAILURE);
+            }
+
+            filter_count = do_search(text_input_buffer, &dir_count, dir_text_buffer, &filtered_tb);
+            if(filter_count <= 0){
+              free(filtered_tb);
+              filtered_tb = NULL;
+            }
+            
+            if(filter_count > 0){
+              TextBuffer *tmp = realloc(filtered_tb, sizeof(TextBuffer) * filter_count);
+              if(!tmp){
+                ERRNO_CALLBACK("realloc failed!", strerror(errno));
+                exit(EXIT_FAILURE);
+              }
+              filtered_tb = tmp;
+            }
+
+            if(filtered_tb && filter_count > 0){
+              LAST_STATE = vis.current_state;
+              vis.current_state = DISPLAY_SEARCH;
+              SDL_StopTextInput();
+            }
           }
 
           if (event.key.keysym.sym == SDLK_BACKSPACE) {
@@ -522,14 +547,65 @@ int main(int argc, char **argv) {
 
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             vis.current_state = DIRECTORIES;
-            SDL_StopTextInput();
+            int is_active = SDL_IsTextInputActive();
+            if(is_active){
+              SDL_StopTextInput();
+            }
           }
         } break;
 
         case SEARCHING_SONGS: {
+          if (event.key.keysym.sym == SDLK_RETURN) {
+            if(filtered_tb){
+              //Since filtered_tb just holds Text struct pointers that were heap allocated earlier, we just free the filtered buffer itself and not 
+              //the underlying data it holds (that would be bad)
+              free(filtered_tb);
+              filtered_tb = NULL;
+            }
+
+            filtered_tb = malloc(sizeof(TextBuffer)* file_count);
+            if(!filtered_tb){
+              ERRNO_CALLBACK("malloc failed!", strerror(errno));
+              exit(EXIT_FAILURE);
+            }
+
+
+            filter_count = do_search(text_input_buffer, &file_count, file_text_buffer, &filtered_tb);
+            if(filter_count <= 0){
+              free(filtered_tb);
+              filtered_tb = NULL;
+            }
+           
+            if(filter_count > 0){
+              TextBuffer *tmp = realloc(filtered_tb, sizeof(TextBuffer) * filter_count);
+              if(!tmp){
+                ERRNO_CALLBACK("realloc failed!", strerror(errno));
+                exit(EXIT_FAILURE);
+              }
+              filtered_tb = tmp;
+            }
+
+            if(filtered_tb && filter_count > 0){
+              LAST_STATE = vis.current_state;
+              vis.current_state = DISPLAY_SEARCH;
+              SDL_StopTextInput();
+            }
+          }
+
+          if (event.key.keysym.sym == SDLK_BACKSPACE) {
+            remove_char(&text_input_buffer, &input_buf_position,
+                        &input_buf_position);
+
+            search_text = destroy_search_text(search_text);
+            search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
+          }
+
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             vis.current_state = SONGS;
-            SDL_StopTextInput();
+            int is_active = SDL_IsTextInputActive();
+            if(is_active){
+              SDL_StopTextInput();
+            }
           }
         } break;
 
@@ -669,6 +745,10 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_SONGS;
+            input_buf_position = 0;
+            text_input_buffer[0] = '\0';
+            search_text = destroy_search_text(search_text);
+            search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
             key.search_cursor = 0;
             SDL_StartTextInput();
           } break;
@@ -723,6 +803,10 @@ int main(int argc, char **argv) {
 
           case SDLK_s: {
             vis.current_state = SEARCHING_DIRS;
+            input_buf_position = 0;
+            text_input_buffer[0] = '\0';
+            search_text = destroy_search_text(search_text);
+            search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
             key.search_cursor = 0;
             SDL_StartTextInput();
           } break;
@@ -794,7 +878,7 @@ int main(int argc, char **argv) {
     } break;
 
     case DISPLAY_SEARCH:{
-      //render_draw_text(filtered_tb, &filter_count, &key.search_cursor);
+      render_draw_text(filtered_tb, &filter_count, &key.search_cursor);
     }break;
 
     case SONGS: {

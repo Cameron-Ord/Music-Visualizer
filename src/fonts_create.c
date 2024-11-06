@@ -17,7 +17,10 @@ Text *create_search_text(const char* input_text_buffer, const size_t *text_buf_l
     return NULL;
   }
 
-  size_t char_buf_len = *text_buf_len + 16;
+  const char* search_str_literal = "Search Key: ";
+  size_t lit_len = strlen(search_str_literal);
+
+  size_t char_buf_len = (*text_buf_len + lit_len) + 16;
   text->name = malloc(char_buf_len);
   if(!text->name){
     ERRNO_CALLBACK("malloc failed!", strerror(errno));
@@ -25,15 +28,16 @@ Text *create_search_text(const char* input_text_buffer, const size_t *text_buf_l
     return NULL;
   }
 
-  char* result = strncpy(text->name, input_text_buffer, *text_buf_len + 1);
-  if(!result){
-    ERRNO_CALLBACK("strncpy failed!", strerror(errno));
+  int written = snprintf(text->name, char_buf_len, "%s%s", search_str_literal, input_text_buffer);
+  if(written <= 0){
+    ERRNO_CALLBACK("snprintf failed!", strerror(errno));
     free(text->name);
     free(text);
     return NULL;
   }
 
-  text->name[*text_buf_position] = '\0';
+  size_t null_term_position = lit_len + *text_buf_position;
+  text->name[null_term_position] = '\0';
 
   text->id = 1;
   text->surf[0] = TTF_RenderText_Blended(font.font, text->name, vis.text);
