@@ -910,7 +910,7 @@ static void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
   (*pos)++;
 
   if ((*pos + 1) >= *size) {
-    size_t new_buf_size = *size + 1;
+    size_t new_buf_size = (*size * 2) + 1;
     char *tmp = realloc(*buf, new_buf_size);
     if (!buf) {
       ERRNO_CALLBACK("realloc failed!", strerror(errno));
