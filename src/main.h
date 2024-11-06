@@ -18,7 +18,8 @@ typedef enum {
   SONGS = 1,
   PLAYBACK = 2,
   SEARCHING_SONGS = 3,
-  SEARCHING_DIRS = 4
+  SEARCHING_DIRS = 4,
+  DISPLAY_SEARCH = 5,
 } USER_STATE;
 typedef enum { FREQ_DOMAIN = 0, TIME_DOMAIN = 1 } DRAW_STATE;
 
@@ -112,9 +113,11 @@ int get_char_limit(int width);
 
 // Font related functions
 TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count);
+Text *create_search_text(const char* input_text_buffer, const size_t *text_buf_len, const size_t *input_buf_position);
 
 // Render functions
 void render_bg(void);
+void render_draw_search_text(Text* text);
 void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
                       const size_t *cursor);
 void render_clear(void);

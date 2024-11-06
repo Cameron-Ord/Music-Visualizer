@@ -91,6 +91,16 @@ TextBuffer *zero_filter(TextBuffer *buf, const size_t *size) {
   return buf;
 }
 
+void *destroy_search_text(Text* s){
+  if(s){
+    free(s->name);
+    SDL_DestroyTexture(s->tex[0]);
+    free(s);
+  }
+
+  return NULL;
+}
+
 void do_search(char *text_input_buf, const size_t *count, size_t *filter_size,
                const TextBuffer *base, TextBuffer **filtered) {
   for (size_t i = 0; i < *count; i++) {

@@ -372,9 +372,8 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  for (size_t i = 0; i < filter_size; i++) {
-    filtered_tb[i].text = NULL;
-  }
+  filtered_tb = zero_filter(filtered_tb, &filter_size);
+  Text* search_text = NULL;
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -398,8 +397,12 @@ int main(int argc, char **argv) {
           size_t len = strlen(text);
           for (size_t i = 0; i < len; i++) {
             append_char(&text[i], &text_input_buffer, &input_buf_position,
-                        &input_buf_position);
+                        &input_buf_size);
           }
+
+          //Send the position along with the size so we know where to assign the null terminator.
+          search_text = destroy_search_text(search_text);
+          search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
         } break;
 
         case SEARCHING_SONGS: {
@@ -441,6 +444,8 @@ int main(int argc, char **argv) {
           rend.title_limit = get_title_limit(win.height);
           font.char_limit = get_char_limit(win.width);
 
+
+          //realloc would just be easier
           TextBuffer *original_dirs = dir_text_buffer;
           TextBuffer *original_files = file_text_buffer;
 
@@ -489,11 +494,15 @@ int main(int argc, char **argv) {
             filtered_tb = zero_filter(filtered_tb, &filter_size);
             do_search(text_input_buffer, &dir_count, &filter_size,
                       dir_text_buffer, &filtered_tb);
+            vis.current_state = DISPLAY_SEARCH;
           }
 
           if (event.key.keysym.sym == SDLK_BACKSPACE) {
             remove_char(&text_input_buffer, &input_buf_position,
                         &input_buf_position);
+
+            search_text = destroy_search_text(search_text);
+            search_text = create_search_text(text_input_buffer, &input_buf_size, &input_buf_position);
           }
 
           if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -759,8 +768,12 @@ int main(int argc, char **argv) {
       break;
 
     case SEARCHING_DIRS: {
-      render_draw_text(filtered_tb, &filter_size, &key.file_cursor);
+      render_draw_search_text(search_text);
     } break;
+
+    case DISPLAY_SEARCH:{
+      render_draw_text(filtered_tb, &filter_size, &key.dir_cursor);
+    }break;
 
     case SONGS: {
       render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
@@ -886,7 +899,9 @@ static void remove_char(char **buf, size_t *pos, size_t *size) {
       ERRNO_CALLBACK("realloc failed!", strerror(errno));
       return;
     }
+
     *buf = tmp;
+    *size = new_size;
   }
 }
 
@@ -895,13 +910,15 @@ static void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
   (*pos)++;
 
   if ((*pos + 1) >= *size) {
-    size_t new_buf_size = (*size * 2) + 1;
+    size_t new_buf_size = *size + 1;
     char *tmp = realloc(*buf, new_buf_size);
     if (!buf) {
       ERRNO_CALLBACK("realloc failed!", strerror(errno));
       return;
     }
+
     *buf = tmp;
+    *size = new_buf_size;
   }
 
   (*buf)[*pos] = '\0';

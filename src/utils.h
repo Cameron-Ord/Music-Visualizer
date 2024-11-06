@@ -7,7 +7,7 @@
 
 #define DEFAULT_FILTER_SIZE 12
 
-
+void* destroy_search_text(Text* s);
 void free_ptrs(size_t size, ...);
 void SDL_ERR_CALLBACK(const char *msg);
 void ERRNO_CALLBACK(const char *prefix, const char *msg);
