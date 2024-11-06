@@ -509,6 +509,7 @@ int main(int argc, char **argv) {
             LAST_STATE = vis.current_state;
             vis.current_state = DISPLAY_SEARCH;
             filter_count = determine_new_size(&filter_size, filtered_tb);
+            SDL_StopTextInput();
           }
 
           if (event.key.keysym.sym == SDLK_BACKSPACE) {
