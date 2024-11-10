@@ -1,6 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "audiodefs.h"
 #include "filesysdefs.h"
 #include "fontdef.h"
 #include "particledef.h"
@@ -39,6 +40,7 @@ typedef struct {
   int next_song_flag;
   int scrolling;
   int current_state;
+  int last_state;
   int draw_state;
 
   // Application variables
@@ -111,14 +113,21 @@ void *scp(void *ptr);
 int scc(int code);
 int get_title_limit(int height);
 int get_char_limit(int width);
+const char *seek_path(TextBuffer *buf, const size_t *cursor, Paths *contents);
+void fill_file_contents(Paths **file_contents, TextBuffer **file_text_buffer,
+                        size_t *file_count, const char *path_str,
+                        Paths *(*find_files)(size_t *, const char *));
+void select_file(AudioDataContainer *adc, const char *path_str);
 
 // Font related functions
 TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count);
-Text *create_search_text(const char* input_text_buffer, const size_t *text_buf_len, const size_t *input_buf_position);
+Text *create_search_text(const char *input_text_buffer,
+                         const size_t *text_buf_len,
+                         const size_t *input_buf_position);
 
 // Render functions
 void render_bg(void);
-void render_draw_search_text(Text* text);
+void render_draw_search_text(Text *text);
 void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
                       const size_t *cursor);
 void render_clear(void);
@@ -131,5 +140,10 @@ void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 // Events functions
 size_t nav_down(size_t *cursor, const size_t *count);
 size_t nav_up(size_t *cursor, const size_t *count);
+TextBuffer *font_swap_pointer(TextBuffer *buf, const size_t *count,
+                              const Paths *content, TextBuffer *search_buffer);
+void char_buf_insert(const char *text, char **input_buf, size_t *pos,
+                     size_t *size, Text **search_text);
+void window_resized(void);
 
 #endif // MAIN_H

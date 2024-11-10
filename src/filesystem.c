@@ -1,4 +1,5 @@
 #include "filesystem.h"
+#include "audio.h"
 #include "main.h"
 #include "utils.h"
 
@@ -7,6 +8,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+const char *seek_path(TextBuffer *buf, const size_t *cursor, Paths *contents) {
+  const char *search_key = buf[*cursor].text->name;
+  const char *path_str = find_pathstr(search_key, contents);
+  return path_str;
+}
+
+void fill_file_contents(Paths **file_contents, TextBuffer **file_text_buffer,
+                        size_t *file_count, const char *path_str,
+                        Paths *(*find_files)(size_t *, const char *)) {
+
+  *file_contents = free_paths(*file_contents, file_count);
+  *file_text_buffer = free_text_buffer(*file_text_buffer, file_count);
+
+  if (!path_str) {
+    return;
+  }
+
+  *file_contents = find_files(file_count, path_str);
+  if (*file_count > 0 && *file_contents) {
+    *file_text_buffer = create_fonts(*file_contents, file_count);
+    if (*file_text_buffer) {
+      key.file_cursor = 0;
+      vis.last_state = vis.current_state;
+      vis.current_state = SONGS;
+    } else {
+      *file_contents = free_paths(*file_contents, file_count);
+    }
+  }
+}
+
+void select_file(AudioDataContainer *adc, const char *path_str) {
+  if (path_str && read_audio_file(path_str, adc)) {
+    if (load_song(adc)) {
+      vis.last_state = vis.current_state;
+      vis.current_state = PLAYBACK;
+    } else {
+      vis.last_state = vis.current_state;
+      vis.current_state = SONGS;
+    }
+  } else {
+    pause_device();
+    SDL_CloseAudioDevice(vis.dev);
+    vis.last_state = vis.current_state;
+    vis.current_state = SONGS;
+  }
+}
 
 #ifdef _WIN32
 
@@ -320,7 +368,13 @@ static int check_path_bounds(size_t size);
 static int check_ascii_bounds(unsigned char character);
 
 static int check_ascii_bounds(unsigned char character) {
-  return character > 127;
+  for (size_t i = 0; i < 127; i++) {
+    if (character == i) {
+      return 0;
+    }
+  }
+
+  return 1;
 }
 
 static int check_path_bounds(size_t size) { return size > PATH_MAX; }

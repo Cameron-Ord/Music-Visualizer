@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -89,8 +90,8 @@ TextBuffer *zero_filter(TextBuffer *buf, const size_t *size) {
   return buf;
 }
 
-void *destroy_search_text(Text* s){
-  if(s){
+void *destroy_search_text(Text *s) {
+  if (s) {
     free(s->name);
     SDL_DestroyTexture(s->tex[0]);
     free(s);
@@ -99,7 +100,8 @@ void *destroy_search_text(Text* s){
   return NULL;
 }
 
-size_t do_search(char *text_input_buf, const size_t *count, const TextBuffer *base, TextBuffer **filtered) {
+size_t do_search(char *text_input_buf, const size_t *count,
+                 const TextBuffer *base, TextBuffer **filtered) {
   size_t filter_count = 0;
   for (size_t i = 0; i < *count; i++) {
     char *result = strstr(base[i].text->name, text_input_buf);
@@ -175,4 +177,48 @@ const char *find_pathstr(const char *search_key, Paths *buffer) {
   }
 
   return NULL;
+}
+
+void remove_char(char **buf, size_t *pos, size_t *size) {
+  (*buf)[*pos] = '\0';
+
+  int signed_index = (int)*pos;
+  signed_index--;
+
+  if (signed_index < 0) {
+    signed_index = 0;
+  }
+
+  *pos = signed_index;
+  if ((*pos + 1) < DEFAULT_INPUT_BUFFER_SIZE &&
+      *size > DEFAULT_INPUT_BUFFER_SIZE) {
+    const size_t new_size = DEFAULT_INPUT_BUFFER_SIZE + 1;
+    char *tmp = realloc(*buf, new_size);
+    if (!buf) {
+      ERRNO_CALLBACK("realloc failed!", strerror(errno));
+      return;
+    }
+
+    *buf = tmp;
+    *size = new_size;
+  }
+}
+
+void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
+  (*buf)[*pos] = *c;
+  (*pos)++;
+
+  if ((*pos + 1) >= *size) {
+    size_t new_buf_size = (*size * 2) + 1;
+    char *tmp = realloc(*buf, new_buf_size);
+    if (!buf) {
+      ERRNO_CALLBACK("realloc failed!", strerror(errno));
+      return;
+    }
+
+    *buf = tmp;
+    *size = new_buf_size;
+  }
+
+  (*buf)[*pos] = '\0';
 }
