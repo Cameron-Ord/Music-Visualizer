@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -100,17 +101,88 @@ void *destroy_search_text(Text *s) {
   return NULL;
 }
 
+int check_bounds(int max, int input) {
+  if (input > max) {
+    return 0;
+  }
+
+  // typically when I call this function the casted type is unsigned but still a
+  // good check to have.
+  if (input < 0) {
+    return 0;
+  }
+
+  return 1;
+}
+
+int has_file_extension(const char *string) {
+  int i = 0;
+  while (string[i] != '\0') {
+    if (string[i] == '.') {
+      return 1;
+    }
+    i++;
+  }
+
+  return 0;
+}
+
+const char *sformat(char *str) {
+  int i = 0;
+  int j = 0;
+
+  while (str[i] != '\0') {
+    if (str[i] != ' ') {
+      str[j] = tolower(str[i]);
+      j++;
+    }
+    i++;
+  }
+
+  str[j] = '\0';
+  return str;
+}
+
 size_t do_search(char *text_input_buf, const size_t *count,
                  const TextBuffer *base, TextBuffer **filtered) {
   size_t filter_count = 0;
   for (size_t i = 0; i < *count; i++) {
-    char *result = strstr(base[i].text->name, text_input_buf);
-    if (result) {
-      (*filtered)[i].text = base[i].text;
+    Text *text = base[i].text;
+    char *name = text->name;
+    // strlen returns size in bytes, so just using malloc here instead of stack
+    // allocation for that reason, god knows that even if im forcing ascii, if
+    // the original file contains non ascii strlen will still return byte size
+    // reflecting that(I believe).
+    char *name_cpy = malloc(strlen(name) + 1);
+    if (!name_cpy) {
+      return 0;
+    }
+
+    if (!strcpy(name_cpy, name)) {
+      free(name_cpy);
+      return 0;
+    }
+
+    char *input_cpy = malloc(strlen(text_input_buf) + 1);
+    if (!input_cpy) {
+      return 0;
+    }
+
+    if (!strcpy(input_cpy, text_input_buf)) {
+      free(input_cpy);
+      free(name_cpy);
+      return 0;
+    }
+
+    if (strstr(sformat(name_cpy), sformat(input_cpy))) {
+      (*filtered)[i].text = text;
       filter_count += 1;
     } else {
       (*filtered)[i].text = NULL;
     }
+
+    free(name_cpy);
+    free(input_cpy);
   }
 
   for (size_t i = 0; i < *count; i++) {
@@ -120,20 +192,6 @@ size_t do_search(char *text_input_buf, const size_t *count,
   }
 
   return filter_count;
-
-  //  printf("new size: %zu\n", *filter_size);
-
-  // if(*filter_size == 0){
-  //   *filter_size = DEFAULT_FILTER_SIZE;
-  // }
-
-  // TextBuffer *tmp = realloc(*filtered, sizeof(TextBuffer) * *filter_size);
-  // if(!tmp){
-  //  ERRNO_CALLBACK("realloc failed!", strerror(errno));
-  //  exit(EXIT_FAILURE);
-  // }
-
-  /// *filtered = tmp;
 }
 
 size_t get_length(size_t size, ...) {
@@ -180,8 +238,6 @@ const char *find_pathstr(const char *search_key, Paths *buffer) {
 }
 
 void remove_char(char **buf, size_t *pos, size_t *size) {
-  (*buf)[*pos] = '\0';
-
   int signed_index = (int)*pos;
   signed_index--;
 
@@ -202,6 +258,7 @@ void remove_char(char **buf, size_t *pos, size_t *size) {
     *buf = tmp;
     *size = new_size;
   }
+  (*buf)[*pos] = '\0';
 }
 
 void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
@@ -221,4 +278,21 @@ void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
   }
 
   (*buf)[*pos] = '\0';
+}
+
+/*
+ Real ascii chars start at 32, which is the space key. So if a char is
+ greater than this, pretty much means it isnt only spaces.
+*/
+int not_empty(const char *str) {
+  int i = 0;
+
+  while (str[i] != '\0') {
+    if (str[i] > ' ') {
+      return 1;
+    }
+    i++;
+  }
+
+  return 0;
 }

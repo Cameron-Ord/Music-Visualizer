@@ -1,18 +1,22 @@
 #include "main.h"
+#include "utils.h"
 #include <assert.h>
 
-void render_draw_search_text(Text* text){
-  if(text){
-    text->rect.x = 50;
-    text->rect.y = 50;
+void render_draw_search_text(Text *text) {
+  if (text) {
+    text->rect.x = (win.width * 0.5) - (text->rect.w * 0.5);
+    text->rect.y = (win.height * 0.5) - (text->rect.h * 0.5);
     scc(SDL_RenderCopy(rend.r, text->tex[0], NULL, &text->rect));
   }
 }
 
-
 void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
                       const size_t *cursor) {
-  if(*item_count <= 0){
+  if (*item_count <= 0) {
+    return;
+  }
+
+  if (!check_bounds(*item_count, *cursor)) {
     return;
   }
 

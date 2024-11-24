@@ -5,6 +5,7 @@
 
 ## Music Visualizer
 I am making this for myself only, but if you wanna use it, check out the build section. 
+I am currently working to make it more filebrowser like than forcing a default location of ~/Music among various other code improvements.
 
  - [Video Demo](https://www.youtube.com/watch?v=1nbQFn9GrdY)
 

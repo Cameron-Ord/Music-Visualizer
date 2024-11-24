@@ -4,50 +4,46 @@
 #include <stdio.h>
 #include <string.h>
 
-Text *create_search_text(const char* input_text_buffer, const size_t *text_buf_len, const size_t *text_buf_position){
-  Text* text = malloc(sizeof(Text));
-  if(!text){
+Text *create_search_text(const char *input_text_buffer,
+                         const size_t *text_buf_len,
+                         const size_t *text_buf_position) {
+  Text *text = malloc(sizeof(Text));
+  if (!text) {
     ERRNO_CALLBACK("malloc failed!", strerror(errno));
     return NULL;
   }
 
-  if(!input_text_buffer){
+  if (!input_text_buffer) {
     ERRNO_CALLBACK("input buffer is NULL! - Last errno :", strerror(errno));
     free(text);
     return NULL;
   }
 
-  const char* search_str_literal = "Search Key: ";
-  size_t lit_len = strlen(search_str_literal);
-
-  size_t char_buf_len = (*text_buf_len + lit_len) + 16;
-  text->name = malloc(char_buf_len);
-  if(!text->name){
+  text->name = malloc(*text_buf_len + 1);
+  if (!text->name) {
     ERRNO_CALLBACK("malloc failed!", strerror(errno));
     free(text);
     return NULL;
   }
 
-  int written = snprintf(text->name, char_buf_len, "%s%s", search_str_literal, input_text_buffer);
-  if(written <= 0){
+  if (!strcpy(text->name, input_text_buffer)) {
     ERRNO_CALLBACK("snprintf failed!", strerror(errno));
     free(text->name);
     free(text);
     return NULL;
   }
 
-  size_t null_term_position = lit_len + *text_buf_position;
-  text->name[null_term_position] = '\0';
+  text->name[*text_buf_position] = '\0';
 
   text->id = 1;
   text->surf[0] = TTF_RenderText_Blended(font.font, text->name, vis.text);
-  if(!text->surf[0]){
+  if (!text->surf[0]) {
     text->surf[0] = NULL;
     return NULL;
   }
-  
+
   text->tex[0] = SDL_CreateTextureFromSurface(rend.r, text->surf[0]);
-  if(!text->tex[0]){
+  if (!text->tex[0]) {
     text->tex[0] = NULL;
     return NULL;
   }

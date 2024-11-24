@@ -109,6 +109,10 @@ extern Visualizer vis;
 extern Events key;
 
 // General/Utility functions
+
+int is_key(int input, int required);
+void reset_input_buffer(size_t *pos, char *buf);
+void set_state(int state);
 void *scp(void *ptr);
 int scc(int code);
 int get_title_limit(int height);
@@ -119,11 +123,15 @@ void fill_file_contents(Paths **file_contents, TextBuffer **file_text_buffer,
                         Paths *(*find_files)(size_t *, const char *));
 void select_file(AudioDataContainer *adc, const char *path_str);
 
+char *create_input_buffer(size_t *size);
 // Font related functions
 TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count);
 Text *create_search_text(const char *input_text_buffer,
                          const size_t *text_buf_len,
                          const size_t *input_buf_position);
+
+void seek_forward(AudioDataContainer *adc);
+void seek_backward(AudioDataContainer *adc);
 
 // Render functions
 void render_bg(void);
@@ -141,7 +149,8 @@ void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 size_t nav_down(size_t *cursor, const size_t *count);
 size_t nav_up(size_t *cursor, const size_t *count);
 TextBuffer *font_swap_pointer(TextBuffer *buf, const size_t *count,
-                              const Paths *content, TextBuffer *search_buffer);
+                              const Paths *content, TextBuffer *search_buffer,
+                              const size_t *s_count);
 void char_buf_insert(const char *text, char **input_buf, size_t *pos,
                      size_t *size, Text **search_text);
 void window_resized(void);

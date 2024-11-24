@@ -8,6 +8,10 @@
 #define DEFAULT_INPUT_BUFFER_SIZE 24
 #define DEFAULT_FILTER_SIZE 12
 
+int not_empty(const char *string);
+const char *sformat(char *string);
+int has_file_extension(const char *string);
+int check_bounds(int max, int input);
 void remove_char(char **buf, size_t *pos, size_t *size);
 void append_char(const char *c, char **buf, size_t *pos, size_t *size);
 void *destroy_search_text(Text *s);

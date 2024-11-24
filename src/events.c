@@ -37,22 +37,29 @@ void window_resized(void) {
 
 // Arguments are clearly defined in main.c at the window resize event
 TextBuffer *font_swap_pointer(TextBuffer *buf, const size_t *count,
-                              const Paths *content, TextBuffer *search_buffer) {
+                              const Paths *content, TextBuffer *search_buffer,
+                              const size_t *s_count) {
   TextBuffer *replace = create_fonts(content, count);
   if (search_buffer && buf) {
     for (size_t i = 0; i < *count; i++) {
-      if (replace->text && search_buffer->text) {
-        if (!search_buffer->text->name) {
+      // Prevent invalid access
+      if (i >= *s_count) {
+        break;
+      }
+
+      if (replace[i].text && search_buffer[i].text) {
+        if (!search_buffer[i].text->name) {
           continue;
         }
 
-        if (strcmp(replace->text->name, search_buffer->text->name) == 0) {
-          search_buffer->text = NULL;
-          search_buffer->text = replace->text;
+        if (strcmp(replace[i].text->name, search_buffer[i].text->name) == 0) {
+          search_buffer[i].text = NULL;
+          search_buffer[i].text = replace[i].text;
         }
       }
     }
   }
+
   free_text_buffer(buf, count);
   return replace;
 }

@@ -442,6 +442,7 @@ Paths *unix_find_directories(size_t *count) {
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
     if (strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0) {
+
       if (*count >= default_size) {
         size_t new_size = default_size * 2;
 
@@ -503,6 +504,7 @@ Paths *unix_find_directories(size_t *count) {
     }
   }
 
+  closedir(dir);
   free(search_path);
   if (search_broken) {
     for (size_t i = 0; i < *count; i++) {
@@ -518,11 +520,9 @@ Paths *unix_find_directories(size_t *count) {
     }
 
     free_ptrs(1, dpaths);
-    closedir(dir);
     return NULL;
   }
 
-  closedir(dir);
   return dpaths;
 }
 
@@ -675,6 +675,7 @@ Paths *unix_find_files(size_t *count, const char *path) {
     }
   }
 
+  closedir(dir);
   if (search_broken) {
     for (size_t i = 0; i < *count; i++) {
       if (fpaths[i].name) {
@@ -689,11 +690,9 @@ Paths *unix_find_files(size_t *count, const char *path) {
     }
 
     free_ptrs(1, fpaths);
-    closedir(dir);
     return NULL;
   }
 
-  closedir(dir);
   return fpaths;
 }
 #endif
