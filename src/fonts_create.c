@@ -7,6 +7,8 @@
 Text *create_search_text(const char *input_text_buffer,
                          const size_t *text_buf_len,
                          const size_t *text_buf_position) {
+  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
+
   Text *text = malloc(sizeof(Text));
   if (!text) {
     ERRNO_CALLBACK("malloc failed!", strerror(errno));
@@ -64,6 +66,8 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
   if (!paths_buf || !count) {
     return NULL;
   }
+
+  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
 
   TextBuffer *text_buffer = (TextBuffer *)malloc(sizeof(TextBuffer) * (*count));
   if (!text_buffer) {

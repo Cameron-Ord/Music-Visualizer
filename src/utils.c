@@ -316,3 +316,18 @@ void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
     }
   }
 }
+
+int clamp_font_size(int size) {
+  int min_size = 12;
+  int max_size = 28;
+
+  if (size > max_size) {
+    size = max_size;
+  }
+
+  if (size < min_size) {
+    size = min_size;
+  }
+
+  return size;
+}

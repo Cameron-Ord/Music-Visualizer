@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  font.font = scp(TTF_OpenFont(path_buffer, font.size));
+  font.font = scp(TTF_OpenFont(path_buffer, 64));
   free(path_buffer);
 
   rend.title_limit = get_title_limit(win.height);
