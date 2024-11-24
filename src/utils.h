@@ -8,6 +8,8 @@
 #define DEFAULT_INPUT_BUFFER_SIZE 24
 #define DEFAULT_FILTER_SIZE 12
 
+void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
+             const size_t *count);
 int not_empty(const char *string);
 const char *sformat(char *string);
 int has_file_extension(const char *string);

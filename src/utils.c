@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "fontdef.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -295,4 +296,23 @@ int not_empty(const char *str) {
   }
 
   return 0;
+}
+
+void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
+             const size_t *count) {
+  for (size_t i = 0; i < *count; i++) {
+    Text *replace_text = replace[i].text;
+    for (size_t j = 0; j < *s_count; j++) {
+      Text **invalidated_text = &search[j].text;
+      if (*invalidated_text && replace_text) {
+        if (!(*invalidated_text)->name || !replace_text->name) {
+          continue;
+        }
+
+        if (strcmp(replace_text->name, (*invalidated_text)->name) == 0) {
+          *invalidated_text = replace_text;
+        }
+      }
+    }
+  }
 }
