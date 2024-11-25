@@ -10,8 +10,9 @@ Paths *win_find_files(size_t *count, const char *path);
 
 #ifdef __linux__
 #include <dirent.h>
-Paths *unix_find_directories(size_t *count);
-Paths *unix_find_files(size_t *count, const char *path);
+Paths *unix_fs_search(const char *pathstr, const char *home);
+Paths *unix_read_dir(const char *path);
+int not_nav(const char *str);
 #endif
 
 #endif

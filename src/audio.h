@@ -2,6 +2,8 @@
 #define AUDIO_H
 #include "audiodefs.h"
 // Audio functions
+void seek_forward(AudioDataContainer *adc);
+void seek_backward(AudioDataContainer *adc);
 void zero_values(AudioDataContainer *adc);
 void callback(void *userdata, uint8_t *stream, int length);
 bool read_audio_file(const char *file_path, AudioDataContainer *adc);

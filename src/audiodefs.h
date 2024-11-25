@@ -6,11 +6,9 @@
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 
 #include <complex.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 // I stole this from tsoding cause I had originally written my complex numbers
 // stuff in C++ and im lazy. So thanks Tsoding, I love you.

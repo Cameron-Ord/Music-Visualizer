@@ -121,18 +121,6 @@ int check_bounds(int max, int input) {
   return 1;
 }
 
-int has_file_extension(const char *string) {
-  int i = 0;
-  while (string[i] != '\0') {
-    if (string[i] == '.') {
-      return 1;
-    }
-    i++;
-  }
-
-  return 0;
-}
-
 const char *sformat(char *str) {
   int i = 0;
   int j = 0;
@@ -223,6 +211,23 @@ void free_ptrs(size_t size, ...) {
       ptr = NULL;
     }
   }
+}
+
+int find_type(const char *search_key, Paths *buffer) {
+  if (buffer) {
+    Paths *start = buffer;
+
+    while (buffer != NULL) {
+      if (strcmp(search_key, buffer->name) == 0) {
+        return buffer->type;
+      }
+      buffer++;
+    }
+
+    buffer = start;
+  }
+
+  return -1;
 }
 
 const char *find_pathstr(const char *search_key, Paths *buffer) {
@@ -402,4 +407,12 @@ uint8_t determine_alpha(float amplitude) {
   }
 
   return alpha_max;
+}
+
+size_t clamp_size_t(size_t input, const size_t max) {
+  if (input > max - 1) {
+    input = max - 1;
+  }
+
+  return input;
 }

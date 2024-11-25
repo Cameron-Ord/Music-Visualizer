@@ -1,6 +1,7 @@
 #include "fontdef.h"
 #include "main.h"
 #include "utils.h"
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -62,104 +63,95 @@ Text *create_search_text(const char *input_text_buffer,
   return text;
 }
 
-TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
-  if (!paths_buf || !count) {
+TextBuffer *create_fonts(const Paths *pbuf) {
+  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
+
+  if (pbuf->size <= 0) {
     return NULL;
   }
 
-  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
-
-  TextBuffer *text_buffer = (TextBuffer *)malloc(sizeof(TextBuffer) * (*count));
-  if (!text_buffer) {
+  TextBuffer *tbuf = malloc(sizeof(TextBuffer) * (pbuf->size));
+  if (!tbuf) {
     fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
     return NULL;
   }
 
-  memset(text_buffer, 0, sizeof(TextBuffer) * (*count));
+  tbuf->size = 0;
+  tbuf->cursor = 0;
+  tbuf->start = 0;
+  tbuf->listed = 0;
 
-  bool loop_broken = false;
-  for (size_t i = 0; i < *count; i++) {
+  for (size_t i = 0; i < pbuf->size; i++) {
     Text *text = malloc(sizeof(Text));
     if (!text) {
       fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
-      loop_broken = true;
-      break;
+      return tbuf;
     }
 
-    memset(text, 0, sizeof(Text));
-    text->is_valid = false;
+    text->is_valid = 0;
     text->surf[0] = NULL;
     text->tex[0] = NULL;
     text->surf[1] = NULL;
     text->tex[1] = NULL;
 
-    if (!paths_buf[i].name) {
-      fprintf(stderr, "Path name is NULL!\n");
-      loop_broken = true;
-      break;
+    if (!pbuf[i].name) {
+      ERRNO_CALLBACK("Path name is NULL!", "");
+      return tbuf;
     }
 
-    const char *name = paths_buf[i].name;
-
-    text->name = malloc(paths_buf[i].name_length + 64);
+    text->name = malloc(pbuf[i].name_length + 1);
     if (!text->name) {
-      fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
-      loop_broken = true;
-      break;
+      ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
+      return tbuf;
     }
 
-    strncpy(text->name, name, paths_buf[i].name_length);
-    text->name[paths_buf[i].name_length] = '\0';
+    if (!strncpy(text->name, pbuf[i].name, pbuf[i].name_length)) {
+      ERRNO_CALLBACK("strncpy() failed!", strerror(errno));
+      return tbuf;
+    }
+
+    text->name[pbuf[i].name_length] = '\0';
     text->id = i;
 
-    const size_t tmp_size = paths_buf[i].name_length + 64;
-    char name_buffer[tmp_size];
-
-    strncpy(name_buffer, name, paths_buf[i].name_length);
     const size_t max_chars = get_char_limit(win.width);
+    char name_buffer[max_chars + 1];
+    name_buffer[max_chars] = '\0';
 
-    if (paths_buf[i].name_length > max_chars) {
-      size_t locn = max_chars - 1;
-      if (name_buffer[locn] == 32) {
-        name_buffer[locn] = 46;
-      }
+    size_t j = 0;
+    while (j < max_chars && text->name[j] != '\0') {
+      name_buffer[j] = text->name[j];
+      j++;
+    }
 
-      locn = max_chars;
-      name_buffer[locn++] = 46;
-      name_buffer[locn++] = 46;
-      name_buffer[locn++] = 46;
-      name_buffer[locn++] = '\0';
+    if (j == max_chars) {
+      name_buffer[j - 1] = '~';
     } else {
-      name_buffer[paths_buf[i].name_length] = '\0';
+      name_buffer[j] = '\0';
     }
 
     text->surf[0] = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
     if (!text->surf[0]) {
       text->surf[0] = NULL;
-      loop_broken = true;
-      break;
+      return tbuf;
     }
 
     text->tex[0] = SDL_CreateTextureFromSurface(rend.r, text->surf[0]);
     if (!text->tex[0]) {
       text->tex[0] = NULL;
-      loop_broken = true;
-      break;
+      return tbuf;
     }
 
     text->surf[1] =
         TTF_RenderText_Blended(font.font, name_buffer, vis.secondary);
     if (!text->surf[1]) {
       text->surf[1] = NULL;
-      loop_broken = true;
-      break;
+      return tbuf;
     }
 
     text->tex[1] = SDL_CreateTextureFromSurface(rend.r, text->surf[1]);
     if (!text->tex[1]) {
       text->tex[1] = NULL;
-      loop_broken = true;
-      break;
+      return tbuf;
     }
 
     text->width = text->surf[0]->w;
@@ -172,16 +164,12 @@ TextBuffer *create_fonts(const Paths *paths_buf, const size_t *count) {
 
     text->surf[0] = NULL;
     text->surf[1] = NULL;
-    text->is_valid = true;
+    text->is_valid = 1;
 
     // Assign the pointer created in the current iteration
-    text_buffer[i].text = text;
+    tbuf[i].text = text;
+    tbuf->size++;
   }
 
-  if (loop_broken) {
-    text_buffer = free_text_buffer(text_buffer, count);
-    text_buffer = NULL;
-  }
-
-  return text_buffer;
+  return tbuf;
 }

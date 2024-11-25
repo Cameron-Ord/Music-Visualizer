@@ -1,32 +1,56 @@
 #include "main.h"
 #include "utils.h"
 
-size_t nav_down(size_t *cursor, const size_t *count) {
-  int signed_cursor = (int)*cursor;
-  int signed_count = (int)*count;
+size_t nav_down(TextBuffer *tbuf) {
+  int offset = 4;
+  int cursor = (int)tbuf->cursor;
+  int start = (int)tbuf->start;
+  int listed = (int)tbuf->listed;
+  const int size = (int)tbuf->size;
 
-  signed_cursor++;
-  if (signed_cursor > signed_count - 1) {
-    signed_cursor = 0;
+  cursor++;
+  if (cursor > size - 1) {
+    cursor = size - 1;
   }
 
-  *cursor = (size_t)signed_cursor;
+  if ((listed - offset) > 0 && cursor >= listed - offset) {
+    start = cursor - offset;
+  }
 
-  return (size_t)signed_cursor;
+  if (start < 0) {
+    start = 0;
+  }
+
+  if (start > size - 1) {
+    start = size - 1;
+  }
+
+  tbuf->start = (size_t)start;
+  tbuf->cursor = (size_t)cursor;
+  return (size_t)cursor;
 }
 
-size_t nav_up(size_t *cursor, const size_t *count) {
-  int signed_cursor = (int)*cursor;
-  int signed_count = (int)*count;
+size_t nav_up(TextBuffer *tbuf) {
+  int offset = 4;
+  int cursor = (int)tbuf->cursor;
+  int start = (int)tbuf->start;
 
-  signed_cursor--;
-  if (signed_cursor < 0) {
-    signed_cursor = signed_count - 1;
+  cursor--;
+  if (cursor < 0) {
+    cursor = 0;
   }
 
-  *cursor = (size_t)signed_cursor;
+  if (cursor - offset < start) {
+    start = start - offset;
+  }
 
-  return (size_t)signed_cursor;
+  if (start < 0) {
+    start = 0;
+  }
+
+  tbuf->start = (size_t)start;
+  tbuf->cursor = (size_t)cursor;
+  return (size_t)cursor;
 }
 
 void window_resized(void) {
@@ -36,17 +60,6 @@ void window_resized(void) {
 }
 
 // Arguments are clearly defined in main.c at the window resize event
-TextBuffer *font_swap_pointer(TextBuffer *buf, const size_t *count,
-                              const Paths *content, TextBuffer *search_buffer,
-                              const size_t *s_count) {
-  TextBuffer *replace = create_fonts(content, count);
-  if (search_buffer && buf) {
-    do_swap(search_buffer, s_count, replace, count);
-  }
-
-  free_text_buffer(buf, count);
-  return replace;
-}
 
 void char_buf_insert(const char *text, char **input_buf, size_t *pos,
                      size_t *size, Text **search_text) {

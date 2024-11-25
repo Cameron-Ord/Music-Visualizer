@@ -9,6 +9,8 @@ typedef struct {
   size_t name_length;
   char *path;
   size_t path_length;
+  size_t size;
+  int type;
 } Paths;
 
 #endif

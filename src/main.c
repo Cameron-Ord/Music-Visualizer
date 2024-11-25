@@ -1,14 +1,12 @@
 #include "main.h"
 #include "audio.h"
-#include "audiodefs.h"
 #include "filesystem.h"
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_render.h>
-#include <dirent.h>
+
+#include <SDL2/SDL_video.h>
+#include <errno.h>
 
 #ifdef LUA_FLAG
 #include <lauxlib.h>
@@ -34,8 +32,7 @@ Paths *(*find_files)(size_t *, const char *) = &win_find_files;
 #ifdef __linux__
 #define HOME "HOME"
 #define ASSETS_DIR "/.local/share/MVis/"
-Paths *(*find_directories)(size_t *) = &unix_find_directories;
-Paths *(*find_files)(size_t *, const char *) = &unix_find_files;
+Paths *(*fs_search)(const char *, const char *) = &unix_fs_search;
 #endif
 
 #include <assert.h>
@@ -47,7 +44,8 @@ Window win;
 Renderer rend;
 Font font;
 Visualizer vis;
-Events key;
+
+typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 
 SDL_Color primary = {112, 176, 255, 255};
 SDL_Color secondary = {122, 248, 202, 255};  // Green
@@ -59,7 +57,79 @@ SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
 
+#define MAX_NODES 16
+#define MODES 2
+
+typedef struct Node Node;
+typedef struct Table Table;
+
+struct Node {
+  size_t key;
+  Paths *pbuf;
+  TextBuffer *tbuf;
+  Node *next;
+};
+
+struct Table {
+  Node *node_buffer[MAX_NODES];
+};
+
+static Node *search_table(Table *t, size_t i);
+static int create_node(Table *t, size_t i);
+static size_t hash(size_t i);
+static void table_set_paths(Table *t, size_t i, Paths *pbuf);
+static void table_set_text(Table *t, size_t i, TextBuffer *tbuf);
+
+static size_t hash(size_t i) { return i % MAX_NODES; }
+
+static int create_node(Table *t, size_t i) {
+  Node *n = malloc(sizeof(Node));
+  if (!n) {
+    ERRNO_CALLBACK("malloc() failed!", strerror(errno));
+    return 0;
+  }
+
+  n->key = hash(i);
+  n->pbuf = NULL;
+  n->tbuf = NULL;
+  n->next = t->node_buffer[n->key];
+  t->node_buffer[n->key] = n;
+
+  return 1;
+}
+
+static Node *search_table(Table *t, size_t i) {
+  Node *n = t->node_buffer[hash(i)];
+  while (n != NULL) {
+    if (n->key == hash(i)) {
+      return n;
+    }
+    n = n->next;
+  }
+  return NULL;
+}
+
+static void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
+  Node *n = search_table(t, i);
+  if (!n) {
+    return;
+  }
+
+  n->tbuf = tbuf;
+}
+
+static void table_set_paths(Table *t, size_t i, Paths *pbuf) {
+  Node *n = search_table(t, i);
+  if (!n) {
+    return;
+  }
+
+  n->pbuf = pbuf;
+}
+
 int main(int argc, char **argv) {
+  size_t current_node = 0;
+
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
 
@@ -79,23 +149,12 @@ int main(int argc, char **argv) {
 
   fprintf(stdout, "Starting..\n");
 
-  key.dir_cursor = 0;
-  key.file_cursor = 0;
-  key.search_cursor = 0;
-  key.file_list_index = 0;
-  key.dir_list_index = 0;
-
   // Assign default values
   vis.home = home;
   vis.smearing = 6;
   vis.smoothing = 8;
   vis.target_frames = FPS;
-  vis.draw_state = FREQ_DOMAIN;
-  vis.next_song_flag = 0;
-  vis.scrolling = 0;
   vis.quit = false;
-  vis.current_state = DIRECTORIES;
-  vis.last_state = vis.current_state;
   vis.primary = primary;
   vis.secondary = secondary;
   vis.background = background;
@@ -179,10 +238,6 @@ int main(int argc, char **argv) {
     vis.smoothing = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, -1, "freq_draw_type");
-    vis.draw_state = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
     const char *fields[] = {"primary",    "secondary",    "tertiary",
                             "background", "secondary_bg", "foreground",
                             "text"};
@@ -245,58 +300,12 @@ int main(int argc, char **argv) {
 #endif
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
-  written = 0;
-  path_buffer = NULL;
-  path_size = 0;
-
-  const char *font_name = "dogicapixel.ttf";
-  path_size =
-      get_length(3, strlen(font_name), strlen(home), strlen(ASSETS_DIR));
-
-  path_buffer = malloc(path_size + 1);
-  if (!path_buffer) {
-    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
-    return 1;
-  }
-
-  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
-                     font_name);
-  if (written <= 0) {
-    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
-    return 1;
-  }
-
-  font.font = scp(TTF_OpenFont(path_buffer, 32));
-  free(path_buffer);
-
-  rend.title_limit = get_title_limit(win.height);
-  font.char_limit = get_char_limit(win.width);
-
-  size_t dir_count = 0;
-  size_t file_count = 0;
-
-  Paths *dir_contents = find_directories(&dir_count);
-  Paths *file_contents = NULL;
-
-  if (!dir_contents) {
-    fprintf(stderr, "Failed to read directories! -> EXIT\n");
+  if (!open_ttf_file("dogicapixel.ttf")) {
     exit(EXIT_FAILURE);
   }
 
-  if (dir_contents && dir_count == 0) {
-    fprintf(stdout, "No directories!\n");
-    free(dir_contents);
-    dir_contents = NULL;
-  }
-
-  TextBuffer *dir_text_buffer = NULL;
-  TextBuffer *file_text_buffer = NULL;
-
-  dir_text_buffer = create_fonts(dir_contents, &dir_count);
-  if (!dir_text_buffer) {
-    fprintf(stdout, "Fonts weren't created!\n");
-    dir_text_buffer = NULL;
-  }
+  rend.title_limit = get_title_limit(win.height);
+  font.char_limit = get_char_limit(win.width);
 
   AudioDataContainer adc;
   FFTBuffers f_buffers;
@@ -307,11 +316,24 @@ int main(int argc, char **argv) {
   f_data.next = &adc;
 
   size_t particle_buffer_size = 0;
-  ParticleTrio *particle_buffer =
-      allocate_particle_buffer(&particle_buffer_size);
-  if (!particle_buffer) {
+  ParticleTrio *particle_buf = allocate_particle_buffer(&particle_buffer_size);
+  if (!particle_buf) {
     exit(EXIT_FAILURE);
   }
+
+  Table table;
+  for (size_t i = 0; i < MAX_NODES; i++) {
+    table.node_buffer[i] = NULL;
+    if (!create_node(&table, i)) {
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  int mode = TEXT;
+
+  table_set_paths(&table, current_node, fs_search(home, NULL));
+  table_set_text(&table, current_node,
+                 create_fonts(search_table(&table, current_node)->pbuf));
 
   calculate_window(f_data.hamming_values);
 
@@ -323,17 +345,7 @@ int main(int argc, char **argv) {
   uint64_t frame_start;
   int frame_time;
 
-  size_t input_buf_size = 0;
-  size_t input_buf_position = 0;
-  char *text_input_buffer = create_input_buffer(&input_buf_size);
-  if (!text_input_buffer) {
-    exit(EXIT_FAILURE);
-  }
   SDL_StopTextInput();
-
-  size_t filter_count = 0;
-  TextBuffer *filtered_tb = NULL;
-  Text *search_text = NULL;
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -347,461 +359,99 @@ int main(int argc, char **argv) {
       default:
         break;
 
-      case SDL_TEXTINPUT: {
-        switch (vis.current_state) {
-        default:
-          break;
-
-        case SEARCHING_DIRS: {
-          char_buf_insert(event.text.text, &text_input_buffer,
-                          &input_buf_position, &input_buf_size, &search_text);
-        } break;
-
-        case SEARCHING_SONGS: {
-          char_buf_insert(event.text.text, &text_input_buffer,
-                          &input_buf_position, &input_buf_size, &search_text);
-        } break;
-        }
-      } break;
-
       case SDL_WINDOWEVENT: {
         switch (event.window.event) {
+        default:
+          break;
         case SDL_WINDOWEVENT_RESIZED: {
           window_resized();
-          dir_text_buffer =
-              font_swap_pointer(dir_text_buffer, &dir_count, dir_contents,
-                                filtered_tb, &filter_count);
-
-          file_text_buffer =
-              font_swap_pointer(file_text_buffer, &file_count, file_contents,
-                                filtered_tb, &filter_count);
-
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
           window_resized();
-          dir_text_buffer =
-              font_swap_pointer(dir_text_buffer, &dir_count, dir_contents,
-                                filtered_tb, &filter_count);
-
-          file_text_buffer =
-              font_swap_pointer(file_text_buffer, &file_count, file_contents,
-                                filtered_tb, &filter_count);
-
-        } break;
-        }
-      } break;
-
-      case SDL_KEYUP: {
-        switch (event.key.keysym.sym) {
-        default:
-          break;
-        case SDLK_LEFT: {
-          vis.scrolling = 0;
-        } break;
-
-        case SDLK_RIGHT: {
-          vis.scrolling = 0;
         } break;
         }
       } break;
 
       case SDL_KEYDOWN: {
         int keysym = event.key.keysym.sym;
-        switch (vis.current_state) {
+        switch (mode) {
         default:
           break;
 
-        case DISPLAY_SEARCH: {
+        case TEXT: {
           switch (keysym) {
           default:
             break;
 
-          case SDLK_ESCAPE: {
-            vis.current_state = vis.last_state;
-            if (filtered_tb) {
-              free(filtered_tb);
-              filtered_tb = NULL;
-            }
-            SDL_StartTextInput();
-          } break;
-
           case SDLK_LEFT: {
-            switch (vis.last_state) {
-            default:
-              break;
-            case SEARCHING_DIRS: {
-              if (vis.stream_flag) {
-                set_state(PLAYBACK);
-              }
-            } break;
+            TextBuffer *t = search_table(&table, current_node)->tbuf;
+            Paths *p = search_table(&table, current_node)->pbuf;
 
-            case SEARCHING_SONGS: {
-              if (dir_count > 0) {
-                set_state(DIRECTORIES);
+            int tmp_index = current_node;
+            tmp_index--;
+            if (tmp_index < 0) {
+              tmp_index = 0;
+            }
+
+            Node *n = search_table(&table, tmp_index);
+            if (n->pbuf && n->tbuf) {
+              Text *t = n->tbuf[n->tbuf->cursor].text;
+              if (find_pathstr(t->name, n->pbuf)) {
+                current_node = tmp_index;
+              } else {
+                current_node = 0;
               }
-            } break;
+            } else {
+              current_node = 0;
             }
           } break;
 
           case SDLK_RIGHT: {
-            switch (vis.last_state) {
+            TextBuffer *t = search_table(&table, current_node)->tbuf;
+            Paths *p = search_table(&table, current_node)->pbuf;
+            const char *item_path = find_pathstr(t[t->cursor].text->name, p);
+            const int item_type = find_type(t[t->cursor].text->name, p);
+
+            switch (item_type) {
             default:
               break;
-            case SEARCHING_DIRS: {
-              if (file_count > 0) {
-                set_state(SONGS);
-              }
+
+            case DT_REG: {
+
             } break;
-            case SEARCHING_SONGS: {
-              if (vis.stream_flag) {
-                set_state(PLAYBACK);
+
+            case DT_DIR: {
+              int tmp_index = current_node;
+              tmp_index++;
+              if (tmp_index > MAX_NODES - 1) {
+                tmp_index = MAX_NODES - 1;
+              }
+
+              if (tmp_index != 0) {
+                // Need to free existing memory beforehand
+                table_set_paths(&table, tmp_index, fs_search(NULL, item_path));
+                table_set_text(
+                    &table, tmp_index,
+                    create_fonts(search_table(&table, tmp_index)->pbuf));
+                current_node = tmp_index;
               }
             } break;
             }
-          } break;
-
-          case SDLK_UP: {
-            nav_up(&key.search_cursor, &filter_count);
           } break;
 
           case SDLK_DOWN: {
-            nav_down(&key.search_cursor, &filter_count);
+            nav_down(search_table(&table, current_node)->tbuf);
           } break;
 
-          case SDLK_SPACE: {
-            switch (vis.last_state) {
-            default:
-              break;
-            case SEARCHING_DIRS: {
-              if (dir_text_buffer) {
-                fill_file_contents(
-                    &file_contents, &file_text_buffer, &file_count,
-                    seek_path(filtered_tb, &key.search_cursor, dir_contents),
-                    find_files);
-              }
-            } break;
-
-            case SEARCHING_SONGS: {
-              if (file_text_buffer) {
-                KILL_PARTICLES(particle_buffer, particle_buffer_size);
-                select_file(&adc, seek_path(filtered_tb, &key.search_cursor,
-                                            file_contents));
-              }
-            } break;
-            }
+          case SDLK_UP: {
+            nav_up(search_table(&table, current_node)->tbuf);
           } break;
-          }
-
-        } break;
-
-          /*
-            Since filtered_tb just holds Text struct pointers that were
-            heap allocated earlier, we just free the filtered buffer itself
-            and not the underlying data it holds (that would be bad)
-          */
-
-          // please for the love of god break this up into functions
-        case SEARCHING_DIRS: {
-          if (is_key(keysym, SDLK_RETURN)) {
-            if (filtered_tb) {
-              free(filtered_tb);
-              filtered_tb = NULL;
-            }
-
-            if (not_empty(text_input_buffer)) {
-              filtered_tb = malloc(sizeof(TextBuffer) * dir_count);
-              if (!filtered_tb) {
-                ERRNO_CALLBACK("malloc failed!", strerror(errno));
-                exit(EXIT_FAILURE);
-              }
-
-              filter_count = do_search(text_input_buffer, &dir_count,
-                                       dir_text_buffer, &filtered_tb);
-              if (filter_count <= 0) {
-                free(filtered_tb);
-                filtered_tb = NULL;
-              }
-
-              if (filter_count > 0) {
-                TextBuffer *tmp =
-                    realloc(filtered_tb, sizeof(TextBuffer) * filter_count);
-                if (!tmp) {
-                  ERRNO_CALLBACK("realloc failed!", strerror(errno));
-                  exit(EXIT_FAILURE);
-                }
-                filtered_tb = tmp;
-              }
-
-              if (filtered_tb && filter_count > 0) {
-                set_state(DISPLAY_SEARCH);
-                SDL_StopTextInput();
-              }
-            }
-          }
-
-          if (is_key(keysym, SDLK_BACKSPACE)) {
-            remove_char(&text_input_buffer, &input_buf_position,
-                        &input_buf_position);
-
-            search_text = destroy_search_text(search_text);
-            search_text = create_search_text(text_input_buffer, &input_buf_size,
-                                             &input_buf_position);
-          }
-
-          if (is_key(keysym, SDLK_ESCAPE)) {
-            set_state(DIRECTORIES);
-            int is_active = SDL_IsTextInputActive();
-            if (is_active) {
-              SDL_StopTextInput();
-            }
-          }
-        } break;
-
-        case SEARCHING_SONGS: {
-          if (is_key(keysym, SDLK_RETURN)) {
-            if (filtered_tb) {
-              // Since filtered_tb just holds Text struct pointers that were
-              // heap allocated earlier, we just free the filtered buffer itself
-              // and not the underlying data it holds (that would be bad)
-              free(filtered_tb);
-              filtered_tb = NULL;
-            }
-
-            if (not_empty(text_input_buffer)) {
-              filtered_tb = malloc(sizeof(TextBuffer) * file_count);
-              if (!filtered_tb) {
-                ERRNO_CALLBACK("malloc failed!", strerror(errno));
-                exit(EXIT_FAILURE);
-              }
-
-              filter_count = do_search(text_input_buffer, &file_count,
-                                       file_text_buffer, &filtered_tb);
-              if (filter_count <= 0) {
-                free(filtered_tb);
-                filtered_tb = NULL;
-              }
-
-              if (filter_count > 0) {
-                TextBuffer *tmp =
-                    realloc(filtered_tb, sizeof(TextBuffer) * filter_count);
-                if (!tmp) {
-                  ERRNO_CALLBACK("realloc failed!", strerror(errno));
-                  exit(EXIT_FAILURE);
-                }
-                filtered_tb = tmp;
-              }
-
-              if (filtered_tb && filter_count > 0) {
-                set_state(DISPLAY_SEARCH);
-                SDL_StopTextInput();
-              }
-            }
-          }
-
-          if (is_key(keysym, SDLK_BACKSPACE)) {
-            remove_char(&text_input_buffer, &input_buf_position,
-                        &input_buf_position);
-
-            search_text = destroy_search_text(search_text);
-            search_text = create_search_text(text_input_buffer, &input_buf_size,
-                                             &input_buf_position);
-          }
-
-          if (is_key(keysym, SDLK_ESCAPE)) {
-            set_state(SONGS);
-            int is_active = SDL_IsTextInputActive();
-            if (is_active) {
-              SDL_StopTextInput();
-            }
           }
         } break;
 
         case PLAYBACK: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
 
-          case SDLK_s: {
-            if (vis.dev) {
-              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
-              default:
-                break;
-
-              case SDL_AUDIO_PLAYING: {
-                SDL_CloseAudioDevice(vis.dev);
-                vis.stream_flag = false;
-                set_state(SONGS);
-                break;
-              }
-              }
-            }
-          } break;
-
-          case SDLK_p: {
-            if (vis.dev) {
-              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
-              default:
-                break;
-
-              case SDL_AUDIO_PAUSED: {
-                resume_device();
-              } break;
-
-              case SDL_AUDIO_PLAYING: {
-                pause_device();
-              } break;
-              }
-            }
-          } break;
-
-          case SDLK_LEFT: {
-            if (vis.dev) {
-              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
-              default:
-                break;
-
-              case SDL_AUDIO_PLAYING: {
-                if (event.key.keysym.mod & KMOD_SHIFT) {
-                  seek_backward(&adc);
-                } else {
-                  set_state(SONGS);
-                }
-              } break;
-
-              case SDL_AUDIO_PAUSED: {
-                if (event.key.keysym.mod & KMOD_SHIFT) {
-                  seek_backward(&adc);
-                } else {
-                  set_state(SONGS);
-                }
-
-              } break;
-              }
-            }
-
-          } break;
-
-          case SDLK_RIGHT: {
-            if (vis.dev) {
-              switch (SDL_GetAudioDeviceStatus(vis.dev)) {
-              default:
-                break;
-
-              case SDL_AUDIO_PLAYING: {
-                if (event.key.keysym.mod & KMOD_SHIFT) {
-                  seek_forward(&adc);
-                } else {
-                  set_state(DIRECTORIES);
-                }
-
-              } break;
-
-              case SDL_AUDIO_PAUSED: {
-                if (event.key.keysym.mod & KMOD_SHIFT) {
-                  seek_forward(&adc);
-                } else {
-                  set_state(DIRECTORIES);
-                }
-
-              } break;
-              }
-            }
-
-          } break;
-          }
-        } break;
-
-        case SONGS: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
-
-          case SDLK_s: {
-            set_state(SEARCHING_SONGS);
-            reset_input_buffer(&input_buf_position, text_input_buffer);
-            search_text = destroy_search_text(search_text);
-            search_text = create_search_text(text_input_buffer, &input_buf_size,
-                                             &input_buf_position);
-            key.search_cursor = 0;
-            SDL_StartTextInput();
-          } break;
-
-          case SDLK_LEFT: {
-            if (dir_count > 0) {
-              set_state(DIRECTORIES);
-            }
-          } break;
-
-          case SDLK_RIGHT: {
-            if (vis.stream_flag) {
-              set_state(PLAYBACK);
-            }
-          } break;
-
-          case SDLK_UP: {
-            nav_up(&key.file_cursor, &file_count);
-          } break;
-
-          case SDLK_DOWN: {
-            nav_down(&key.file_cursor, &file_count);
-          } break;
-
-          case SDLK_SPACE: {
-            if (file_text_buffer) {
-              KILL_PARTICLES(particle_buffer, particle_buffer_size);
-              select_file(&adc, seek_path(file_text_buffer, &key.file_cursor,
-                                          file_contents));
-            }
-          } break;
-          }
-
-        } break;
-
-        case DIRECTORIES: {
-          switch (event.key.keysym.sym) {
-          default:
-            break;
-
-          case SDLK_s: {
-            set_state(SEARCHING_DIRS);
-            reset_input_buffer(&input_buf_position, text_input_buffer);
-            search_text = destroy_search_text(search_text);
-            search_text = create_search_text(text_input_buffer, &input_buf_size,
-                                             &input_buf_position);
-            key.search_cursor = 0;
-            SDL_StartTextInput();
-          } break;
-
-          case SDLK_LEFT: {
-            if (vis.stream_flag) {
-              set_state(PLAYBACK);
-            }
-          } break;
-
-          case SDLK_RIGHT: {
-            if (file_count > 0) {
-              set_state(SONGS);
-            }
-          } break;
-
-          case SDLK_UP: {
-            nav_up(&key.dir_cursor, &dir_count);
-          } break;
-
-          case SDLK_DOWN: {
-            nav_down(&key.dir_cursor, &dir_count);
-          } break;
-
-          case SDLK_SPACE: {
-            if (dir_text_buffer) {
-              fill_file_contents(
-                  &file_contents, &file_text_buffer, &file_count,
-                  seek_path(dir_text_buffer, &key.dir_cursor, dir_contents),
-                  find_files);
-            }
-          } break;
-          }
         } break;
         }
       } break;
@@ -813,66 +463,18 @@ int main(int argc, char **argv) {
       }
     }
 
-    switch (vis.current_state) {
+    switch (mode) {
     default:
       break;
 
-    case SEARCHING_SONGS: {
-      render_draw_search_text(search_text);
-    } break;
-
-    case SEARCHING_DIRS: {
-      render_draw_search_text(search_text);
-    } break;
-
-    case DISPLAY_SEARCH: {
-      render_draw_text(filtered_tb, &filter_count, &key.search_cursor);
-    } break;
-
-    case SONGS: {
-      render_draw_text(file_text_buffer, &file_count, &key.file_cursor);
-    } break;
-
-    case DIRECTORIES: {
-      render_draw_text(dir_text_buffer, &dir_count, &key.dir_cursor);
+    case TEXT: {
+      if (search_table(&table, current_node)->tbuf) {
+        render_draw_text(search_table(&table, current_node)->tbuf);
+      }
     } break;
 
     case PLAYBACK: {
-      if (vis.dev) {
-        switch (vis.next_song_flag) {
-        case 1: {
-          if (!vis.scrolling) {
-            nav_down(&key.file_cursor, &file_count);
-            KILL_PARTICLES(particle_buffer, particle_buffer_size);
-            select_file(&adc, seek_path(file_text_buffer, &key.file_cursor,
-                                        file_contents));
-          }
-        } break;
 
-        case 0: {
-          int status = SDL_GetAudioDeviceStatus(vis.dev);
-          if (status == SDL_AUDIO_PLAYING) {
-            float tmp[M_BUF_SIZE];
-            memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
-            hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
-            iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
-            extract_frequencies(&f_buffers);
-            freq_bin_algo(adc.SR, f_buffers.extracted);
-            squash_to_log(&f_buffers, &f_data);
-            visual_refine(&f_buffers, &f_data);
-          }
-
-          if (f_data.output_len > 0) {
-            // please for the love of god break this up into multiple functions
-            render_draw_music(f_buffers.smear, f_buffers.smoothed,
-                              f_buffers.windowed, f_buffers.processed_phases,
-                              &f_data.output_len, particle_buffer);
-            render_seek_bar(&adc.position, &adc.length);
-          }
-
-        } break;
-        }
-      }
     } break;
     }
 
@@ -884,14 +486,8 @@ int main(int argc, char **argv) {
     render_present();
   }
 
-  file_contents = free_paths(file_contents, &file_count);
-  dir_contents = free_paths(dir_contents, &dir_count);
-
-  dir_text_buffer = free_text_buffer(dir_text_buffer, &dir_count);
-  file_text_buffer = free_text_buffer(file_text_buffer, &file_count);
-
-  if (particle_buffer) {
-    free(particle_buffer);
+  if (particle_buf) {
+    free(particle_buf);
   }
 
   if (adc.buffer) {
@@ -909,6 +505,29 @@ int main(int argc, char **argv) {
   TTF_Quit();
   SDL_Quit();
   return 0;
+}
+
+int open_ttf_file(const char *fn) {
+  const size_t path_size =
+      get_length(3, strlen(fn), strlen(vis.home), strlen(ASSETS_DIR));
+
+  char *path_buffer = malloc(path_size + 1);
+  if (!path_buffer) {
+    ERRNO_CALLBACK("malloc() failed!", strerror(errno));
+    return 0;
+  }
+
+  const size_t written =
+      snprintf(path_buffer, path_size + 1, "%s%s%s", vis.home, ASSETS_DIR, fn);
+  if (written <= 0) {
+    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
+    return 0;
+  }
+
+  font.font = scp(TTF_OpenFont(path_buffer, 32));
+  free(path_buffer);
+
+  return 1;
 }
 
 int get_char_limit(int width) {
@@ -942,11 +561,6 @@ int scc(int code) {
   return code;
 }
 
-void set_state(int state) {
-  vis.last_state = vis.current_state;
-  vis.current_state = state;
-}
-
 void reset_input_buffer(size_t *pos, char *buf) {
   if (!pos || !buf) {
     return;
@@ -970,27 +584,3 @@ char *create_input_buffer(size_t *size) {
   text_input_buffer[0] = '\0';
   return text_input_buffer;
 }
-
-void seek_forward(AudioDataContainer *adc) {
-  vis.scrolling = 1;
-
-  int pos_cpy = adc->position + (1 << 15);
-  if (pos_cpy > (int)adc->length) {
-    pos_cpy = adc->length - M_BUF_SIZE;
-  }
-
-  adc->position = pos_cpy;
-}
-
-void seek_backward(AudioDataContainer *adc) {
-  vis.scrolling = 1;
-
-  int pos_cpy = adc->position - (1 << 15);
-  if (pos_cpy < 0) {
-    pos_cpy = 0;
-  }
-
-  adc->position = pos_cpy;
-}
-
-int is_key(int input, int required) { return input == required; }

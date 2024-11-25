@@ -1,6 +1,25 @@
 #include "audio.h"
 #include "main.h"
+#include <errno.h>
 #include <sndfile.h>
+
+void seek_forward(AudioDataContainer *adc) {
+  int pos_cpy = adc->position + (1 << 15);
+  if (pos_cpy > (int)adc->length) {
+    pos_cpy = adc->length - M_BUF_SIZE;
+  }
+
+  adc->position = pos_cpy;
+}
+
+void seek_backward(AudioDataContainer *adc) {
+  int pos_cpy = adc->position - (1 << 15);
+  if (pos_cpy < 0) {
+    pos_cpy = 0;
+  }
+
+  adc->position = pos_cpy;
+}
 
 void callback(void *userdata, uint8_t *stream, int length) {
   if (!userdata) {
@@ -17,33 +36,18 @@ void callback(void *userdata, uint8_t *stream, int length) {
 
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    if ((adc->position + copy) > file_length && !vis.scrolling) {
-      vis.stream_flag = false;
-      vis.next_song_flag = 1;
-      pause_device();
-    }
-
-    if (stream && vis.dev && !vis.scrolling) {
+    if (stream && vis.dev) {
       float *f32_stream = (float *)stream;
-      if (f32_stream) {
-        for (uint32_t i = 0; i < copy; i++) {
+      for (uint32_t i = 0; i < copy; i++) {
+        if (i + adc->position < file_length) {
           f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
         }
       }
       adc->position += copy;
-
-    } else if (stream && vis.dev && vis.scrolling) {
-      float *f32_stream = (float *)stream;
-      if (f32_stream) {
-        for (uint32_t i = 0; i < copy; i++) {
-          f32_stream[i] = 0.0f;
-        }
-      }
     }
 
-    if ((adc->position + copy) > file_length && !vis.scrolling) {
-      vis.stream_flag = false;
-      vis.next_song_flag = 1;
+    if (adc->position >= file_length) {
+      vis.stream_flag = 0;
       pause_device();
     }
 
@@ -159,7 +163,6 @@ bool load_song(AudioDataContainer *adc) {
     return false;
   }
 
-  vis.next_song_flag = 0;
   vis.spec.userdata = adc;
   vis.spec.callback = callback;
   vis.spec.channels = adc->channels;
