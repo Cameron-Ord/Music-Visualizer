@@ -5,6 +5,7 @@
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
+#include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 #include <dirent.h>
@@ -61,15 +62,6 @@ int FPS = 60;
 int main(int argc, char **argv) {
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
-
-  if (argc > 1) {
-    FPS = atoi(argv[1]);
-    if (FPS > 0) {
-      if (FPS < 30 || FPS > 360) {
-        FPS = 60;
-      }
-    }
-  }
 
   srand(time(NULL));
 
@@ -274,7 +266,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  font.font = scp(TTF_OpenFont(path_buffer, 64));
+  font.font = scp(TTF_OpenFont(path_buffer, 32));
   free(path_buffer);
 
   rend.title_limit = get_title_limit(win.height);
@@ -503,11 +495,13 @@ int main(int argc, char **argv) {
 
         } break;
 
-        /*
-          Since filtered_tb just holds Text struct pointers that were
-          heap allocated earlier, we just free the filtered buffer itself
-          and not the underlying data it holds (that would be bad)
-        */
+          /*
+            Since filtered_tb just holds Text struct pointers that were
+            heap allocated earlier, we just free the filtered buffer itself
+            and not the underlying data it holds (that would be bad)
+          */
+
+          // please for the love of god break this up into functions
         case SEARCHING_DIRS: {
           if (is_key(keysym, SDLK_RETURN)) {
             if (filtered_tb) {
@@ -869,9 +863,11 @@ int main(int argc, char **argv) {
           }
 
           if (f_data.output_len > 0) {
+            // please for the love of god break this up into multiple functions
             render_draw_music(f_buffers.smear, f_buffers.smoothed,
-                              f_buffers.windowed, &f_data.output_len,
-                              particle_buffer);
+                              f_buffers.windowed, f_buffers.processed_phases,
+                              &f_data.output_len, particle_buffer);
+            render_seek_bar(&adc.position, &adc.length);
           }
 
         } break;

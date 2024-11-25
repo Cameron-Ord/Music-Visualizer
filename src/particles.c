@@ -40,8 +40,8 @@ Particle *render_create_particle(int bar_x, int bar_y, int bar_width,
                                  int bar_height) {
 
   // p_height uses the width in order to maintain the aspect ratio.
-  int p_height = MAX(1, (int)(floorf(bar_width * 0.125)));
-  int p_width = MAX(1, (int)(floorf(bar_width * 0.125)));
+  int p_height = MAX(1, (int)(floorf(bar_width * 0.075)));
+  int p_width = MAX(1, (int)(floorf(bar_width * 0.075)));
 
   // If it doesn't meet this criteria, just return NULL without ever calling
   // malloc

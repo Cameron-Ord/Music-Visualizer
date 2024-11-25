@@ -8,6 +8,9 @@
 #define DEFAULT_INPUT_BUFFER_SIZE 24
 #define DEFAULT_FILTER_SIZE 12
 
+uint8_t determine_alpha(float amplitude);
+SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha);
+void clamp_rgb_diff(uint8_t *mod, uint8_t base);
 int clamp_font_size(int size);
 void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
              const size_t *count);

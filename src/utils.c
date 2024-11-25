@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+uint8_t alpha_min = 255 * 0.70;
+uint8_t alpha_low = 255 * 0.80;
+uint8_t alpha_decreased = 255 * 0.95;
+uint8_t alpha_max = 255;
+
 void SDL_ERR_CALLBACK(const char *msg) {
   fprintf(stderr, "SDL Error -> %s\n", msg);
 }
@@ -319,7 +324,7 @@ void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
 
 int clamp_font_size(int size) {
   int min_size = 12;
-  int max_size = 28;
+  int max_size = 16;
 
   if (size > max_size) {
     size = max_size;
@@ -330,4 +335,71 @@ int clamp_font_size(int size) {
   }
 
   return size;
+}
+
+void clamp_rgb_diff(uint8_t *mod, uint8_t base) {
+  uint8_t diff = base - *mod;
+  uint8_t max_diff = 45;
+  if (diff > max_diff) {
+    *mod = base - max_diff;
+  }
+}
+
+// Phase is expected to be a float in range -1.0 to 1.0
+SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
+  SDL_Color rgba = {0};
+  if (alpha <= alpha_min) {
+    rgba.r = prim->r, rgba.g = prim->g, rgba.b = prim->b, rgba.a = alpha;
+    return rgba;
+  }
+
+  float factor_max = 0.05;
+  float factor_min = 0.025;
+
+  uint8_t rl1 = prim->r + (255 - prim->r) * factor_min;
+  uint8_t gl1 = prim->g + (255 - prim->g) * factor_min;
+  uint8_t bl1 = prim->b + (255 - prim->b) * factor_min;
+
+  uint8_t rd1 = prim->r - prim->r * factor_min;
+  uint8_t gd1 = prim->g - prim->g * factor_min;
+  uint8_t bd1 = prim->b - prim->b * factor_min;
+
+  uint8_t rl2 = prim->r + (255 - prim->r) * factor_max;
+  uint8_t gl2 = prim->g + (255 - prim->g) * factor_max;
+  uint8_t bl2 = prim->b + (255 - prim->b) * factor_max;
+
+  uint8_t rd2 = prim->r - prim->r * factor_max;
+  uint8_t gd2 = prim->g - prim->g * factor_max;
+  uint8_t bd2 = prim->b - prim->b * factor_max;
+
+  if (phase <= -0.5) {
+    rgba.r = rd2, rgba.g = gd2, rgba.b = bd2, rgba.a = alpha;
+  } else if (phase <= 0.0) {
+    rgba.r = rd1, rgba.g = gd1, rgba.b = bd1, rgba.a = alpha;
+  } else if (phase <= 0.5) {
+    rgba.r = rl2, rgba.g = gl2, rgba.b = bl2, rgba.a = alpha;
+  } else if (phase <= 1.0) {
+    rgba.r = rl1, rgba.g = gl1, rgba.b = bl1, rgba.a = alpha;
+  }
+
+  return rgba;
+}
+
+// Amplitude values are expected to range from 0.0 to 1.0
+uint8_t determine_alpha(float amplitude) {
+  if (amplitude < 0.0) {
+    return alpha_max;
+  }
+
+  if (amplitude <= 0.25) {
+    return alpha_min;
+  } else if (amplitude <= 0.5) {
+    return alpha_low;
+  } else if (amplitude <= 0.75) {
+    return alpha_decreased;
+  } else {
+    return alpha_max;
+  }
+
+  return alpha_max;
 }

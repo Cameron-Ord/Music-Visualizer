@@ -134,6 +134,7 @@ void seek_forward(AudioDataContainer *adc);
 void seek_backward(AudioDataContainer *adc);
 
 // Render functions
+void render_seek_bar(const uint32_t *position, const uint32_t *length);
 void render_bg(void);
 void render_draw_search_text(Text *text);
 void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
@@ -141,8 +142,8 @@ void render_draw_text(TextBuffer *list_buf, const size_t *item_count,
 void render_clear(void);
 void render_present(void);
 void render_draw_music(const float *smear, const float *smoothed,
-                       const float *windowed, const size_t *len,
-                       ParticleTrio *p_buffer);
+                       const float *windowed, const float *phases,
+                       const size_t *len, ParticleTrio *p_buffer);
 void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 
 // Events functions
