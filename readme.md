@@ -5,7 +5,9 @@
 
 ## Music Visualizer
 I am making this for myself only, but if you wanna use it, check out the build section. 
-I am currently working to make it more filebrowser like than forcing a default location of ~/Music among various other code improvements.
+I am currently working to make it more filebrowser like than forcing a default location of ~/Music among various other code improvements. 
+
+## This version does not currently work on windows
 
  - [Video Demo](https://www.youtube.com/watch?v=1nbQFn9GrdY)
 
@@ -31,12 +33,11 @@ The program relies on directories located in the **~/Music dir located in the ho
 
 - Up : Navigate cursor up through current list.
 - Down : Navigate cursor down through current list.
-- Space : Select the current item under cursor.
-- Right : Navigate to the right.
+- Shift + Down : View visualization
+- Shift + Up : View directory node tree.
+- Right : Navigate to the right || select an audio file.
 - Left : Navigate left.
-- P : Toggle Pause.
-- S : Stop music.
-- Q or close : Quit.
+- Close : Quit.
 
 ## BUILDING
 My program depends on these libs:
@@ -59,7 +60,6 @@ Building is relatively painless. Just make sure you have the afforementioned lib
 
 ## Build steps for linux
 - Simply run the ```unix_build.sh``` bash script. It will ask if you wish to link with lua, so you can use the config.lua.
-
 The program will be executable from anywhere and you can launch it using ```Vis```
 
 
