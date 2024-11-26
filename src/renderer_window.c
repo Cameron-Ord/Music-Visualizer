@@ -1,4 +1,5 @@
 #include "main.h"
+#include "utils.h"
 
 void render_bg(void) {
   scc(SDL_SetRenderDrawColor(rend.r, vis.background.r, vis.background.g,

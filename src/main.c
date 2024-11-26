@@ -4,6 +4,7 @@
 #include "filesystem.h"
 #include "fontdef.h"
 #include "particles.h"
+#include "table.h"
 #include "utils.h"
 
 #include <SDL2/SDL_audio.h>
@@ -15,14 +16,6 @@
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
-#endif
-
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
 #ifdef _WIN32
@@ -59,33 +52,9 @@ SDL_Color text = {130, 139, 184, 255};       // Light Grey
 SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
+size_t hash(size_t i) { return i % MAX_NODES; }
 
-#define MAX_NODES 16
-#define MODES 2
-
-typedef struct Node Node;
-typedef struct Table Table;
-
-struct Node {
-  size_t key;
-  Paths *pbuf;
-  TextBuffer *tbuf;
-  Node *next;
-};
-
-struct Table {
-  Node *node_buffer[MAX_NODES];
-};
-
-static Node *search_table(Table *t, size_t i);
-static int create_node(Table *t, size_t i);
-static size_t hash(size_t i);
-static void table_set_paths(Table *t, size_t i, Paths *pbuf);
-static void table_set_text(Table *t, size_t i, TextBuffer *tbuf);
-
-static size_t hash(size_t i) { return i % MAX_NODES; }
-
-static int create_node(Table *t, size_t i) {
+int create_node(Table *t, size_t i) {
   Node *n = malloc(sizeof(Node));
   if (!n) {
     ERRNO_CALLBACK("malloc() failed!", strerror(errno));
@@ -101,7 +70,7 @@ static int create_node(Table *t, size_t i) {
   return 1;
 }
 
-static Node *search_table(Table *t, size_t i) {
+Node *search_table(Table *t, size_t i) {
   Node *n = t->node_buffer[hash(i)];
   while (n != NULL) {
     if (n->key == hash(i)) {
@@ -112,7 +81,7 @@ static Node *search_table(Table *t, size_t i) {
   return NULL;
 }
 
-static void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
+void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
   Node *n = search_table(t, i);
   if (!n) {
     return;
@@ -121,7 +90,7 @@ static void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
   n->tbuf = tbuf;
 }
 
-static void table_set_paths(Table *t, size_t i, Paths *pbuf) {
+void table_set_paths(Table *t, size_t i, Paths *pbuf) {
   Node *n = search_table(t, i);
   if (!n) {
     return;
@@ -132,6 +101,7 @@ static void table_set_paths(Table *t, size_t i, Paths *pbuf) {
 
 int main(int argc, char **argv) {
   size_t current_node = 0;
+  size_t playing_node = 0;
 
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
@@ -314,6 +284,8 @@ int main(int argc, char **argv) {
   AudioDataContainer adc;
   FFTBuffers f_buffers;
   FFTData f_data;
+  zero_values(&adc);
+  zero_fft(&f_buffers, &f_data);
 
   adc.next = &f_buffers;
   f_buffers.next = &f_data;
@@ -339,6 +311,7 @@ int main(int argc, char **argv) {
   table_set_text(&table, current_node,
                  create_fonts(search_table(&table, current_node)->pbuf));
 
+  memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
 
   scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
@@ -369,10 +342,18 @@ int main(int argc, char **argv) {
           break;
         case SDL_WINDOWEVENT_RESIZED: {
           window_resized();
+          TextBuffer *old = search_table(&table, current_node)->tbuf;
+          Paths *p = search_table(&table, current_node)->pbuf;
+          TextBuffer *replace = create_fonts(p);
+          swap_font_ptrs(&table, current_node, old, replace);
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
           window_resized();
+          TextBuffer *old = search_table(&table, current_node)->tbuf;
+          Paths *p = search_table(&table, current_node)->pbuf;
+          TextBuffer *replace = create_fonts(p);
+          swap_font_ptrs(&table, current_node, old, replace);
         } break;
         }
       } break;
@@ -422,6 +403,7 @@ int main(int argc, char **argv) {
 
               if (valid) {
                 load_song(&adc);
+                playing_node = current_node;
                 mode = PLAYBACK;
               }
 
@@ -524,8 +506,8 @@ int main(int argc, char **argv) {
         int file_valid = 0;
         int read_valid = 0;
 
-        TextBuffer *t = search_table(&table, current_node)->tbuf;
-        Paths *p = search_table(&table, current_node)->pbuf;
+        TextBuffer *t = search_table(&table, playing_node)->tbuf;
+        Paths *p = search_table(&table, playing_node)->pbuf;
 
         nav_down(t);
 
@@ -546,12 +528,13 @@ int main(int argc, char **argv) {
         }
       }
 
+      RenderArgs args = {.smear = f_buffers.smear,
+                         .smooth = f_buffers.smoothed,
+                         .phases = f_buffers.processed_phases,
+                         .length = &f_data.output_len};
+
       if (f_data.output_len > 0) {
-        VoidPtrArgs args;
-        args.arg1 = f_buffers.smear;
-        args.arg2 = f_buffers.smoothed;
-        args.arg3 = f_buffers.processed_phases;
-        args.arg4 = &f_data.output_len;
+        render_seek_bar(&adc.position, &adc.length);
         render_draw_music(&args, particle_buf);
       }
     } break;
@@ -607,59 +590,4 @@ int open_ttf_file(const char *fn) {
   free(path_buffer);
 
   return 1;
-}
-
-int get_char_limit(int width) {
-  const int sub_amount = width * 0.5;
-  if (width < 100) {
-    return 1;
-  }
-  return MIN(150, MAX(8, (width - sub_amount) / 10));
-}
-
-int get_title_limit(int height) {
-  const int sub_amount = height * 0.75;
-  return MIN(16, MAX(1, (height - sub_amount) / 16));
-}
-
-void *scp(void *ptr) {
-  if (!ptr) {
-    fprintf(stderr, "SDL failed to create PTR! -> %s\n", SDL_GetError());
-    exit(EXIT_FAILURE);
-  }
-
-  return ptr;
-}
-
-int scc(int code) {
-  if (code < 0) {
-    fprintf(stderr, "SDL code execution failed! -> %s\n", SDL_GetError());
-    exit(EXIT_FAILURE);
-  }
-
-  return code;
-}
-
-void reset_input_buffer(size_t *pos, char *buf) {
-  if (!pos || !buf) {
-    return;
-  }
-
-  *pos = 0;
-  buf[0] = '\0';
-}
-
-char *create_input_buffer(size_t *size) {
-  if (!size) {
-    return NULL;
-  }
-
-  *size = DEFAULT_INPUT_BUFFER_SIZE;
-  char *text_input_buffer = malloc(*size + 1);
-  if (!text_input_buffer) {
-    ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
-    return NULL;
-  }
-  text_input_buffer[0] = '\0';
-  return text_input_buffer;
 }

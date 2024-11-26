@@ -11,6 +11,23 @@ size_t bit_reverse(size_t index, size_t log2n) {
   return reversed;
 }
 
+void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
+  memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->fft_in, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
+  memset(bufs->phases, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->processed, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->smoothed, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->windowed, 0, sizeof(float) * M_BUF_SIZE);
+
+  f_data->max_ampl = 1.0;
+  f_data->max_phase = 1.0;
+  f_data->cell_width = 0;
+  f_data->output_len = 0;
+}
+
 // https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
 void iter_fft(float *in, Float_Complex *out, size_t size) {
 
@@ -109,11 +126,11 @@ float amp(float z) {
 
 void freq_bin_algo(int sr, float *extracted) {
   float freq_bin_size = (float)sr / M_BUF_SIZE;
-  const size_t buf_size = 3;
-  float bin_sums[buf_size];
 
-  float low_cutoffs[] = {60.0f, 250.0f, 2000.0f};
-  float high_cutoffs[] = {250.0f, 2000.0f, 5000.0f};
+  float low_cutoffs[] = {0.0f, 2500.0f, 5000.0f, 7500.0, 10000.0f, 12500.0f};
+  float high_cutoffs[] = {2500.0f, 5000.0f, 7500.0f, 10000.0f, 15000.0f};
+  const size_t buf_size = sizeof(low_cutoffs) / sizeof(low_cutoffs[0]);
+  float bin_sums[buf_size];
 
   int low_bin;
   int high_bin;
@@ -156,7 +173,7 @@ void freq_bin_algo(int sr, float *extracted) {
   high_bin = high_cutoffs[max_bin_index] / freq_bin_size;
 
   for (int i = low_bin; i < high_bin; i++) {
-    extracted[i] *= 1.25;
+    extracted[i] *= 1.5;
   }
 
   low_bin = low_cutoffs[min_bin_index] / freq_bin_size;

@@ -29,11 +29,11 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   SDL_RenderFillRect(rend.r, &box);
 }
 
-void render_draw_music(VoidPtrArgs *args, ParticleTrio *p_buffer) {
-  size_t *len = (size_t *)args->arg4;
-  const float *smear = args->arg1;
-  const float *smoothed = args->arg2;
-  const float *phases = args->arg3;
+void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
+  size_t *len = (size_t *)args->length;
+  const float *smear = args->smear;
+  const float *smoothed = args->smooth;
+  const float *phases = args->phases;
 
   const int h = win.height;
   const int w = win.width;
@@ -100,16 +100,20 @@ void render_draw_music(VoidPtrArgs *args, ParticleTrio *p_buffer) {
     SDL_Rect start_box = {start_x_pos, start_y_pos, cell_width,
                           start_bar_height};
 
+    uint8_t alpha;
+    SDL_Color rcolor;
+
+    alpha = determine_alpha(end);
+    rcolor = determine_rgba(phase, &vis.secondary_bg, alpha);
+
     if (end_box.y > start_box.y) {
-      scc(SDL_SetRenderDrawColor(rend.r, vis.secondary_bg.r, vis.secondary_bg.g,
-                                 vis.secondary_bg.b, vis.secondary_bg.a));
+      scc(SDL_SetRenderDrawColor(rend.r, rcolor.r, rcolor.g, rcolor.b,
+                                 rcolor.a));
       scc(SDL_RenderFillRect(rend.r, &start_box));
-    } else {
-      kill_invalid_particles(p_buffer[i].buf);
     }
 
-    uint8_t alpha = determine_alpha(end);
-    SDL_Color rcolor = determine_rgba(phase, &vis.primary, alpha);
+    alpha = determine_alpha(end);
+    rcolor = determine_rgba(phase, &vis.primary, alpha);
 
     scc(SDL_SetRenderDrawColor(rend.r, rcolor.r, rcolor.g, rcolor.b, rcolor.a));
     scc(SDL_RenderFillRect(rend.r, &end_box));

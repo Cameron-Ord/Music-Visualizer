@@ -13,6 +13,7 @@ Paths *win_find_files(size_t *count, const char *path);
 Paths *unix_fs_search(const char *pathstr, const char *home);
 Paths *unix_read_dir(const char *path);
 int not_nav(const char *str);
+int not_hidden(const char *str);
 #endif
 
 #endif

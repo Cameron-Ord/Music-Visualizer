@@ -94,15 +94,7 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   }
 
   if (adc->next) {
-    memset(adc->next->extracted, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->fft_in, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
-    memset(adc->next->phases, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->processed, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->smear, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->smoothed, 0, sizeof(float) * M_BUF_SIZE);
-    memset(adc->next->windowed, 0, sizeof(float) * M_BUF_SIZE);
+    zero_fft(adc->next, adc->next->next);
   }
 
   SNDFILE *sndfile = NULL;

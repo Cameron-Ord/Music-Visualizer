@@ -20,4 +20,5 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data);
 float amp(float z);
 void linear_mapping(FFTBuffers *bufs, FFTData *data);
 void extract_frequencies(FFTBuffers *bufs);
+void zero_fft(FFTBuffers *bufs, FFTData *data);
 #endif

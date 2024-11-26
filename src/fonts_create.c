@@ -5,64 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-Text *create_search_text(const char *input_text_buffer,
-                         const size_t *text_buf_len,
-                         const size_t *text_buf_position) {
-  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
-
-  Text *text = malloc(sizeof(Text));
-  if (!text) {
-    ERRNO_CALLBACK("malloc failed!", strerror(errno));
-    return NULL;
-  }
-
-  if (!input_text_buffer) {
-    ERRNO_CALLBACK("input buffer is NULL! - Last errno :", strerror(errno));
-    free(text);
-    return NULL;
-  }
-
-  text->name = malloc(*text_buf_len + 1);
-  if (!text->name) {
-    ERRNO_CALLBACK("malloc failed!", strerror(errno));
-    free(text);
-    return NULL;
-  }
-
-  if (!strcpy(text->name, input_text_buffer)) {
-    ERRNO_CALLBACK("snprintf failed!", strerror(errno));
-    free(text->name);
-    free(text);
-    return NULL;
-  }
-
-  text->name[*text_buf_position] = '\0';
-
-  text->id = 1;
-  text->surf[0] = TTF_RenderText_Blended(font.font, text->name, vis.text);
-  if (!text->surf[0]) {
-    text->surf[0] = NULL;
-    return NULL;
-  }
-
-  text->tex[0] = SDL_CreateTextureFromSurface(rend.r, text->surf[0]);
-  if (!text->tex[0]) {
-    text->tex[0] = NULL;
-    return NULL;
-  }
-
-  text->width = text->surf[0]->w;
-  text->height = text->surf[0]->h;
-  SDL_Rect text_rect = {.x = 0, .y = 0, text->width, text->height};
-  text->rect = text_rect;
-
-  SDL_FreeSurface(text->surf[0]);
-  text->surf[0] = NULL;
-  text->is_valid = true;
-
-  return text;
-}
-
 TextBuffer *create_fonts(const Paths *pbuf) {
   TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
 

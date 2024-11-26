@@ -357,7 +357,7 @@ Paths *unix_read_dir(const char *path) {
 
   struct dirent *e;
   while ((e = readdir(dir)) != NULL) {
-    if (not_nav(e->d_name)) {
+    if (not_nav(e->d_name) && not_hidden(e->d_name)) {
       if (count >= size) {
         size_t new_size = size * 2;
         d = reallocate_paths(&d, new_size * sizeof(Paths));
@@ -425,6 +425,18 @@ int not_nav(const char *str) {
   }
 
   return 1;
+}
+
+int not_hidden(const char *str) {
+  if (!strlen(str)) {
+    return 0;
+  }
+
+  if (str[0] != '.') {
+    return 1;
+  }
+
+  return 0;
 }
 
 #endif

@@ -1,14 +1,52 @@
 #include "utils.h"
 #include "fontdef.h"
+#include "table.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-uint8_t alpha_min = 255 * 0.70;
-uint8_t alpha_low = 255 * 0.80;
-uint8_t alpha_decreased = 255 * 0.95;
 uint8_t alpha_max = 255;
+uint8_t alpha_min = 255 * 0.25;
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+int get_char_limit(int width) {
+  const int sub_amount = width * 0.5;
+  if (width < 100) {
+    return 1;
+  }
+  return MIN(150, MAX(8, (width - sub_amount) / 10));
+}
+
+int get_title_limit(int height) {
+  const int sub_amount = height * 0.75;
+  return MIN(16, MAX(1, (height - sub_amount) / 16));
+}
+
+void *scp(void *ptr) {
+  if (!ptr) {
+    fprintf(stderr, "SDL failed to create PTR! -> %s\n", SDL_GetError());
+    exit(EXIT_FAILURE);
+  }
+
+  return ptr;
+}
+
+int scc(int code) {
+  if (code < 0) {
+    fprintf(stderr, "SDL code execution failed! -> %s\n", SDL_GetError());
+    exit(EXIT_FAILURE);
+  }
+
+  return code;
+}
 
 void SDL_ERR_CALLBACK(const char *msg) {
   fprintf(stderr, "SDL Error -> %s\n", msg);
@@ -16,30 +54,6 @@ void SDL_ERR_CALLBACK(const char *msg) {
 
 void ERRNO_CALLBACK(const char *prefix, const char *msg) {
   fprintf(stderr, "%s -> %s\n", prefix, msg);
-}
-
-size_t determine_new_size(const size_t *size, TextBuffer *buf) {
-  for (size_t i = 0; i < *size; i++) {
-    if (!buf[i].text) {
-      // return the iter position as the size, since the current iter is null.
-      // if we did i + 1 it would include the null value, which we dont want.
-      return i;
-    }
-  }
-
-  return *size;
-}
-
-Text *null_replace(size_t i, const size_t *size, TextBuffer *buf) {
-  for (size_t j = i; j < *size; j++) {
-    if (buf[j].text) {
-      Text *replace = buf[j].text;
-      buf[j].text = NULL;
-      return replace;
-    }
-  }
-
-  return NULL;
 }
 
 void *free_paths(Paths *buf, const size_t *count) {
@@ -67,7 +81,6 @@ void *free_paths(Paths *buf, const size_t *count) {
 }
 
 void *free_text_buffer(TextBuffer *buf, const size_t *count) {
-
   if (!buf) {
     return NULL;
   }
@@ -98,38 +111,6 @@ void *free_text_buffer(TextBuffer *buf, const size_t *count) {
   return NULL;
 }
 
-TextBuffer *zero_filter(TextBuffer *buf, const size_t *size) {
-  for (size_t i = 0; i < *size; i++) {
-    buf[i].text = NULL;
-  }
-
-  return buf;
-}
-
-void *destroy_search_text(Text *s) {
-  if (s) {
-    free(s->name);
-    SDL_DestroyTexture(s->tex[0]);
-    free(s);
-  }
-
-  return NULL;
-}
-
-int check_bounds(int max, int input) {
-  if (input > max) {
-    return 0;
-  }
-
-  // typically when I call this function the casted type is unsigned but still a
-  // good check to have.
-  if (input < 0) {
-    return 0;
-  }
-
-  return 1;
-}
-
 const char *sformat(char *str) {
   int i = 0;
   int j = 0;
@@ -144,57 +125,6 @@ const char *sformat(char *str) {
 
   str[j] = '\0';
   return str;
-}
-
-size_t do_search(char *text_input_buf, const size_t *count,
-                 const TextBuffer *base, TextBuffer **filtered) {
-  size_t filter_count = 0;
-  for (size_t i = 0; i < *count; i++) {
-    Text *text = base[i].text;
-    char *name = text->name;
-    // strlen returns size in bytes, so just using malloc here instead of stack
-    // allocation for that reason, god knows that even if im forcing ascii, if
-    // the original file contains non ascii strlen will still return byte size
-    // reflecting that(I believe).
-    char *name_cpy = malloc(strlen(name) + 1);
-    if (!name_cpy) {
-      return 0;
-    }
-
-    if (!strcpy(name_cpy, name)) {
-      free(name_cpy);
-      return 0;
-    }
-
-    char *input_cpy = malloc(strlen(text_input_buf) + 1);
-    if (!input_cpy) {
-      return 0;
-    }
-
-    if (!strcpy(input_cpy, text_input_buf)) {
-      free(input_cpy);
-      free(name_cpy);
-      return 0;
-    }
-
-    if (strstr(sformat(name_cpy), sformat(input_cpy))) {
-      (*filtered)[i].text = text;
-      filter_count += 1;
-    } else {
-      (*filtered)[i].text = NULL;
-    }
-
-    free(name_cpy);
-    free(input_cpy);
-  }
-
-  for (size_t i = 0; i < *count; i++) {
-    if (!(*filtered)[i].text) {
-      (*filtered)[i].text = null_replace(i, count, *filtered);
-    }
-  }
-
-  return filter_count;
 }
 
 size_t get_length(size_t size, ...) {
@@ -257,49 +187,6 @@ const char *find_pathstr(const char *search_key, Paths *buffer) {
   return NULL;
 }
 
-void remove_char(char **buf, size_t *pos, size_t *size) {
-  int signed_index = (int)*pos;
-  signed_index--;
-
-  if (signed_index < 0) {
-    signed_index = 0;
-  }
-
-  *pos = signed_index;
-  if ((*pos + 1) < DEFAULT_INPUT_BUFFER_SIZE &&
-      *size > DEFAULT_INPUT_BUFFER_SIZE) {
-    const size_t new_size = DEFAULT_INPUT_BUFFER_SIZE + 1;
-    char *tmp = realloc(*buf, new_size);
-    if (!buf) {
-      ERRNO_CALLBACK("realloc failed!", strerror(errno));
-      return;
-    }
-
-    *buf = tmp;
-    *size = new_size;
-  }
-  (*buf)[*pos] = '\0';
-}
-
-void append_char(const char *c, char **buf, size_t *pos, size_t *size) {
-  (*buf)[*pos] = *c;
-  (*pos)++;
-
-  if ((*pos + 1) >= *size) {
-    size_t new_buf_size = (*size * 2) + 1;
-    char *tmp = realloc(*buf, new_buf_size);
-    if (!buf) {
-      ERRNO_CALLBACK("realloc failed!", strerror(errno));
-      return;
-    }
-
-    *buf = tmp;
-    *size = new_buf_size;
-  }
-
-  (*buf)[*pos] = '\0';
-}
-
 /*
  Real ascii chars start at 32, which is the space key. So if a char is
  greater than this, pretty much means it isnt only spaces.
@@ -317,22 +204,34 @@ int not_empty(const char *str) {
   return 0;
 }
 
-void do_swap(TextBuffer *search, const size_t *s_count, TextBuffer *replace,
-             const size_t *count) {
-  for (size_t i = 0; i < *count; i++) {
-    Text *replace_text = replace[i].text;
-    for (size_t j = 0; j < *s_count; j++) {
-      Text **invalidated_text = &search[j].text;
-      if (*invalidated_text && replace_text) {
-        if (!(*invalidated_text)->name || !replace_text->name) {
-          continue;
-        }
+void swap_font_ptrs(Table *table, const size_t key, TextBuffer *old_buffer,
+                    TextBuffer *replace) {
+  table_set_text(table, key, replace);
 
-        if (strcmp(replace_text->name, (*invalidated_text)->name) == 0) {
-          *invalidated_text = replace_text;
-        }
+  if (old_buffer) {
+    for (size_t i = 0; i < old_buffer->size; i++) {
+      Text *invalidated = old_buffer[i].text;
+      int is_valid = invalidated->is_valid;
+      char *invalid_name = invalidated->name;
+      SDL_Texture **invalid_tex = invalidated->tex;
+
+      // haha funny
+      if (is_valid && invalid_name) {
+        free(invalid_name);
       }
+
+      if (is_valid && invalid_tex[0]) {
+        SDL_DestroyTexture(invalid_tex[0]);
+      }
+
+      if (is_valid && invalid_tex[1]) {
+        SDL_DestroyTexture(invalid_tex[1]);
+      }
+
+      free(invalidated);
     }
+
+    free(old_buffer);
   }
 }
 
@@ -351,21 +250,9 @@ int clamp_font_size(int size) {
   return size;
 }
 
-void clamp_rgb_diff(uint8_t *mod, uint8_t base) {
-  uint8_t diff = base - *mod;
-  uint8_t max_diff = 45;
-  if (diff > max_diff) {
-    *mod = base - max_diff;
-  }
-}
-
 // Phase is expected to be a float in range -1.0 to 1.0
 SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
   SDL_Color rgba = {0};
-  if (alpha <= alpha_min) {
-    rgba.r = prim->r, rgba.g = prim->g, rgba.b = prim->b, rgba.a = alpha;
-    return rgba;
-  }
 
   float factor_max = 0.05;
   float factor_min = 0.025;
@@ -399,29 +286,19 @@ SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
   return rgba;
 }
 
-// Amplitude values are expected to range from 0.0 to 1.0
-uint8_t determine_alpha(float amplitude) {
-  if (amplitude < 0.0) {
-    return alpha_max;
+static uint8_t clamp_alpha(uint8_t a) {
+  if (a < alpha_min) {
+    a = alpha_min;
   }
 
-  if (amplitude <= 0.25) {
-    return alpha_min;
-  } else if (amplitude <= 0.5) {
-    return alpha_low;
-  } else if (amplitude <= 0.75) {
-    return alpha_decreased;
-  } else {
-    return alpha_max;
+  if (a > alpha_max * 0.9) {
+    a = alpha_max;
   }
 
-  return alpha_max;
+  return a;
 }
 
-size_t clamp_size_t(size_t input, const size_t max) {
-  if (input > max - 1) {
-    input = max - 1;
-  }
-
-  return input;
+// Amplitude values are expected to range from 0.0 to 1.0
+uint8_t determine_alpha(float amplitude) {
+  return clamp_alpha(alpha_max * amplitude);
 }
