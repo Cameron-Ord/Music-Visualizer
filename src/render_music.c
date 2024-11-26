@@ -29,9 +29,12 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   SDL_RenderFillRect(rend.r, &box);
 }
 
-void render_draw_music(const float *smear, const float *smoothed,
-                       const float *windowed, const float *phases,
-                       const size_t *len, ParticleTrio *p_buffer) {
+void render_draw_music(VoidPtrArgs *args, ParticleTrio *p_buffer) {
+  size_t *len = (size_t *)args->arg4;
+  const float *smear = args->arg1;
+  const float *smoothed = args->arg2;
+  const float *phases = args->arg3;
+
   const int h = win.height;
   const int w = win.width;
 

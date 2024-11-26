@@ -93,12 +93,11 @@ void render_draw_search_text(Text *text);
 void render_draw_text(TextBuffer *list_buf);
 void render_clear(void);
 void render_present(void);
-void render_draw_music(const float *smear, const float *smoothed,
-                       const float *windowed, const float *phases,
-                       const size_t *len, ParticleTrio *p_buffer);
+void render_draw_music(VoidPtrArgs *args, ParticleTrio *p_buffer);
 void KILL_PARTICLES(ParticleTrio *p_buffer, size_t size);
 
 // Events functions
+int node_index(const char *direction, int node_index, int max);
 size_t nav_down(TextBuffer *tbuf);
 size_t nav_up(TextBuffer *tbuf);
 void char_buf_insert(const char *text, char **input_buf, size_t *pos,

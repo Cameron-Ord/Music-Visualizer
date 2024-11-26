@@ -1,10 +1,13 @@
 #include "main.h"
 #include "audio.h"
+#include "audiodefs.h"
 #include "filesystem.h"
 #include "fontdef.h"
 #include "particles.h"
 #include "utils.h"
 
+#include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_video.h>
 #include <errno.h>
 
@@ -375,6 +378,7 @@ int main(int argc, char **argv) {
 
       case SDL_KEYDOWN: {
         int keysym = event.key.keysym.sym;
+        int keymod = event.key.keysym.mod;
         switch (mode) {
         default:
           break;
@@ -385,20 +389,12 @@ int main(int argc, char **argv) {
             break;
 
           case SDLK_LEFT: {
-            TextBuffer *t = search_table(&table, current_node)->tbuf;
-            Paths *p = search_table(&table, current_node)->pbuf;
-
-            int tmp_index = current_node;
-            tmp_index--;
-            if (tmp_index < 0) {
-              tmp_index = 0;
-            }
-
-            Node *n = search_table(&table, tmp_index);
+            int i = node_index("--", current_node, MAX_NODES);
+            Node *n = search_table(&table, i);
             if (n->pbuf && n->tbuf) {
               Text *t = n->tbuf[n->tbuf->cursor].text;
               if (find_pathstr(t->name, n->pbuf)) {
-                current_node = tmp_index;
+                current_node = i;
               } else {
                 current_node = 0;
               }
@@ -418,34 +414,53 @@ int main(int argc, char **argv) {
               break;
 
             case DT_REG: {
+              int valid = 0;
+              if (read_audio_file(item_path, &adc)) {
+                valid = 1;
+              }
+
+              if (valid) {
+                load_song(&adc);
+                mode = PLAYBACK;
+              }
 
             } break;
 
             case DT_DIR: {
-              int tmp_index = current_node;
-              tmp_index++;
-              if (tmp_index > MAX_NODES - 1) {
-                tmp_index = MAX_NODES - 1;
-              }
+              int i = node_index("++", current_node, MAX_NODES);
+              // Dont want to overwrite the entry point node. Generally this
+              // shouldn't happen, but the protection remains.
+              if (i != 0) {
+                // Need to free existing memory beforehand (if it exists)
+                TextBuffer *old_tb = search_table(&table, i)->tbuf;
+                Paths *old_paths = search_table(&table, i)->pbuf;
+                old_tb = free_text_buffer(old_tb, &old_tb->size);
+                old_paths = free_paths(old_paths, &old_paths->size);
 
-              if (tmp_index != 0) {
-                // Need to free existing memory beforehand
-                table_set_paths(&table, tmp_index, fs_search(NULL, item_path));
-                table_set_text(
-                    &table, tmp_index,
-                    create_fonts(search_table(&table, tmp_index)->pbuf));
-                current_node = tmp_index;
+                table_set_paths(&table, i, fs_search(NULL, item_path));
+                TextBuffer *t = create_fonts(search_table(&table, i)->pbuf);
+                table_set_text(&table, i, t);
+
+                current_node = i;
               }
             } break;
             }
           } break;
 
           case SDLK_DOWN: {
-            nav_down(search_table(&table, current_node)->tbuf);
+            if (keymod & KMOD_SHIFT) {
+              mode = PLAYBACK;
+            } else {
+              nav_down(search_table(&table, current_node)->tbuf);
+            }
           } break;
 
           case SDLK_UP: {
-            nav_up(search_table(&table, current_node)->tbuf);
+            if (keymod & KMOD_SHIFT) {
+              mode = TEXT;
+            } else {
+              nav_up(search_table(&table, current_node)->tbuf);
+            }
           } break;
           }
         } break;
@@ -474,7 +489,25 @@ int main(int argc, char **argv) {
     } break;
 
     case PLAYBACK: {
+      if (SDL_GetAudioDeviceStatus(vis.dev) == SDL_AUDIO_PLAYING) {
+        float tmp[M_BUF_SIZE];
+        memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
+        hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
+        iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
+        extract_frequencies(&f_buffers);
+        freq_bin_algo(adc.SR, f_buffers.extracted);
+        squash_to_log(&f_buffers, &f_data);
+        linear_mapping(&f_buffers, &f_data);
+      }
 
+      if (f_data.output_len > 0) {
+        VoidPtrArgs args;
+        args.arg1 = f_buffers.smear;
+        args.arg2 = f_buffers.smoothed;
+        args.arg3 = f_buffers.processed_phases;
+        args.arg4 = &f_data.output_len;
+        render_draw_music(&args, particle_buf);
+      }
     } break;
     }
 

@@ -6,8 +6,8 @@ void seek_forward(AudioDataContainer *adc);
 void seek_backward(AudioDataContainer *adc);
 void zero_values(AudioDataContainer *adc);
 void callback(void *userdata, uint8_t *stream, int length);
-bool read_audio_file(const char *file_path, AudioDataContainer *adc);
-bool load_song(AudioDataContainer *adc);
+int read_audio_file(const char *file_path, AudioDataContainer *adc);
+int load_song(AudioDataContainer *adc);
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes);
 void calculate_window(float *hamming_values);
 void hamming_window(float *in, const float *hamming_values, float *windowed);
@@ -18,6 +18,6 @@ void iter_fft(float *in, Float_Complex *out, size_t size);
 void freq_bin_algo(int sr, float *extracted);
 void squash_to_log(FFTBuffers *bufs, FFTData *data);
 float amp(float z);
-void visual_refine(FFTBuffers *bufs, FFTData *data);
+void linear_mapping(FFTBuffers *bufs, FFTData *data);
 void extract_frequencies(FFTBuffers *bufs);
 #endif

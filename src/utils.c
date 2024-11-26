@@ -43,8 +43,12 @@ Text *null_replace(size_t i, const size_t *size, TextBuffer *buf) {
 }
 
 void *free_paths(Paths *buf, const size_t *count) {
+  if (!buf) {
+    return NULL;
+  }
+
   for (size_t i = 0; i < *count; i++) {
-    if (buf && buf[i].name) {
+    if (buf[i].name) {
       free(buf[i].name);
       buf[i].name_length = 0;
     }
@@ -63,8 +67,13 @@ void *free_paths(Paths *buf, const size_t *count) {
 }
 
 void *free_text_buffer(TextBuffer *buf, const size_t *count) {
+
+  if (!buf) {
+    return NULL;
+  }
+
   for (size_t i = 0; i < *count; i++) {
-    if (buf && buf[i].text) {
+    if (buf[i].text) {
       Text *t = buf[i].text;
       if (t->is_valid && t->name) {
         free(t->name);

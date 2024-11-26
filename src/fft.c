@@ -87,7 +87,7 @@ void extract_frequencies(FFTBuffers *bufs) {
   }
 }
 
-void visual_refine(FFTBuffers *bufs, FFTData *data) {
+void linear_mapping(FFTBuffers *bufs, FFTData *data) {
   for (size_t i = 0; i < data->output_len; ++i) {
     bufs->processed_phases[i] /= data->max_phase;
     bufs->processed[i] /= data->max_ampl;

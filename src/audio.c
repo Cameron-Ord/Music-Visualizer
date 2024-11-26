@@ -24,6 +24,7 @@ void seek_backward(AudioDataContainer *adc) {
 void callback(void *userdata, uint8_t *stream, int length) {
   if (!userdata) {
     pause_device();
+    return;
   }
 
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
@@ -82,17 +83,9 @@ void zero_values(AudioDataContainer *adc) {
   adc->volume = 1.0;
 }
 
-bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
-
-  if (vis.dev) {
-    SDL_CloseAudioDevice(vis.dev);
-  }
-
-  SNDFILE *sndfile = NULL;
-  SF_INFO sfinfo;
-
-  if (!adc) {
-    return false;
+int read_audio_file(const char *file_path, AudioDataContainer *adc) {
+  if (!adc || !file_path) {
+    return 0;
   }
 
   if (adc->buffer) {
@@ -112,6 +105,9 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
     memset(adc->next->windowed, 0, sizeof(float) * M_BUF_SIZE);
   }
 
+  SNDFILE *sndfile = NULL;
+  SF_INFO sfinfo;
+
   memset(&sfinfo, 0, sizeof(SF_INFO));
 
   fprintf(stdout, "Reading file -> %s\n", file_path);
@@ -120,7 +116,7 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
   if (!sndfile) {
     fprintf(stderr, "Could not open file: %s -> %s\n", file_path,
             sf_strerror(NULL));
-    return false;
+    return 0;
   }
 
   adc->channels = sfinfo.channels;
@@ -131,7 +127,7 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
 
   if (adc->channels != 2) {
     fprintf(stderr, "Must be a two channel audio file!\n");
-    return false;
+    return 0;
   }
 
   fprintf(stdout, "SAMPLE RATE %d\n", adc->SR);
@@ -142,7 +138,7 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
   if (!adc->buffer) {
     fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
-    return false;
+    return 0;
   }
 
   sf_count_t read = sf_read_float(sndfile, adc->buffer, adc->samples);
@@ -155,12 +151,12 @@ bool read_audio_file(const char *file_path, AudioDataContainer *adc) {
 
   adc->length = (uint32_t)(adc->samples);
   sf_close(sndfile);
-  return true;
+  return 1;
 }
 
-bool load_song(AudioDataContainer *adc) {
+int load_song(AudioDataContainer *adc) {
   if (!adc) {
-    return false;
+    return 0;
   }
 
   vis.spec.userdata = adc;
@@ -170,17 +166,21 @@ bool load_song(AudioDataContainer *adc) {
   vis.spec.format = AUDIO_F32SYS;
   vis.spec.samples = M_BUF_SIZE / adc->channels;
 
+  if (vis.dev) {
+    SDL_CloseAudioDevice(vis.dev);
+    vis.dev = 0;
+  }
+
   vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 1);
   if (!vis.dev) {
-    return false;
+    return 0;
   }
 
   if (!resume_device()) {
-    return false;
+    return 0;
   }
 
-  vis.stream_flag = true;
-  return true;
+  return 1;
 }
 
 bool pause_device(void) {
