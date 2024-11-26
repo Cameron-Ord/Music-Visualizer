@@ -19,7 +19,7 @@ typedef struct {
   SDL_AudioSpec spec;
 
   // Flags
-  int stream_flag;
+  int awaiting;
   int quit;
 
   // Application variables

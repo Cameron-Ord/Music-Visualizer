@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "main.h"
+#include <SDL2/SDL_audio.h>
 #include <errno.h>
 #include <sndfile.h>
 
@@ -48,7 +49,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
     }
 
     if (adc->position >= file_length) {
-      vis.stream_flag = 0;
+      vis.awaiting = 1;
       pause_device();
     }
 
@@ -60,13 +61,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
 }
 
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
-  if (!bytes) {
-    return;
-  }
-
   if (buffer && in) {
-    size_t samples = bytes / sizeof(float);
-    // memmove(in + samples, in, bytes);
     memcpy(in, buffer + *pos, bytes);
   }
 }
@@ -84,6 +79,11 @@ void zero_values(AudioDataContainer *adc) {
 }
 
 int read_audio_file(const char *file_path, AudioDataContainer *adc) {
+  if (vis.dev) {
+    pause_device();
+    SDL_CloseAudioDevice(vis.dev);
+  }
+
   if (!adc || !file_path) {
     return 0;
   }
@@ -165,11 +165,6 @@ int load_song(AudioDataContainer *adc) {
   vis.spec.freq = adc->SR;
   vis.spec.format = AUDIO_F32SYS;
   vis.spec.samples = M_BUF_SIZE / adc->channels;
-
-  if (vis.dev) {
-    SDL_CloseAudioDevice(vis.dev);
-    vis.dev = 0;
-  }
 
   vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 1);
   if (!vis.dev) {

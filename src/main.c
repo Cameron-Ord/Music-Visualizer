@@ -157,6 +157,7 @@ int main(int argc, char **argv) {
   vis.smearing = 6;
   vis.smoothing = 8;
   vis.target_frames = FPS;
+  vis.awaiting = 0;
   vis.quit = false;
   vis.primary = primary;
   vis.secondary = secondary;
@@ -466,6 +467,26 @@ int main(int argc, char **argv) {
         } break;
 
         case PLAYBACK: {
+          switch (keysym) {
+          default:
+            break;
+
+          case SDLK_DOWN: {
+            if (keymod & KMOD_SHIFT) {
+              mode = PLAYBACK;
+            } else {
+              nav_down(search_table(&table, current_node)->tbuf);
+            }
+          } break;
+
+          case SDLK_UP: {
+            if (keymod & KMOD_SHIFT) {
+              mode = TEXT;
+            } else {
+              nav_up(search_table(&table, current_node)->tbuf);
+            }
+          } break;
+          }
 
         } break;
         }
@@ -498,6 +519,31 @@ int main(int argc, char **argv) {
         freq_bin_algo(adc.SR, f_buffers.extracted);
         squash_to_log(&f_buffers, &f_data);
         linear_mapping(&f_buffers, &f_data);
+      } else if (SDL_GetAudioDeviceStatus(vis.dev) == SDL_AUDIO_PAUSED &&
+                 vis.awaiting) {
+        int file_valid = 0;
+        int read_valid = 0;
+
+        TextBuffer *t = search_table(&table, current_node)->tbuf;
+        Paths *p = search_table(&table, current_node)->pbuf;
+
+        nav_down(t);
+
+        const char *item_path = find_pathstr(t[t->cursor].text->name, p);
+        const int item_type = find_type(t[t->cursor].text->name, p);
+
+        if (item_type == DT_REG) {
+          file_valid = 1;
+        }
+
+        if (file_valid && read_audio_file(item_path, &adc)) {
+          read_valid = 1;
+        }
+
+        if (read_valid) {
+          load_song(&adc);
+          mode = PLAYBACK;
+        }
       }
 
       if (f_data.output_len > 0) {
