@@ -360,14 +360,19 @@ Paths *unix_read_dir(const char *path) {
     if (not_nav(e->d_name) && not_hidden(e->d_name)) {
       if (count >= size) {
         size_t new_size = size * 2;
-        d = reallocate_paths(&d, new_size * sizeof(Paths));
-        if (!d) {
+        Paths *tmp = reallocate_paths(&d, new_size * sizeof(Paths));
+        if (!tmp) {
           closedir(dir);
-          return NULL;
+          return d;
         }
+        d = tmp;
         size = new_size;
       }
-
+      // The current index gets set to invalid by default, this way if the loop
+      // errors, we can just return the pointer to the buffer, and decide what
+      // to do with the malformed data at that point to maintain a
+      // understandable control flow
+      d[count].is_valid = 0;
       d[count].path = NULL;
       d[count].path_length = 0;
       d[count].name = NULL;
@@ -378,13 +383,13 @@ Paths *unix_read_dir(const char *path) {
       if (!d[count].name) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
-        return NULL;
+        return d;
       }
 
       if (!strcpy(d[count].name, e->d_name)) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
-        return NULL;
+        return d;
       }
 
       size_t path_size =
@@ -393,19 +398,19 @@ Paths *unix_read_dir(const char *path) {
       if (!d[count].path) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
-        return NULL;
+        return d;
       }
 
       if (!snprintf(d[count].path, path_size + 1, "%s/%s", path, e->d_name)) {
         ERRNO_CALLBACK("snprintf() failed!", strerror(errno));
         closedir(dir);
-        return NULL;
+        return d;
       }
 
       d[count].name_length = entry_size;
       d[count].path_length = path_size;
       d[count].type = e->d_type;
-
+      d[count].is_valid = 1;
       count++;
     }
   }

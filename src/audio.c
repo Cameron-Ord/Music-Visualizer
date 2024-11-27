@@ -79,22 +79,8 @@ void zero_values(AudioDataContainer *adc) {
 }
 
 int read_audio_file(const char *file_path, AudioDataContainer *adc) {
-  if (vis.dev) {
-    pause_device();
-    SDL_CloseAudioDevice(vis.dev);
-  }
-
   if (!adc || !file_path) {
     return 0;
-  }
-
-  if (adc->buffer) {
-    free(adc->buffer);
-    adc->buffer = NULL;
-  }
-
-  if (adc->next) {
-    zero_fft(adc->next, adc->next->next);
   }
 
   SNDFILE *sndfile = NULL;
@@ -103,7 +89,6 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   memset(&sfinfo, 0, sizeof(SF_INFO));
 
   fprintf(stdout, "Reading file -> %s\n", file_path);
-  zero_values(adc);
   sndfile = sf_open(file_path, SFM_READ, &sfinfo);
   if (!sndfile) {
     fprintf(stderr, "Could not open file: %s -> %s\n", file_path,
@@ -111,38 +96,57 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
     return 0;
   }
 
-  adc->channels = sfinfo.channels;
-  adc->SR = sfinfo.samplerate;
-  adc->format = sfinfo.format;
-  adc->samples = sfinfo.frames * sfinfo.channels;
-  adc->bytes = adc->samples * sizeof(float);
-
-  if (adc->channels != 2) {
+  if (sfinfo.channels != 2) {
     fprintf(stderr, "Must be a two channel audio file!\n");
     return 0;
   }
 
-  fprintf(stdout, "SAMPLE RATE %d\n", adc->SR);
-  fprintf(stdout, "BYTES %zu\n", adc->bytes);
-  fprintf(stdout, "SAMPLES %zu\n", adc->samples);
+  size_t samples = sfinfo.frames * sfinfo.channels;
 
-  adc->buffer = (float *)calloc(adc->samples, sizeof(float));
-  if (!adc->buffer) {
+  fprintf(stdout, "SAMPLE RATE %d\n", sfinfo.samplerate);
+  fprintf(stdout, "BYTES %zu\n", samples * sizeof(float));
+  fprintf(stdout, "SAMPLES %zu\n", samples);
+
+  float *tmp = calloc(samples, sizeof(float));
+  if (!tmp) {
     fprintf(stderr, "Could not allocate buffer! -> %s\n", strerror(errno));
     sf_close(sndfile);
     return 0;
   }
 
-  sf_count_t read = sf_read_float(sndfile, adc->buffer, adc->samples);
+  sf_count_t read = sf_read_float(sndfile, tmp, samples);
   if (read < 0) {
     fprintf(stderr, "Error reading audio data! ->%s\n", sf_strerror(sndfile));
-    free(adc->buffer);
+    free(tmp);
     sf_close(sndfile);
-    return false;
+    return 0;
+  }
+  sf_close(sndfile);
+
+  if (adc->buffer) {
+    free(adc->buffer);
+    adc->buffer = NULL;
   }
 
+  zero_values(adc);
+
+  if (adc->next) {
+    zero_fft(adc->next, adc->next->next);
+  }
+
+  if (vis.dev) {
+    SDL_CloseAudioDevice(vis.dev);
+  }
+
+  adc->channels = sfinfo.channels;
+  adc->SR = sfinfo.samplerate;
+  adc->format = sfinfo.format;
+  adc->samples = sfinfo.frames * sfinfo.channels;
+  adc->bytes = adc->samples * sizeof(float);
   adc->length = (uint32_t)(adc->samples);
-  sf_close(sndfile);
+
+  adc->buffer = tmp;
+
   return 1;
 }
 

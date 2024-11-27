@@ -11,6 +11,7 @@ typedef struct {
   size_t path_length;
   size_t size;
   int type;
+  int is_valid;
 } Paths;
 
 #endif

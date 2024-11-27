@@ -124,11 +124,12 @@ float amp(float z) {
   return logf(z);
 }
 
+// Bass, Lower Midrange, Midrange, Upper Midrange, Presence
+const float low_cutoffs[] = {60.0f, 250.0f, 500.0f, 2000.0, 4000.0f};
+const float high_cutoffs[] = {250.0f, 500.0f, 2000.0f, 4000.0f, 6000.0f};
+
 void freq_bin_algo(int sr, float *extracted) {
   float freq_bin_size = (float)sr / M_BUF_SIZE;
-
-  float low_cutoffs[] = {0.0f, 2500.0f, 5000.0f, 7500.0, 10000.0f, 12500.0f};
-  float high_cutoffs[] = {2500.0f, 5000.0f, 7500.0f, 10000.0f, 15000.0f};
   const size_t buf_size = sizeof(low_cutoffs) / sizeof(low_cutoffs[0]);
   float bin_sums[buf_size];
 
