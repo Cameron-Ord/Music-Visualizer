@@ -250,39 +250,55 @@ int clamp_font_size(int size) {
   return size;
 }
 
+static uint8_t lighten(uint8_t col, float f) { return col + (255 - col) * f; }
+static uint8_t darken(uint8_t col, float f) { return col - col * f; }
+// subtlety is key
+const float coeff_max = 0.05;
+const float coeff_norm = 0.025;
+const float coeff_min = 0.01;
+// min, max, coefficient
+const float ranges[8][3] = {
+    {-1.0f, -0.75f, coeff_max}, {-0.75f, -0.5f, coeff_norm},
+    {-0.5f, -0.25f, coeff_min}, {-0.25f, 0.0f, 0.0},
+    {0.0f, 0.25f, 0.0},         {0.25f, 0.5f, coeff_min},
+    {0.5f, 0.75f, coeff_norm},  {0.75f, 1.0f, coeff_max}};
+
+static uint8_t (*const drkn)(uint8_t, float) = &darken;
+static uint8_t (*const ltn)(uint8_t, float) = &lighten;
+
+static uint8_t (*const fnptrs[])(uint8_t, float) = {drkn, drkn, drkn, NULL,
+                                                    NULL, ltn,  ltn,  ltn};
+
 // Phase is expected to be a float in range -1.0 to 1.0
 SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
   SDL_Color rgba = {0};
 
-  float factor_max = 0.05;
-  float factor_min = 0.025;
+  uint8_t r = prim->r;
+  uint8_t g = prim->g;
+  uint8_t b = prim->b;
 
-  uint8_t rl1 = prim->r + (255 - prim->r) * factor_min;
-  uint8_t gl1 = prim->g + (255 - prim->g) * factor_min;
-  uint8_t bl1 = prim->b + (255 - prim->b) * factor_min;
+  uint8_t *rgb_vals[] = {&r, &g, &b};
+  size_t length = sizeof(rgb_vals) / sizeof(rgb_vals[0]);
 
-  uint8_t rd1 = prim->r - prim->r * factor_min;
-  uint8_t gd1 = prim->g - prim->g * factor_min;
-  uint8_t bd1 = prim->b - prim->b * factor_min;
+  for (size_t j = 0; j < 8; j++) {
+    const float min = ranges[j][0];
+    const float max = ranges[j][1];
 
-  uint8_t rl2 = prim->r + (255 - prim->r) * factor_max;
-  uint8_t gl2 = prim->g + (255 - prim->g) * factor_max;
-  uint8_t bl2 = prim->b + (255 - prim->b) * factor_max;
+    if (phase > max || phase < min) {
+      continue;
+    }
 
-  uint8_t rd2 = prim->r - prim->r * factor_max;
-  uint8_t gd2 = prim->g - prim->g * factor_max;
-  uint8_t bd2 = prim->b - prim->b * factor_max;
-
-  if (phase <= -0.5) {
-    rgba.r = rd2, rgba.g = gd2, rgba.b = bd2, rgba.a = alpha;
-  } else if (phase <= 0.0) {
-    rgba.r = rd1, rgba.g = gd1, rgba.b = bd1, rgba.a = alpha;
-  } else if (phase <= 0.5) {
-    rgba.r = rl2, rgba.g = gl2, rgba.b = bl2, rgba.a = alpha;
-  } else if (phase <= 1.0) {
-    rgba.r = rl1, rgba.g = gl1, rgba.b = bl1, rgba.a = alpha;
+    if (phase >= min && phase <= max) {
+      for (size_t i = 0; i < length; i++) {
+        const float coeff = ranges[j][2];
+        if (fnptrs[j]) {
+          *rgb_vals[i] = fnptrs[j](*rgb_vals[i], coeff);
+        }
+      }
+    }
   }
 
+  rgba.r = r, rgba.g = g, rgba.b = b, rgba.a = alpha;
   return rgba;
 }
 

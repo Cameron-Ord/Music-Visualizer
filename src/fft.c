@@ -17,10 +17,11 @@ void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
   memset(bufs->phases, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->processed, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smoothed, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->windowed, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->sm_phases, 0, sizeof(float) * M_BUF_SIZE);
 
   f_data->max_ampl = 1.0;
   f_data->max_phase = 1.0;
@@ -104,16 +105,27 @@ void extract_frequencies(FFTBuffers *bufs) {
   }
 }
 
+static float interpolate(float base, float interpolated, int coeff) {
+  return (base - interpolated) * coeff * (1.0 / vis.target_frames);
+}
+
 void linear_mapping(FFTBuffers *bufs, FFTData *data) {
+  float *ph = bufs->processed_phases;
+  float *ps = bufs->processed_samples;
+  float *sm_s = bufs->smoothed;
+  float *sm_p = bufs->sm_phases;
+  float *smr = bufs->smear;
+
   for (size_t i = 0; i < data->output_len; ++i) {
-    bufs->processed_phases[i] /= data->max_phase;
-    bufs->processed[i] /= data->max_ampl;
+    ph[i] /= data->max_phase;
+    ps[i] /= data->max_ampl;
 
-    bufs->smoothed[i] += (bufs->processed[i] - bufs->smoothed[i]) *
-                         vis.smoothing * (1.0 / vis.target_frames);
-
-    bufs->smear[i] += (bufs->smoothed[i] - bufs->smear[i]) * vis.smearing *
-                      (1.0 / vis.target_frames);
+    // interpolated phases
+    sm_p[i] += interpolate(ph[i], sm_p[i], vis.smoothing);
+    // interpolated audio amplitudes
+    sm_s[i] += interpolate(ps[i], sm_s[i], vis.smoothing);
+    // interpolated smear frames (of the audio amplitudes)
+    smr[i] += interpolate(sm_s[i], smr[i], vis.smearing);
   }
 }
 
@@ -219,7 +231,7 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
       data->max_phase = p;
     }
 
-    bufs->processed[m++] = a;
+    bufs->processed_samples[m++] = a;
     bufs->processed_phases[y++] = p;
   }
 

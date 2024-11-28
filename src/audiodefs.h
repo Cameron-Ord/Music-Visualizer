@@ -61,9 +61,10 @@ struct FFTBuffers {
   Float_Complex out_raw[M_BUF_SIZE];
   float extracted[M_BUF_SIZE];
   float phases[M_BUF_SIZE];
-  float processed[M_BUF_SIZE];
+  float processed_samples[M_BUF_SIZE];
   float processed_phases[M_BUF_SIZE];
   float smoothed[M_BUF_SIZE];
+  float sm_phases[M_BUF_SIZE];
   float smear[M_BUF_SIZE];
   FFTData *next;
 };

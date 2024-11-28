@@ -530,7 +530,7 @@ int main(int argc, char **argv) {
 
       RenderArgs args = {.smear = f_buffers.smear,
                          .smooth = f_buffers.smoothed,
-                         .phases = f_buffers.processed_phases,
+                         .phases = f_buffers.sm_phases,
                          .length = &f_data.output_len};
 
       if (f_data.output_len > 0) {
