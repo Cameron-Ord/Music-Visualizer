@@ -6,11 +6,14 @@ Config = {
 	-- For particles. 1 for on, 0 for off.
 	enable_particles = 1,
 	-- Colour palette
-	primary = { 112, 176, 255, 255 },
-	secondary = { 122, 248, 202, 255 },
-	tertiary = { 126, 142, 218, 255 },
-	background = { 34, 36, 54, 255 },
-	secondary_bg = { 47, 51, 77, 255 },
-	foreground = { 200, 211, 245, 255 },
-	text = { 130, 139, 184, 255 },
+	-- Music Bars, Seek bar
+	primary = { 130, 170, 255, 255 },
+	-- Text highlights, etc
+	secondary = { 255, 255, 255, 255 },
+	-- Background colour
+	background = { 41, 45, 62, 255 },
+	-- Secondary BG, used for smear frames on music bars and text bg
+	secondary_bg = { 113, 124, 180, 255  },
+	-- Text
+	text = { 103, 110, 149, 255 },
 }

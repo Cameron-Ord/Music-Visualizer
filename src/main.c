@@ -46,9 +46,7 @@ SDL_Color primary = {112, 176, 255, 255};
 SDL_Color secondary = {122, 248, 202, 255};  // Green
 SDL_Color background = {34, 36, 54, 255};    // Dark Grey
 SDL_Color secondary_bg = {47, 51, 77, 255};  // Lighter-Dark Grey
-SDL_Color foreground = {200, 211, 245, 255}; // White - Grey
 SDL_Color text = {130, 139, 184, 255};       // Light Grey
-SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
 
@@ -151,8 +149,6 @@ int main(int argc, char **argv) {
   vis.background = background;
   vis.secondary_bg = secondary_bg;
   vis.text = text;
-  vis.foreground = foreground;
-  vis.tertiary = tertiary;
 
   win.w = NULL;
   rend.r = NULL;
@@ -229,13 +225,13 @@ int main(int argc, char **argv) {
     vis.smoothing = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    const char *fields[] = {"primary",    "secondary",    "tertiary",
-                            "background", "secondary_bg", "foreground",
+    const char *fields[] = {"primary",    "secondary",
+                            "background", "secondary_bg",
                             "text"};
 
     SDL_Color *color_ptrs[] = {
-        &vis.primary,      &vis.secondary,  &vis.tertiary, &vis.background,
-        &vis.secondary_bg, &vis.foreground, &vis.text};
+        &vis.primary,      &vis.secondary, &vis.background,
+        &vis.secondary_bg, &vis.text};
 
     const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
     for (size_t i = 0; i < col_size; i++) {
