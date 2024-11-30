@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "compare": "c",
+        "format": "c",
+        "memory": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "xmemory": "c",
+        "xtr1common": "c",
+        "xutility": "c",
+        "array": "c",
+        "charconv": "c",
+        "complex": "c",
+        "functional": "c",
+        "variant": "c",
+        "cerrno": "c",
+        "fontdef.h": "c"
+    }
+}

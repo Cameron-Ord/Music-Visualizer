@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "fontdef.h"
 #include "table.h"
+#include "main.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -18,16 +19,11 @@ uint8_t alpha_min = 255 * 0.25;
 #endif
 
 int get_char_limit(int width) {
-  const int sub_amount = width * 0.5;
+  const int sub_amount = width * 0.10;
   if (width < 100) {
     return 1;
   }
-  return MIN(150, MAX(8, (width - sub_amount) / 10));
-}
-
-int get_title_limit(int height) {
-  const int sub_amount = height * 0.75;
-  return MIN(16, MAX(1, (height - sub_amount) / 16));
+  return MIN(175, MAX(8, (width - sub_amount) / 10));
 }
 
 void *scp(void *ptr) {
@@ -67,16 +63,13 @@ void *free_paths(Paths *buf, const size_t *count) {
       buf[i].name_length = 0;
     }
 
-    if (buf && buf[i].path) {
+    if (buf[i].path) {
       free(buf[i].path);
       buf[i].path_length = 0;
     }
   }
 
-  if (buf) {
-    free(buf);
-  }
-
+  free(buf);
   return NULL;
 }
 
@@ -88,15 +81,15 @@ void *free_text_buffer(TextBuffer *buf, const size_t *count) {
   for (size_t i = 0; i < *count; i++) {
     if (buf[i].text) {
       Text *t = buf[i].text;
-      if (t->is_valid && t->name) {
+      if (t->name) {
         free(t->name);
       }
 
-      if (t->is_valid && t->tex[0]) {
+      if (t->tex[0]) {
         SDL_DestroyTexture(t->tex[0]);
       }
 
-      if (t->is_valid && t->tex[1]) {
+      if (t->tex[1]) {
         SDL_DestroyTexture(t->tex[1]);
       }
 
@@ -104,10 +97,7 @@ void *free_text_buffer(TextBuffer *buf, const size_t *count) {
     }
   }
 
-  if (buf) {
-    free(buf);
-  }
-
+  free(buf);
   return NULL;
 }
 
@@ -166,7 +156,7 @@ int find_type(const char *search_key, Paths *buffer) {
     buffer = start;
   }
 
-  return -1;
+  return UNKNOWN;
 }
 
 const char *find_pathstr(const char *search_key, Paths *buffer) {
@@ -211,20 +201,18 @@ void swap_font_ptrs(Table *table, const size_t key, TextBuffer *old_buffer,
   if (old_buffer) {
     for (size_t i = 0; i < old_buffer->size; i++) {
       Text *invalidated = old_buffer[i].text;
-      int is_valid = invalidated->is_valid;
       char *invalid_name = invalidated->name;
       SDL_Texture **invalid_tex = invalidated->tex;
 
-      // haha funny
-      if (is_valid && invalid_name) {
+      if (invalid_name) {
         free(invalid_name);
       }
 
-      if (is_valid && invalid_tex[0]) {
+      if (invalid_tex[0]) {
         SDL_DestroyTexture(invalid_tex[0]);
       }
 
-      if (is_valid && invalid_tex[1]) {
+      if (invalid_tex[1]) {
         SDL_DestroyTexture(invalid_tex[1]);
       }
 
@@ -250,8 +238,12 @@ int clamp_font_size(int size) {
   return size;
 }
 
-static uint8_t lighten(uint8_t col, float f) { return col + (255 - col) * f; }
-static uint8_t darken(uint8_t col, float f) { return col - col * f; }
+static uint8_t lighten(const uint8_t col, const float f) {
+  return col + (255 - col) * f;
+}
+static uint8_t darken(const uint8_t col, const float f) {
+  return col - col * f;
+}
 // subtlety is key
 const float coeff_max = 0.05;
 const float coeff_norm = 0.025;
@@ -263,11 +255,8 @@ const float ranges[8][3] = {
     {0.0f, 0.25f, 0.0},         {0.25f, 0.5f, coeff_min},
     {0.5f, 0.75f, coeff_norm},  {0.75f, 1.0f, coeff_max}};
 
-static uint8_t (*const drkn)(uint8_t, float) = &darken;
-static uint8_t (*const ltn)(uint8_t, float) = &lighten;
-
-static uint8_t (*const fnptrs[])(uint8_t, float) = {drkn, drkn, drkn, NULL,
-                                                    NULL, ltn,  ltn,  ltn};
+static uint8_t (*const fnptrs[])(const uint8_t, const float) = {
+    darken, darken, darken, 0, 0, lighten, lighten, lighten};
 
 // Phase is expected to be a float in range -1.0 to 1.0
 SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
@@ -317,4 +306,39 @@ static uint8_t clamp_alpha(uint8_t a) {
 // Amplitude values are expected to range from 0.0 to 1.0
 uint8_t determine_alpha(float amplitude) {
   return clamp_alpha(alpha_max * amplitude);
+}
+
+int valid_ptr(Paths *p, TextBuffer *t) {
+  if ((p && t) && (p->is_valid && t->is_valid)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+int min_titles(TextBuffer *t){
+  int h = win.height;
+
+  int spacing = 4;
+  int accumulator = spacing;
+  int is_greater = 0;
+
+  size_t j = 0;
+  for(j = 0; j < t->size; j++){
+    if(t[j].text){
+      int rect_h = t[j].text->rect.h;
+      accumulator += rect_h + spacing;
+    }
+
+    //If this check is met, return with the truthy flag before adding another +1 to the max variable
+    if(accumulator >= h){
+      return is_greater + 1;
+    }
+
+    if(t->max < (int)j){
+      t->max = j;
+    }
+  }
+
+  return is_greater;
 }

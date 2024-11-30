@@ -49,7 +49,6 @@ void callback(void *userdata, uint8_t *stream, int length) {
     }
 
     if (adc->position >= file_length) {
-      vis.awaiting = 1;
       pause_device();
     }
 

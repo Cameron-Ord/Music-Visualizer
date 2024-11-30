@@ -1,6 +1,22 @@
 #include "main.h"
 #include "utils.h"
 
+void auto_play_nav(const size_t size, size_t *curs) {
+  int tmp_i = (int)*curs;
+  int size_signed = (int)size;
+  tmp_i++;
+
+  if (tmp_i > size_signed - 1) {
+    tmp_i = 0;
+  }
+
+  if (tmp_i < 0) {
+    tmp_i = size_signed - 1;
+  }
+
+  *curs = tmp_i;
+}
+
 static int get_i(const char *direction);
 
 static int get_i(const char *direction) {
@@ -39,7 +55,11 @@ static int clamp(int size, int curs) {
   return curs;
 }
 
-size_t nav_down(TextBuffer *tbuf) {
+void nav_down(TextBuffer *tbuf) {
+  if (!tbuf) {
+    return;
+  }
+
   int cursor = (int)tbuf->cursor;
   int start = (int)tbuf->start;
   const int listed = (int)tbuf->listed;
@@ -50,7 +70,8 @@ size_t nav_down(TextBuffer *tbuf) {
   int offset = 6;
 
   if (cursor + offset >= listed) {
-    if ((size - start) >= 12) {
+    //call min_titles, set the tbuf->max variable and return a 0 or 1 depending on whether there are excess titles depending on the current window height
+    if (min_titles(tbuf) && (size - start) > tbuf->max) {
       start += (cursor + offset) - listed;
     }
     start = clamp(size, start);
@@ -58,10 +79,13 @@ size_t nav_down(TextBuffer *tbuf) {
 
   tbuf->start = (size_t)start;
   tbuf->cursor = (size_t)cursor;
-  return (size_t)cursor;
 }
 
-size_t nav_up(TextBuffer *tbuf) {
+void nav_up(TextBuffer *tbuf) {
+  if (!tbuf) {
+    return;
+  }
+
   int cursor = (int)tbuf->cursor;
   int start = (int)tbuf->start;
   const int size = (int)tbuf->size;
@@ -77,11 +101,9 @@ size_t nav_up(TextBuffer *tbuf) {
 
   tbuf->start = (size_t)start;
   tbuf->cursor = (size_t)cursor;
-  return (size_t)cursor;
 }
 
 void window_resized(void) {
   SDL_GetWindowSize(win.w, &win.width, &win.height);
-  rend.title_limit = get_title_limit(win.height);
   font.char_limit = get_char_limit(win.width);
 }

@@ -44,7 +44,6 @@ typedef struct {
 
 typedef struct {
   SDL_Renderer *r;
-  size_t title_limit;
   size_t draw_amount;
 } Renderer;
 
@@ -89,7 +88,9 @@ void render_present(void);
 void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer);
 // Events functions
 int node_index(const char *direction, int node_index, int max);
-size_t nav_down(TextBuffer *tbuf);
-size_t nav_up(TextBuffer *tbuf);
+void nav_down(TextBuffer *tbuf);
+void nav_up(TextBuffer *tbuf);
+void auto_play_nav(const size_t size, size_t *cursor);
 void window_resized(void);
 #endif // MAIN_H
+

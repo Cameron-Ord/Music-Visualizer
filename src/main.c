@@ -21,14 +21,13 @@
 #ifdef _WIN32
 #define HOME "USERPROFILE"
 #define ASSETS_DIR "\\Documents\\share\\MVis\\"
-Paths *(*find_directories)(size_t *) = &win_find_directories;
-Paths *(*find_files)(size_t *, const char *) = &win_find_files;
+Paths *(*fs_search)(const char *) = &win_fs_search;
 #endif
 
 #ifdef __linux__
 #define HOME "HOME"
 #define ASSETS_DIR "/.local/share/MVis/"
-Paths *(*fs_search)(const char *, const char *) = &unix_fs_search;
+Paths *(*fs_search)(const char *) = &unix_fs_search;
 #endif
 
 #include <assert.h>
@@ -52,6 +51,9 @@ SDL_Color text = {130, 139, 184, 255};       // Light Grey
 SDL_Color tertiary = {126, 142, 218, 255};   // Blue-ish Grey
 
 int FPS = 60;
+
+static void replace_fonts(Table *t);
+
 size_t hash(size_t i) { return i % MAX_NODES; }
 
 int create_node(Table *t, size_t i) {
@@ -87,7 +89,16 @@ void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
     return;
   }
 
-  n->tbuf = tbuf;
+  if (!tbuf) {
+    n->tbuf = NULL;
+    // We do the check on the validity, then free or assign memory as per it's
+    // value. Easier to manage this way.
+  } else if (tbuf && !tbuf->is_valid) {
+    // returns null
+    n->tbuf = free_text_buffer(tbuf, &tbuf->size);
+  } else {
+    n->tbuf = tbuf;
+  }
 }
 
 void table_set_paths(Table *t, size_t i, Paths *pbuf) {
@@ -96,13 +107,19 @@ void table_set_paths(Table *t, size_t i, Paths *pbuf) {
     return;
   }
 
-  n->pbuf = pbuf;
+  if (!pbuf) {
+    n->pbuf = NULL;
+    // We do the check on the validity, then free or assign memory as per it's
+    // value. Easier to manage this way.
+  } else if (pbuf && !pbuf->is_valid) {
+    // returns null
+    n->pbuf = free_paths(pbuf, &pbuf->size);
+  } else {
+    n->pbuf = pbuf;
+  }
 }
 
 int main(int argc, char **argv) {
-  size_t current_node = 0;
-  size_t playing_node = 0;
-
   scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
   scc(TTF_Init());
 
@@ -120,7 +137,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  fprintf(stdout, "Starting..\n");
+  fprintf(stdout, "home path -> %s\n", home);
 
   // Assign default values
   vis.home = home;
@@ -278,7 +295,6 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  rend.title_limit = get_title_limit(win.height);
   font.char_limit = get_char_limit(win.width);
 
   AudioDataContainer adc;
@@ -286,10 +302,15 @@ int main(int argc, char **argv) {
   FFTData f_data;
   zero_values(&adc);
   zero_fft(&f_buffers, &f_data);
+  adc.buffer = NULL;
 
   adc.next = &f_buffers;
   f_buffers.next = &f_data;
   f_data.next = &adc;
+
+  size_t current_node = 0;
+  size_t playing_node = 0;
+  size_t playing_cursor = 0;
 
   size_t particle_buffer_size = 0;
   ParticleTrio *particle_buf = allocate_particle_buffer(&particle_buffer_size);
@@ -307,7 +328,7 @@ int main(int argc, char **argv) {
 
   int mode = TEXT;
 
-  table_set_paths(&table, current_node, fs_search(home, NULL));
+  table_set_paths(&table, current_node, fs_search(home));
   table_set_text(&table, current_node,
                  create_fonts(search_table(&table, current_node)->pbuf));
 
@@ -342,18 +363,12 @@ int main(int argc, char **argv) {
           break;
         case SDL_WINDOWEVENT_RESIZED: {
           window_resized();
-          TextBuffer *old = search_table(&table, current_node)->tbuf;
-          Paths *p = search_table(&table, current_node)->pbuf;
-          TextBuffer *replace = create_fonts(p);
-          swap_font_ptrs(&table, current_node, old, replace);
+          replace_fonts(&table);
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
           window_resized();
-          TextBuffer *old = search_table(&table, current_node)->tbuf;
-          Paths *p = search_table(&table, current_node)->pbuf;
-          TextBuffer *replace = create_fonts(p);
-          swap_font_ptrs(&table, current_node, old, replace);
+          replace_fonts(&table);
         } break;
         }
       } break;
@@ -388,45 +403,52 @@ int main(int argc, char **argv) {
           case SDLK_RIGHT: {
             TextBuffer *t = search_table(&table, current_node)->tbuf;
             Paths *p = search_table(&table, current_node)->pbuf;
-            const char *item_path = find_pathstr(t[t->cursor].text->name, p);
-            const int item_type = find_type(t[t->cursor].text->name, p);
 
-            switch (item_type) {
-            default:
-              break;
+            if (valid_ptr(p, t)) {
+              const char *item_path = find_pathstr(t[t->cursor].text->name, p);
+              const int item_type = find_type(t[t->cursor].text->name, p);
 
-            case DT_REG: {
-              int valid = 0;
-              if (read_audio_file(item_path, &adc)) {
-                valid = 1;
+              switch (item_type) {
+              default:
+                break;
+
+              case TYPE_FILE: {
+                int valid = 0;
+                if (read_audio_file(item_path, &adc)) {
+                  valid = 1;
+                }
+
+                if (valid) {
+                  load_song(&adc);
+                  playing_node = current_node;
+                  playing_cursor = t->cursor;
+                  mode = PLAYBACK;
+                }
+
+              } break;
+
+              case TYPE_DIRECTORY: {
+                int i = node_index("++", current_node, MAX_NODES);
+                // Dont want to overwrite the entry point node. Generally this
+                // shouldn't happen, but the protection remains.
+                if (i != 0) {
+                  // Need to free existing memory beforehand (if it exists)
+                  TextBuffer *old_tb = search_table(&table, i)->tbuf;
+                  Paths *old_paths = search_table(&table, i)->pbuf;
+                  old_tb = free_text_buffer(old_tb, &old_tb->size);
+                  old_paths = free_paths(old_paths, &old_paths->size);
+
+                  table_set_paths(&table, i, fs_search(item_path));
+                  TextBuffer *t = create_fonts(search_table(&table, i)->pbuf);
+                  table_set_text(&table, i, t);
+
+                  if (search_table(&table, i)->pbuf &&
+                      search_table(&table, i)->tbuf) {
+                    current_node = i;
+                  }
+                }
+              } break;
               }
-
-              if (valid) {
-                load_song(&adc);
-                playing_node = current_node;
-                mode = PLAYBACK;
-              }
-
-            } break;
-
-            case DT_DIR: {
-              int i = node_index("++", current_node, MAX_NODES);
-              // Dont want to overwrite the entry point node. Generally this
-              // shouldn't happen, but the protection remains.
-              if (i != 0) {
-                // Need to free existing memory beforehand (if it exists)
-                TextBuffer *old_tb = search_table(&table, i)->tbuf;
-                Paths *old_paths = search_table(&table, i)->pbuf;
-                old_tb = free_text_buffer(old_tb, &old_tb->size);
-                old_paths = free_paths(old_paths, &old_paths->size);
-
-                table_set_paths(&table, i, fs_search(NULL, item_path));
-                TextBuffer *t = create_fonts(search_table(&table, i)->pbuf);
-                table_set_text(&table, i, t);
-
-                current_node = i;
-              }
-            } break;
             }
           } break;
 
@@ -492,7 +514,7 @@ int main(int argc, char **argv) {
     } break;
 
     case PLAYBACK: {
-      if (SDL_GetAudioDeviceStatus(vis.dev) == SDL_AUDIO_PLAYING) {
+      if (adc.buffer && adc.position < adc.length) {
         float tmp[M_BUF_SIZE];
         memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
         hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
@@ -501,31 +523,34 @@ int main(int argc, char **argv) {
         freq_bin_algo(adc.SR, f_buffers.extracted);
         squash_to_log(&f_buffers, &f_data);
         linear_mapping(&f_buffers, &f_data);
-      } else if (SDL_GetAudioDeviceStatus(vis.dev) == SDL_AUDIO_PAUSED &&
-                 vis.awaiting) {
+      } else if (adc.buffer && adc.position >= adc.length) {
         int file_valid = 0;
         int read_valid = 0;
 
         TextBuffer *t = search_table(&table, playing_node)->tbuf;
         Paths *p = search_table(&table, playing_node)->pbuf;
+        if (valid_ptr(p, t)) {
 
-        nav_down(t);
+          auto_play_nav(t->size, &playing_cursor);
 
-        const char *item_path = find_pathstr(t[t->cursor].text->name, p);
-        const int item_type = find_type(t[t->cursor].text->name, p);
+          const char *item_path = find_pathstr(t[playing_cursor].text->name, p);
+          const int item_type = find_type(t[playing_cursor].text->name, p);
 
-        if (item_type == DT_REG) {
-          file_valid = 1;
+          if (item_type == TYPE_FILE) {
+            file_valid = 1;
+          }
+
+          if (file_valid && read_audio_file(item_path, &adc)) {
+            read_valid = 1;
+          }
+
+          if (read_valid) {
+            load_song(&adc);
+            mode = PLAYBACK;
+          }
         }
-
-        if (file_valid && read_audio_file(item_path, &adc)) {
-          read_valid = 1;
-        }
-
-        if (read_valid) {
-          load_song(&adc);
-          mode = PLAYBACK;
-        }
+      } else {
+        mode = TEXT;
       }
 
       RenderArgs args = {.smear = f_buffers.smear,
@@ -590,4 +615,14 @@ int open_ttf_file(const char *fn) {
   free(path_buffer);
 
   return 1;
+}
+
+
+static void replace_fonts(Table *t){
+  for(int i = 0; i < MAX_NODES; i++){
+    Node *n = search_table(t, i);
+    if(n){
+      swap_font_ptrs(t, i, n->tbuf, create_fonts(n->pbuf));
+    }
+  }
 }

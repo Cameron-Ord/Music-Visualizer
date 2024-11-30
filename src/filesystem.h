@@ -4,16 +4,16 @@
 
 #ifdef _WIN32
 #include <windows.h>
-Paths *win_find_directories(size_t *count);
-Paths *win_find_files(size_t *count, const char *path);
+Paths *win_fs_search(const char *pathstr);
+Paths *win_read_dir(const char *pathstr);
+int get_file_type(const DWORD type);
 #endif
 
 #ifdef __linux__
 #include <dirent.h>
-Paths *unix_fs_search(const char *pathstr, const char *home);
+Paths *unix_fs_search(const char *pathstr);
 Paths *unix_read_dir(const char *path);
-int not_nav(const char *str);
-int not_hidden(const char *str);
+int get_file_type(const int type);
 #endif
 
 #endif

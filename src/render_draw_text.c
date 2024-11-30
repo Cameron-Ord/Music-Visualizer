@@ -8,6 +8,7 @@ void render_draw_text(TextBuffer *buf) {
   int y = spacing;
   const int x = spacing;
 
+
   buf->listed = buf->start;
   for (size_t i = buf->start; i < buf->size; i++) {
     Text *t = buf[i].text;
@@ -30,4 +31,5 @@ void render_draw_text(TextBuffer *buf) {
 
     buf->listed++;
   }
+
 }

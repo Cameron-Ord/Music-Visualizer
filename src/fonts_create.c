@@ -6,8 +6,11 @@
 #include <string.h>
 
 TextBuffer *create_fonts(const Paths *pbuf) {
-  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
+  if (!pbuf) {
+    return NULL;
+  }
 
+  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
   if (pbuf->size <= 0) {
     return NULL;
   }
@@ -18,12 +21,15 @@ TextBuffer *create_fonts(const Paths *pbuf) {
     return NULL;
   }
 
+  tbuf->max = 0;
+  tbuf->is_valid = 0;
   tbuf->size = 0;
   tbuf->cursor = 0;
   tbuf->start = 0;
   tbuf->listed = 0;
 
   for (size_t i = 0; i < pbuf->size; i++) {
+    tbuf[i].text = NULL;
     Text *text = malloc(sizeof(Text));
     if (!text) {
       fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
@@ -73,26 +79,11 @@ TextBuffer *create_fonts(const Paths *pbuf) {
 
     text->surf[0] = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
     if (!text->surf[0]) {
-      text->surf[0] = NULL;
       return tbuf;
     }
 
     text->tex[0] = SDL_CreateTextureFromSurface(rend.r, text->surf[0]);
     if (!text->tex[0]) {
-      text->tex[0] = NULL;
-      return tbuf;
-    }
-
-    text->surf[1] =
-        TTF_RenderText_Blended(font.font, name_buffer, vis.secondary);
-    if (!text->surf[1]) {
-      text->surf[1] = NULL;
-      return tbuf;
-    }
-
-    text->tex[1] = SDL_CreateTextureFromSurface(rend.r, text->surf[1]);
-    if (!text->tex[1]) {
-      text->tex[1] = NULL;
       return tbuf;
     }
 
@@ -102,6 +93,18 @@ TextBuffer *create_fonts(const Paths *pbuf) {
     text->rect = text_rect;
 
     SDL_FreeSurface(text->surf[0]);
+
+    text->surf[1] =
+        TTF_RenderText_Blended(font.font, name_buffer, vis.secondary);
+    if (!text->surf[1]) {
+      return tbuf;
+    }
+
+    text->tex[1] = SDL_CreateTextureFromSurface(rend.r, text->surf[1]);
+    if (!text->tex[1]) {
+      return tbuf;
+    }
+
     SDL_FreeSurface(text->surf[1]);
 
     text->surf[0] = NULL;
@@ -113,5 +116,6 @@ TextBuffer *create_fonts(const Paths *pbuf) {
     tbuf->size++;
   }
 
+  tbuf->is_valid = 1;
   return tbuf;
 }

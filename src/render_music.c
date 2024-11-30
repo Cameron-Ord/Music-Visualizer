@@ -29,6 +29,15 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   SDL_RenderFillRect(rend.r, &box);
 }
 
+static void determine_ds(int *ds, const size_t *i, const int *min_cell_width, const int *win_w){
+    const int iter = *i / *ds;
+    const int cell_width = *win_w / iter;
+    if(cell_width < *min_cell_width){
+      *ds *= 2;
+      determine_ds(ds, i, min_cell_width, win_w);
+    }
+}
+
 void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
   size_t *len = (size_t *)args->length;
   const float *smear = args->smear;
@@ -41,14 +50,14 @@ void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
   int cell_width = w / (int)*len;
   size_t buf_iter = *len;
 
-  const int MINIMUM_CELL_WIDTH = 8;
+  const int min_cell_width = 4;
 
   float smooth_cpy[*len];
   float smear_cpy[*len];
   float phase_cpy[*len];
 
-  if (cell_width < MINIMUM_CELL_WIDTH) {
-    cell_width = MINIMUM_CELL_WIDTH;
+  if (cell_width < min_cell_width) {
+    cell_width = min_cell_width;
   }
 
   int req_width = cell_width * *len;
@@ -58,12 +67,7 @@ void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
     memset(smear_cpy, 0, sizeof(float) * *len);
 
     int down_sampling = 2;
-    const int _tmp_iter = buf_iter / down_sampling;
-    const int tmp_width = w / _tmp_iter;
-
-    if (tmp_width < MINIMUM_CELL_WIDTH) {
-      down_sampling *= 2;
-    }
+    determine_ds(&down_sampling, &buf_iter, &min_cell_width, &w);
 
     for (size_t i = 0; i < buf_iter / down_sampling; i++) {
       smooth_cpy[i] = smoothed[i * down_sampling];
@@ -73,7 +77,6 @@ void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
 
     buf_iter /= down_sampling;
     cell_width = w / buf_iter;
-
   } else {
     memcpy(smooth_cpy, smoothed, sizeof(float) * *len);
     memcpy(smear_cpy, smear, sizeof(float) * *len);

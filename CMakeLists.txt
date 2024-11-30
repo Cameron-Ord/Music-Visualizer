@@ -4,7 +4,7 @@ project(Music-Visualizer VERSION 1.0)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE RelWifDebInfo)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 if(WIN32)
@@ -18,7 +18,7 @@ option(LUA_LINKING_FLAG "Do not link LUA" ON)
 file(GLOB SOURCES "src/*.c")
 
 if(WIN32)
-  add_executable(MVis ${SOURCES})
+  add_executable(MVis WIN32 ${SOURCES})
 else()
   add_executable(MVis ${SOURCES})
 endif()

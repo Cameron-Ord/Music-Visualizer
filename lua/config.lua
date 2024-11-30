@@ -3,8 +3,6 @@ Config = {
 	FPS = 60,
 	smearing = 6,
 	smoothing = 7,
-	-- 0 For Frequency Domain, 1 for Time Domain (not properly implemented)
-	freq_draw_type = 0,
 	-- For particles. 1 for on, 0 for off.
 	enable_particles = 1,
 	-- Colour palette
