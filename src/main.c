@@ -508,8 +508,9 @@ int main(int argc, char **argv) {
       break;
 
     case TEXT: {
-      if (search_table(&table, current_node)->tbuf) {
-        render_draw_text(search_table(&table, current_node)->tbuf);
+      Node *n = search_table(&table, current_node);
+      if (valid_ptr(n->pbuf, n->tbuf)) {
+        render_draw_text(n->tbuf);
       }
     } break;
 
