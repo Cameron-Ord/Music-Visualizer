@@ -3,10 +3,9 @@
 
 void render_draw_text(TextBuffer *buf) {
   int h = win.height;
-  int spacing = 4;
 
-  int y = spacing;
-  const int x = spacing;
+  int y = TEXT_SPACING;
+  const int x = TEXT_SPACING;
 
   buf->listed = buf->start;
   for (size_t i = buf->start; i < buf->size; i++) {
@@ -16,7 +15,7 @@ void render_draw_text(TextBuffer *buf) {
     int text_w = t->width;
 
     SDL_Rect text_rect = {x, y, text_w, text_h};
-    y += text_h + spacing;
+    y += text_h + TEXT_SPACING;
 
     if (y >= h) {
       return;

@@ -10,7 +10,6 @@ TextBuffer *create_fonts(const Paths *pbuf) {
     return NULL;
   }
 
-  TTF_SetFontSize(font.font, clamp_font_size(0.016 * win.width));
   if (pbuf->size <= 0) {
     return NULL;
   }
@@ -77,7 +76,7 @@ TextBuffer *create_fonts(const Paths *pbuf) {
       name_buffer[j] = '\0';
     }
 
-    text->surf[0] = TTF_RenderText_Blended(font.font, name_buffer, vis.text);
+    text->surf[0] = TTF_RenderText_Solid(font.font, name_buffer, vis.text);
     if (!text->surf[0]) {
       return tbuf;
     }
@@ -95,7 +94,7 @@ TextBuffer *create_fonts(const Paths *pbuf) {
     SDL_FreeSurface(text->surf[0]);
 
     text->surf[1] =
-        TTF_RenderText_Blended(font.font, name_buffer, vis.secondary);
+        TTF_RenderText_Solid(font.font, name_buffer, vis.secondary);
     if (!text->surf[1]) {
       return tbuf;
     }

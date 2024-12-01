@@ -596,7 +596,7 @@ int open_ttf_file(const char *fn) {
     return 0;
   }
 
-  font.font = scp(TTF_OpenFont(path_buffer, 32));
+  font.font = scp(TTF_OpenFont(path_buffer, FONT_SIZE));
   free(path_buffer);
 
   return 1;

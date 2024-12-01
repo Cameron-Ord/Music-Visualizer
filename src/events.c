@@ -72,7 +72,7 @@ void nav_down(TextBuffer *tbuf) {
   if (cursor + offset >= listed) {
     // call min_titles, set the tbuf->max variable and return a 0 or 1 depending
     // on whether there are excess titles depending on the current window height
-    if (min_titles(tbuf) && (size - start) > tbuf->max) {
+    if (min_titles(tbuf) && (size - start) - 1 > tbuf->max) {
       start += (cursor + offset) - listed;
     }
     start = clamp(size, start);

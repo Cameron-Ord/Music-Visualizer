@@ -34,11 +34,7 @@ int check_file_str(const char* str){
 }
 
 int get_char_limit(int width) {
-  const int sub_amount = width * 0.10;
-  if (width < 100) {
-    return 1;
-  }
-  return MIN(175, MAX(8, (width - sub_amount) / 10));
+  return MIN(100, MAX(3, (width * 0.90) / FONT_SIZE));
 }
 
 void *scp(void *ptr) {
@@ -239,8 +235,8 @@ void swap_font_ptrs(Table *table, const size_t key, TextBuffer *old_buffer,
 }
 
 int clamp_font_size(int size) {
-  int min_size = 12;
-  int max_size = 16;
+  int min_size = 16;
+  int max_size = 24;
 
   if (size > max_size) {
     size = max_size;
@@ -334,15 +330,14 @@ int valid_ptr(Paths *p, TextBuffer *t) {
 int min_titles(TextBuffer *t) {
   int h = win.height;
 
-  int spacing = 4;
-  int accumulator = spacing;
+  int accumulator = TEXT_SPACING;
   int is_greater = 0;
 
   size_t j = 0;
   for (j = 0; j < t->size; j++) {
     if (t[j].text) {
       int rect_h = t[j].text->rect.h;
-      accumulator += rect_h + spacing;
+      accumulator += rect_h + TEXT_SPACING;
     }
 
     // If this check is met, return with the truthy flag before adding another

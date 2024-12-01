@@ -1,6 +1,7 @@
 #ifndef FONT_DEF
 #define FONT_DEF
-
+#define TEXT_SPACING 8
+#define FONT_SIZE 16
 #include <SDL2/SDL_render.h>
 
 typedef struct {
