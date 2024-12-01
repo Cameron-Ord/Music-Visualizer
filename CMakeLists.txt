@@ -18,7 +18,7 @@ option(LUA_LINKING_FLAG "Do not link LUA" ON)
 file(GLOB SOURCES "src/*.c")
 
 if(WIN32)
-  add_executable(MVis ${SOURCES})
+  add_executable(MVis WIN32 ${SOURCES})
 else()
   add_executable(MVis ${SOURCES})
 endif()

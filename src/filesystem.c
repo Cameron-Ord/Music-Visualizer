@@ -186,7 +186,7 @@ Paths *win_read_dir(const char *path) {
       // stuff and the count variable hasn't been incremented yet so it will
       // just all get overwritten.
       if (get_file_type(ffd.dwFileAttributes) == TYPE_FILE &&
-          !check_file(d[count].path)) {
+          !check_file_str(d[count].path)) {
         free(d[count].path);
         free(d[count].name);
         continue;
