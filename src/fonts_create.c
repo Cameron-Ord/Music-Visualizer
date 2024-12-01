@@ -93,8 +93,7 @@ TextBuffer *create_fonts(const Paths *pbuf) {
 
     SDL_FreeSurface(text->surf[0]);
 
-    text->surf[1] =
-        TTF_RenderText_Solid(font.font, name_buffer, vis.secondary);
+    text->surf[1] = TTF_RenderText_Solid(font.font, name_buffer, vis.secondary);
     if (!text->surf[1]) {
       return tbuf;
     }

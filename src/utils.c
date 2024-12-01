@@ -20,13 +20,14 @@ uint8_t alpha_min = 255 * 0.25;
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-const char* ext_literals[]={".ogg", ".wav", ".flac", ".aiff", "aif", ".wv", ".opus", ".caf", ".mp3"};
+const char *ext_literals[] = {".ogg", ".wav",  ".flac", ".aiff", "aif",
+                              ".wv",  ".opus", ".caf",  ".mp3"};
 const size_t size = sizeof(ext_literals) / sizeof(ext_literals[0]);
 
-int check_file_str(const char* str){
-  for(size_t i = 0; i < size; i++){
-    if(strstr(str, ext_literals[i])){
-      return  1;
+int check_file_str(const char *str) {
+  for (size_t i = 0; i < size; i++) {
+    if (strstr(str, ext_literals[i])) {
+      return 1;
     }
   }
 
