@@ -83,7 +83,7 @@ void render_bg(void);
 void render_draw_text(TextBuffer *list_buf);
 void render_clear(void);
 void render_present(void);
-void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer);
+void render_draw_music(RenderArgs *args);
 // Events functions
 int node_index(const char *direction, int node_index, int max);
 void nav_down(TextBuffer *tbuf);

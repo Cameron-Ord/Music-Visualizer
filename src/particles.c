@@ -3,6 +3,8 @@
 #include "utils.h"
 #include <errno.h>
 
+// This stuff is sitting unused for now, might revive it later.
+
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif

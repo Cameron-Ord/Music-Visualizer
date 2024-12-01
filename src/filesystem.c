@@ -182,6 +182,16 @@ Paths *win_read_dir(const char *path) {
         return d;
       }
 
+      // This is pretty cool i guess. Works because we just free the allocated
+      // stuff and the count variable hasn't been incremented yet so it will
+      // just all get overwritten.
+      if (get_file_type(ffd.dwFileAttributes) == TYPE_FILE &&
+          !check_file(d[count].path)) {
+        free(d[count].path);
+        free(d[count].name);
+        continue;
+      }
+
       d[count].name_length = entry_size;
       d[count].path_length = path_size;
       d[count].type = get_file_type(ffd.dwFileAttributes);

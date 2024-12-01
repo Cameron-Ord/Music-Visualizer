@@ -29,16 +29,17 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   SDL_RenderFillRect(rend.r, &box);
 }
 
-static void determine_ds(int *ds, const size_t *i, const int *min_cell_width, const int *win_w){
-    const int iter = *i / *ds;
-    const int cell_width = *win_w / iter;
-    if(cell_width < *min_cell_width){
-      *ds *= 2;
-      determine_ds(ds, i, min_cell_width, win_w);
-    }
+static void determine_ds(int *ds, const size_t *i, const int *min_cell_width,
+                         const int *win_w) {
+  const int iter = *i / *ds;
+  const int cell_width = *win_w / iter;
+  if (cell_width < *min_cell_width) {
+    *ds *= 2;
+    determine_ds(ds, i, min_cell_width, win_w);
+  }
 }
 
-void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
+void render_draw_music(RenderArgs *args) {
   size_t *len = (size_t *)args->length;
   const float *smear = args->smear;
   const float *smoothed = args->smooth;
@@ -120,36 +121,5 @@ void render_draw_music(RenderArgs *args, ParticleTrio *p_buffer) {
 
     scc(SDL_SetRenderDrawColor(rend.r, rcolor.r, rcolor.g, rcolor.b, rcolor.a));
     scc(SDL_RenderFillRect(rend.r, &end_box));
-
-    // If the window is too small, don't bother with particles.
-    if (win.width < 400) {
-      continue;
-    }
-
-    // Probably want to put this in the above condition later
-    render_set_particles(p_buffer, &end_box, &start_box, i);
-
-    if (p_buffer) {
-      for (size_t j = 0; j < PARTICLE_COUNT; j++) {
-        if (p_buffer[i].buf[j] != NULL) {
-          int p_wid = p_buffer[i].buf[j]->w;
-          int p_hei = p_buffer[i].buf[j]->h;
-          int p_x = p_buffer[i].buf[j]->x;
-          int p_y = p_buffer[i].buf[j]->y;
-
-          SDL_Color particle_colour = vis.primary;
-          int rand_alpha_factor = (rand() % 255) + 1;
-          float alpha_mul = (float)rand_alpha_factor / 255;
-
-          SDL_Rect particle_rect = {p_x, p_y, p_wid, p_hei};
-          scc(SDL_SetRenderDrawColor(rend.r, particle_colour.r,
-                                     particle_colour.g, particle_colour.b,
-                                     particle_colour.a * alpha_mul));
-          scc(SDL_RenderFillRect(rend.r, &particle_rect));
-
-          p_buffer[i].buf[j]->frame++;
-        }
-      }
-    }
   }
 }

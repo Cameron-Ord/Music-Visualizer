@@ -43,10 +43,10 @@ Visualizer vis;
 typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 
 SDL_Color primary = {112, 176, 255, 255};
-SDL_Color secondary = {122, 248, 202, 255};  // Green
-SDL_Color background = {34, 36, 54, 255};    // Dark Grey
-SDL_Color secondary_bg = {47, 51, 77, 255};  // Lighter-Dark Grey
-SDL_Color text = {130, 139, 184, 255};       // Light Grey
+SDL_Color secondary = {122, 248, 202, 255}; // Green
+SDL_Color background = {34, 36, 54, 255};   // Dark Grey
+SDL_Color secondary_bg = {47, 51, 77, 255}; // Lighter-Dark Grey
+SDL_Color text = {130, 139, 184, 255};      // Light Grey
 
 int FPS = 60;
 
@@ -225,13 +225,11 @@ int main(int argc, char **argv) {
     vis.smoothing = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    const char *fields[] = {"primary",    "secondary",
-                            "background", "secondary_bg",
-                            "text"};
+    const char *fields[] = {"primary", "secondary", "background",
+                            "secondary_bg", "text"};
 
-    SDL_Color *color_ptrs[] = {
-        &vis.primary,      &vis.secondary, &vis.background,
-        &vis.secondary_bg, &vis.text};
+    SDL_Color *color_ptrs[] = {&vis.primary, &vis.secondary, &vis.background,
+                               &vis.secondary_bg, &vis.text};
 
     const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
     for (size_t i = 0; i < col_size; i++) {
@@ -307,12 +305,6 @@ int main(int argc, char **argv) {
   size_t current_node = 0;
   size_t playing_node = 0;
   size_t playing_cursor = 0;
-
-  size_t particle_buffer_size = 0;
-  ParticleTrio *particle_buf = allocate_particle_buffer(&particle_buffer_size);
-  if (!particle_buf) {
-    exit(EXIT_FAILURE);
-  }
 
   Table table;
   for (size_t i = 0; i < MAX_NODES; i++) {
@@ -557,7 +549,7 @@ int main(int argc, char **argv) {
 
       if (f_data.output_len > 0) {
         render_seek_bar(&adc.position, &adc.length);
-        render_draw_music(&args, particle_buf);
+        render_draw_music(&args);
       }
     } break;
     }
@@ -568,10 +560,6 @@ int main(int argc, char **argv) {
     }
 
     render_present();
-  }
-
-  if (particle_buf) {
-    free(particle_buf);
   }
 
   if (adc.buffer) {
@@ -614,11 +602,10 @@ int open_ttf_file(const char *fn) {
   return 1;
 }
 
-
-static void replace_fonts(Table *t){
-  for(int i = 0; i < MAX_NODES; i++){
+static void replace_fonts(Table *t) {
+  for (int i = 0; i < MAX_NODES; i++) {
     Node *n = search_table(t, i);
-    if(n){
+    if (n) {
       swap_font_ptrs(t, i, n->tbuf, create_fonts(n->pbuf));
     }
   }

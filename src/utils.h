@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 
+int get_sync_pos(unsigned char *buf);
+int check_file(const char* path);
 int min_titles(TextBuffer *tbuf);
 void *scp(void *ptr);
 int scc(int code);

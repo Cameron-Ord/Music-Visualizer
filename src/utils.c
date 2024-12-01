@@ -1,9 +1,11 @@
 #include "utils.h"
 #include "fontdef.h"
-#include "table.h"
 #include "main.h"
+#include "table.h"
+
 #include <ctype.h>
 #include <errno.h>
+#include <sndfile.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,6 +19,60 @@ uint8_t alpha_min = 255 * 0.25;
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
+
+static int find_frame_sync(FILE *f) {
+  unsigned char byte;
+  while (fread(&byte, 1, 1, f)) {
+    if (byte == 0xFF) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int check_file(const char *path) {
+  FILE *f = fopen(path, "rb");
+  if (!f) {
+    return 0;
+  }
+
+  const char *byte_literals[] = {"RIFF", "OggS", "fLaC", "FORM",
+                                 "wvpk", "Opus", "CAFF"};
+  size_t formats = sizeof(byte_literals) / sizeof(byte_literals[0]);
+
+  unsigned char b[4] = {0};
+  fread(b, 1, 4, f);
+
+  // Check for the stream marker within the first 4 bytes of the file.
+  for (size_t j = 0; j < formats; j++) {
+    if (memcmp(b, byte_literals[j], 4) == 0) {
+      fclose(f);
+      return 1;
+    }
+  }
+
+  // const unsigned char mp3_headers[]={0xFB, 0xF3, 0xF2};
+  // const size_t combinations = 3;
+  const char *id3_literal = "ID3";
+  unsigned char mp3_meta[3] = {0};
+
+  // Got no idea if this is the correct way but libsndfile's github repo does
+  // similar stuff so whatever good enough.
+  fseek(f, 0, SEEK_SET);
+  fread(mp3_meta, 1, 3, f);
+
+  // If your mp3 files don't have an ID3 tag i guess you're SOL for now.
+  if (memcmp(mp3_meta, id3_literal, 2) == 0) {
+    if (find_frame_sync(f)) {
+      fclose(f);
+      return 1;
+    }
+  }
+
+  fclose(f);
+  return 0;
+}
 
 int get_char_limit(int width) {
   const int sub_amount = width * 0.10;
@@ -316,7 +372,7 @@ int valid_ptr(Paths *p, TextBuffer *t) {
   return 0;
 }
 
-int min_titles(TextBuffer *t){
+int min_titles(TextBuffer *t) {
   int h = win.height;
 
   int spacing = 4;
@@ -324,18 +380,19 @@ int min_titles(TextBuffer *t){
   int is_greater = 0;
 
   size_t j = 0;
-  for(j = 0; j < t->size; j++){
-    if(t[j].text){
+  for (j = 0; j < t->size; j++) {
+    if (t[j].text) {
       int rect_h = t[j].text->rect.h;
       accumulator += rect_h + spacing;
     }
 
-    //If this check is met, return with the truthy flag before adding another +1 to the max variable
-    if(accumulator >= h){
+    // If this check is met, return with the truthy flag before adding another
+    // +1 to the max variable
+    if (accumulator >= h) {
       return is_greater + 1;
     }
 
-    if(t->max < (int)j){
+    if (t->max < (int)j) {
       t->max = j;
     }
   }
