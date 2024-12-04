@@ -1,6 +1,70 @@
 #include "audio.h"
 #include "audiodefs.h"
 #include "main.h"
+
+Compf c_from_real(const float real){
+ Compf _complex;
+ _complex.real = real;
+ _complex.imag = 0.0;
+ return _complex;
+}
+
+Compf c_from_imag(const float imag){
+ Compf _complex;
+ _complex.real = 0.0;
+ _complex.imag = imag;
+ return _complex;
+}
+
+Compf compf_expf(const Compf *c){
+ Compf res;
+ float exp_real = expf(c->real);
+ res.real = exp_real * cosf(c->imag);
+ res.imag = exp_real * sinf(c->imag);
+ return res;
+}
+
+static inline Compf compf_subtract(const Compf *a, const Compf* b){
+ Compf sub;
+ sub.real = a->real - b->real;
+ sub.imag = a->imag - b->imag;
+ return sub;
+}
+
+static inline Compf compf_add(const Compf *a, const Compf* b){
+ Compf add;
+ add.real = a->real + b->real;
+ add.imag = a->imag + b->imag;
+ return add;
+}
+
+static inline Compf compf_mult(const Compf *a, const Compf *b){
+ Compf mult;
+ mult.real = a->real * b->real - a->imag * b->imag;
+ mult.imag = a->real * b->imag + a->imag * b->real;
+ return mult;
+}
+
+static inline Compf compf_divide(const Compf *a, const Compf* b){
+ Compf divide;
+ float denom = b->real * b->real + b->imag * b->imag;
+ divide.real = (a->real * b->real + a->imag * b->imag) / denom;
+ divide.imag = (a->imag * b->real - a->real * b->imag) / denom;
+ return divide;
+}
+
+static inline Compf compf_step(const size_t *half_len, const Compf *iota){
+ Compf step;
+ float theta = (float)M_PI / *half_len;
+
+ step.real = iota->real * theta;
+ step.imag = iota->imag * theta;
+
+ step = compf_expf(&step);
+ return step;
+}
+
+
 size_t bit_reverse(size_t index, size_t log2n) {
   size_t reversed = 0;
   for (size_t i = 0; i < log2n; i++) {
@@ -14,7 +78,7 @@ size_t bit_reverse(size_t index, size_t log2n) {
 void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->fft_in, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->out_raw, 0, sizeof(Float_Complex) * M_BUF_SIZE);
+  memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
   memset(bufs->phases, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
@@ -30,57 +94,32 @@ void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
 }
 
 // https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
-void iter_fft(float *in, Float_Complex *out, size_t size) {
-
+void iter_fft(float *in, Compf *out, size_t size) {
   for (size_t i = 0; i < size; i++) {
     int rev_index = bit_reverse(i, log2(size));
-    out[i] = cfromreal(in[rev_index]);
+    out[i] = c_from_real(in[rev_index]);
   }
 
-  const Float_Complex iota = cfromimag(1.0f);
+  const Compf iota = c_from_imag(1.0f);
   for (int stage = 1; stage <= log2(size); ++stage) {
     size_t sub_arr_size = 1 << stage; // 2^stage
     size_t half_sub_arr = sub_arr_size >> 1;
-    Float_Complex twiddle = cfromreal(1.0f);
+    Compf twiddle = c_from_real(1.0f);
 
-    Float_Complex step = cexpf(iota * ((float)M_PI / half_sub_arr));
+    Compf step = compf_step(&half_sub_arr, &iota); 
     for (size_t j = 0; j < half_sub_arr; j++) {
       for (size_t k = j; k < size; k += sub_arr_size) {
-        Float_Complex t = mulcc(twiddle, out[k + half_sub_arr]);
-        Float_Complex u = out[k];
+        Compf t = compf_mult(&twiddle, &out[k + half_sub_arr]);
+        Compf u = out[k];
 
-        out[k] = addcc(u, t);
-        out[k + half_sub_arr] = subcc(u, t);
+        out[k] = compf_add(&u, &t);
+        out[k + half_sub_arr] = compf_subtract(&u, &t);
       }
-      twiddle = mulcc(twiddle, step);
+      twiddle = compf_mult(&twiddle, &step);
     }
   }
 }
 
-// https://github.com/tsoding/musializer/blob/master/src/plug.c#L268
-void recursive_fft(float *in, size_t stride, Float_Complex *out, size_t n) {
-  if (n == 1) {
-    out[0] = cfromreal(in[0]);
-    return;
-  }
-
-  size_t half_n = n / 2;
-
-  recursive_fft(in, stride * 2, out, half_n);
-  recursive_fft(in + stride, stride * 2, out + half_n, half_n);
-  // v = o*x
-  // out = e - o*x e + o*x e e| e + o*x o - o*x o o
-  for (size_t k = 0; k < n / 2; ++k) {
-    float t = (float)k / n;
-    Float_Complex v = mulcc(cexpf(cfromimag(-2 * M_PI * t)), out[k + n / 2]);
-    Float_Complex e = out[k];
-    out[k] = addcc(e, v);
-    out[k + n / 2] = subcc(e, v);
-  }
-
-} /*fft_func*/
-
-// Probably the most expensive thing here.
 void extract_frequencies(FFTBuffers *bufs) {
   for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
     const size_t left = i * 2;
@@ -91,14 +130,14 @@ void extract_frequencies(FFTBuffers *bufs) {
 
     // Logf is applied later so we just square it instead of sqrt
 
-    real = crealf(bufs->out_raw[left]);
-    imag = cimagf(bufs->out_raw[left]);
+    real = bufs->out_raw[left].real;
+    imag = bufs->out_raw[left].imag;
 
     bufs->extracted[left] = (real * real + imag * imag);
     bufs->phases[left] = atan2f(imag, real);
 
-    real = crealf(bufs->out_raw[right]);
-    imag = cimagf(bufs->out_raw[right]);
+    real = bufs->out_raw[right].real;
+    imag = bufs->out_raw[right].imag;
 
     bufs->extracted[right] = (real * real + imag * imag);
     bufs->phases[right] = atan2f(imag, real);

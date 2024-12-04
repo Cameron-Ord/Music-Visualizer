@@ -10,26 +10,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// I stole this from tsoding cause I had originally written my complex numbers
-// stuff in C++ and im lazy. So thanks Tsoding, I love you.
-
-// https://github.com/tsoding/musializer/blob/master/src/plug.c#L268
-
-#ifdef _MSC_VER
-#define Float_Complex _Fcomplex
-#define cfromreal(re) _FCbuild(re, 0)
-#define cfromimag(im) _FCbuild(0, im)
-#define mulcc _FCmulcc
-#define addcc(a, b) _FCbuild(crealf(a) + crealf(b), cimagf(a) + cimagf(b))
-#define subcc(a, b) _FCbuild(crealf(a) - crealf(b), cimagf(a) - cimagf(b))
-#else
-#define Float_Complex float _Complex
-#define cfromreal(re) (re)
-#define cfromimag(im) ((im) * I)
-#define mulcc(a, b) ((a) * (b))
-#define addcc(a, b) ((a) + (b))
-#define subcc(a, b) ((a) - (b))
-#endif
+typedef struct {
+ float real;
+ float imag;
+}Compf;
 
 struct AudioDataContainer;
 struct FFTBuffers;
@@ -58,7 +42,7 @@ struct AudioDataContainer {
 struct FFTBuffers {
   float fft_in[M_BUF_SIZE];
   float windowed[M_BUF_SIZE];
-  Float_Complex out_raw[M_BUF_SIZE];
+  Compf out_raw[M_BUF_SIZE];
   float extracted[M_BUF_SIZE];
   float phases[M_BUF_SIZE];
   float processed_samples[M_BUF_SIZE];
@@ -67,12 +51,6 @@ struct FFTBuffers {
   float sm_phases[M_BUF_SIZE];
   float smear[M_BUF_SIZE];
   FFTData *next;
-};
-
-struct BandStopFilter {
-  int smoothing_amount;
-  int smearing_amount;
-  float filter_coeffs[3];
 };
 
 struct FFTData {
