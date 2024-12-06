@@ -206,7 +206,7 @@ Paths *win_read_dir(const char *path) {
 #endif
 
 #ifdef __linux__
-const int get_file_type(const int type) {
+int get_file_type(const int type) {
   if (type == DT_REG) {
     return TYPE_FILE;
   } else if (type == DT_DIR) {

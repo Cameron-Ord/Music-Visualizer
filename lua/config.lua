@@ -6,14 +6,15 @@ Config = {
 	-- For particles. 1 for on, 0 for off.
 	enable_particles = 1,
 	-- Colour palette
+	-- https://github.com/catppuccin/catppuccin
 	-- Music Bars, Seek bar
-	primary = { 130, 170, 255, 255 },
+	primary = {203, 166, 247, 255},
 	-- Text highlights, etc
-	secondary = { 255, 255, 255, 255 },
+	secondary = {137, 180, 250, 255},
 	-- Background colour
-	background = { 41, 45, 62, 255 },
+	background = {30, 30, 46, 255},
 	-- Secondary BG, used for smear frames on music bars and text bg
-	secondary_bg = { 113, 124, 180, 255  },
+	secondary_bg = {49, 50, 68, 255},
 	-- Text
-	text = { 103, 110, 149, 255 },
+	text = {205, 214, 244, 255},
 }

@@ -3,7 +3,6 @@
 #include "audiodefs.h"
 #include "filesystem.h"
 #include "fontdef.h"
-#include "particles.h"
 #include "table.h"
 #include "utils.h"
 
@@ -42,11 +41,14 @@ Visualizer vis;
 
 typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 
-SDL_Color primary = {112, 176, 255, 255};
-SDL_Color secondary = {122, 248, 202, 255}; // Green
-SDL_Color background = {34, 36, 54, 255};   // Dark Grey
-SDL_Color secondary_bg = {47, 51, 77, 255}; // Lighter-Dark Grey
-SDL_Color text = {130, 139, 184, 255};      // Light Grey
+//Using catppuccin mocha as the default theme.
+//https://github.com/catppuccin/catppuccin
+
+SDL_Color primary = {203, 166, 247, 255};
+SDL_Color secondary = {137, 180, 250, 255}; 
+SDL_Color background = {30, 30, 46, 255};  
+SDL_Color secondary_bg = {49, 50, 68, 255};
+SDL_Color text = {205, 214, 244, 255};      
 
 int FPS = 60;
 
@@ -544,7 +546,6 @@ int main(int argc, char **argv) {
 
       RenderArgs args = {.smear = f_buffers.smear,
                          .smooth = f_buffers.smoothed,
-                         .phases = f_buffers.sm_phases,
                          .length = &f_data.output_len};
 
       if (f_data.output_len > 0) {

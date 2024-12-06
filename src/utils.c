@@ -9,9 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint8_t alpha_max = 255;
-uint8_t alpha_min = 255 * 0.25;
-
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -250,75 +247,6 @@ int clamp_font_size(int size) {
   return size;
 }
 
-static uint8_t lighten(const uint8_t col, const float f) {
-  return col + (255 - col) * f;
-}
-static uint8_t darken(const uint8_t col, const float f) {
-  return col - col * f;
-}
-// subtlety is key
-const float coeff_max = 0.05;
-const float coeff_norm = 0.025;
-const float coeff_min = 0.01;
-// min, max, coefficient
-const float ranges[8][3] = {
-    {-1.0f, -0.75f, coeff_max}, {-0.75f, -0.5f, coeff_norm},
-    {-0.5f, -0.25f, coeff_min}, {-0.25f, 0.0f, 0.0},
-    {0.0f, 0.25f, 0.0},         {0.25f, 0.5f, coeff_min},
-    {0.5f, 0.75f, coeff_norm},  {0.75f, 1.0f, coeff_max}};
-
-static uint8_t (*const fnptrs[])(const uint8_t, const float) = {
-    darken, darken, darken, 0, 0, lighten, lighten, lighten};
-
-// Phase is expected to be a float in range -1.0 to 1.0
-SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha) {
-  SDL_Color rgba = {0};
-
-  uint8_t r = prim->r;
-  uint8_t g = prim->g;
-  uint8_t b = prim->b;
-
-  uint8_t *rgb_vals[] = {&r, &g, &b};
-  size_t length = sizeof(rgb_vals) / sizeof(rgb_vals[0]);
-
-  for (size_t j = 0; j < 8; j++) {
-    const float min = ranges[j][0];
-    const float max = ranges[j][1];
-
-    if (phase > max || phase < min) {
-      continue;
-    }
-
-    if (phase >= min && phase <= max) {
-      for (size_t i = 0; i < length; i++) {
-        const float coeff = ranges[j][2];
-        if (fnptrs[j]) {
-          *rgb_vals[i] = fnptrs[j](*rgb_vals[i], coeff);
-        }
-      }
-    }
-  }
-
-  rgba.r = r, rgba.g = g, rgba.b = b, rgba.a = alpha;
-  return rgba;
-}
-
-static uint8_t clamp_alpha(uint8_t a) {
-  if (a < alpha_min) {
-    a = alpha_min;
-  }
-
-  if (a > alpha_max * 0.9) {
-    a = alpha_max;
-  }
-
-  return a;
-}
-
-// Amplitude values are expected to range from 0.0 to 1.0
-uint8_t determine_alpha(float amplitude) {
-  return clamp_alpha(alpha_max * amplitude);
-}
 
 int valid_ptr(Paths *p, TextBuffer *t) {
   if ((p && t) && (p->is_valid && t->is_valid)) {

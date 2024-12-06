@@ -1,9 +1,5 @@
-#include "audiodefs.h"
 #include "main.h"
-#include "particledef.h"
-#include "particles.h"
 #include "utils.h"
-#include <stdint.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -43,7 +39,6 @@ void render_draw_music(RenderArgs *args) {
   size_t *len = (size_t *)args->length;
   const float *smear = args->smear;
   const float *smoothed = args->smooth;
-  const float *phases = args->phases;
 
   const int h = win.height;
   const int w = win.width;
@@ -55,7 +50,6 @@ void render_draw_music(RenderArgs *args) {
 
   float smooth_cpy[*len];
   float smear_cpy[*len];
-  float phase_cpy[*len];
 
   if (cell_width < min_cell_width) {
     cell_width = min_cell_width;
@@ -64,7 +58,6 @@ void render_draw_music(RenderArgs *args) {
   int req_width = cell_width * *len;
   if (req_width > w) {
     memset(smooth_cpy, 0, sizeof(float) * *len);
-    memset(phase_cpy, 0, sizeof(float) * *len);
     memset(smear_cpy, 0, sizeof(float) * *len);
 
     int down_sampling = 2;
@@ -73,7 +66,6 @@ void render_draw_music(RenderArgs *args) {
     for (size_t i = 0; i < buf_iter / down_sampling; i++) {
       smooth_cpy[i] = smoothed[i * down_sampling];
       smear_cpy[i] = smear[i * down_sampling];
-      phase_cpy[i] = phases[i * down_sampling];
     }
 
     buf_iter /= down_sampling;
@@ -81,13 +73,11 @@ void render_draw_music(RenderArgs *args) {
   } else {
     memcpy(smooth_cpy, smoothed, sizeof(float) * *len);
     memcpy(smear_cpy, smear, sizeof(float) * *len);
-    memcpy(phase_cpy, phases, sizeof(float) * *len);
   }
 
   for (size_t i = 0; i < buf_iter; ++i) {
     const float start = smear_cpy[i];
     const float end = smooth_cpy[i];
-    const float phase = phase_cpy[i];
 
     const int space = cell_width + cell_width / 2;
 
@@ -104,22 +94,12 @@ void render_draw_music(RenderArgs *args) {
     SDL_Rect start_box = {start_x_pos, start_y_pos, cell_width,
                           start_bar_height};
 
-    uint8_t alpha;
-    SDL_Color rcolor;
-
-    alpha = determine_alpha(end);
-    rcolor = determine_rgba(phase, &vis.secondary_bg, alpha);
-
     if (end_box.y > start_box.y) {
-      scc(SDL_SetRenderDrawColor(rend.r, rcolor.r, rcolor.g, rcolor.b,
-                                 rcolor.a));
+      scc(SDL_SetRenderDrawColor(rend.r, vis.secondary_bg.r, vis.secondary_bg.g, vis.secondary_bg.b, vis.secondary_bg.a));
       scc(SDL_RenderFillRect(rend.r, &start_box));
     }
 
-    alpha = determine_alpha(end);
-    rcolor = determine_rgba(phase, &vis.primary, alpha);
-
-    scc(SDL_SetRenderDrawColor(rend.r, rcolor.r, rcolor.g, rcolor.b, rcolor.a));
+    scc(SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g, vis.primary.b, vis.primary.a));
     scc(SDL_RenderFillRect(rend.r, &end_box));
   }
 }
