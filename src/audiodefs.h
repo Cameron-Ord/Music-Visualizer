@@ -44,11 +44,8 @@ struct FFTBuffers {
   float windowed[M_BUF_SIZE];
   Compf out_raw[M_BUF_SIZE];
   float extracted[M_BUF_SIZE];
-  float phases[M_BUF_SIZE];
   float processed_samples[M_BUF_SIZE];
-  float processed_phases[M_BUF_SIZE];
   float smoothed[M_BUF_SIZE];
-  float sm_phases[M_BUF_SIZE];
   float smear[M_BUF_SIZE];
   FFTData *next;
 };
@@ -57,7 +54,6 @@ struct FFTData {
   size_t output_len;
   int cell_width;
   float max_ampl;
-  float max_phase;
   float hamming_values[M_BUF_SIZE];
   AudioDataContainer *next;
 };

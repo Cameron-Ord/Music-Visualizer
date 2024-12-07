@@ -63,7 +63,6 @@ typedef struct {
 typedef struct {
   const float *smear;
   const float *smooth;
-  const float *phases;
   const size_t *length;
 } RenderArgs;
 

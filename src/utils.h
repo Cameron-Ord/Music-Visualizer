@@ -13,8 +13,6 @@ int scc(int code);
 int get_char_limit(int width);
 void swap_font_ptrs(Table *table, const size_t key, TextBuffer *old_buffer,
                     TextBuffer *replace);
-uint8_t determine_alpha(float amplitude);
-SDL_Color determine_rgba(float phase, const SDL_Color *prim, uint8_t alpha);
 int clamp_font_size(int size);
 int not_empty(const char *string);
 const char *sformat(char *string);

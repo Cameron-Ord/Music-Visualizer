@@ -2,21 +2,21 @@
 #include "audiodefs.h"
 #include "main.h"
 
-Compf c_from_real(const float real){
+static inline Compf c_from_real(const float real){
  Compf _complex;
  _complex.real = real;
  _complex.imag = 0.0;
  return _complex;
 }
 
-Compf c_from_imag(const float imag){
+static inline Compf c_from_imag(const float imag){
  Compf _complex;
  _complex.real = 0.0;
  _complex.imag = imag;
  return _complex;
 }
 
-Compf compf_expf(const Compf *c){
+static inline Compf compf_expf(const Compf *c){
  Compf res;
  float exp_real = expf(c->real);
  res.real = exp_real * cosf(c->imag);
@@ -79,16 +79,12 @@ void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->fft_in, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
-  memset(bufs->phases, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->processed_phases, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smoothed, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->windowed, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->sm_phases, 0, sizeof(float) * M_BUF_SIZE);
 
   f_data->max_ampl = 1.0;
-  f_data->max_phase = 1.0;
   f_data->cell_width = 0;
   f_data->output_len = 0;
 }
@@ -134,13 +130,11 @@ void extract_frequencies(FFTBuffers *bufs) {
     imag = bufs->out_raw[left].imag;
 
     bufs->extracted[left] = (real * real + imag * imag);
-    bufs->phases[left] = atan2f(imag, real);
 
     real = bufs->out_raw[right].real;
     imag = bufs->out_raw[right].imag;
 
     bufs->extracted[right] = (real * real + imag * imag);
-    bufs->phases[right] = atan2f(imag, real);
   }
 }
 
@@ -149,18 +143,12 @@ static float interpolate(float base, float interpolated, int coeff) {
 }
 
 void linear_mapping(FFTBuffers *bufs, FFTData *data) {
-  float *ph = bufs->processed_phases;
   float *ps = bufs->processed_samples;
   float *sm_s = bufs->smoothed;
-  float *sm_p = bufs->sm_phases;
   float *smr = bufs->smear;
 
   for (size_t i = 0; i < data->output_len; ++i) {
-    ph[i] /= data->max_phase;
     ps[i] /= data->max_ampl;
-
-    // interpolated phases
-    sm_p[i] += interpolate(ph[i], sm_p[i], vis.smoothing);
     // interpolated audio amplitudes
     sm_s[i] += interpolate(ps[i], sm_s[i], vis.smoothing);
     // interpolated smear frames (of the audio amplitudes)
@@ -224,13 +212,15 @@ void freq_bin_algo(int sr, float *extracted) {
   low_bin = low_cutoffs[max_bin_index] / freq_bin_size;
   high_bin = high_cutoffs[max_bin_index] / freq_bin_size;
 
+  //Slightly raise the most busy of the bins
   for (int i = low_bin; i < high_bin; i++) {
-    extracted[i] *= 1.5;
+    extracted[i] *= 1.25;
   }
 
   low_bin = low_cutoffs[min_bin_index] / freq_bin_size;
   high_bin = high_cutoffs[min_bin_index] / freq_bin_size;
 
+  //Reduce least busy bins
   for (int i = low_bin; i < high_bin; i++) {
     extracted[i] *= 0.75;
   }
@@ -240,25 +230,16 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
   float step = 1.06f;
   float lowf = 1.0f;
   size_t m = 0;
-  size_t y = 0;
 
   data->max_ampl = 1.0f;
-  data->max_phase = 1.0f;
-
   for (float f = lowf; (size_t)f < HALF_BUFF_SIZE; f = ceilf(f * step)) {
     float fs = ceilf(f * step);
     float a = 0.0f;
-    float p = 0.0f;
 
     for (size_t q = (size_t)f; q < HALF_BUFF_SIZE && q < (size_t)fs; ++q) {
       float b = amp(bufs->extracted[q]);
       if (b > a) {
         a = b;
-      }
-
-      float ph = bufs->phases[q];
-      if (ph > p) {
-        p = ph;
       }
     }
 
@@ -266,12 +247,7 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
       data->max_ampl = a;
     }
 
-    if (data->max_phase < p) {
-      data->max_phase = p;
-    }
-
     bufs->processed_samples[m++] = a;
-    bufs->processed_phases[y++] = p;
   }
 
   data->output_len = m;
