@@ -4,18 +4,6 @@ echo "Link with lua? y/n"
 read link_with_lua
 
 build_dir=build
-if [ -d $build_dir ]; then
-	rm -r $build_dir
-fi
-
-music_src_dir=~/Music/MVSource
-if [ -d $music_src_dir ]; then
-	echo "Audio source directory already exists."
-else
-	echo "Creating directory at $music_src_dir"
-	mkdir -p $music_src_dir
-fi
-
 if [[ "$link_with_lua" == "y" || "$link_with_lua" == "Y" ]]; then
 	echo "building with lua.."
 	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
