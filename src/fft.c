@@ -116,26 +116,8 @@ void iter_fft(float *in, Compf *out, size_t size) {
   }
 }
 
-void extract_frequencies(FFTBuffers *bufs) {
-  for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
-    const size_t left = i * 2;
-    const size_t right = i * 2 + 1;
-
-    float real = 0.0f;
-    float imag = 0.0f;
-
-    // Logf is applied later so we just square it instead of sqrt
-
-    real = bufs->out_raw[left].real;
-    imag = bufs->out_raw[left].imag;
-
-    bufs->extracted[left] = (real * real + imag * imag);
-
-    real = bufs->out_raw[right].real;
-    imag = bufs->out_raw[right].imag;
-
-    bufs->extracted[right] = (real * real + imag * imag);
-  }
+float get_freq(const Compf *c) {
+ return (c->real * c->real + c->imag * c->imag);
 }
 
 static float interpolate(float base, float interpolated, int coeff) {
@@ -144,15 +126,13 @@ static float interpolate(float base, float interpolated, int coeff) {
 
 void linear_mapping(FFTBuffers *bufs, FFTData *data) {
   float *ps = bufs->processed_samples;
-  float *sm_s = bufs->smoothed;
-  float *smr = bufs->smear;
 
   for (size_t i = 0; i < data->output_len; ++i) {
     ps[i] /= data->max_ampl;
     // interpolated audio amplitudes
-    sm_s[i] += interpolate(ps[i], sm_s[i], vis.smoothing);
+    bufs->smoothed[i] += interpolate(ps[i], bufs->smoothed[i], vis.smoothing);
     // interpolated smear frames (of the audio amplitudes)
-    smr[i] += interpolate(sm_s[i], smr[i], vis.smearing);
+    bufs->smear[i] += interpolate(bufs->smoothed[i], bufs->smear[i], vis.smearing);
   }
 }
 
@@ -161,89 +141,6 @@ float amp(float z) {
     return 0.0f;
   }
   return logf(z);
-}
-
-#define BINS 5
-// Bass, Lower Midrange, Midrange, Upper Midrange, Presence
-const float low_cutoffs[BINS] = {20.0f, 250.0f, 500.0f, 2000.0, 4000.0f};
-const float high_cutoffs[BINS] = {250.0f, 500.0f, 2000.0f, 4000.0f, 6000.0f};
-
-const float coeffs[BINS] = {0.5, 1.25, 1.5, 1.25, 0.25};
-
-void filter(const int samplerate, float *buffer){
- float freq_bin_size = (float)samplerate / M_BUF_SIZE;
- 
- size_t low_bin;
- size_t high_bin;
-
- for(size_t i = 0; i < BINS; i++){
-  low_bin = low_cutoffs[i] / freq_bin_size;
-  high_bin = high_cutoffs[i] / freq_bin_size;
-
-  for(size_t j = low_bin; j < high_bin; j++){
-   buffer[j] *= coeffs[i];
-  }
- }
-
-}
-
-void freq_bin_algo(int sr, float *extracted) {
-  float freq_bin_size = (float)sr / M_BUF_SIZE;
-  const size_t buf_size = sizeof(low_cutoffs) / sizeof(low_cutoffs[0]);
-  float bin_sums[buf_size];
-
-  int low_bin;
-  int high_bin;
-
-  for (size_t filter_index = 0; filter_index < buf_size; filter_index++) {
-    low_bin = low_cutoffs[filter_index] / freq_bin_size;
-    high_bin = high_cutoffs[filter_index] / freq_bin_size;
-
-    bin_sums[filter_index] = 0.0f;
-
-    for (int i = low_bin; i < high_bin; i++) {
-      bin_sums[filter_index] += extracted[i];
-    }
-
-    // average it out.
-    const int iter_count = high_bin - low_bin;
-    bin_sums[filter_index] /= iter_count;
-  }
-
-  float max_bin_value = bin_sums[0];
-  float min_bin_value = bin_sums[0];
-
-  int max_bin_index = 0;
-  int min_bin_index = 0;
-
-  for (size_t filter_index = 0; filter_index < buf_size; filter_index++) {
-    if (bin_sums[filter_index] > max_bin_value) {
-      max_bin_value = bin_sums[filter_index];
-      max_bin_index = filter_index;
-      continue;
-    }
-
-    if (bin_sums[filter_index] < min_bin_value) {
-      min_bin_value = bin_sums[filter_index];
-      min_bin_index = filter_index;
-    }
-  }
-
-  low_bin = low_cutoffs[max_bin_index] / freq_bin_size;
-  high_bin = high_cutoffs[max_bin_index] / freq_bin_size;
-
-  //Slightly raise the most busy of the bins
-  for (int i = low_bin; i < high_bin; i++) {
-    extracted[i] *= 1.25;
-  }
-
-  low_bin = low_cutoffs[min_bin_index] / freq_bin_size;
-  high_bin = high_cutoffs[min_bin_index] / freq_bin_size;
-
-  //Reduce least busy bins
-  for (int i = low_bin; i < high_bin; i++) {
-    extracted[i] *= 0.75;
-  }
 }
 
 void squash_to_log(FFTBuffers *bufs, FFTData *data) {
@@ -257,7 +154,7 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
     float a = 0.0f;
 
     for (size_t q = (size_t)f; q < HALF_BUFF_SIZE && q < (size_t)fs; ++q) {
-      float b = amp(bufs->extracted[q]);
+      float b = amp(get_freq(&bufs->out_raw[q]));
       if (b > a) {
         a = b;
       }

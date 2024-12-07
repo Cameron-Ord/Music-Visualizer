@@ -14,11 +14,9 @@ void hamming_window(float *in, const float *hamming_values, float *windowed);
 bool pause_device(void);
 bool resume_device(void);
 void iter_fft(float *in, Compf *out, size_t size);
-void freq_bin_algo(int sr, float *extracted);
-void filter(int sr, float *extracted);
 void squash_to_log(FFTBuffers *bufs, FFTData *data);
 float amp(float z);
 void linear_mapping(FFTBuffers *bufs, FFTData *data);
-void extract_frequencies(FFTBuffers *bufs);
+float get_freq(const Compf *c);
 void zero_fft(FFTBuffers *bufs, FFTData *data);
 #endif
