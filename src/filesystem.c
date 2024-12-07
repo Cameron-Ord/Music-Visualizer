@@ -206,7 +206,7 @@ Paths *win_read_dir(const char *path) {
 #endif
 
 #ifdef __linux__
-const int get_file_type(const int type) {
+int get_file_type(const int type) {
   if (type == DT_REG) {
     return TYPE_FILE;
   } else if (type == DT_DIR) {
@@ -297,6 +297,12 @@ Paths *unix_read_dir(const char *path) {
         closedir(dir);
         d->is_valid = 0;
         return d;
+      }
+
+      if(get_file_type(e->d_type) == TYPE_FILE && !check_file_str(d[count].name)){
+	free(d[count].path);
+	free(d[count].name);
+	continue;
       }
 
       d[count].name_length = entry_size;
