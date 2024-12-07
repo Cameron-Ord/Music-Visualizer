@@ -511,7 +511,7 @@ int main(int argc, char **argv) {
         hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
         iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
         extract_frequencies(&f_buffers);
-        freq_bin_algo(adc.SR, f_buffers.extracted);
+        filter(adc.SR, f_buffers.extracted);
         squash_to_log(&f_buffers, &f_data);
         linear_mapping(&f_buffers, &f_data);
       } else if (adc.buffer && adc.position >= adc.length) {

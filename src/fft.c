@@ -163,9 +163,29 @@ float amp(float z) {
   return logf(z);
 }
 
+#define BINS 5
 // Bass, Lower Midrange, Midrange, Upper Midrange, Presence
-const float low_cutoffs[] = {60.0f, 250.0f, 500.0f, 2000.0, 4000.0f};
-const float high_cutoffs[] = {250.0f, 500.0f, 2000.0f, 4000.0f, 6000.0f};
+const float low_cutoffs[BINS] = {20.0f, 250.0f, 500.0f, 2000.0, 4000.0f};
+const float high_cutoffs[BINS] = {250.0f, 500.0f, 2000.0f, 4000.0f, 6000.0f};
+
+const float coeffs[BINS] = {0.5, 1.25, 1.5, 1.25, 0.25};
+
+void filter(const int samplerate, float *buffer){
+ float freq_bin_size = (float)samplerate / M_BUF_SIZE;
+ 
+ size_t low_bin;
+ size_t high_bin;
+
+ for(size_t i = 0; i < BINS; i++){
+  low_bin = low_cutoffs[i] / freq_bin_size;
+  high_bin = high_cutoffs[i] / freq_bin_size;
+
+  for(size_t j = low_bin; j < high_bin; j++){
+   buffer[j] *= coeffs[i];
+  }
+ }
+
+}
 
 void freq_bin_algo(int sr, float *extracted) {
   float freq_bin_size = (float)sr / M_BUF_SIZE;

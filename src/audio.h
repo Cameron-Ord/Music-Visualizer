@@ -15,6 +15,7 @@ bool pause_device(void);
 bool resume_device(void);
 void iter_fft(float *in, Compf *out, size_t size);
 void freq_bin_algo(int sr, float *extracted);
+void filter(int sr, float *extracted);
 void squash_to_log(FFTBuffers *bufs, FFTData *data);
 float amp(float z);
 void linear_mapping(FFTBuffers *bufs, FFTData *data);
