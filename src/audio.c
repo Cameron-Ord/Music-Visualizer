@@ -1,6 +1,6 @@
 #include "audio.h"
 #include "main.h"
-#include <SDL2/SDL_audio.h>
+#include "utils.h"
 #include <errno.h>
 #include <sndfile.h>
 
@@ -23,39 +23,42 @@ void seek_backward(AudioDataContainer *adc) {
 }
 
 void callback(void *userdata, uint8_t *stream, int length) {
-  if (!userdata) {
-    pause_device();
+  AudioDataContainer *adc = (AudioDataContainer *)userdata;
+  if (!adc) {
     return;
   }
 
-  AudioDataContainer *adc = (AudioDataContainer *)userdata;
-  if (adc && adc->buffer) {
-    const uint32_t file_length = adc->length;
+  if (!adc->buffer) {
+    return;
+  }
 
-    const uint32_t uint32_len = (uint32_t)length;
-    const uint32_t samples = uint32_len / sizeof(float);
-    const uint32_t remaining = (file_length - adc->position);
+  const uint32_t file_length = adc->length;
+  const uint32_t uint32_len = (uint32_t)length;
+  const uint32_t samples = uint32_len / sizeof(float);
+  const uint32_t remaining = (file_length - adc->position);
+  const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    const uint32_t copy = (samples < remaining) ? samples : remaining;
+  if (adc->position >= file_length) {
+    return;
+  }
 
-    if (stream && vis.dev) {
-      float *f32_stream = (float *)stream;
-      for (uint32_t i = 0; i < copy; i++) {
-        if (i + adc->position < file_length) {
-          f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
-        }
+  if (stream && vis.dev) {
+    float *f32_stream = (float *)stream;
+    for (uint32_t i = 0; i < copy; i++) {
+      if (i + adc->position < file_length) {
+        f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
       }
-      adc->position += copy;
     }
+    adc->position += copy;
+  }
 
-    if (adc->position >= file_length) {
-      pause_device();
-    }
+  if (adc->position >= file_length) {
+    return;
+  }
 
-    if ((adc->position + copy) < file_length) {
-      fft_push(&adc->position, adc->next->fft_in, adc->buffer,
-               copy * sizeof(float));
-    }
+  if ((adc->position + copy) < file_length) {
+    fft_push(&adc->position, adc->next->fft_in, adc->buffer,
+             copy * sizeof(float));
   }
 }
 
@@ -156,8 +159,9 @@ int load_song(AudioDataContainer *adc) {
   vis.spec.format = AUDIO_F32SYS;
   vis.spec.samples = M_BUF_SIZE / adc->channels;
 
-  vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 1);
+  vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 15);
   if (!vis.dev) {
+    SDL_ERR_CALLBACK(SDL_GetError());
     return 0;
   }
 
