@@ -89,10 +89,10 @@ void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
 }
 
 // https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
-void iter_fft(float *in, Compf *out, size_t size) {
+void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
   for (size_t i = 0; i < size; i++) {
     int rev_index = bit_reverse(i, log2(size));
-    out[i] = c_from_real(in[rev_index]);
+    out[i] = c_from_real(window(in[rev_index], coeffs[rev_index]));
   }
 
   const Compf iota = c_from_imag(1.0f);
@@ -168,16 +168,7 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
   data->output_len = m;
 }
 
-void hamming_window(float *in, const float *hamming_values, float *windowed) {
-  /*Iterate for the size of a single channel*/
-  for (int i = 0; i < HALF_BUFF_SIZE; ++i) {
-    int left = i * 2;
-    int right = i * 2 + 1;
-
-    windowed[left] = in[left] * hamming_values[left];
-    windowed[right] = in[right] * hamming_values[right];
-  }
-}
+float window(const float in, const float coeff) { return in * coeff; }
 
 void calculate_window(float *hamming_values) {
   for (int i = 0; i < M_BUF_SIZE; ++i) {

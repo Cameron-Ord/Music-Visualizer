@@ -504,8 +504,7 @@ int main(int argc, char **argv) {
         float tmp[M_BUF_SIZE];
         memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
 
-        hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
-        iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
+        iter_fft(tmp, f_data.hamming_values, f_buffers.out_raw, M_BUF_SIZE);
         squash_to_log(&f_buffers, &f_data);
         linear_mapping(&f_buffers, &f_data);
       }
