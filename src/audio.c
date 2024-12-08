@@ -128,13 +128,8 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   }
 
   zero_values(adc);
-
   if (adc->next) {
     zero_fft(adc->next, adc->next->next);
-  }
-
-  if (vis.dev) {
-    SDL_CloseAudioDevice(vis.dev);
   }
 
   adc->channels = sfinfo.channels;
@@ -166,31 +161,28 @@ int load_song(AudioDataContainer *adc) {
     return 0;
   }
 
-  if (!resume_device()) {
-    return 0;
-  }
-
+  resume_device();
   return 1;
 }
 
-bool pause_device(void) {
+int get_status(const unsigned int *dev) {
+  return SDL_GetAudioDeviceStatus(*dev);
+}
+
+void close_device(const unsigned int *dev) { SDL_CloseAudioDevice(*dev); }
+
+void pause_device(void) {
   if (vis.dev) {
     if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PAUSED) {
       SDL_PauseAudioDevice(vis.dev, true);
-      return true;
     }
   }
-
-  return false;
 }
 
-bool resume_device(void) {
+void resume_device(void) {
   if (vis.dev) {
     if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PLAYING) {
       SDL_PauseAudioDevice(vis.dev, false);
-      return true;
     }
   }
-
-  return false;
 }

@@ -1,5 +1,6 @@
 #include "main.h"
 #include "utils.h"
+#include <stddef.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -25,81 +26,159 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   SDL_RenderFillRect(rend.r, &box);
 }
 
-static void determine_ds(int *ds, const size_t *i, const int *min_cell_width,
-                         const int *win_w) {
-  const int iter = *i / *ds;
-  const int cell_width = *win_w / iter;
-  if (cell_width < *min_cell_width) {
-    *ds *= 2;
-    determine_ds(ds, i, min_cell_width, win_w);
+static float get_max(const float *even, const float *odd) {
+  if (!odd) {
+    return *even;
+  }
+
+  if (*even > *odd) {
+    return *even;
+  } else {
+    return *odd;
   }
 }
 
+static int isg(size_t l, size_t cmp) {
+  if (cmp > l - 1) {
+    return 1;
+  }
+  return 0;
+}
+
+static int check(const size_t *len, const size_t *even, const size_t *odd) {
+  if (isg(*len, *even) || isg(*len, *odd)) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static int cmp_y(int base, int cmp) {
+  if (base > cmp) {
+    return 1;
+  }
+
+  return 0;
+}
+
+static SDL_Rect create_rect(const int i, const float smpl, const int h,
+                            const int cell_width) {
+  // This can overflow, might handle this at some point. But it's annoying
+  const int x_pos = (i * (cell_width + cell_width / 2));
+  const int y_pos = h - (int)(smpl * (h * 0.9));
+  // Height is set afterwards
+  SDL_Rect box = {x_pos, y_pos, cell_width, 0};
+  return box;
+}
+
+static void set_colour(SDL_Color *col) {
+  SDL_SetRenderDrawColor(rend.r, col->r, col->g, col->b, col->a);
+}
+
+static void fill_rect(SDL_Rect *rect) { SDL_RenderFillRect(rend.r, rect); }
+
+int check_args(RenderArgs *a) {
+  if (!a) {
+    return 0;
+  }
+
+  const int size = 3;
+  const void *args[] = {a->length, a->smear, a->smooth};
+  for (int i = 0; i < size; i++) {
+    if (!args[i]) {
+      return 0;
+    }
+  }
+
+  if (*a->length <= 0) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static int get_ds_amount(const int w) {
+  if (w < 240) {
+    return 16;
+  }
+
+  if (w < 480) {
+    return 8;
+  }
+
+  if (w < 720) {
+    return 4;
+  }
+
+  if (w < 1280) {
+    return 2;
+  }
+
+  return 1;
+}
+
+static int get_cw(const int target, const int w) { return w / target; }
+
 void render_draw_music(RenderArgs *args) {
-  size_t *len = (size_t *)args->length;
-  const float *smear = args->smear;
-  const float *smoothed = args->smooth;
+  if (!check_args(args)) {
+    return;
+  }
 
   const int h = win.height;
   const int w = win.width;
 
-  int cell_width = w / (int)*len;
-  size_t buf_iter = *len;
+  const size_t *len = args->length;
+  const float *smear = args->smear;
+  const float *smoothed = args->smooth;
 
-  const int min_cell_width = 4;
+  const int ds = get_ds_amount(w);
+  const int target = *len / ds;
 
-  float smooth_cpy[*len];
-  float smear_cpy[*len];
+  int cell_width = get_cw(target, w);
+  for (int i = 0; i < target; i++) {
+    SDL_Rect sample_frame = {0};
+    SDL_Rect smear_frame = {0};
 
-  if (cell_width < min_cell_width) {
-    cell_width = min_cell_width;
-  }
+    if (ds > 1) {
+      // Access by even and odd indexes. If the DS is 2 then basically most of
+      // the data is transfered over since we do a comparison and grab the max,
+      // if ds is greater than 2, then information is lost as it begins to skip
+      // parts.
+      const size_t even = i * 2;
+      const size_t odd = i * 2 + 1;
+      // If one of these accesses out of bounds, literally just use the
+      // last(current) iteration as an access and use that value
+      if (!check(len, &even, &odd)) {
+        sample_frame = create_rect(i, smoothed[i], h, cell_width);
+        smear_frame = create_rect(i, smear[i], h, cell_width);
 
-  int req_width = cell_width * *len;
-  if (req_width > w) {
-    memset(smooth_cpy, 0, sizeof(float) * *len);
-    memset(smear_cpy, 0, sizeof(float) * *len);
+        smear_frame.h = sample_frame.y - smear_frame.y;
+        sample_frame.h = smoothed[i] * (h * 0.9);
 
-    int down_sampling = 2;
-    determine_ds(&down_sampling, &buf_iter, &min_cell_width, &w);
+      } else {
+        const float sample_max = get_max(&smoothed[even], &smoothed[odd]);
+        const float smear_max = get_max(&smear[even], &smear[odd]);
 
-    for (size_t i = 0; i < buf_iter / down_sampling; i++) {
-      smooth_cpy[i] = smoothed[i * down_sampling];
-      smear_cpy[i] = smear[i * down_sampling];
+        sample_frame = create_rect(i, sample_max, h, cell_width);
+        smear_frame = create_rect(i, smear_max, h, cell_width);
+
+        smear_frame.h = sample_frame.y - smear_frame.y;
+        sample_frame.h = sample_max * (h * 0.9);
+      }
+    } else {
+      sample_frame = create_rect(i, smoothed[i], h, cell_width);
+      smear_frame = create_rect(i, smear[i], h, cell_width);
+
+      smear_frame.h = sample_frame.y - smear_frame.y;
+      sample_frame.h = smoothed[i] * (h * 0.9);
     }
 
-    buf_iter /= down_sampling;
-    cell_width = w / buf_iter;
-  } else {
-    memcpy(smooth_cpy, smoothed, sizeof(float) * *len);
-    memcpy(smear_cpy, smear, sizeof(float) * *len);
-  }
-
-  for (size_t i = 0; i < buf_iter; ++i) {
-    const float start = smear_cpy[i];
-    const float end = smooth_cpy[i];
-
-    const int space = cell_width + cell_width / 2;
-
-    const int end_x_pos = (i * space);
-    const int end_y_pos = h - (int)(end * (h * 0.9));
-    const int end_bar_height = (int)(end * (h * 0.9));
-
-    SDL_Rect end_box = {end_x_pos, end_y_pos, cell_width, end_bar_height};
-
-    const int start_x_pos = (i * space);
-    const int start_y_pos = h - (int)(start * (h * 0.9));
-    const int start_bar_height = end_y_pos - start_y_pos;
-
-    SDL_Rect start_box = {start_x_pos, start_y_pos, cell_width,
-                          start_bar_height};
-
-    if (end_box.y > start_box.y) {
-      scc(SDL_SetRenderDrawColor(rend.r, vis.secondary_bg.r, vis.secondary_bg.g, vis.secondary_bg.b, vis.secondary_bg.a));
-      scc(SDL_RenderFillRect(rend.r, &start_box));
+    if (cmp_y(sample_frame.y, smear_frame.y)) {
+      set_colour(&vis.secondary_bg);
+      fill_rect(&smear_frame);
     }
 
-    scc(SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g, vis.primary.b, vis.primary.a));
-    scc(SDL_RenderFillRect(rend.r, &end_box));
+    set_colour(&vis.primary);
+    fill_rect(&sample_frame);
   }
 }

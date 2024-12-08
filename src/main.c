@@ -41,14 +41,14 @@ Visualizer vis;
 
 typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 
-//Using catppuccin mocha as the default theme.
-//https://github.com/catppuccin/catppuccin
+// Using catppuccin mocha as the default theme.
+// https://github.com/catppuccin/catppuccin
 
 SDL_Color primary = {203, 166, 247, 255};
-SDL_Color secondary = {137, 180, 250, 255}; 
-SDL_Color background = {30, 30, 46, 255};  
+SDL_Color secondary = {137, 180, 250, 255};
+SDL_Color background = {30, 30, 46, 255};
 SDL_Color secondary_bg = {49, 50, 68, 255};
-SDL_Color text = {205, 214, 244, 255};      
+SDL_Color text = {205, 214, 244, 255};
 
 int FPS = 60;
 
@@ -403,6 +403,8 @@ int main(int argc, char **argv) {
                 break;
 
               case TYPE_FILE: {
+                close_device(&vis.dev);
+
                 int valid = 0;
                 if (read_audio_file(item_path, &adc)) {
                   valid = 1;
@@ -506,38 +508,46 @@ int main(int argc, char **argv) {
 
     case PLAYBACK: {
       if (adc.buffer && adc.position < adc.length) {
-        float tmp[M_BUF_SIZE];
-        memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
+        if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
+          float tmp[M_BUF_SIZE];
+          memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
 
-        hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
-        iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
-        squash_to_log(&f_buffers, &f_data);
-        linear_mapping(&f_buffers, &f_data);
+          hamming_window(tmp, f_data.hamming_values, f_buffers.windowed);
+          iter_fft(f_buffers.windowed, f_buffers.out_raw, M_BUF_SIZE);
+          squash_to_log(&f_buffers, &f_data);
+          linear_mapping(&f_buffers, &f_data);
+        }
       } else if (adc.buffer && adc.position >= adc.length) {
-        int file_valid = 0;
-        int read_valid = 0;
+        if (get_status(&vis.dev) == SDL_AUDIO_PLAYING ||
+            get_status(&vis.dev) == SDL_AUDIO_STOPPED) {
+          int file_valid = 0;
+          int read_valid = 0;
 
-        TextBuffer *t = search_table(&table, playing_node)->tbuf;
-        Paths *p = search_table(&table, playing_node)->pbuf;
-        if (valid_ptr(p, t)) {
+          TextBuffer *t = search_table(&table, playing_node)->tbuf;
+          Paths *p = search_table(&table, playing_node)->pbuf;
+          if (valid_ptr(p, t)) {
 
-          auto_play_nav(t->size, &playing_cursor);
+            auto_play_nav(t->size, &playing_cursor);
 
-          const char *item_path = find_pathstr(t[playing_cursor].text->name, p);
-          const int item_type = find_type(t[playing_cursor].text->name, p);
+            const char *item_path =
+                find_pathstr(t[playing_cursor].text->name, p);
+            const int item_type = find_type(t[playing_cursor].text->name, p);
 
-          if (item_type == TYPE_FILE) {
-            file_valid = 1;
+            if (item_type == TYPE_FILE) {
+              file_valid = 1;
+            }
+
+            if (file_valid && read_audio_file(item_path, &adc)) {
+              read_valid = 1;
+            }
+
+            if (read_valid) {
+              load_song(&adc);
+              mode = PLAYBACK;
+            }
           }
-
-          if (file_valid && read_audio_file(item_path, &adc)) {
-            read_valid = 1;
-          }
-
-          if (read_valid) {
-            load_song(&adc);
-            mode = PLAYBACK;
-          }
+        } else {
+          mode = TEXT;
         }
       } else {
         mode = TEXT;

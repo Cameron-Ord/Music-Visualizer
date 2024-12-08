@@ -2,68 +2,67 @@
 #include "audiodefs.h"
 #include "main.h"
 
-static inline Compf c_from_real(const float real){
- Compf _complex;
- _complex.real = real;
- _complex.imag = 0.0;
- return _complex;
+static inline Compf c_from_real(const float real) {
+  Compf _complex;
+  _complex.real = real;
+  _complex.imag = 0.0;
+  return _complex;
 }
 
-static inline Compf c_from_imag(const float imag){
- Compf _complex;
- _complex.real = 0.0;
- _complex.imag = imag;
- return _complex;
+static inline Compf c_from_imag(const float imag) {
+  Compf _complex;
+  _complex.real = 0.0;
+  _complex.imag = imag;
+  return _complex;
 }
 
-static inline Compf compf_expf(const Compf *c){
- Compf res;
- float exp_real = expf(c->real);
- res.real = exp_real * cosf(c->imag);
- res.imag = exp_real * sinf(c->imag);
- return res;
+static inline Compf compf_expf(const Compf *c) {
+  Compf res;
+  float exp_real = expf(c->real);
+  res.real = exp_real * cosf(c->imag);
+  res.imag = exp_real * sinf(c->imag);
+  return res;
 }
 
-static inline Compf compf_subtract(const Compf *a, const Compf* b){
- Compf sub;
- sub.real = a->real - b->real;
- sub.imag = a->imag - b->imag;
- return sub;
+static inline Compf compf_subtract(const Compf *a, const Compf *b) {
+  Compf sub;
+  sub.real = a->real - b->real;
+  sub.imag = a->imag - b->imag;
+  return sub;
 }
 
-static inline Compf compf_add(const Compf *a, const Compf* b){
- Compf add;
- add.real = a->real + b->real;
- add.imag = a->imag + b->imag;
- return add;
+static inline Compf compf_add(const Compf *a, const Compf *b) {
+  Compf add;
+  add.real = a->real + b->real;
+  add.imag = a->imag + b->imag;
+  return add;
 }
 
-static inline Compf compf_mult(const Compf *a, const Compf *b){
- Compf mult;
- mult.real = a->real * b->real - a->imag * b->imag;
- mult.imag = a->real * b->imag + a->imag * b->real;
- return mult;
+static inline Compf compf_mult(const Compf *a, const Compf *b) {
+  Compf mult;
+  mult.real = a->real * b->real - a->imag * b->imag;
+  mult.imag = a->real * b->imag + a->imag * b->real;
+  return mult;
 }
 
-static inline Compf compf_divide(const Compf *a, const Compf* b){
- Compf divide;
- float denom = b->real * b->real + b->imag * b->imag;
- divide.real = (a->real * b->real + a->imag * b->imag) / denom;
- divide.imag = (a->imag * b->real - a->real * b->imag) / denom;
- return divide;
+static inline Compf compf_divide(const Compf *a, const Compf *b) {
+  Compf divide;
+  float denom = b->real * b->real + b->imag * b->imag;
+  divide.real = (a->real * b->real + a->imag * b->imag) / denom;
+  divide.imag = (a->imag * b->real - a->real * b->imag) / denom;
+  return divide;
 }
 
-static inline Compf compf_step(const size_t *half_len, const Compf *iota){
- Compf step;
- float theta = (float)M_PI / *half_len;
+static inline Compf compf_step(const size_t *half_len, const Compf *iota) {
+  Compf step;
+  float theta = (float)M_PI / *half_len;
 
- step.real = iota->real * theta;
- step.imag = iota->imag * theta;
+  step.real = iota->real * theta;
+  step.imag = iota->imag * theta;
 
- step = compf_expf(&step);
- return step;
+  step = compf_expf(&step);
+  return step;
 }
-
 
 size_t bit_reverse(size_t index, size_t log2n) {
   size_t reversed = 0;
@@ -102,7 +101,7 @@ void iter_fft(float *in, Compf *out, size_t size) {
     size_t half_sub_arr = sub_arr_size >> 1;
     Compf twiddle = c_from_real(1.0f);
 
-    Compf step = compf_step(&half_sub_arr, &iota); 
+    Compf step = compf_step(&half_sub_arr, &iota);
     for (size_t j = 0; j < half_sub_arr; j++) {
       for (size_t k = j; k < size; k += sub_arr_size) {
         Compf t = compf_mult(&twiddle, &out[k + half_sub_arr]);
@@ -117,7 +116,7 @@ void iter_fft(float *in, Compf *out, size_t size) {
 }
 
 float get_freq(const Compf *c) {
- return (c->real * c->real + c->imag * c->imag);
+  return (c->real * c->real + c->imag * c->imag);
 }
 
 static float interpolate(float base, float interpolated, int coeff) {
@@ -125,14 +124,13 @@ static float interpolate(float base, float interpolated, int coeff) {
 }
 
 void linear_mapping(FFTBuffers *bufs, FFTData *data) {
-  float *ps = bufs->processed_samples;
-
   for (size_t i = 0; i < data->output_len; ++i) {
-    ps[i] /= data->max_ampl;
+    const float n = bufs->processed_samples[i] / data->max_ampl;
     // interpolated audio amplitudes
-    bufs->smoothed[i] += interpolate(ps[i], bufs->smoothed[i], vis.smoothing);
+    bufs->smoothed[i] += interpolate(n, bufs->smoothed[i], vis.smoothing);
     // interpolated smear frames (of the audio amplitudes)
-    bufs->smear[i] += interpolate(bufs->smoothed[i], bufs->smear[i], vis.smearing);
+    bufs->smear[i] +=
+        interpolate(bufs->smoothed[i], bufs->smear[i], vis.smearing);
   }
 }
 
