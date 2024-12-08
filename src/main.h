@@ -72,8 +72,6 @@ extern Renderer rend;
 extern Window win;
 extern Visualizer vis;
 
-// General/Utility functions
-int open_ttf_file(const char *filename);
 // Font related functions
 TextBuffer *create_fonts(const Paths *paths_buf);
 // Render functions
@@ -90,4 +88,3 @@ void nav_up(TextBuffer *tbuf);
 void auto_play_nav(const size_t size, size_t *cursor);
 void window_resized(void);
 #endif // MAIN_H
-

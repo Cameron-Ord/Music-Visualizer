@@ -53,6 +53,8 @@ SDL_Color text = {205, 214, 244, 255};
 int FPS = 60;
 
 static void replace_fonts(Table *t);
+static RenderArgs make_args(const FFTData *d, const FFTBuffers *b);
+static int open_ttf_file(const char *fn);
 
 size_t hash(size_t i) { return i % MAX_NODES; }
 
@@ -496,7 +498,7 @@ int main(int argc, char **argv) {
       } break;
       }
     }
-
+    // delegate these
     if (adc.buffer && adc.position < adc.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
         float tmp[M_BUF_SIZE];
@@ -550,14 +552,9 @@ int main(int argc, char **argv) {
     } break;
 
     case PLAYBACK: {
-      RenderArgs args = {.smear = f_buffers.smear,
-                         .smooth = f_buffers.smoothed,
-                         .length = &f_data.output_len};
-
-      if (f_data.output_len > 0) {
-        render_seek_bar(&adc.position, &adc.length);
-        render_draw_music(&args);
-      }
+      RenderArgs args = make_args(&f_data, &f_buffers);
+      render_seek_bar(&adc.position, &adc.length);
+      render_draw_music(&args);
     } break;
     }
 
@@ -586,7 +583,7 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-int open_ttf_file(const char *fn) {
+static int open_ttf_file(const char *fn) {
   const size_t path_size =
       get_length(3, strlen(fn), strlen(vis.home), strlen(ASSETS_DIR));
 
@@ -616,4 +613,12 @@ static void replace_fonts(Table *t) {
       swap_font_ptrs(t, i, n->tbuf, create_fonts(n->pbuf));
     }
   }
+}
+
+static RenderArgs make_args(const FFTData *d, const FFTBuffers *b) {
+  RenderArgs a;
+  //&output_len is not a dangling ptr since its from outside this
+  // scope, and not limited to it.
+  a.smear = b->smear, a.length = &d->output_len, a.smooth = b->smoothed;
+  return a;
 }
