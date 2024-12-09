@@ -353,7 +353,11 @@ int main(int argc, char **argv) {
     case TEXT: {
       Node *n = search_table(&table, current_node);
       if (valid_ptr(n->pbuf, n->tbuf)) {
-        render_draw_text(r.r, n->tbuf, w.height, w.width, &colors.secondary_bg);
+        MaxValues m = determine_max(n->tbuf, w.height);
+        render_draw_subg_outline(r.r, w.width, w.height, &colors.secondary, &m);
+        render_draw_subbg(r.r, w.width, w.height, &colors.secondary_bg, &m);
+
+        render_draw_text(r.r, n->tbuf, w.height, w.width, &m);
       }
     } break;
 
