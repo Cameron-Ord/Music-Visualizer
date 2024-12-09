@@ -10,6 +10,7 @@
 
 void render_seek_bar(const uint32_t *position, const uint32_t *length,
                      const int w, const SDL_Color *col, SDL_Renderer *r) {
+  SDL_RenderSetViewport(r, NULL);
   float normalized = (float)*position / *length;
   int screen_location = normalized * w;
 
@@ -97,27 +98,17 @@ int check_args(RenderArgs *a) {
   return 1;
 }
 
-static int get_ds_amount(const int w) {
-  if (w < 240) {
-    return 16;
-  }
-
-  if (w < 480) {
-    return 8;
-  }
-
-  if (w < 720) {
-    return 4;
-  }
-
-  if (w < 1280) {
-    return 2;
-  }
-
-  return 1;
-}
-
 static int get_cw(const int target, const int w) { return w / target; }
+
+const int min_c_width = 4;
+static void determine_ds(int *ds, const size_t *i, const int *w) {
+  const size_t iter = *i / *ds;
+  const int cell_width = *w / (int)iter;
+  if (cell_width < min_c_width) {
+    *ds *= 2;
+    determine_ds(ds, i, w);
+  }
+}
 
 void render_draw_music(RenderArgs *args, const int w, const int h,
                        SDL_Renderer *r, const SDL_Color *p, SDL_Color *s) {
@@ -131,9 +122,9 @@ void render_draw_music(RenderArgs *args, const int w, const int h,
   const float *smear = args->smear;
   const float *smoothed = args->smooth;
 
-  const int ds = get_ds_amount(w);
+  int ds = 1;
+  determine_ds(&ds, len, &w);
   const int target = *len / ds;
-
   int cell_width = get_cw(target, w);
   for (int i = 0; i < target; i++) {
     SDL_Rect sample_frame = {0};
