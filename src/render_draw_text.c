@@ -2,7 +2,6 @@
 
 void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
                       const int w, const SDL_Color *sbg) {
-  int width_offset = w - (w / 2);
   int vp_h = h * 0.5;
   SDL_Rect vp = {0, vp_h - (vp_h / 2), w, vp_h};
   SDL_RenderSetViewport(r, &vp);
@@ -11,7 +10,7 @@ void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
   const int x = TEXT_SPACING;
   int max_tw = 0;
 
-  for (size_t i = buf->start; i < buf->size && y < h; i++) {
+  for (size_t i = buf->start; i < buf->size && y < vp_h; i++) {
     Text *t = buf[i].text;
     if (t->width > max_tw) {
       max_tw = t->width;
@@ -26,8 +25,9 @@ void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
                  y};
   bg.x -= TEXT_SPACING;
   SDL_RenderFillRect(r, &bg);
-
-  for (size_t i = buf->start; i < buf->size && buf[i].text->rect.y < h; i++) {
+  // reset this variable to check for it again.
+  y = TEXT_SPACING;
+  for (size_t i = buf->start; i < buf->size && y < vp_h; i++) {
     Text *t = buf[i].text;
 
     if (i != buf->cursor) {
@@ -35,5 +35,7 @@ void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
     } else {
       SDL_RenderCopy(r, t->tex[1], NULL, &t->rect);
     }
+
+    y += t->rect.h + TEXT_SPACING;
   }
 }
