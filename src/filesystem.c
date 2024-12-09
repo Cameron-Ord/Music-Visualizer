@@ -7,6 +7,61 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char *find_pathstr(const char *search_key, Paths *buffer) {
+  if (buffer) {
+    Paths *start = buffer;
+
+    while (buffer != NULL) {
+      if (strcmp(search_key, buffer->name) == 0) {
+        return buffer->path;
+      }
+      buffer++;
+    }
+
+    buffer = start;
+  }
+
+  return NULL;
+}
+
+int find_type(const char *search_key, Paths *buffer) {
+  if (buffer) {
+    Paths *start = buffer;
+
+    while (buffer != NULL) {
+      if (strcmp(search_key, buffer->name) == 0) {
+        return buffer->type;
+      }
+      buffer++;
+    }
+
+    buffer = start;
+  }
+
+  return UNKNOWN;
+}
+
+void *free_paths(Paths *buf, const size_t *count) {
+  if (!buf) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < *count; i++) {
+    if (buf[i].name) {
+      free(buf[i].name);
+      buf[i].name_length = 0;
+    }
+
+    if (buf[i].path) {
+      free(buf[i].path);
+      buf[i].path_length = 0;
+    }
+  }
+
+  free(buf);
+  return NULL;
+}
+
 static int not_nav(const char *str) {
   if (strcmp("..", str) == 0) {
     return 0;
@@ -299,10 +354,11 @@ Paths *unix_read_dir(const char *path) {
         return d;
       }
 
-      if(get_file_type(e->d_type) == TYPE_FILE && !check_file_str(d[count].name)){
-	free(d[count].path);
-	free(d[count].name);
-	continue;
+      if (get_file_type(e->d_type) == TYPE_FILE &&
+          !check_file_str(d[count].name)) {
+        free(d[count].path);
+        free(d[count].name);
+        continue;
       }
 
       d[count].name_length = entry_size;

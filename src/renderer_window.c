@@ -1,11 +1,9 @@
-#include "main.h"
-#include "utils.h"
+#include "renderer.h"
 
-void render_bg(void) {
-  scc(SDL_SetRenderDrawColor(rend.r, vis.background.r, vis.background.g,
-                             vis.background.b, vis.background.a));
+void render_bg(const SDL_Color *col, SDL_Renderer *r) {
+  SDL_SetRenderDrawColor(r, col->r, col->g, col->b, col->a);
 }
 
-void render_clear(void) { scc(SDL_RenderClear(rend.r)); }
+void render_clear(SDL_Renderer *r) { SDL_RenderClear(r); }
 
-void render_present(void) { SDL_RenderPresent(rend.r); }
+void render_present(SDL_Renderer *r) { SDL_RenderPresent(r); }

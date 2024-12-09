@@ -21,7 +21,6 @@ typedef struct {
   size_t cursor;
   size_t start;
   size_t listed;
-  int max;
   int is_valid;
 } TextBuffer;
 

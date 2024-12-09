@@ -1,26 +1,11 @@
 #include "audio.h"
-#include "main.h"
 #include "utils.h"
 #include <errno.h>
 #include <sndfile.h>
 
-void seek_forward(AudioDataContainer *adc) {
-  int pos_cpy = adc->position + (1 << 15);
-  if (pos_cpy > (int)adc->length) {
-    pos_cpy = adc->length - M_BUF_SIZE;
-  }
-
-  adc->position = pos_cpy;
-}
-
-void seek_backward(AudioDataContainer *adc) {
-  int pos_cpy = adc->position - (1 << 15);
-  if (pos_cpy < 0) {
-    pos_cpy = 0;
-  }
-
-  adc->position = pos_cpy;
-}
+static void fft_push(const uint32_t *pos, float *in, float *buffer,
+                     size_t bytes);
+static void zero_values(AudioDataContainer *adc);
 
 void callback(void *userdata, uint8_t *stream, int length) {
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
@@ -39,10 +24,11 @@ void callback(void *userdata, uint8_t *stream, int length) {
   const uint32_t copy = (samples < remaining) ? samples : remaining;
 
   if (adc->position >= file_length) {
+    pause_device(*adc->dev_ptr);
     return;
   }
 
-  if (stream && vis.dev) {
+  if (stream) {
     float *f32_stream = (float *)stream;
     for (uint32_t i = 0; i < copy; i++) {
       if (i + adc->position < file_length) {
@@ -53,6 +39,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
   }
 
   if (adc->position >= file_length) {
+    pause_device(*adc->dev_ptr);
     return;
   }
 
@@ -62,13 +49,14 @@ void callback(void *userdata, uint8_t *stream, int length) {
   }
 }
 
-void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
+static void fft_push(const uint32_t *pos, float *in, float *buffer,
+                     size_t bytes) {
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
   }
 }
 
-void zero_values(AudioDataContainer *adc) {
+static void zero_values(AudioDataContainer *adc) {
   adc->bytes = 0;
   adc->channels = 0;
   adc->format = 0;
@@ -147,46 +135,42 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   return 1;
 }
 
-int load_song(AudioDataContainer *adc) {
-  if (!adc) {
-    return 0;
-  }
-
-  vis.spec.userdata = adc;
-  vis.spec.callback = callback;
-  vis.spec.channels = adc->channels;
-  vis.spec.freq = adc->SR;
-  vis.spec.format = AUDIO_F32SYS;
-  vis.spec.samples = M_BUF_SIZE / adc->channels;
-
-  vis.dev = SDL_OpenAudioDevice(NULL, 0, &vis.spec, NULL, 15);
-  if (!vis.dev) {
+unsigned int open_device(SDL_AudioSpec *spec) {
+  unsigned int dev;
+  dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, 1);
+  if (!dev) {
     SDL_ERR_CALLBACK(SDL_GetError());
-    return 0;
   }
+  return dev;
+}
 
-  resume_device();
-  return 1;
+void set_spec(AudioDataContainer *adc, SDL_AudioSpec *s) {
+  s->userdata = adc;
+  s->callback = callback;
+  s->channels = adc->channels;
+  s->freq = adc->SR;
+  s->format = AUDIO_F32SYS;
+  s->samples = M_BUF_SIZE / adc->channels;
 }
 
 int get_status(const unsigned int *dev) {
   return SDL_GetAudioDeviceStatus(*dev);
 }
 
-void close_device(const unsigned int *dev) { SDL_CloseAudioDevice(*dev); }
+void close_device(unsigned int dev) { SDL_CloseAudioDevice(dev); }
 
-void pause_device(void) {
-  if (vis.dev) {
-    if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PAUSED) {
-      SDL_PauseAudioDevice(vis.dev, true);
+void pause_device(unsigned int dev) {
+  if (dev) {
+    if (SDL_GetAudioDeviceStatus(dev) != SDL_AUDIO_PAUSED) {
+      SDL_PauseAudioDevice(dev, true);
     }
   }
 }
 
-void resume_device(void) {
-  if (vis.dev) {
-    if (SDL_GetAudioDeviceStatus(vis.dev) != SDL_AUDIO_PLAYING) {
-      SDL_PauseAudioDevice(vis.dev, false);
+void resume_device(unsigned int dev) {
+  if (dev) {
+    if (SDL_GetAudioDeviceStatus(dev) != SDL_AUDIO_PLAYING) {
+      SDL_PauseAudioDevice(dev, false);
     }
   }
 }

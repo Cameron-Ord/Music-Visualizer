@@ -1,5 +1,4 @@
-#include "main.h"
-#include "utils.h"
+#include "events.h"
 
 void auto_play_nav(const size_t size, size_t *curs) {
   int tmp_i = (int)*curs;
@@ -55,56 +54,45 @@ static int clamp(int size, int curs) {
   return curs;
 }
 
-void nav_down(TextBuffer *tbuf) {
-  if (!tbuf) {
-    return;
-  }
+static int clamp_wrap(int size, int curs) {
+  if (curs < 0)
+    curs = size - 1;
 
-  int cursor = (int)tbuf->cursor;
-  int start = (int)tbuf->start;
-  const int listed = (int)tbuf->listed;
-  const int size = (int)tbuf->size;
+  if (curs > size - 1)
+    curs = 0;
 
-  cursor++;
-  cursor = clamp(size, cursor);
-  int offset = 6;
-
-  if (cursor + offset >= listed) {
-    // call min_titles, set the tbuf->max variable and return a 0 or 1 depending
-    // on whether there are excess titles depending on the current window height
-    if (min_titles(tbuf) && (size - start) - 1 > tbuf->max) {
-      start += (cursor + offset) - listed;
-    }
-    start = clamp(size, start);
-  }
-
-  tbuf->start = (size_t)start;
-  tbuf->cursor = (size_t)cursor;
+  return curs;
 }
 
-void nav_up(TextBuffer *tbuf) {
-  if (!tbuf) {
-    return;
-  }
+size_t auto_nav_down(const size_t cursor, const size_t max) {
+  int curs = (int)cursor;
 
-  int cursor = (int)tbuf->cursor;
-  int start = (int)tbuf->start;
-  const int size = (int)tbuf->size;
+  curs++;
+  curs = clamp_wrap((int)max, curs);
 
-  cursor--;
-  cursor = clamp(size, cursor);
-  int offset = 6;
-
-  if (cursor <= start + offset) {
-    start -= (start - cursor) + offset;
-    start = clamp(size, start);
-  }
-
-  tbuf->start = (size_t)start;
-  tbuf->cursor = (size_t)cursor;
+  return curs;
 }
 
-void window_resized(void) {
-  SDL_GetWindowSize(win.w, &win.width, &win.height);
-  font.char_limit = get_char_limit(win.width);
+size_t mv_start_pos(const int n, const size_t start, const size_t max) {
+  int incremented = (int)start + n;
+  incremented = clamp((int)max, incremented);
+  return incremented;
+}
+
+size_t nav_down(const size_t cursor, const size_t max) {
+  int curs = (int)cursor;
+
+  curs++;
+  curs = clamp((int)max, curs);
+
+  return curs;
+}
+
+size_t nav_up(const size_t cursor, const size_t max) {
+  int curs = (int)cursor;
+
+  curs--;
+  curs = clamp((int)max, curs);
+
+  return curs;
 }

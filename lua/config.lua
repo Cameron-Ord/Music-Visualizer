@@ -8,13 +8,13 @@ Config = {
 	-- Colour palette
 	-- https://github.com/catppuccin/catppuccin
 	-- Music Bars, Seek bar
-	primary = {203, 166, 247, 255},
+	primary = { 203, 166, 247, 255 },
 	-- Text highlights, etc
-	secondary = {137, 180, 250, 255},
+	secondary = { 166, 227, 161, 255 },
 	-- Background colour
-	background = {30, 30, 46, 255},
+	background = { 30, 30, 46, 255 },
 	-- Secondary BG, used for smear frames on music bars and text bg
-	secondary_bg = {49, 50, 68, 255},
+	secondary_bg = { 49, 50, 68, 255 },
 	-- Text
-	text = {205, 214, 244, 255},
+	text = { 205, 214, 244, 255 },
 }

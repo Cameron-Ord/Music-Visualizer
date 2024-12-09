@@ -1,13 +1,5 @@
 #include "utils.h"
-#include "fontdef.h"
-#include "main.h"
-#include "table.h"
-
 #include <ctype.h>
-#include <errno.h>
-#include <sndfile.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -31,26 +23,12 @@ int check_file_str(const char *str) {
   return 0;
 }
 
-int get_char_limit(int width) {
-  return MIN(100, MAX(3, (width * 0.90) / FONT_SIZE));
-}
-
-void *scp(void *ptr) {
-  if (!ptr) {
-    fprintf(stderr, "SDL failed to create PTR! -> %s\n", SDL_GetError());
-    exit(EXIT_FAILURE);
+int get_char_limit(const int width, const int font_size) {
+  if (width < 150) {
+    return 2;
   }
 
-  return ptr;
-}
-
-int scc(int code) {
-  if (code < 0) {
-    fprintf(stderr, "SDL code execution failed! -> %s\n", SDL_GetError());
-    exit(EXIT_FAILURE);
-  }
-
-  return code;
+  return MIN(100, MAX(3, (width * 0.80) / font_size));
 }
 
 void SDL_ERR_CALLBACK(const char *msg) {
@@ -59,55 +37,6 @@ void SDL_ERR_CALLBACK(const char *msg) {
 
 void ERRNO_CALLBACK(const char *prefix, const char *msg) {
   fprintf(stderr, "%s -> %s\n", prefix, msg);
-}
-
-void *free_paths(Paths *buf, const size_t *count) {
-  if (!buf) {
-    return NULL;
-  }
-
-  for (size_t i = 0; i < *count; i++) {
-    if (buf[i].name) {
-      free(buf[i].name);
-      buf[i].name_length = 0;
-    }
-
-    if (buf[i].path) {
-      free(buf[i].path);
-      buf[i].path_length = 0;
-    }
-  }
-
-  free(buf);
-  return NULL;
-}
-
-void *free_text_buffer(TextBuffer *buf, const size_t *count) {
-  if (!buf) {
-    return NULL;
-  }
-
-  for (size_t i = 0; i < *count; i++) {
-    if (buf[i].text) {
-      Text *t = buf[i].text;
-      if (t->name) {
-        free(t->name);
-      }
-
-      if (t->tex[0]) {
-        SDL_DestroyTexture(t->tex[0]);
-      }
-
-      if (t->tex[1]) {
-        SDL_DestroyTexture(t->tex[1]);
-      }
-
-      free(t);
-    }
-  }
-
-  free(buf);
-  return NULL;
 }
 
 const char *sformat(char *str) {
@@ -151,41 +80,6 @@ void free_ptrs(size_t size, ...) {
   }
 }
 
-int find_type(const char *search_key, Paths *buffer) {
-  if (buffer) {
-    Paths *start = buffer;
-
-    while (buffer != NULL) {
-      if (strcmp(search_key, buffer->name) == 0) {
-        return buffer->type;
-      }
-      buffer++;
-    }
-
-    buffer = start;
-  }
-
-  return UNKNOWN;
-}
-
-const char *find_pathstr(const char *search_key, Paths *buffer) {
-
-  if (buffer) {
-    Paths *start = buffer;
-
-    while (buffer != NULL) {
-      if (strcmp(search_key, buffer->name) == 0) {
-        return buffer->path;
-      }
-      buffer++;
-    }
-
-    buffer = start;
-  }
-
-  return NULL;
-}
-
 /*
  Real ascii chars start at 32, which is the space key. So if a char is
  greater than this, pretty much means it isnt only spaces.
@@ -203,35 +97,6 @@ int not_empty(const char *str) {
   return 0;
 }
 
-void swap_font_ptrs(Table *table, const size_t key, TextBuffer *old_buffer,
-                    TextBuffer *replace) {
-  table_set_text(table, key, replace);
-
-  if (old_buffer) {
-    for (size_t i = 0; i < old_buffer->size; i++) {
-      Text *invalidated = old_buffer[i].text;
-      char *invalid_name = invalidated->name;
-      SDL_Texture **invalid_tex = invalidated->tex;
-
-      if (invalid_name) {
-        free(invalid_name);
-      }
-
-      if (invalid_tex[0]) {
-        SDL_DestroyTexture(invalid_tex[0]);
-      }
-
-      if (invalid_tex[1]) {
-        SDL_DestroyTexture(invalid_tex[1]);
-      }
-
-      free(invalidated);
-    }
-
-    free(old_buffer);
-  }
-}
-
 int clamp_font_size(int size) {
   int min_size = 16;
   int max_size = 24;
@@ -247,38 +112,27 @@ int clamp_font_size(int size) {
   return size;
 }
 
-
-int valid_ptr(Paths *p, TextBuffer *t) {
-  if ((p && t) && (p->is_valid && t->is_valid)) {
-    return 1;
-  }
-
-  return 0;
-}
-
-int min_titles(TextBuffer *t) {
-  int h = win.height;
-
-  int accumulator = TEXT_SPACING;
-  int is_greater = 0;
-
-  size_t j = 0;
-  for (j = 0; j < t->size; j++) {
-    if (t[j].text) {
-      int rect_h = t[j].text->rect.h;
-      accumulator += rect_h + TEXT_SPACING;
-    }
-
-    // If this check is met, return with the truthy flag before adding another
-    // +1 to the max variable
-    if (accumulator >= h) {
-      return is_greater + 1;
-    }
-
-    if (t->max < (int)j) {
-      t->max = j;
-    }
-  }
-
-  return is_greater;
-}
+// int min_titles(TextBuffer *t, int h) {
+// int accumulator = TEXT_SPACING;
+// int is_greater = 0;
+//
+// size_t j = 0;
+// for (j = 0; j < t->size; j++) {
+// if (t[j].text) {
+// int rect_h = t[j].text->rect.h;
+// accumulator += rect_h + TEXT_SPACING;
+//}
+//
+//// If this check is met, return with the truthy flag before adding another
+//// +1 to the max variable
+// if (accumulator >= h) {
+// return is_greater + 1;
+//}
+//
+// if (t->max < (int)j) {
+// t->max = j;
+//}
+//}
+//
+// return is_greater;
+//}

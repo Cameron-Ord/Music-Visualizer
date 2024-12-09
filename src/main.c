@@ -1,15 +1,15 @@
 #include "main.h"
 #include "audio.h"
 #include "audiodefs.h"
+#include "events.h"
 #include "filesystem.h"
-#include "fontdef.h"
+#include "font.h"
+#include "renderer.h"
 #include "table.h"
 #include "utils.h"
-
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_video.h>
+#include <SDL2/SDL_timer.h>
 #include <errno.h>
+#include <stdint.h>
 
 #ifdef LUA_FLAG
 #include <lauxlib.h>
@@ -34,96 +34,38 @@ Paths *(*fs_search)(const char *) = &unix_fs_search;
 #include <string.h>
 #include <time.h>
 
-Window win;
-Renderer rend;
-Font font;
-Visualizer vis;
-
 typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 
 // Using catppuccin mocha as the default theme.
 // https://github.com/catppuccin/catppuccin
 
 SDL_Color primary = {203, 166, 247, 255};
-SDL_Color secondary = {137, 180, 250, 255};
+SDL_Color secondary = {166, 227, 161, 255};
 SDL_Color background = {30, 30, 46, 255};
 SDL_Color secondary_bg = {49, 50, 68, 255};
 SDL_Color text = {205, 214, 244, 255};
 
 int FPS = 60;
 
-static void replace_fonts(Table *t);
+static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
+                          const SDL_Color *c_text, const SDL_Color *c_sec);
+static int open_ttf_file(const char *fn, const char *home, Font *font);
+static void window_resized(Window *w, const int font_size, int *char_limit);
+static int valid_ptr(Paths *pbuf, TextBuffer *tbuf);
+static void swap_font_ptrs(Table *table, const size_t key,
+                           TextBuffer *old_buffer, TextBuffer *replace);
 static RenderArgs make_args(const FFTData *d, const FFTBuffers *b);
-static int open_ttf_file(const char *fn);
-
-size_t hash(size_t i) { return i % MAX_NODES; }
-
-int create_node(Table *t, size_t i) {
-  Node *n = malloc(sizeof(Node));
-  if (!n) {
-    ERRNO_CALLBACK("malloc() failed!", strerror(errno));
-    return 0;
-  }
-
-  n->key = hash(i);
-  n->pbuf = NULL;
-  n->tbuf = NULL;
-  n->next = t->node_buffer[n->key];
-  t->node_buffer[n->key] = n;
-
-  return 1;
-}
-
-Node *search_table(Table *t, size_t i) {
-  Node *n = t->node_buffer[hash(i)];
-  while (n != NULL) {
-    if (n->key == hash(i)) {
-      return n;
-    }
-    n = n->next;
-  }
-  return NULL;
-}
-
-void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
-  Node *n = search_table(t, i);
-  if (!n) {
-    return;
-  }
-
-  if (!tbuf) {
-    n->tbuf = NULL;
-    // We do the check on the validity, then free or assign memory as per it's
-    // value. Easier to manage this way.
-  } else if (tbuf && !tbuf->is_valid) {
-    // returns null
-    n->tbuf = free_text_buffer(tbuf, &tbuf->size);
-  } else {
-    n->tbuf = tbuf;
-  }
-}
-
-void table_set_paths(Table *t, size_t i, Paths *pbuf) {
-  Node *n = search_table(t, i);
-  if (!n) {
-    return;
-  }
-
-  if (!pbuf) {
-    n->pbuf = NULL;
-    // We do the check on the validity, then free or assign memory as per it's
-    // value. Easier to manage this way.
-  } else if (pbuf && !pbuf->is_valid) {
-    // returns null
-    n->pbuf = free_paths(pbuf, &pbuf->size);
-  } else {
-    n->pbuf = pbuf;
-  }
-}
 
 int main(int argc, char **argv) {
-  scc(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS));
-  scc(TTF_Init());
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
+    SDL_ERR_CALLBACK(SDL_GetError());
+    exit(EXIT_FAILURE);
+  }
+
+  if (TTF_Init() != 0) {
+    SDL_ERR_CALLBACK(SDL_GetError());
+    exit(EXIT_FAILURE);
+  }
 
   srand(time(NULL));
 
@@ -140,37 +82,41 @@ int main(int argc, char **argv) {
   }
 
   fprintf(stdout, "home path -> %s\n", home);
+  SDL_AudioSpec spec = {0};
 
-  // Assign default values
-  vis.dev = 0;
-  vis.home = home;
-  vis.smearing = 6;
-  vis.smoothing = 8;
-  vis.target_frames = FPS;
-  vis.awaiting = 0;
-  vis.quit = false;
-  vis.primary = primary;
-  vis.secondary = secondary;
-  vis.background = background;
-  vis.secondary_bg = secondary_bg;
-  vis.text = text;
+  Visualizer vis = {.dev = 0,
+                    .spec = &spec,
+                    .quit = 0,
+                    .target_frames = FPS,
+                    .smearing = 6,
+                    .smoothing = 8,
+                    .home = home};
 
-  win.w = NULL;
-  rend.r = NULL;
+  Colors colors = {.primary = primary,
+                   .secondary = secondary,
+                   .background = background,
+                   .secondary_bg = secondary_bg,
+                   .text = text};
 
-  win.w = scp(SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED,
-                               SDL_WINDOWPOS_CENTERED, WIN_W, WIN_H,
-                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN));
+  Window w = {.w = NULL, .height = WIN_H, .width = WIN_W};
+  Renderer r = {.r = NULL};
 
-  rend.r = scp(SDL_CreateRenderer(
-      win.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+  w.w = SDL_CreateWindow("Music Visualizer", SDL_WINDOWPOS_CENTERED,
+                         SDL_WINDOWPOS_CENTERED, WIN_W, WIN_H,
+                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+  if (!w.w) {
+    SDL_ERR_CALLBACK(SDL_GetError());
+    exit(EXIT_FAILURE);
+  }
+  r.r = SDL_CreateRenderer(
+      w.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (!r.r) {
+    SDL_ERR_CALLBACK(SDL_GetError());
+    SDL_DestroyWindow(w.w);
+    exit(EXIT_FAILURE);
+  }
 
-  win.height = WIN_H;
-  win.width = WIN_W;
-
-  font.font = NULL;
-  font.char_limit = 0;
-  font.size = 16;
+  Font font = {.font = NULL, .char_limit = 0, .size = 16};
 
   int written = 0;
   char *path_buffer = NULL;
@@ -233,8 +179,9 @@ int main(int argc, char **argv) {
     const char *fields[] = {"primary", "secondary", "background",
                             "secondary_bg", "text"};
 
-    SDL_Color *color_ptrs[] = {&vis.primary, &vis.secondary, &vis.background,
-                               &vis.secondary_bg, &vis.text};
+    SDL_Color *color_ptrs[] = {&colors.primary, &colors.secondary,
+                               &colors.background, &colors.secondary_bg,
+                               &colors.text};
 
     const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
     for (size_t i = 0; i < col_size; i++) {
@@ -247,9 +194,9 @@ int main(int argc, char **argv) {
           Pushes onto the stack the value t[k], where t is the value at the
           given index and k is the value at the top of the stack.
 
-          This function pops the key from the stack, pushing the resulting value
-          in its place. As in Lua, this function may trigger a metamethod for
-          the "index" event (see §2.4).
+          This function pops the key from the stack, pushing the resulting
+          value in its place. As in Lua, this function may trigger a
+          metamethod for the "index" event (see §2.4).
         */
 
         // push index onto the stack
@@ -290,20 +237,20 @@ int main(int argc, char **argv) {
 #endif
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
-  if (!open_ttf_file("dogicapixel.ttf")) {
+  if (!open_ttf_file("dogicapixel.ttf", home, &font)) {
     exit(EXIT_FAILURE);
   }
 
-  font.char_limit = get_char_limit(win.width);
+  font.char_limit = get_char_limit(w.width, font.size);
 
-  AudioDataContainer adc;
-  FFTBuffers f_buffers;
-  FFTData f_data;
-  zero_values(&adc);
+  AudioDataContainer adc = {0};
+  FFTBuffers f_buffers = {0};
+  FFTData f_data = {0};
   zero_fft(&f_buffers, &f_data);
   adc.buffer = NULL;
 
   adc.next = &f_buffers;
+  adc.dev_ptr = &vis.dev;
   f_buffers.next = &f_data;
   f_data.next = &adc;
 
@@ -320,29 +267,104 @@ int main(int argc, char **argv) {
   }
 
   int mode = TEXT;
+  Paths *p = fs_search(home);
+  TextBuffer *t =
+      create_fonts(p, r.r, &font, w.width, &colors.text, &colors.secondary);
 
-  table_set_paths(&table, current_node, fs_search(home));
-  table_set_text(&table, current_node,
-                 create_fonts(search_table(&table, current_node)->pbuf));
+  table_set_paths(&table, current_node, p);
+  table_set_text(&table, current_node, t);
 
   memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
 
-  scc(SDL_SetRenderDrawBlendMode(rend.r, SDL_BLENDMODE_BLEND));
+  SDL_SetRenderDrawBlendMode(r.r, SDL_BLENDMODE_BLEND);
   SDL_EnableScreenSaver();
-  SDL_ShowWindow(win.w);
+  SDL_ShowWindow(w.w);
 
   const int ticks_per_frame = (1000.0 / vis.target_frames);
   uint64_t frame_start;
   int frame_time;
 
+  uint64_t song_end_time = SDL_GetTicks64();
   SDL_StopTextInput();
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
 
-    render_bg();
-    render_clear();
+    render_bg(&colors.background, r.r);
+    render_clear(r.r);
+
+    if (adc.buffer && adc.position < adc.length) {
+      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
+        float tmp[M_BUF_SIZE];
+        memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
+
+        iter_fft(tmp, f_data.hamming_values, f_buffers.out_raw, M_BUF_SIZE);
+        squash_to_log(&f_buffers, &f_data);
+        linear_mapping(&f_buffers, &f_data, vis.smearing, vis.smoothing,
+                       vis.target_frames);
+      }
+    } else if (adc.buffer && adc.position >= adc.length) {
+      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING ||
+          get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
+        // This will block if it needs to.
+        close_device(vis.dev);
+        song_end_time = SDL_GetTicks64();
+      }
+
+      if (get_status(&vis.dev) == SDL_AUDIO_STOPPED &&
+          SDL_GetTicks64() - song_end_time > 5) {
+        int file_valid = 0;
+        int read_valid = 0;
+
+        TextBuffer *t = search_table(&table, playing_node)->tbuf;
+        Paths *p = search_table(&table, playing_node)->pbuf;
+        if (valid_ptr(p, t)) {
+          playing_cursor = auto_nav_down(playing_cursor, t->size);
+
+          const char *item_path = find_pathstr(t[playing_cursor].text->name, p);
+          const int item_type = find_type(t[playing_cursor].text->name, p);
+          if (item_type == TYPE_FILE) {
+            file_valid = 1;
+          }
+
+          if (file_valid && read_audio_file(item_path, &adc)) {
+            read_valid = 1;
+          }
+
+          if (read_valid) {
+            set_spec(&adc, vis.spec);
+          }
+
+          vis.dev = open_device(vis.spec);
+          if (vis.dev) {
+            resume_device(vis.dev);
+          }
+        }
+      }
+    }
+
+    // delegate these
+
+    switch (mode) {
+    default:
+      break;
+
+    case TEXT: {
+      Node *n = search_table(&table, current_node);
+      if (valid_ptr(n->pbuf, n->tbuf)) {
+        render_draw_text(r.r, n->tbuf, w.height, w.width, &colors.secondary_bg);
+      }
+    } break;
+
+    case PLAYBACK: {
+      RenderArgs args = make_args(&f_data, &f_buffers);
+      render_seek_bar(&adc.position, &adc.length, w.width, &colors.primary,
+                      r.r);
+      render_draw_music(&args, w.width, w.height, r.r, &colors.primary,
+                        &colors.secondary_bg);
+    } break;
+    }
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -355,13 +377,15 @@ int main(int argc, char **argv) {
         default:
           break;
         case SDL_WINDOWEVENT_RESIZED: {
-          window_resized();
-          replace_fonts(&table);
+          window_resized(&w, font.size, &font.char_limit);
+          replace_fonts(&table, r.r, &font, w.width, &colors.text,
+                        &colors.secondary);
         } break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
-          window_resized();
-          replace_fonts(&table);
+          window_resized(&w, font.size, &font.char_limit);
+          replace_fonts(&table, r.r, &font, w.width, &colors.text,
+                        &colors.secondary);
         } break;
         }
       } break;
@@ -406,8 +430,7 @@ int main(int argc, char **argv) {
                 break;
 
               case TYPE_FILE: {
-                pause_device();
-                close_device(&vis.dev);
+                close_device(vis.dev);
 
                 int valid = 0;
                 if (read_audio_file(item_path, &adc)) {
@@ -415,10 +438,15 @@ int main(int argc, char **argv) {
                 }
 
                 if (valid) {
-                  load_song(&adc);
+                  set_spec(&adc, vis.spec);
+                }
+
+                vis.dev = open_device(vis.spec);
+                if (vis.dev) {
                   playing_node = current_node;
                   playing_cursor = t->cursor;
                   mode = PLAYBACK;
+                  resume_device(vis.dev);
                 }
 
               } break;
@@ -435,7 +463,9 @@ int main(int argc, char **argv) {
                   old_paths = free_paths(old_paths, &old_paths->size);
 
                   table_set_paths(&table, i, fs_search(item_path));
-                  TextBuffer *t = create_fonts(search_table(&table, i)->pbuf);
+                  Paths *p = search_table(&table, i)->pbuf;
+                  TextBuffer *t = create_fonts(p, r.r, &font, w.width,
+                                               &colors.text, &colors.secondary);
                   table_set_text(&table, i, t);
 
                   if (search_table(&table, i)->pbuf &&
@@ -452,7 +482,11 @@ int main(int argc, char **argv) {
             if (keymod & KMOD_SHIFT) {
               mode = PLAYBACK;
             } else {
-              nav_down(search_table(&table, current_node)->tbuf);
+              TextBuffer *t = search_table(&table, current_node)->tbuf;
+              if (t) {
+                t->cursor = nav_down(t->cursor, t->size);
+                t->start = mv_start_pos(1, t->start, t->size);
+              }
             }
           } break;
 
@@ -460,7 +494,11 @@ int main(int argc, char **argv) {
             if (keymod & KMOD_SHIFT) {
               mode = TEXT;
             } else {
-              nav_up(search_table(&table, current_node)->tbuf);
+              TextBuffer *t = search_table(&table, current_node)->tbuf;
+              if (t) {
+                t->cursor = nav_up(t->cursor, t->size);
+                t->start = mv_start_pos(-1, t->start, t->size);
+              }
             }
           } break;
           }
@@ -471,19 +509,23 @@ int main(int argc, char **argv) {
           default:
             break;
 
+          case SDLK_p: {
+            if (get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
+              resume_device(vis.dev);
+            } else if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
+              pause_device(vis.dev);
+            }
+          } break;
+
           case SDLK_DOWN: {
             if (keymod & KMOD_SHIFT) {
               mode = PLAYBACK;
-            } else {
-              nav_down(search_table(&table, current_node)->tbuf);
             }
           } break;
 
           case SDLK_UP: {
             if (keymod & KMOD_SHIFT) {
               mode = TEXT;
-            } else {
-              nav_up(search_table(&table, current_node)->tbuf);
             }
           } break;
           }
@@ -493,68 +535,9 @@ int main(int argc, char **argv) {
       } break;
 
       case SDL_QUIT: {
-        SDL_CloseAudioDevice(vis.dev);
         vis.quit = true;
       } break;
       }
-    }
-    // delegate these
-    if (adc.buffer && adc.position < adc.length) {
-      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
-        float tmp[M_BUF_SIZE];
-        memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
-
-        iter_fft(tmp, f_data.hamming_values, f_buffers.out_raw, M_BUF_SIZE);
-        squash_to_log(&f_buffers, &f_data);
-        linear_mapping(&f_buffers, &f_data);
-      }
-    } else if (adc.buffer && adc.position >= adc.length) {
-      pause_device();
-      if (get_status(&vis.dev) == SDL_AUDIO_PAUSED ||
-          get_status(&vis.dev) == SDL_AUDIO_STOPPED) {
-
-        int file_valid = 0;
-        int read_valid = 0;
-
-        TextBuffer *t = search_table(&table, playing_node)->tbuf;
-        Paths *p = search_table(&table, playing_node)->pbuf;
-        if (valid_ptr(p, t)) {
-          auto_play_nav(t->size, &playing_cursor);
-
-          const char *item_path = find_pathstr(t[playing_cursor].text->name, p);
-          const int item_type = find_type(t[playing_cursor].text->name, p);
-          if (item_type == TYPE_FILE) {
-            file_valid = 1;
-          }
-
-          close_device(&vis.dev);
-          if (file_valid && read_audio_file(item_path, &adc)) {
-            read_valid = 1;
-          }
-
-          if (read_valid) {
-            load_song(&adc);
-          }
-        }
-      }
-    }
-
-    switch (mode) {
-    default:
-      break;
-
-    case TEXT: {
-      Node *n = search_table(&table, current_node);
-      if (valid_ptr(n->pbuf, n->tbuf)) {
-        render_draw_text(n->tbuf);
-      }
-    } break;
-
-    case PLAYBACK: {
-      RenderArgs args = make_args(&f_data, &f_buffers);
-      render_seek_bar(&adc.position, &adc.length);
-      render_draw_music(&args);
-    } break;
     }
 
     frame_time = SDL_GetTicks64() - frame_start;
@@ -562,19 +545,21 @@ int main(int argc, char **argv) {
       SDL_Delay(ticks_per_frame - frame_time);
     }
 
-    render_present();
+    render_present(r.r);
   }
+
+  close_device(vis.dev);
 
   if (adc.buffer) {
     free(adc.buffer);
   }
 
-  if (rend.r) {
-    SDL_DestroyRenderer(rend.r);
+  if (r.r) {
+    SDL_DestroyRenderer(r.r);
   }
 
-  if (win.w) {
-    SDL_DestroyWindow(win.w);
+  if (w.w) {
+    SDL_DestroyWindow(w.w);
   }
 
   TTF_Quit();
@@ -582,9 +567,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-static int open_ttf_file(const char *fn) {
+static int open_ttf_file(const char *fn, const char *home, Font *font) {
   const size_t path_size =
-      get_length(3, strlen(fn), strlen(vis.home), strlen(ASSETS_DIR));
+      get_length(3, strlen(fn), strlen(home), strlen(ASSETS_DIR));
 
   char *path_buffer = malloc(path_size + 1);
   if (!path_buffer) {
@@ -593,23 +578,29 @@ static int open_ttf_file(const char *fn) {
   }
 
   const size_t written =
-      snprintf(path_buffer, path_size + 1, "%s%s%s", vis.home, ASSETS_DIR, fn);
+      snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR, fn);
   if (written <= 0) {
     fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
     return 0;
   }
 
-  font.font = scp(TTF_OpenFont(path_buffer, FONT_SIZE));
+  font->font = TTF_OpenFont(path_buffer, font->size);
   free(path_buffer);
+  if (!font->font) {
+    SDL_ERR_CALLBACK(SDL_GetError());
+    return 0;
+  }
 
   return 1;
 }
 
-static void replace_fonts(Table *t) {
+static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
+                          const SDL_Color *c_text, const SDL_Color *c_sec) {
   for (int i = 0; i < MAX_NODES; i++) {
     Node *n = search_table(t, i);
     if (n) {
-      swap_font_ptrs(t, i, n->tbuf, create_fonts(n->pbuf));
+      TextBuffer *txt = create_fonts(n->pbuf, r, f, w, c_text, c_sec);
+      swap_font_ptrs(t, i, n->tbuf, txt);
     }
   }
 }
@@ -620,4 +611,46 @@ static RenderArgs make_args(const FFTData *d, const FFTBuffers *b) {
   // scope, and not limited to it.
   a.smear = b->smear, a.length = &d->output_len, a.smooth = b->smoothed;
   return a;
+}
+
+static void window_resized(Window *w, const int font_size, int *char_limit) {
+  SDL_GetWindowSize(w->w, &w->width, &w->height);
+  *char_limit = get_char_limit(w->width, font_size);
+}
+
+static int valid_ptr(Paths *p, TextBuffer *t) {
+  if ((p && t) && (p->is_valid && t->is_valid)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+static void swap_font_ptrs(Table *table, const size_t key,
+                           TextBuffer *old_buffer, TextBuffer *replace) {
+  table_set_text(table, key, replace);
+
+  if (old_buffer) {
+    for (size_t i = 0; i < old_buffer->size; i++) {
+      Text *invalidated = old_buffer[i].text;
+      char *invalid_name = invalidated->name;
+      SDL_Texture **invalid_tex = invalidated->tex;
+
+      if (invalid_name) {
+        free(invalid_name);
+      }
+
+      if (invalid_tex[0]) {
+        SDL_DestroyTexture(invalid_tex[0]);
+      }
+
+      if (invalid_tex[1]) {
+        SDL_DestroyTexture(invalid_tex[1]);
+      }
+
+      free(invalidated);
+    }
+
+    free(old_buffer);
+  }
 }

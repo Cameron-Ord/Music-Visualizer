@@ -1,8 +1,6 @@
 #include "particles.h"
-#include "particledef.h"
 #include "utils.h"
 #include <errno.h>
-
 // This stuff is sitting unused for now, might revive it later.
 
 #ifndef MAX

@@ -1,29 +1,27 @@
 #ifndef AUDIODEFS_H
 #define AUDIODEFS_H
 
-#define S_BUF_SIZE (1 << 14)
 #define M_BUF_SIZE (1 << 13)
 #define HALF_BUFF_SIZE (M_BUF_SIZE / 2)
 
+#include <SDL2/SDL_audio.h>
 #include <complex.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 typedef struct {
- float real;
- float imag;
-}Compf;
+  float real;
+  float imag;
+} Compf;
 
 struct AudioDataContainer;
 struct FFTBuffers;
 struct FFTData;
-struct BandStopFilter;
 
 typedef struct AudioDataContainer AudioDataContainer;
 typedef struct FFTBuffers FFTBuffers;
 typedef struct FFTData FFTData;
-typedef struct BandStopFilter BandStopFilter;
 
 struct AudioDataContainer {
   float *buffer;
@@ -36,6 +34,7 @@ struct AudioDataContainer {
   int format;
   float volume;
   FFTBuffers *next;
+  SDL_AudioDeviceID *dev_ptr;
 };
 
 // I squash stereo channels into a size of M_BUF_SIZE by summing and other means

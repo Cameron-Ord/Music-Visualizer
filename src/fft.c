@@ -1,6 +1,4 @@
 #include "audio.h"
-#include "audiodefs.h"
-#include "main.h"
 
 static inline Compf c_from_real(const float real) {
   Compf _complex;
@@ -119,18 +117,20 @@ float get_freq(const Compf *c) {
   return (c->real * c->real + c->imag * c->imag);
 }
 
-static float interpolate(float base, float interpolated, int coeff) {
-  return (base - interpolated) * coeff * (1.0 / vis.target_frames);
+static float interpolate(float base, float interpolated, int coeff,
+                         const int tframes) {
+  return (base - interpolated) * coeff * (1.0 / tframes);
 }
 
-void linear_mapping(FFTBuffers *bufs, FFTData *data) {
+void linear_mapping(FFTBuffers *bufs, FFTData *data, const int smear_c,
+                    const int smooth_c, const int tframes) {
   for (size_t i = 0; i < data->output_len; ++i) {
     const float n = bufs->processed_samples[i] / data->max_ampl;
     // interpolated audio amplitudes
-    bufs->smoothed[i] += interpolate(n, bufs->smoothed[i], vis.smoothing);
+    bufs->smoothed[i] += interpolate(n, bufs->smoothed[i], smooth_c, tframes);
     // interpolated smear frames (of the audio amplitudes)
     bufs->smear[i] +=
-        interpolate(bufs->smoothed[i], bufs->smear[i], vis.smearing);
+        interpolate(bufs->smoothed[i], bufs->smear[i], smear_c, tframes);
   }
 }
 

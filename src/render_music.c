@@ -1,6 +1,4 @@
-#include "main.h"
-#include "utils.h"
-#include <stddef.h>
+#include "renderer.h"
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -10,9 +8,10 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-void render_seek_bar(const uint32_t *position, const uint32_t *length) {
+void render_seek_bar(const uint32_t *position, const uint32_t *length,
+                     const int w, const SDL_Color *col, SDL_Renderer *r) {
   float normalized = (float)*position / *length;
-  int screen_location = normalized * win.width;
+  int screen_location = normalized * w;
 
   int box_width = 14;
   int box_height = 8;
@@ -21,9 +20,8 @@ void render_seek_bar(const uint32_t *position, const uint32_t *length) {
   int x = screen_location - (box_width * 0.5);
 
   SDL_Rect box = {x, y, box_width, box_height};
-  SDL_SetRenderDrawColor(rend.r, vis.primary.r, vis.primary.g, vis.primary.b,
-                         vis.primary.a);
-  SDL_RenderFillRect(rend.r, &box);
+  SDL_SetRenderDrawColor(r, col->r, col->g, col->b, col->a);
+  SDL_RenderFillRect(r, &box);
 }
 
 static float get_max(const float *even, const float *odd) {
@@ -71,11 +69,13 @@ static SDL_Rect create_rect(const int i, const float smpl, const int h,
   return box;
 }
 
-static void set_colour(SDL_Color *col) {
-  SDL_SetRenderDrawColor(rend.r, col->r, col->g, col->b, col->a);
+static void set_colour(SDL_Renderer *r, const SDL_Color *col) {
+  SDL_SetRenderDrawColor(r, col->r, col->g, col->b, col->a);
 }
 
-static void fill_rect(SDL_Rect *rect) { SDL_RenderFillRect(rend.r, rect); }
+static void fill_rect(SDL_Renderer *r, const SDL_Rect *rect) {
+  SDL_RenderFillRect(r, rect);
+}
 
 int check_args(RenderArgs *a) {
   if (!a) {
@@ -119,13 +119,13 @@ static int get_ds_amount(const int w) {
 
 static int get_cw(const int target, const int w) { return w / target; }
 
-void render_draw_music(RenderArgs *args) {
+void render_draw_music(RenderArgs *args, const int w, const int h,
+                       SDL_Renderer *r, const SDL_Color *p, SDL_Color *s) {
   if (!check_args(args)) {
     return;
   }
 
-  const int h = win.height;
-  const int w = win.width;
+  SDL_RenderSetViewport(r, NULL);
 
   const size_t *len = args->length;
   const float *smear = args->smear;
@@ -174,11 +174,11 @@ void render_draw_music(RenderArgs *args) {
     }
 
     if (cmp_y(sample_frame.y, smear_frame.y)) {
-      set_colour(&vis.secondary_bg);
-      fill_rect(&smear_frame);
+      set_colour(r, s);
+      fill_rect(r, &smear_frame);
     }
 
-    set_colour(&vis.primary);
-    fill_rect(&sample_frame);
+    set_colour(r, p);
+    fill_rect(r, &sample_frame);
   }
 }
