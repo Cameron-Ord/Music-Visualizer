@@ -28,7 +28,7 @@ int get_char_limit(const int width, const int font_size) {
     return 2;
   }
 
-  return MIN(100, MAX(3, (width * 0.80) / font_size));
+  return MIN(200, MAX(3, width / font_size));
 }
 
 void SDL_ERR_CALLBACK(const char *msg) {

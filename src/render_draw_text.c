@@ -1,79 +1,65 @@
 #include "fontdef.h"
 #include "renderer.h"
 
-#define H_COEFF 0.5
+const int text_spacing = 32;
+const int space = text_spacing - (text_spacing / 2);
 
-MaxValues determine_max(const TextBuffer *t, const int h) {
-  MaxValues m;
-  int y = TEXT_SPACING;
+static int center(const int pos, const int w) { return pos - (w / 2); }
+static int one_16th(const int val) { return center(val, val) / 16; }
+static int s(const int h) { return space + center(h, h); }
+
+MaxValues determine_max(const TextBuffer *buf, const int h) {
+  MaxValues m = {0};
+  if (!buf)
+    return m;
+
+  const int init = one_16th(h);
+  int y = center(init, buf->text->height) + s(buf->text->height);
+  m.first_y = y;
+
   int max_tw = 0;
+  size_t i = 0;
 
-  const int _h = h * H_COEFF;
-
-  for (size_t i = t->start; i < t->size && y < _h; i++) {
-    Text *txt = t[i].text;
-    if (txt->width > max_tw) {
-      max_tw = txt->width;
+  for (i = buf->start; i < buf->size && y < h - init; i++) {
+    Text *t = buf[i].text;
+    if (t->width > max_tw) {
+      max_tw = t->width;
     }
 
-    if (y + (txt->height + TEXT_SPACING) < _h)
-      y += txt->height + TEXT_SPACING;
+    m.last_y = y, m.height = y - init, m.max_tw = max_tw, m.last_iter = i;
+    if (y + t->height > h - init)
+      return m;
+
+    y += s(t->height);
   }
 
-  m.y = y, m.w = max_tw;
+  m.last_y = y, m.height = y - init, m.max_tw = max_tw;
   return m;
 }
 
-void render_draw_subbg(SDL_Renderer *r, const int w, const int h,
-                       const SDL_Color *c, const MaxValues *m) {
-  int vp_h = h * H_COEFF;
-  SDL_Rect vp = {0, vp_h - (vp_h / 2), w, vp_h};
-  SDL_RenderSetViewport(r, &vp);
-
-  const int padding = 2;
-
-  const int x = (w - (w / 2)) - (m->w / 2);
-  SDL_Rect bg = {x - (padding / 2), TEXT_SPACING - (TEXT_SPACING / 2),
-                 m->w + padding, m->y - TEXT_SPACING};
-
-  SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a);
-  SDL_RenderFillRect(r, &bg);
-}
-
-void render_draw_subg_outline(SDL_Renderer *r, const int w, const int h,
-                              const SDL_Color *c, const MaxValues *m) {
-  int vp_h = h * H_COEFF;
-  SDL_Rect vp = {0, vp_h - (vp_h / 2), w, vp_h};
-  SDL_RenderSetViewport(r, &vp);
-
-  const int padding = 8;
-
-  const int x = (w - (w / 2)) - (m->w / 2);
-  SDL_Rect bg = {x - (padding / 2), 0, m->w + padding, m->y};
-
-  SDL_SetRenderDrawColor(r, c->r, c->g, c->b, c->a);
-  SDL_RenderFillRect(r, &bg);
-}
-
 void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
-                      const int w, const MaxValues *m) {
-  int vp_h = h * H_COEFF;
-  SDL_Rect vp = {0, vp_h - (vp_h / 2), w, vp_h};
-  SDL_RenderSetViewport(r, &vp);
+                      const int w) {
+  if (!buf)
+    return;
 
-  int y = TEXT_SPACING;
-  for (size_t i = buf->start; i < buf->size && y < m->y; i++) {
+  const int init = one_16th(h);
+  int y = center(init, buf->text->height) + s(buf->text->height);
+
+  for (size_t i = buf->start; i < buf->size; i++) {
     Text *t = buf[i].text;
 
-    t->rect.x = (w - (w / 2)) - (t->width / 2), t->rect.y = y,
-    t->rect.w = t->width, t->rect.h = t->height;
+    if (y + t->height > h - init)
+      return;
 
-    y += t->height + TEXT_SPACING;
+    t->rect.x = one_16th(w), t->rect.y = y, t->rect.w = t->width,
+    t->rect.h = t->height;
 
     if (i != buf->cursor) {
       SDL_RenderCopy(r, t->tex[0], NULL, &t->rect);
     } else {
       SDL_RenderCopy(r, t->tex[1], NULL, &t->rect);
     }
+
+    y += s(t->height);
   }
 }

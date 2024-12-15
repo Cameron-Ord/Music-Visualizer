@@ -75,7 +75,9 @@ size_t auto_nav_down(const size_t cursor, const size_t max) {
 
 size_t mv_start_pos(const int n, const size_t start, const size_t max) {
   int incremented = (int)start + n;
+  printf("before %d\n", incremented);
   incremented = clamp((int)max, incremented);
+  printf("after %d\n", incremented);
   return incremented;
 }
 

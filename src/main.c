@@ -4,9 +4,11 @@
 #include "events.h"
 #include "filesystem.h"
 #include "font.h"
+#include "fontdef.h"
 #include "renderer.h"
 #include "table.h"
 #include "utils.h"
+#include <SDL2/SDL_blendmode.h>
 #include <SDL2/SDL_timer.h>
 #include <errno.h>
 #include <stdint.h>
@@ -55,6 +57,11 @@ static int valid_ptr(Paths *pbuf, TextBuffer *tbuf);
 static void swap_font_ptrs(Table *table, const size_t key,
                            TextBuffer *old_buffer, TextBuffer *replace);
 static RenderArgs make_args(const FFTData *d, const FFTBuffers *b);
+static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v);
+static void autoplay(const size_t *playing_node, size_t *playing_cursor,
+                     Table *tbl, Visualizer *v, AudioDataContainer *adc);
+static void move_up(TextBuffer *t);
+static void move_down(TextBuffer *t, const MaxValues m);
 
 int main(int argc, char **argv) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
@@ -277,16 +284,13 @@ int main(int argc, char **argv) {
   memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
 
-  SDL_SetRenderDrawBlendMode(r.r, SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawBlendMode(r.r, SDL_BLENDMODE_NONE);
   SDL_EnableScreenSaver();
   SDL_ShowWindow(w.w);
 
   const int ticks_per_frame = (1000.0 / vis.target_frames);
   uint64_t frame_start;
   int frame_time;
-
-  uint64_t song_end_time = SDL_GetTicks64();
-  SDL_StopTextInput();
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -296,55 +300,19 @@ int main(int argc, char **argv) {
 
     if (adc.buffer && adc.position < adc.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
-        float tmp[M_BUF_SIZE];
-        memcpy(tmp, f_buffers.fft_in, sizeof(float) * M_BUF_SIZE);
-
-        iter_fft(tmp, f_data.hamming_values, f_buffers.out_raw, M_BUF_SIZE);
-        squash_to_log(&f_buffers, &f_data);
-        linear_mapping(&f_buffers, &f_data, vis.smearing, vis.smoothing,
-                       vis.target_frames);
+        do_fft(&f_buffers, &f_data, &vis);
       }
     } else if (adc.buffer && adc.position >= adc.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PLAYING ||
           get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
         // This will block if it needs to.
         close_device(vis.dev);
-        song_end_time = SDL_GetTicks64();
       }
 
-      if (get_status(&vis.dev) == SDL_AUDIO_STOPPED &&
-          SDL_GetTicks64() - song_end_time > 5) {
-        int file_valid = 0;
-        int read_valid = 0;
-
-        TextBuffer *t = search_table(&table, playing_node)->tbuf;
-        Paths *p = search_table(&table, playing_node)->pbuf;
-        if (valid_ptr(p, t)) {
-          playing_cursor = auto_nav_down(playing_cursor, t->size);
-
-          const char *item_path = find_pathstr(t[playing_cursor].text->name, p);
-          const int item_type = find_type(t[playing_cursor].text->name, p);
-          if (item_type == TYPE_FILE) {
-            file_valid = 1;
-          }
-
-          if (file_valid && read_audio_file(item_path, &adc)) {
-            read_valid = 1;
-          }
-
-          if (read_valid) {
-            set_spec(&adc, vis.spec);
-          }
-
-          vis.dev = open_device(vis.spec);
-          if (vis.dev) {
-            resume_device(vis.dev);
-          }
-        }
+      if (get_status(&vis.dev) == SDL_AUDIO_STOPPED) {
+        autoplay(&playing_node, &playing_cursor, &table, &vis, &adc);
       }
     }
-
-    // delegate these
 
     switch (mode) {
     default:
@@ -352,12 +320,8 @@ int main(int argc, char **argv) {
 
     case TEXT: {
       Node *n = search_table(&table, current_node);
-      if (valid_ptr(n->pbuf, n->tbuf)) {
-        MaxValues m = determine_max(n->tbuf, w.height);
-        render_draw_subg_outline(r.r, w.width, w.height, &colors.secondary, &m);
-        render_draw_subbg(r.r, w.width, w.height, &colors.secondary_bg, &m);
-
-        render_draw_text(r.r, n->tbuf, w.height, w.width, &m);
+      if (n && valid_ptr(n->pbuf, n->tbuf)) {
+        render_draw_text(r.r, n->tbuf, w.height, w.width);
       }
     } break;
 
@@ -463,6 +427,7 @@ int main(int argc, char **argv) {
                   // Need to free existing memory beforehand (if it exists)
                   TextBuffer *old_tb = search_table(&table, i)->tbuf;
                   Paths *old_paths = search_table(&table, i)->pbuf;
+
                   old_tb = free_text_buffer(old_tb, &old_tb->size);
                   old_paths = free_paths(old_paths, &old_paths->size);
 
@@ -487,10 +452,7 @@ int main(int argc, char **argv) {
               mode = PLAYBACK;
             } else {
               TextBuffer *t = search_table(&table, current_node)->tbuf;
-              if (t) {
-                t->cursor = nav_down(t->cursor, t->size);
-                t->start = mv_start_pos(1, t->start, t->size);
-              }
+              move_down(t, determine_max(t, w.height));
             }
           } break;
 
@@ -499,10 +461,7 @@ int main(int argc, char **argv) {
               mode = TEXT;
             } else {
               TextBuffer *t = search_table(&table, current_node)->tbuf;
-              if (t) {
-                t->cursor = nav_up(t->cursor, t->size);
-                t->start = mv_start_pos(-1, t->start, t->size);
-              }
+              move_up(t);
             }
           } break;
           }
@@ -656,5 +615,63 @@ static void swap_font_ptrs(Table *table, const size_t key,
     }
 
     free(old_buffer);
+  }
+}
+
+static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {
+  float tmp[M_BUF_SIZE];
+  memcpy(tmp, b->fft_in, sizeof(float) * M_BUF_SIZE);
+  iter_fft(tmp, d->hamming_values, b->out_raw, M_BUF_SIZE);
+  squash_to_log(b, d);
+  linear_mapping(b, d, v->smearing, v->smoothing, v->target_frames);
+}
+
+static void autoplay(const size_t *playing_node, size_t *playing_cursor,
+                     Table *tbl, Visualizer *v, AudioDataContainer *adc) {
+  int file_valid = 0;
+  int read_valid = 0;
+
+  TextBuffer *t = search_table(tbl, *playing_node)->tbuf;
+  Paths *p = search_table(tbl, *playing_node)->pbuf;
+  if (valid_ptr(p, t)) {
+    *playing_cursor = auto_nav_down(*playing_cursor, t->size);
+
+    const char *item_path = find_pathstr(t[*playing_cursor].text->name, p);
+    const int item_type = find_type(t[*playing_cursor].text->name, p);
+
+    if (item_type == TYPE_FILE) {
+      file_valid = 1;
+    }
+
+    if (file_valid && read_audio_file(item_path, adc)) {
+      read_valid = 1;
+    }
+
+    if (read_valid) {
+      set_spec(adc, v->spec);
+    }
+
+    v->dev = open_device(v->spec);
+    if (v->dev) {
+      resume_device(v->dev);
+    }
+  }
+}
+
+static void move_up(TextBuffer *t) {
+  if (t) {
+    t->cursor = nav_up(t->cursor, t->size);
+    if (t->cursor < t->start) {
+      t->start = mv_start_pos(-1, t->start, t->size);
+    }
+  }
+}
+
+static void move_down(TextBuffer *t, const MaxValues m) {
+  if (t) {
+    t->cursor = nav_down(t->cursor, t->size);
+    if ((int)t->cursor > m.last_iter) {
+      t->start = mv_start_pos(1, t->start, t->size);
+    }
   }
 }
