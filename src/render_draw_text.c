@@ -26,11 +26,13 @@ MaxValues determine_max(const TextBuffer *buf, const int h) {
       max_tw = t->width;
     }
 
-    m.last_y = y, m.height = y - init, m.max_tw = max_tw, m.last_iter = i;
-    if (y + t->height > h - init)
+    if (y + (t->height + space) > h - init) {
+      m.last_y = y, m.height = y - init, m.max_tw = max_tw, m.last_iter = i;
       return m;
+    }
 
     y += s(t->height);
+    m.last_iter = i;
   }
 
   m.last_y = y, m.height = y - init, m.max_tw = max_tw;
@@ -48,7 +50,7 @@ void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
   for (size_t i = buf->start; i < buf->size; i++) {
     Text *t = buf[i].text;
 
-    if (y + t->height > h - init)
+    if (y + (t->height + space) > h - init)
       return;
 
     t->rect.x = one_16th(w), t->rect.y = y, t->rect.w = t->width,

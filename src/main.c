@@ -61,7 +61,7 @@ static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v);
 static void autoplay(const size_t *playing_node, size_t *playing_cursor,
                      Table *tbl, Visualizer *v, AudioDataContainer *adc);
 static void move_up(TextBuffer *t);
-static void move_down(TextBuffer *t, const MaxValues m);
+static void move_down(TextBuffer *t, const int h);
 
 int main(int argc, char **argv) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
@@ -451,7 +451,7 @@ int main(int argc, char **argv) {
               mode = PLAYBACK;
             } else {
               TextBuffer *t = search_table(&table, current_node)->tbuf;
-              move_down(t, determine_max(t, w.height));
+              move_down(t, w.height);
             }
           } break;
 
@@ -674,10 +674,12 @@ static void move_up(TextBuffer *t) {
   }
 }
 
-static void move_down(TextBuffer *t, const MaxValues m) {
+static void move_down(TextBuffer *t, const int h) {
+  int offset = determine_max(t, h).last_iter - 1;
+
   if (t) {
     t->cursor = nav_down(t->cursor, t->size);
-    if ((int)t->cursor > m.last_iter) {
+    if (t->cursor >= (size_t)offset) {
       t->start = mv_start_pos(1, t->start, t->size);
     }
   }
