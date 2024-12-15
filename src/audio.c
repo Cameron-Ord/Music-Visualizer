@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "audiodefs.h"
 #include "utils.h"
 #include <errno.h>
 #include <sndfile.h>
@@ -137,11 +138,33 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
 
 unsigned int open_device(SDL_AudioSpec *spec) {
   unsigned int dev;
-  dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, 1);
+  dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
   if (!dev) {
     SDL_ERR_CALLBACK(SDL_GetError());
   }
   return dev;
+}
+
+int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a) {
+  if (!s->callback)
+    return 0;
+
+  if (!s->userdata)
+    return 0;
+
+  if (s->format != AUDIO_F32SYS)
+    return 0;
+
+  if (s->channels != a->channels)
+    return 0;
+
+  if (s->freq != a->SR)
+    return 0;
+
+  if (s->samples != (M_BUF_SIZE) / a->channels)
+    return 0;
+
+  return 1;
 }
 
 void set_spec(AudioDataContainer *adc, SDL_AudioSpec *s) {

@@ -303,13 +303,7 @@ int main(int argc, char **argv) {
         do_fft(&f_buffers, &f_data, &vis);
       }
     } else if (adc.buffer && adc.position >= adc.length) {
-      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING ||
-          get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
-        // This will block if it needs to.
-        close_device(vis.dev);
-      }
-
-      if (get_status(&vis.dev) == SDL_AUDIO_STOPPED) {
+      if (get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
         autoplay(&playing_node, &playing_cursor, &table, &vis, &adc);
       }
     }
@@ -398,8 +392,7 @@ int main(int argc, char **argv) {
                 break;
 
               case TYPE_FILE: {
-                close_device(vis.dev);
-
+                pause_device(vis.dev);
                 int valid = 0;
                 if (read_audio_file(item_path, &adc)) {
                   valid = 1;
@@ -409,7 +402,13 @@ int main(int argc, char **argv) {
                   set_spec(&adc, vis.spec);
                 }
 
-                vis.dev = open_device(vis.spec);
+                if (!vis.dev && spec_compare(vis.spec, &adc)) {
+                  vis.dev = open_device(vis.spec);
+                } else if (vis.dev && !spec_compare(vis.spec, &adc)) {
+                  close_device(vis.dev);
+                  vis.dev = open_device(vis.spec);
+                }
+
                 if (vis.dev) {
                   playing_node = current_node;
                   playing_cursor = t->cursor;
@@ -628,6 +627,8 @@ static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {
 
 static void autoplay(const size_t *playing_node, size_t *playing_cursor,
                      Table *tbl, Visualizer *v, AudioDataContainer *adc) {
+
+  pause_device(v->dev);
   int file_valid = 0;
   int read_valid = 0;
 
@@ -651,7 +652,13 @@ static void autoplay(const size_t *playing_node, size_t *playing_cursor,
       set_spec(adc, v->spec);
     }
 
-    v->dev = open_device(v->spec);
+    if (!v->dev && spec_compare(v->spec, adc)) {
+      v->dev = open_device(v->spec);
+    } else if (v->dev && !spec_compare(v->spec, adc)) {
+      close_device(v->dev);
+      v->dev = open_device(v->spec);
+    }
+
     if (v->dev) {
       resume_device(v->dev);
     }

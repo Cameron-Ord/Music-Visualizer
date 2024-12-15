@@ -3,6 +3,8 @@
 #include "audiodefs.h"
 
 // Audio functions
+//
+int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a);
 void close_device(unsigned int dev);
 void callback(void *userdata, uint8_t *stream, int length);
 int read_audio_file(const char *file_path, AudioDataContainer *adc);
