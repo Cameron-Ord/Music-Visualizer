@@ -76,6 +76,7 @@ static void move_down(TextBuffer *t, const int h);
 static int handle_type_file(const char *path, AudioDataContainer *adc,
                             Visualizer *v);
 static int handle_type_dir(const int i, TypeDirArgs *args);
+static int go_back(const int i, Table *tbl);
 
 #ifdef LUA_FLAG
 
@@ -291,12 +292,12 @@ int main(int argc, char **argv) {
   }
 
   int mode = TEXT;
-  Paths *p = fs_search(home);
-  TextBuffer *t =
-      create_fonts(p, r.r, &font, w.width, &colors.text, &colors.secondary);
+  Paths *first_paths = fs_search(home);
+  TextBuffer *first_text = create_fonts(first_paths, r.r, &font, w.width,
+                                        &colors.text, &colors.secondary);
 
-  table_set_paths(&table, node_idx.cur_node, p);
-  table_set_text(&table, node_idx.cur_node, t);
+  table_set_paths(&table, node_idx.cur_node, first_paths);
+  table_set_text(&table, node_idx.cur_node, first_text);
 
   memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
@@ -383,27 +384,16 @@ int main(int argc, char **argv) {
 
           case SDLK_LEFT: {
             int i = node_index("--", node_idx.cur_node, MAX_NODES);
-            Node *n = search_table(&table, i);
-            if (n->pbuf && n->tbuf) {
-              Text *t = n->tbuf[n->tbuf->info.cursor].text;
-              if (find_pathstr(t->name, n->pbuf)) {
-                node_idx.cur_node = i;
-              } else {
-                node_idx.cur_node = 0;
-              }
-            } else {
-              node_idx.cur_node = 0;
-            }
+            node_idx.cur_node = go_back(i, &table);
           } break;
 
           case SDLK_RIGHT: {
             Node *current = search_table(&table, node_idx.cur_node);
-            Paths *p = current->pbuf;
-            TextBuffer *t = current->tbuf;
-            if (valid_ptr(p, t)) {
-              const char *item_name = t[t->info.cursor].text->name;
-              const char *item_path = find_pathstr(item_name, p);
-              const int item_type = find_type(item_name, p);
+            const size_t access = current->tbuf->info.cursor;
+            if (current && valid_ptr(current->pbuf, current->tbuf)) {
+              const char *item_name = current->tbuf[access].text->name;
+              const char *item_path = find_pathstr(item_name, current->pbuf);
+              const int item_type = find_type(item_name, current->pbuf);
 
               switch (item_type) {
               default:
@@ -412,7 +402,7 @@ int main(int argc, char **argv) {
               case TYPE_FILE: {
                 if (handle_type_file(item_path, &adc, &vis)) {
                   node_idx.p_node = node_idx.cur_node;
-                  node_idx.node_curs = t->info.cursor;
+                  node_idx.node_curs = access;
                   mode = PLAYBACK;
                 }
 
@@ -618,40 +608,42 @@ static void autoplay(const size_t *playing_node, size_t *playing_cursor,
                      Table *tbl, Visualizer *v, AudioDataContainer *adc) {
 
   pause_device(v->dev);
-  int file_valid = 0;
-  int read_valid = 0;
-
   TextBuffer *t = search_table(tbl, *playing_node)->tbuf;
   Paths *p = search_table(tbl, *playing_node)->pbuf;
-  if (valid_ptr(p, t)) {
-    *playing_cursor = auto_nav_down(*playing_cursor, t->info.size);
-
-    const char *item_path = find_pathstr(t[*playing_cursor].text->name, p);
-    const int item_type = find_type(t[*playing_cursor].text->name, p);
-
-    if (item_type == TYPE_FILE) {
-      file_valid = 1;
-    }
-
-    if (file_valid && read_audio_file(item_path, adc)) {
-      read_valid = 1;
-    }
-
-    if (read_valid) {
-      set_spec(adc, v->spec);
-    }
-
-    if (!v->dev && spec_compare(v->spec, adc)) {
-      v->dev = open_device(v->spec);
-    } else if (v->dev && !spec_compare(v->spec, adc)) {
-      close_device(v->dev);
-      v->dev = open_device(v->spec);
-    }
-
-    if (v->dev) {
-      resume_device(v->dev);
-    }
+  if (!valid_ptr(p, t)) {
+    printf("Invalid ptrs -> (Paths, TextBuffer)\n");
+    return;
   }
+
+  *playing_cursor = auto_nav_down(*playing_cursor, t->info.size);
+
+  const char *item_path = find_pathstr(t[*playing_cursor].text->name, p);
+  const int item_type = find_type(t[*playing_cursor].text->name, p);
+
+  if (item_type != TYPE_FILE) {
+    return;
+  }
+
+  if (!read_audio_file(item_path, adc)) {
+    printf("Failed to read audio..\n");
+    return;
+  }
+
+  set_spec(adc, v->spec);
+
+  if (!v->dev && spec_compare(v->spec, adc)) {
+    v->dev = open_device(v->spec);
+  } else if (v->dev && !spec_compare(v->spec, adc)) {
+    close_device(v->dev);
+    v->dev = open_device(v->spec);
+  }
+
+  if (!v->dev) {
+    printf("No valid audio device..\n");
+    return;
+  }
+
+  resume_device(v->dev);
 }
 
 static void move_up(TextBuffer *t) {
@@ -728,6 +720,21 @@ static int handle_type_dir(const int i, TypeDirArgs *args) {
 
   if (p && t) {
     return 1;
+  }
+
+  return 0;
+}
+
+static int go_back(const int i, Table *tbl) {
+  Paths *p = search_table(tbl, i)->pbuf;
+  TextBuffer *t = search_table(tbl, i)->tbuf;
+  const size_t access = t->info.cursor;
+
+  if (valid_ptr(p, t)) {
+    Text *text = t[access].text;
+    if (find_pathstr(text->name, p)) {
+      return i;
+    }
   }
 
   return 0;

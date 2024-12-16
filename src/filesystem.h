@@ -5,6 +5,7 @@
 void *free_paths(Paths *buf, const size_t *count);
 const char *find_pathstr(const char *search_key, Paths *buffer);
 int find_type(const char *search_key, Paths *buffer);
+const size_t *get_name_length(const char *search_key, Paths *buffer);
 
 #ifdef _WIN32
 #include <windows.h>
