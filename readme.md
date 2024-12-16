@@ -5,8 +5,11 @@
 
 ## Music Visualizer
 I am making this for myself only, but if you wanna use it, check out the build section. I'm considering making releases at this point. So I might get around to it.
-### Gallery
+
 > Side note : these images are out of date, and colours can be determined in your config.lua if you compile with lualib.
+
+### Gallery
+
 ![image](example/desktop1.png)
 ![image](example/desktop2.png)
 
