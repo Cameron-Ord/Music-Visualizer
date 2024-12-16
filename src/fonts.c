@@ -33,6 +33,16 @@ void *free_text_buffer(TextBuffer *buf, const size_t *count) {
   return NULL;
 }
 
+static void zero_data(IdxInfo *i) {
+  i->is_valid = 0;
+  i->size = 0;
+  i->start = 0;
+  i->cursor = 0;
+  i->max_text_height = 0;
+}
+
+static void zero_buffer(TextBuffer *t) { t->text = NULL; }
+
 TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
                          const int w, const SDL_Color *c_text,
                          const SDL_Color *c_sec) {
@@ -50,11 +60,14 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
     return NULL;
   }
 
-  tbuf->is_valid = 0;
-  tbuf->size = 0;
-  tbuf->cursor = 0;
-  tbuf->start = 0;
-  tbuf->listed = 0;
+  // For the info struct I only use the instance of the IdxInfo struct that the
+  // pointer to the first element has. All other instances of TextBuffer other
+  // than the pointer to the first element will just have this struct contain
+  // zeroed values.
+  for (size_t i = 0; i < pbuf->size; i++) {
+    zero_buffer(tbuf);
+    zero_data(&tbuf[i].info);
+  }
 
   for (size_t i = 0; i < pbuf->size; i++) {
     tbuf[i].text = NULL;
@@ -122,9 +135,6 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
 
     text->width = text->surf[0]->w;
     text->height = text->surf[0]->h;
-    SDL_Rect text_rect = {.x = 0, .y = 0, text->width, text->height};
-    text->rect = text_rect;
-
     SDL_FreeSurface(text->surf[0]);
 
     text->surf[1] = TTF_RenderText_Solid(f->font, name_buffer, *c_sec);
@@ -143,9 +153,13 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
     text->surf[1] = NULL;
     text->is_valid = 1;
 
-    tbuf->size++;
+    if (text->height > tbuf->info.max_text_height) {
+      tbuf->info.max_text_height = text->height;
+    }
+
+    tbuf->info.size++;
   }
 
-  tbuf->is_valid = 1;
+  tbuf->info.is_valid = 1;
   return tbuf;
 }

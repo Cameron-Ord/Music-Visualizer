@@ -46,4 +46,10 @@ typedef struct {
   int size;
 } Font;
 
+typedef struct {
+  size_t p_node;
+  size_t cur_node;
+  size_t node_curs;
+} NodeIdx;
+
 #endif // MAIN_H

@@ -20,8 +20,6 @@ typedef struct {
 } MaxValues;
 
 // Render functions
-
-MaxValues determine_max(const TextBuffer *t, const int h);
 void render_seek_bar(const uint32_t *position, const uint32_t *length,
                      const int w, const SDL_Color *col, SDL_Renderer *r);
 void render_bg(const SDL_Color *col, SDL_Renderer *r);

@@ -43,9 +43,9 @@ void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
     n->tbuf = NULL;
     // We do the check on the validity, then free or assign memory as per it's
     // value. Easier to manage this way.
-  } else if (tbuf && !tbuf->is_valid) {
+  } else if (tbuf && !tbuf->info.is_valid) {
     // returns null
-    n->tbuf = free_text_buffer(tbuf, &tbuf->size);
+    n->tbuf = free_text_buffer(tbuf, &tbuf->info.size);
   } else {
     n->tbuf = tbuf;
   }

@@ -49,6 +49,17 @@ SDL_Color text = {205, 214, 244, 255};
 
 int FPS = 60;
 
+// Need to pass all these to a static function here and its alot so..
+typedef struct {
+  const char *path;
+  Table *tbl;
+  SDL_Renderer *r;
+  Font *f;
+  const int w;
+  SDL_Color *text;
+  SDL_Color *sec;
+} TypeDirArgs;
+
 static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
                           const SDL_Color *c_text, const SDL_Color *c_sec);
 static int open_ttf_file(const char *fn, const char *home, Font *font);
@@ -62,6 +73,128 @@ static void autoplay(const size_t *playing_node, size_t *playing_cursor,
                      Table *tbl, Visualizer *v, AudioDataContainer *adc);
 static void move_up(TextBuffer *t);
 static void move_down(TextBuffer *t, const int h);
+static int handle_type_file(const char *path, AudioDataContainer *adc,
+                            Visualizer *v);
+static int handle_type_dir(const int i, TypeDirArgs *args);
+
+#ifdef LUA_FLAG
+
+static int load_config(Visualizer *v, Colors *c, const char *home) {
+  int written = 0;
+  char *path_buffer = NULL;
+  size_t path_size = 0;
+
+  const char *config_name = "config.lua";
+  path_size =
+      get_length(3, strlen(config_name), strlen(home), strlen(ASSETS_DIR));
+
+  path_buffer = malloc(path_size + 1);
+  if (!path_buffer) {
+    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
+    return 0;
+  }
+  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
+                     config_name);
+  if (written <= 0) {
+    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
+    free(path_buffer);
+    return 0;
+  }
+
+  printf("Lua config path -> %s\n", path_buffer);
+
+  lua_State *L = luaL_newstate();
+  if (!L) {
+    free(path_buffer);
+    return 0;
+  }
+
+  luaL_openlibs(L);
+
+  if (luaL_dostring(L, "print('Lua state initialized!')") != LUA_OK) {
+    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    lua_close(L);
+    return 0;
+  }
+
+  if (luaL_dofile(L, path_buffer) != LUA_OK) {
+    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    lua_close(L);
+    return 0;
+  }
+
+  free(path_buffer);
+
+  lua_getglobal(L, "Config");
+  lua_getfield(L, -1, "FPS");
+  v->target_frames = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+
+  lua_getfield(L, -1, "smearing");
+  v->smearing = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+
+  lua_getfield(L, -1, "smoothing");
+  v->smoothing = lua_tointeger(L, -1);
+  lua_pop(L, 1);
+
+  const char *fields[] = {"primary", "secondary", "background", "secondary_bg",
+                          "text"};
+
+  SDL_Color *color_ptrs[] = {&c->primary, &c->secondary, &c->background,
+                             &c->secondary_bg, &c->text};
+
+  const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
+  for (size_t i = 0; i < col_size; i++) {
+    lua_getfield(L, -1, fields[i]);
+    for (size_t j = 0; j < 4; j++) {
+
+      /*
+        int lua_gettable (lua_State *L, int index);
+
+        Pushes onto the stack the value t[k], where t is the value at the
+        given index and k is the value at the top of the stack.
+
+        This function pops the key from the stack, pushing the resulting
+        value in its place. As in Lua, this function may trigger a
+        metamethod for the "index" event (see §2.4).
+      */
+
+      // push index onto the stack
+      lua_pushinteger(L, j + 1);
+      // get the j-th value from the table (array)
+      lua_gettable(L, -2);
+      switch (j) {
+      case 0: {
+        color_ptrs[i]->r = lua_tointeger(L, -1);
+      } break;
+
+      case 1: {
+        color_ptrs[i]->g = lua_tointeger(L, -1);
+      } break;
+
+      case 2: {
+        color_ptrs[i]->b = lua_tointeger(L, -1);
+      } break;
+
+      case 3: {
+        color_ptrs[i]->a = lua_tointeger(L, -1);
+      } break;
+      }
+
+      lua_pop(L, 1);
+    }
+
+    lua_pop(L, 1);
+  }
+
+  lua_pop(L, 1);
+  lua_close(L);
+  return 1;
+}
+#endif
 
 int main(int argc, char **argv) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
@@ -125,122 +258,8 @@ int main(int argc, char **argv) {
 
   Font font = {.font = NULL, .char_limit = 0, .size = 16};
 
-  int written = 0;
-  char *path_buffer = NULL;
-  size_t path_size = 0;
-
 #ifdef LUA_FLAG
-  const char *config_name = "config.lua";
-  path_size =
-      get_length(3, strlen(config_name), strlen(home), strlen(ASSETS_DIR));
-
-  path_buffer = malloc(path_size + 1);
-  if (!path_buffer) {
-    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
-    return 1;
-  }
-
-  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
-                     config_name);
-  if (written <= 0) {
-    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
-    return 1;
-  }
-
-  printf("Lua config path -> %s\n", path_buffer);
-
-  lua_State *L = luaL_newstate();
-  assert(L != NULL);
-  luaL_openlibs(L);
-
-  bool lua_failed = false;
-
-  if (luaL_dostring(L, "print('Lua state initialized!')") != LUA_OK) {
-    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    lua_failed = true;
-  }
-
-  if (luaL_dofile(L, path_buffer) != LUA_OK) {
-    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    lua_failed = true;
-  }
-
-  free(path_buffer);
-
-  if (!lua_failed) {
-    lua_getglobal(L, "Config");
-    lua_getfield(L, -1, "FPS");
-    vis.target_frames = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "smearing");
-    vis.smearing = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    lua_getfield(L, -1, "smoothing");
-    vis.smoothing = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    const char *fields[] = {"primary", "secondary", "background",
-                            "secondary_bg", "text"};
-
-    SDL_Color *color_ptrs[] = {&colors.primary, &colors.secondary,
-                               &colors.background, &colors.secondary_bg,
-                               &colors.text};
-
-    const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
-    for (size_t i = 0; i < col_size; i++) {
-      lua_getfield(L, -1, fields[i]);
-      for (size_t j = 0; j < 4; j++) {
-
-        /*
-          int lua_gettable (lua_State *L, int index);
-
-          Pushes onto the stack the value t[k], where t is the value at the
-          given index and k is the value at the top of the stack.
-
-          This function pops the key from the stack, pushing the resulting
-          value in its place. As in Lua, this function may trigger a
-          metamethod for the "index" event (see §2.4).
-        */
-
-        // push index onto the stack
-        lua_pushinteger(L, j + 1);
-        // get the j-th value from the table (array)
-        lua_gettable(L, -2);
-        switch (j) {
-        case 0: {
-          color_ptrs[i]->r = lua_tointeger(L, -1);
-        } break;
-
-        case 1: {
-          color_ptrs[i]->g = lua_tointeger(L, -1);
-        } break;
-
-        case 2: {
-          color_ptrs[i]->b = lua_tointeger(L, -1);
-        } break;
-
-        case 3: {
-          color_ptrs[i]->a = lua_tointeger(L, -1);
-        } break;
-        }
-
-        lua_pop(L, 1);
-      }
-
-      lua_pop(L, 1);
-    }
-
-    lua_pop(L, 1);
-  }
-
-  if (L && !lua_failed) {
-    lua_close(L);
-  }
-
+  load_config(&vis, &colors, home);
 #endif
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
@@ -261,9 +280,7 @@ int main(int argc, char **argv) {
   f_buffers.next = &f_data;
   f_data.next = &adc;
 
-  size_t current_node = 0;
-  size_t playing_node = 0;
-  size_t playing_cursor = 0;
+  NodeIdx node_idx = {.p_node = 0, .cur_node = 0, .node_curs = 0};
 
   Table table;
   for (size_t i = 0; i < MAX_NODES; i++) {
@@ -278,8 +295,8 @@ int main(int argc, char **argv) {
   TextBuffer *t =
       create_fonts(p, r.r, &font, w.width, &colors.text, &colors.secondary);
 
-  table_set_paths(&table, current_node, p);
-  table_set_text(&table, current_node, t);
+  table_set_paths(&table, node_idx.cur_node, p);
+  table_set_text(&table, node_idx.cur_node, t);
 
   memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
@@ -304,7 +321,7 @@ int main(int argc, char **argv) {
       }
     } else if (adc.buffer && adc.position >= adc.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
-        autoplay(&playing_node, &playing_cursor, &table, &vis, &adc);
+        autoplay(&node_idx.p_node, &node_idx.node_curs, &table, &vis, &adc);
       }
     }
 
@@ -313,7 +330,7 @@ int main(int argc, char **argv) {
       break;
 
     case TEXT: {
-      Node *n = search_table(&table, current_node);
+      Node *n = search_table(&table, node_idx.cur_node);
       if (n && valid_ptr(n->pbuf, n->tbuf)) {
         render_draw_text(r.r, n->tbuf, w.height, w.width);
       }
@@ -365,81 +382,53 @@ int main(int argc, char **argv) {
             break;
 
           case SDLK_LEFT: {
-            int i = node_index("--", current_node, MAX_NODES);
+            int i = node_index("--", node_idx.cur_node, MAX_NODES);
             Node *n = search_table(&table, i);
             if (n->pbuf && n->tbuf) {
-              Text *t = n->tbuf[n->tbuf->cursor].text;
+              Text *t = n->tbuf[n->tbuf->info.cursor].text;
               if (find_pathstr(t->name, n->pbuf)) {
-                current_node = i;
+                node_idx.cur_node = i;
               } else {
-                current_node = 0;
+                node_idx.cur_node = 0;
               }
             } else {
-              current_node = 0;
+              node_idx.cur_node = 0;
             }
           } break;
 
           case SDLK_RIGHT: {
-            TextBuffer *t = search_table(&table, current_node)->tbuf;
-            Paths *p = search_table(&table, current_node)->pbuf;
-
+            Node *current = search_table(&table, node_idx.cur_node);
+            Paths *p = current->pbuf;
+            TextBuffer *t = current->tbuf;
             if (valid_ptr(p, t)) {
-              const char *item_path = find_pathstr(t[t->cursor].text->name, p);
-              const int item_type = find_type(t[t->cursor].text->name, p);
+              const char *item_name = t[t->info.cursor].text->name;
+              const char *item_path = find_pathstr(item_name, p);
+              const int item_type = find_type(item_name, p);
 
               switch (item_type) {
               default:
                 break;
 
               case TYPE_FILE: {
-                pause_device(vis.dev);
-                int valid = 0;
-                if (read_audio_file(item_path, &adc)) {
-                  valid = 1;
-                }
-
-                if (valid) {
-                  set_spec(&adc, vis.spec);
-                }
-
-                if (!vis.dev && spec_compare(vis.spec, &adc)) {
-                  vis.dev = open_device(vis.spec);
-                } else if (vis.dev && !spec_compare(vis.spec, &adc)) {
-                  close_device(vis.dev);
-                  vis.dev = open_device(vis.spec);
-                }
-
-                if (vis.dev) {
-                  playing_node = current_node;
-                  playing_cursor = t->cursor;
+                if (handle_type_file(item_path, &adc, &vis)) {
+                  node_idx.p_node = node_idx.cur_node;
+                  node_idx.node_curs = t->info.cursor;
                   mode = PLAYBACK;
-                  resume_device(vis.dev);
                 }
 
               } break;
 
               case TYPE_DIRECTORY: {
-                int i = node_index("++", current_node, MAX_NODES);
-                // Dont want to overwrite the entry point node. Generally this
-                // shouldn't happen, but the protection remains.
-                if (i != 0) {
-                  // Need to free existing memory beforehand (if it exists)
-                  TextBuffer *old_tb = search_table(&table, i)->tbuf;
-                  Paths *old_paths = search_table(&table, i)->pbuf;
-
-                  old_tb = free_text_buffer(old_tb, &old_tb->size);
-                  old_paths = free_paths(old_paths, &old_paths->size);
-
-                  table_set_paths(&table, i, fs_search(item_path));
-                  Paths *p = search_table(&table, i)->pbuf;
-                  TextBuffer *t = create_fonts(p, r.r, &font, w.width,
-                                               &colors.text, &colors.secondary);
-                  table_set_text(&table, i, t);
-
-                  if (search_table(&table, i)->pbuf &&
-                      search_table(&table, i)->tbuf) {
-                    current_node = i;
-                  }
+                int i = node_index("++", node_idx.cur_node, MAX_NODES);
+                TypeDirArgs a = {.path = item_path,
+                                 .tbl = &table,
+                                 .r = r.r,
+                                 .f = &font,
+                                 .w = w.width,
+                                 .text = &colors.text,
+                                 .sec = &colors.secondary};
+                if (handle_type_dir(i, &a)) {
+                  node_idx.cur_node = i;
                 }
               } break;
               }
@@ -450,7 +439,7 @@ int main(int argc, char **argv) {
             if (keymod & KMOD_SHIFT) {
               mode = PLAYBACK;
             } else {
-              TextBuffer *t = search_table(&table, current_node)->tbuf;
+              TextBuffer *t = search_table(&table, node_idx.cur_node)->tbuf;
               move_down(t, w.height);
             }
           } break;
@@ -459,7 +448,7 @@ int main(int argc, char **argv) {
             if (keymod & KMOD_SHIFT) {
               mode = TEXT;
             } else {
-              TextBuffer *t = search_table(&table, current_node)->tbuf;
+              TextBuffer *t = search_table(&table, node_idx.cur_node)->tbuf;
               move_up(t);
             }
           } break;
@@ -581,7 +570,7 @@ static void window_resized(Window *w, const int font_size, int *char_limit) {
 }
 
 static int valid_ptr(Paths *p, TextBuffer *t) {
-  if ((p && t) && (p->is_valid && t->is_valid)) {
+  if ((p && t) && (p->is_valid && t->info.is_valid)) {
     return 1;
   }
 
@@ -593,7 +582,7 @@ static void swap_font_ptrs(Table *table, const size_t key,
   table_set_text(table, key, replace);
 
   if (old_buffer) {
-    for (size_t i = 0; i < old_buffer->size; i++) {
+    for (size_t i = 0; i < old_buffer->info.size; i++) {
       Text *invalidated = old_buffer[i].text;
       char *invalid_name = invalidated->name;
       SDL_Texture **invalid_tex = invalidated->tex;
@@ -635,7 +624,7 @@ static void autoplay(const size_t *playing_node, size_t *playing_cursor,
   TextBuffer *t = search_table(tbl, *playing_node)->tbuf;
   Paths *p = search_table(tbl, *playing_node)->pbuf;
   if (valid_ptr(p, t)) {
-    *playing_cursor = auto_nav_down(*playing_cursor, t->size);
+    *playing_cursor = auto_nav_down(*playing_cursor, t->info.size);
 
     const char *item_path = find_pathstr(t[*playing_cursor].text->name, p);
     const int item_type = find_type(t[*playing_cursor].text->name, p);
@@ -666,21 +655,80 @@ static void autoplay(const size_t *playing_node, size_t *playing_cursor,
 }
 
 static void move_up(TextBuffer *t) {
+  size_t *curs = &t->info.cursor;
+  size_t *size = &t->info.size;
   if (t) {
-    t->cursor = nav_up(t->cursor, t->size);
-    if (t->cursor < t->start) {
-      t->start = mv_start_pos(-1, t->start, t->size);
-    }
+    *curs = nav_up(*curs, *size);
   }
 }
 
 static void move_down(TextBuffer *t, const int h) {
-  int offset = determine_max(t, h).last_iter - 1;
-
+  size_t *curs = &t->info.cursor;
+  size_t *size = &t->info.size;
   if (t) {
-    t->cursor = nav_down(t->cursor, t->size);
-    if (t->cursor >= (size_t)offset) {
-      t->start = mv_start_pos(1, t->start, t->size);
+    *curs = nav_down(*curs, *size);
+  }
+}
+
+static int handle_type_file(const char *path, AudioDataContainer *adc,
+                            Visualizer *v) {
+  pause_device(v->dev);
+  if (!read_audio_file(path, adc)) {
+    printf("Failed to read audio..\n");
+    return 0;
+  }
+
+  set_spec(adc, v->spec);
+
+  if (!v->dev && spec_compare(v->spec, adc)) {
+    v->dev = open_device(v->spec);
+    printf("Opening new device..\n");
+  } else if (v->dev && !spec_compare(v->spec, adc)) {
+    printf("Replacing old device..\n");
+    close_device(v->dev);
+    v->dev = open_device(v->spec);
+  }
+
+  if (!v->dev) {
+    printf("No valid device..\n");
+    return 0;
+  }
+
+  printf("Resuming device.\n");
+  resume_device(v->dev);
+  return 1;
+}
+static int handle_type_dir(const int i, TypeDirArgs *args) {
+  // If this index is the same as the playing node it will just overwrite and
+  // autoplay from the new playing node, which will clamp the index to the
+  // relevant node. I could fix this with some pointer stuff but i'm too lazy
+  // at the moment.
+  SDL_Renderer *r = args->r;
+  Font *f = args->f;
+  const int w = args->w;
+  const SDL_Color *text = args->text;
+  const SDL_Color *sec = args->sec;
+
+  Node *old = search_table(args->tbl, i);
+  if (old) {
+    if (old->tbuf) {
+      old->tbuf = free_text_buffer(old->tbuf, &old->tbuf->info.size);
+    }
+
+    if (old->pbuf) {
+      old->pbuf = free_paths(old->pbuf, &old->pbuf->size);
     }
   }
+
+  Paths *p = fs_search(args->path);
+  TextBuffer *t = create_fonts(p, r, f, w, text, sec);
+
+  table_set_paths(args->tbl, i, p);
+  table_set_text(args->tbl, i, t);
+
+  if (p && t) {
+    return 1;
+  }
+
+  return 0;
 }

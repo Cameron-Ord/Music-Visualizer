@@ -16,12 +16,17 @@ typedef struct {
 } Text;
 
 typedef struct {
-  Text *text;
   size_t size;
   size_t cursor;
   size_t start;
-  size_t listed;
+  size_t clamped_size;
+  int max_text_height;
   int is_valid;
+} IdxInfo;
+
+typedef struct {
+  Text *text;
+  IdxInfo info;
 } TextBuffer;
 
 #endif // FONT_DEF_H
