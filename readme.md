@@ -4,15 +4,9 @@
 **By using this music player, you agree to only use music that you have legally obtained the rights to. This includes, but is not limited to, music that you have purchased, obtained through legitimate streaming services, or that is freely available for use under open licenses. Any unauthorized use of copyrighted music is strictly prohibited and may result in legal action.**
 
 ## Music Visualizer
-I am making this for myself only, but if you wanna use it, check out the build section. 
-I am currently working to make it more filebrowser like than forcing a default location of ~/Music among various other code improvements. 
-
-## This version does not currently work on windows
-
- - [Video Demo](https://www.youtube.com/watch?v=1nbQFn9GrdY)
-
+I am making this for myself only, but if you wanna use it, check out the build section. I'm considering making releases at this point. So I might get around to it.
 ### Gallery
-
+> Side note : these images are out of date, and colours can be determined in your config.lua if you compile with lualib.
 ![image](example/desktop1.png)
 ![image](example/desktop2.png)
 
