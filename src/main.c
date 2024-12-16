@@ -8,10 +8,13 @@
 #include "renderer.h"
 #include "table.h"
 #include "utils.h"
-#include <SDL2/SDL_blendmode.h>
-#include <SDL2/SDL_timer.h>
+
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #ifdef LUA_FLAG
 #include <lauxlib.h>
@@ -30,11 +33,6 @@ Paths *(*fs_search)(const char *) = &win_fs_search;
 #define ASSETS_DIR "/.local/share/MVis/"
 Paths *(*fs_search)(const char *) = &unix_fs_search;
 #endif
-
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
 typedef enum { PLAYBACK = 1, TEXT = 0 } MODE_ENUM;
 

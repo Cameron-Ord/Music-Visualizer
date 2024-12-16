@@ -1,21 +1,5 @@
 #include "events.h"
 
-void auto_play_nav(const size_t size, size_t *curs) {
-  int tmp_i = (int)*curs;
-  int size_signed = (int)size;
-  tmp_i++;
-
-  if (tmp_i > size_signed - 1) {
-    tmp_i = 0;
-  }
-
-  if (tmp_i < 0) {
-    tmp_i = size_signed - 1;
-  }
-
-  *curs = tmp_i;
-}
-
 static int get_i(const char *direction);
 
 static int get_i(const char *direction) {
@@ -71,12 +55,6 @@ size_t auto_nav_down(const size_t cursor, const size_t max) {
   curs = clamp_wrap((int)max, curs);
 
   return curs;
-}
-
-size_t mv_start_pos(const int n, const size_t start, const size_t max) {
-  int incremented = (int)start + n;
-  incremented = clamp((int)max, incremented);
-  return incremented;
 }
 
 size_t nav_down(const size_t cursor, const size_t max) {
