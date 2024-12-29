@@ -29,6 +29,7 @@ Paths *(*fs_search)(const char *) = &win_fs_search;
 #endif
 
 #ifdef __linux__
+#include <unistd.h>
 #define HOME "HOME"
 #define ASSETS_DIR "/.local/share/MVis/"
 Paths *(*fs_search)(const char *) = &unix_fs_search;
@@ -47,7 +48,6 @@ SDL_Color text = {205, 214, 244, 255};
 
 int FPS = 60;
 
-// Need to pass all these to a static function here and its alot so..
 typedef struct {
   const char *path;
   Table *tbl;
@@ -58,6 +58,7 @@ typedef struct {
   SDL_Color *sec;
 } TypeDirArgs;
 
+static void destroy_buffers(Table *t);
 static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
                           const SDL_Color *c_text, const SDL_Color *c_sec);
 static int open_ttf_file(const char *fn, const char *home, Font *font);
@@ -196,6 +197,14 @@ static int load_config(Visualizer *v, Colors *c, const char *home) {
 #endif
 
 int main(int argc, char **argv) {
+#ifdef __linux__
+  // Root processes have an effective user ID of 0
+  if (geteuid() == 0) {
+    fprintf(stderr, "Please run as a user and not as root!\n");
+    return 1;
+  }
+#endif
+
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
     SDL_ERR_CALLBACK(SDL_GetError());
     exit(EXIT_FAILURE);
@@ -220,6 +229,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+#ifdef __LINUX__
+#endif
+
   fprintf(stdout, "home path -> %s\n", home);
   SDL_AudioSpec spec = {0};
 
@@ -227,8 +239,8 @@ int main(int argc, char **argv) {
                     .spec = &spec,
                     .quit = 0,
                     .target_frames = FPS,
-                    .smearing = 6,
-                    .smoothing = 8,
+                    .smearing = 7,
+                    .smoothing = 10,
                     .home = home};
 
   Colors colors = {.primary = primary,
@@ -260,6 +272,7 @@ int main(int argc, char **argv) {
 #ifdef LUA_FLAG
   load_config(&vis, &colors, home);
 #endif
+
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
   if (!open_ttf_file("dogicapixel.ttf", home, &font)) {
@@ -271,9 +284,9 @@ int main(int argc, char **argv) {
   AudioDataContainer adc = {0};
   FFTBuffers f_buffers = {0};
   FFTData f_data = {0};
+
   zero_fft(&f_buffers, &f_data);
   adc.buffer = NULL;
-
   adc.next = &f_buffers;
   adc.dev_ptr = &vis.dev;
   f_buffers.next = &f_data;
@@ -501,6 +514,8 @@ int main(int argc, char **argv) {
     SDL_DestroyWindow(w.w);
   }
 
+  destroy_buffers(&table);
+
   TTF_Quit();
   SDL_Quit();
   return 0;
@@ -533,6 +548,22 @@ static int open_ttf_file(const char *fn, const char *home, Font *font) {
   return 1;
 }
 
+static void destroy_buffers(Table *t) {
+  for (int i = 0; i < MAX_NODES; i++) {
+    Node *n = search_table(t, i);
+    if (n && n->tbuf) {
+      free_text_buffer(n->tbuf, &n->tbuf->info.size);
+    }
+
+    if (n && n->pbuf) {
+      free_paths(n->pbuf, &n->pbuf->size);
+    }
+
+    table_set_text(t, i, NULL);
+    table_set_paths(t, i, NULL);
+  }
+}
+
 static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
                           const SDL_Color *c_text, const SDL_Color *c_sec) {
   for (int i = 0; i < MAX_NODES; i++) {
@@ -544,31 +575,9 @@ static void replace_fonts(Table *t, SDL_Renderer *r, Font *f, const int w,
   }
 }
 
-static RenderArgs make_args(const FFTData *d, const FFTBuffers *b) {
-  RenderArgs a;
-  //&output_len is not a dangling ptr since its from outside this
-  // scope, and not limited to it.
-  a.smear = b->smear, a.length = &d->output_len, a.smooth = b->smoothed;
-  return a;
-}
-
-static void window_resized(Window *w, const int font_size, int *char_limit) {
-  SDL_GetWindowSize(w->w, &w->width, &w->height);
-  *char_limit = get_char_limit(w->width, font_size);
-}
-
-static int valid_ptr(Paths *p, TextBuffer *t) {
-  if ((p && t) && (p->is_valid && t->info.is_valid)) {
-    return 1;
-  }
-
-  return 0;
-}
-
 static void swap_font_ptrs(Table *table, const size_t key,
                            TextBuffer *old_buffer, TextBuffer *replace) {
   table_set_text(table, key, replace);
-
   if (old_buffer) {
     for (size_t i = 0; i < old_buffer->info.size; i++) {
       Text *invalidated = old_buffer[i].text;
@@ -592,6 +601,25 @@ static void swap_font_ptrs(Table *table, const size_t key,
 
     free(old_buffer);
   }
+}
+
+static RenderArgs make_args(const FFTData *d, const FFTBuffers *b) {
+  RenderArgs a;
+  a.smear = b->smear, a.length = &d->output_len, a.smooth = b->smoothed;
+  return a;
+}
+
+static void window_resized(Window *w, const int font_size, int *char_limit) {
+  SDL_GetWindowSize(w->w, &w->width, &w->height);
+  *char_limit = get_char_limit(w->width, font_size);
+}
+
+static int valid_ptr(Paths *p, TextBuffer *t) {
+  if ((p && t) && (p->is_valid && t->info.is_valid)) {
+    return 1;
+  }
+
+  return 0;
 }
 
 static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {

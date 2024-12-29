@@ -1,8 +1,8 @@
 Config = {
 	-- Rendering config
 	FPS = 60,
-	smearing = 6,
-	smoothing = 7,
+	smearing = 7,
+	smoothing = 10,
 	-- For particles. 1 for on, 0 for off.
 	enable_particles = 1,
 	-- Colour palette

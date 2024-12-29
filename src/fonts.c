@@ -43,43 +43,44 @@ static void zero_data(IdxInfo *i) {
 
 static void zero_buffer(TextBuffer *t) { t->text = NULL; }
 
+static int validate_paths(const Paths *p) { return p && p->size > 0; }
+
+static TextBuffer *text_buf_allocate(const size_t size) {
+  TextBuffer *tbuf = malloc(sizeof(TextBuffer) * size);
+  if (!tbuf) {
+    ERRNO_CALLBACK("Malloc failed!", strerror(errno));
+    return NULL;
+  }
+
+  for (size_t i = 0; i < size; i++) {
+    zero_buffer(&tbuf[i]);
+    zero_data(&tbuf[i].info);
+  }
+
+  tbuf->info.size = size;
+  return tbuf;
+}
+
 TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
                          const int w, const SDL_Color *c_text,
                          const SDL_Color *c_sec) {
-  if (!pbuf) {
+  if (!validate_paths(pbuf)) {
     return NULL;
   }
 
-  if (pbuf->size <= 0) {
-    return NULL;
-  }
-
-  TextBuffer *tbuf = malloc(sizeof(TextBuffer) * (pbuf->size));
+  TextBuffer *tbuf = text_buf_allocate(pbuf->size);
   if (!tbuf) {
-    fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
     return NULL;
-  }
-
-  // For the info struct I only use the instance of the IdxInfo struct that the
-  // pointer to the first element has. All other instances of TextBuffer other
-  // than the pointer to the first element will just have this struct contain
-  // zeroed values.
-  for (size_t i = 0; i < pbuf->size; i++) {
-    zero_buffer(tbuf);
-    zero_data(&tbuf[i].info);
   }
 
   for (size_t i = 0; i < pbuf->size; i++) {
     tbuf[i].text = NULL;
     Text *text = malloc(sizeof(Text));
     if (!text) {
-      fprintf(stderr, "Malloc failed! -> %s\n", strerror(errno));
+      ERRNO_CALLBACK("malloc() failed!", strerror(errno));
       return tbuf;
     }
-    // Immediately set the buffer to hold the pointer. Before any changes are
-    // made to it, so that it's still accessible if any of the further code
-    // fails. Otherwise it's a memory leak since the buffer won't hold the
-    // pointer if we fail return before it gets assigned.
+
     tbuf[i].text = text;
 
     text->is_valid = 0;
@@ -89,22 +90,17 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
     text->tex[1] = NULL;
 
     if (!pbuf[i].name) {
-      ERRNO_CALLBACK("Path name is NULL!", "");
+      fprintf(stderr, "Path name is NULL!\n");
       return tbuf;
     }
 
-    text->name = malloc(pbuf[i].name_length + 1);
+    // strdup uses malloc() so this needs to be freed when not used.
+    text->name = strdup(pbuf[i].name);
     if (!text->name) {
-      ERRNO_CALLBACK("Failed to allocate pointer!", strerror(errno));
+      ERRNO_CALLBACK("strdup() failed!", strerror(errno));
       return tbuf;
     }
 
-    if (!strncpy(text->name, pbuf[i].name, pbuf[i].name_length)) {
-      ERRNO_CALLBACK("strncpy() failed!", strerror(errno));
-      return tbuf;
-    }
-
-    text->name[pbuf[i].name_length] = '\0';
     text->id = i;
 
     const size_t max_chars = get_char_limit(w, f->size);
@@ -156,8 +152,6 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
     if (text->height > tbuf->info.max_text_height) {
       tbuf->info.max_text_height = text->height;
     }
-
-    tbuf->info.size++;
   }
 
   tbuf->info.is_valid = 1;
