@@ -754,14 +754,11 @@ static int handle_type_dir(const int i, TypeDirArgs *args) {
 static int go_back(const int i, Table *tbl) {
   Paths *p = search_table(tbl, i)->pbuf;
   TextBuffer *t = search_table(tbl, i)->tbuf;
-  const size_t access = t->info.cursor;
 
   if (valid_ptr(p, t)) {
-    Text *text = t[access].text;
-    if (find_pathstr(text->name, p)) {
-      return i;
-    }
+    return i;
   }
 
+  // default to 0 as an index if failed the check.
   return 0;
 }
