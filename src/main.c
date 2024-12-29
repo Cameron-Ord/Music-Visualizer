@@ -229,9 +229,6 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-#ifdef __LINUX__
-#endif
-
   fprintf(stdout, "home path -> %s\n", home);
   SDL_AudioSpec spec = {0};
 
