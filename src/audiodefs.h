@@ -32,6 +32,7 @@ struct AudioDataContainer {
   int channels;
   int SR;
   int format;
+  int processing;
   float volume;
   FFTBuffers *next;
   SDL_AudioDeviceID *dev_ptr;

@@ -256,6 +256,7 @@ int main(int argc, char **argv) {
     SDL_ERR_CALLBACK(SDL_GetError());
     exit(EXIT_FAILURE);
   }
+  // Use software fallback flag
   r.r = SDL_CreateRenderer(
       w.w, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (!r.r) {
@@ -310,7 +311,6 @@ int main(int argc, char **argv) {
   memset(f_data.hamming_values, 0, sizeof(float) * M_BUF_SIZE);
   calculate_window(f_data.hamming_values);
 
-  SDL_SetRenderDrawBlendMode(r.r, SDL_BLENDMODE_NONE);
   SDL_EnableScreenSaver();
   SDL_ShowWindow(w.w);
 
@@ -320,12 +320,24 @@ int main(int argc, char **argv) {
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
+    SDL_SetRenderDrawBlendMode(r.r, SDL_BLENDMODE_NONE);
 
     render_bg(&colors.background, r.r);
     render_clear(r.r);
 
     if (adc.buffer && adc.position < adc.length) {
-      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
+      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING && !adc.processing) {
+        const uint32_t samp_len = vis.spec->samples * vis.spec->channels;
+        const uint32_t samples = samp_len / sizeof(float);
+        const uint32_t remaining = (adc.length - adc.position);
+        const uint32_t copy = (samples < remaining) ? samples : remaining;
+        // Pushing the current samples of the callback to a variable during each
+        // iteration of the main loop.
+        if ((adc.position + copy) < adc.length) {
+          fft_push(&adc.position, f_buffers.fft_in, adc.buffer,
+                   copy * sizeof(float));
+        }
+
         do_fft(&f_buffers, &f_data, &vis);
       }
     } else if (adc.buffer && adc.position >= adc.length) {
@@ -620,9 +632,7 @@ static int valid_ptr(Paths *p, TextBuffer *t) {
 }
 
 static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {
-  float tmp[M_BUF_SIZE];
-  memcpy(tmp, b->fft_in, sizeof(float) * M_BUF_SIZE);
-  iter_fft(tmp, d->hamming_values, b->out_raw, M_BUF_SIZE);
+  iter_fft(b->fft_in, d->hamming_values, b->out_raw, M_BUF_SIZE);
   squash_to_log(b, d);
   linear_mapping(b, d, v->smearing, v->smoothing, v->target_frames);
 }

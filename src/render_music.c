@@ -37,21 +37,6 @@ static float get_max(const float *even, const float *odd) {
   }
 }
 
-static int isg(size_t l, size_t cmp) {
-  if (cmp > l - 1) {
-    return 1;
-  }
-  return 0;
-}
-
-static int check(const size_t *len, const size_t *even, const size_t *odd) {
-  if (isg(*len, *even) || isg(*len, *odd)) {
-    return 0;
-  }
-
-  return 1;
-}
-
 static int cmp_y(int base, int cmp) {
   if (base > cmp) {
     return 1;
@@ -70,8 +55,26 @@ static SDL_Rect create_rect(const int i, const float smpl, const int h,
   return box;
 }
 
-static void set_colour(SDL_Renderer *r, const SDL_Color *col) {
-  SDL_SetRenderDrawColor(r, col->r, col->g, col->b, col->a);
+static uint8_t opacity_clamp(const int alpha) {
+  if (alpha < (255 * 0.75)) {
+    return 255 * 0.75;
+  }
+
+  if (alpha > 255) {
+    return 255;
+  }
+
+  return alpha;
+}
+
+static uint8_t dynamic_alpha(uint8_t alpha, const float amp) {
+  return opacity_clamp((int)alpha * amp);
+}
+
+static void set_colour(SDL_Renderer *r, const SDL_Color *col,
+                       const float amplitude) {
+  SDL_SetRenderDrawColor(r, col->r, col->g, col->b,
+                         dynamic_alpha(col->a, amplitude));
 }
 
 static void fill_rect(SDL_Renderer *r, const SDL_Rect *rect) {
@@ -117,6 +120,7 @@ void render_draw_music(RenderArgs *args, const int w, const int h,
   }
 
   SDL_RenderSetViewport(r, NULL);
+  SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
   const size_t *len = args->length;
   const float *smear = args->smear;
@@ -126,50 +130,69 @@ void render_draw_music(RenderArgs *args, const int w, const int h,
   determine_ds(&ds, len, &w);
   const int target = *len / ds;
   int cell_width = get_cw(target, w);
+
   for (int i = 0; i < target; i++) {
     SDL_Rect sample_frame = {0};
     SDL_Rect smear_frame = {0};
 
-    if (ds > 1) {
-      // Access by even and odd indexes. If the DS is 2 then basically most of
-      // the data is transfered over since we do a comparison and grab the max,
-      // if ds is greater than 2, then information is lost as it begins to skip
-      // parts.
-      const size_t even = i * 2;
-      const size_t odd = i * 2 + 1;
-      // If one of these accesses out of bounds, literally just use the
-      // last(current) iteration as an access and use that value
-      if (!check(len, &even, &odd)) {
-        sample_frame = create_rect(i, smoothed[i], h, cell_width);
-        smear_frame = create_rect(i, smear[i], h, cell_width);
+    const int switch_bool = ds > 1 ? 1 : 0;
+    float amplitude = 0.0f;
 
-        smear_frame.h = sample_frame.y - smear_frame.y;
-        sample_frame.h = smoothed[i] * (h * 0.9);
+    switch (switch_bool) {
 
-      } else {
-        const float sample_max = get_max(&smoothed[even], &smoothed[odd]);
-        const float smear_max = get_max(&smear[even], &smear[odd]);
+    default:
+      break;
 
-        sample_frame = create_rect(i, sample_max, h, cell_width);
-        smear_frame = create_rect(i, smear_max, h, cell_width);
-
-        smear_frame.h = sample_frame.y - smear_frame.y;
-        sample_frame.h = sample_max * (h * 0.9);
-      }
-    } else {
+    case 0: {
       sample_frame = create_rect(i, smoothed[i], h, cell_width);
       smear_frame = create_rect(i, smear[i], h, cell_width);
 
+      amplitude = smoothed[i];
+
       smear_frame.h = sample_frame.y - smear_frame.y;
       sample_frame.h = smoothed[i] * (h * 0.9);
+    } break;
+
+    case 1: {
+      const size_t even = i * 2;
+      const size_t odd = i * 2 + 1;
+
+      float smooth_even = 0.0f;
+      float smooth_odd = 0.0f;
+
+      float smear_even = 0.0f;
+      float smear_odd = 0.0f;
+
+      if (even < *len) {
+        smooth_even = smoothed[even];
+        smear_even = smear[even];
+      }
+
+      if (odd < *len) {
+        smooth_odd = smoothed[odd];
+        smear_odd = smear[odd];
+      }
+
+      const float sample_max = get_max(&smooth_even, &smooth_odd);
+      const float smear_max = get_max(&smear_even, &smear_odd);
+
+      amplitude = sample_max;
+
+      sample_frame = create_rect(i, sample_max, h, cell_width);
+      smear_frame = create_rect(i, smear_max, h, cell_width);
+
+      smear_frame.h = sample_frame.y - smear_frame.y;
+      sample_frame.h = sample_max * (h * 0.9);
+
+    } break;
     }
 
     if (cmp_y(sample_frame.y, smear_frame.y)) {
-      set_colour(r, s);
+      set_colour(r, s, amplitude);
       fill_rect(r, &smear_frame);
     }
 
-    set_colour(r, p);
+    set_colour(r, p, amplitude);
     fill_rect(r, &sample_frame);
   }
 }

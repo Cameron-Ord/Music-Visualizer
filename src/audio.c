@@ -4,8 +4,6 @@
 #include <errno.h>
 #include <sndfile.h>
 
-static void fft_push(const uint32_t *pos, float *in, float *buffer,
-                     size_t bytes);
 static void zero_values(AudioDataContainer *adc);
 
 void callback(void *userdata, uint8_t *stream, int length) {
@@ -17,41 +15,34 @@ void callback(void *userdata, uint8_t *stream, int length) {
   if (!adc->buffer) {
     return;
   }
+  adc->processing = 1;
 
-  const uint32_t file_length = adc->length;
-  const uint32_t uint32_len = (uint32_t)length;
-  const uint32_t samples = uint32_len / sizeof(float);
-  const uint32_t remaining = (file_length - adc->position);
+  const uint32_t samples = (uint32_t)length / sizeof(float);
+  const uint32_t remaining = (adc->length - adc->position);
   const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-  if (adc->position >= file_length) {
+  if (adc->position >= adc->length) {
     pause_device(*adc->dev_ptr);
-    return;
   }
 
   if (stream) {
     float *f32_stream = (float *)stream;
     for (uint32_t i = 0; i < copy; i++) {
-      if (i + adc->position < file_length) {
+      if (i + adc->position < adc->length) {
         f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
       }
     }
     adc->position += copy;
   }
 
-  if (adc->position >= file_length) {
+  if (adc->position >= adc->length) {
     pause_device(*adc->dev_ptr);
-    return;
   }
 
-  if ((adc->position + copy) < file_length) {
-    fft_push(&adc->position, adc->next->fft_in, adc->buffer,
-             copy * sizeof(float));
-  }
+  adc->processing = 0;
 }
 
-static void fft_push(const uint32_t *pos, float *in, float *buffer,
-                     size_t bytes) {
+void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
   }
@@ -67,6 +58,7 @@ static void zero_values(AudioDataContainer *adc) {
   adc->samples = 0;
   adc->SR = 0;
   adc->volume = 1.0;
+  adc->processing = 0;
 }
 
 int read_audio_file(const char *file_path, AudioDataContainer *adc) {
