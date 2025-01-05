@@ -236,8 +236,8 @@ int main(int argc, char **argv) {
                     .spec = &spec,
                     .quit = 0,
                     .target_frames = FPS,
-                    .smearing = 7,
-                    .smoothing = 10,
+                    .smearing = 6,
+                    .smoothing = 8,
                     .home = home};
 
   Colors colors = {.primary = primary,
@@ -632,6 +632,7 @@ static int valid_ptr(Paths *p, TextBuffer *t) {
 }
 
 static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {
+  clean_buffers(b);
   iter_fft(b->fft_in, d->hamming_values, b->out_raw, M_BUF_SIZE);
   squash_to_log(b, d);
   linear_mapping(b, d, v->smearing, v->smoothing, v->target_frames);

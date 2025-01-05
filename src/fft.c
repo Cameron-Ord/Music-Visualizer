@@ -72,6 +72,12 @@ size_t bit_reverse(size_t index, size_t log2n) {
   return reversed;
 }
 
+void clean_buffers(FFTBuffers *bufs) {
+  memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
+  memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
+}
+
 void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->fft_in, 0, sizeof(float) * M_BUF_SIZE);
@@ -79,7 +85,6 @@ void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smoothed, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->windowed, 0, sizeof(float) * M_BUF_SIZE);
 
   f_data->max_ampl = 1.0;
   f_data->cell_width = 0;

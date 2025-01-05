@@ -4,6 +4,7 @@
 
 // Audio functions
 //
+void clean_buffers(FFTBuffers *b);
 int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a);
 void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes);
 void close_device(unsigned int dev);
