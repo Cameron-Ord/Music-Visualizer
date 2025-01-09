@@ -7,7 +7,7 @@
 I am making this for myself only, but if you wanna use it, check out the build section. I'm considering making releases at this point. So I might get around to it.
 
 ### Video Demo
-[![Video Title](example/ex.png)](https://www.youtube.com/watch?v=6nCBte-tY0Y)
+[![Video Title](example/ex.png)](https://www.youtube.com/watch?v=LK5_v7Elvw0)
 
 ### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
