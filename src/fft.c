@@ -80,7 +80,8 @@ void clean_buffers(FFTBuffers *bufs) {
 
 void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
   memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->fft_in, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->fft_in[0], 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs->fft_in[1], 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
   memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
   memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);

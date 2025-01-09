@@ -4,45 +4,65 @@
 #include <errno.h>
 #include <sndfile.h>
 
+static void fft_push(const uint32_t *pos, float *in, float *buffer,
+                     size_t bytes);
 static void zero_values(AudioDataContainer *adc);
+
+int access_clamp(const int access) {
+  if (access > 1) {
+    return 1;
+  }
+
+  if (access < 0) {
+    return 0;
+  }
+
+  return access;
+}
 
 void callback(void *userdata, uint8_t *stream, int length) {
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
-  if (!adc) {
-    return;
-  }
+  if (adc && adc->buffer) {
+    const uint32_t file_length = adc->length;
+    const uint32_t uint32_len = (uint32_t)length;
+    const uint32_t samples = uint32_len / sizeof(float);
+    const uint32_t remaining = (file_length - adc->position);
+    const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-  if (!adc->buffer) {
-    return;
-  }
-  adc->processing = 1;
-
-  const uint32_t samples = (uint32_t)length / sizeof(float);
-  const uint32_t remaining = (adc->length - adc->position);
-  const uint32_t copy = (samples < remaining) ? samples : remaining;
-
-  if (adc->position >= adc->length) {
-    pause_device(*adc->dev_ptr);
-  }
-
-  if (stream) {
-    float *f32_stream = (float *)stream;
-    for (uint32_t i = 0; i < copy; i++) {
-      if (i + adc->position < adc->length) {
-        f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
-      }
+    if (adc->position >= file_length) {
+      pause_device(*adc->dev_ptr);
     }
-    adc->position += copy;
-  }
 
-  if (adc->position >= adc->length) {
-    pause_device(*adc->dev_ptr);
-  }
+    if (stream) {
+      float *f32_stream = (float *)stream;
+      for (uint32_t i = 0; i < copy; i++) {
+        if (i + adc->position < file_length) {
+          f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
+        }
+      }
+      adc->position += copy;
+    }
 
-  adc->processing = 0;
+    if (adc->position >= file_length) {
+      pause_device(*adc->dev_ptr);
+    }
+
+    FFTBuffers *bufs = adc->next;
+    FFTData *data = bufs->next;
+
+    data->buffer_access = !data->buffer_access;
+
+    float *buf = bufs->fft_in[access_clamp(!data->buffer_access)];
+    const size_t bytes = copy * sizeof(float);
+
+    if ((adc->position + copy) < file_length) {
+      fft_push(&adc->position, buf, adc->buffer, bytes);
+    }
+  }
 }
 
-void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes) {
+static void fft_push(const uint32_t *pos, float *in, float *buffer,
+                     size_t bytes) {
   if (buffer && in) {
     memcpy(in, buffer + *pos, bytes);
   }
@@ -58,7 +78,6 @@ static void zero_values(AudioDataContainer *adc) {
   adc->samples = 0;
   adc->SR = 0;
   adc->volume = 1.0;
-  adc->processing = 0;
 }
 
 int read_audio_file(const char *file_path, AudioDataContainer *adc) {

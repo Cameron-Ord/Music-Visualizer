@@ -32,7 +32,6 @@ struct AudioDataContainer {
   int channels;
   int SR;
   int format;
-  int processing;
   float volume;
   FFTBuffers *next;
   SDL_AudioDeviceID *dev_ptr;
@@ -40,7 +39,7 @@ struct AudioDataContainer {
 
 // I squash stereo channels into a size of M_BUF_SIZE by summing and other means
 struct FFTBuffers {
-  float fft_in[M_BUF_SIZE];
+  float fft_in[2][M_BUF_SIZE];
   Compf out_raw[M_BUF_SIZE];
   float extracted[M_BUF_SIZE];
   float processed_samples[M_BUF_SIZE];
@@ -50,6 +49,7 @@ struct FFTBuffers {
 };
 
 struct FFTData {
+  int buffer_access;
   size_t output_len;
   int cell_width;
   float max_ampl;

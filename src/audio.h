@@ -4,9 +4,10 @@
 
 // Audio functions
 //
+//
+int access_clamp(const int access);
 void clean_buffers(FFTBuffers *b);
 int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a);
-void fft_push(const uint32_t *pos, float *in, float *buffer, size_t bytes);
 void close_device(unsigned int dev);
 void callback(void *userdata, uint8_t *stream, int length);
 int read_audio_file(const char *file_path, AudioDataContainer *adc);

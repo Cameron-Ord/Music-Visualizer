@@ -326,18 +326,7 @@ int main(int argc, char **argv) {
     render_clear(r.r);
 
     if (adc.buffer && adc.position < adc.length) {
-      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING && !adc.processing) {
-        const uint32_t samp_len = vis.spec->samples * vis.spec->channels;
-        const uint32_t samples = samp_len / sizeof(float);
-        const uint32_t remaining = (adc.length - adc.position);
-        const uint32_t copy = (samples < remaining) ? samples : remaining;
-        // Pushing the current samples of the callback to a variable during each
-        // iteration of the main loop.
-        if ((adc.position + copy) < adc.length) {
-          fft_push(&adc.position, f_buffers.fft_in, adc.buffer,
-                   copy * sizeof(float));
-        }
-
+      if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
         do_fft(&f_buffers, &f_data, &vis);
       }
     } else if (adc.buffer && adc.position >= adc.length) {
@@ -633,7 +622,8 @@ static int valid_ptr(Paths *p, TextBuffer *t) {
 
 static void do_fft(FFTBuffers *b, FFTData *d, const Visualizer *v) {
   clean_buffers(b);
-  iter_fft(b->fft_in, d->hamming_values, b->out_raw, M_BUF_SIZE);
+  iter_fft(b->fft_in[access_clamp(d->buffer_access)], d->hamming_values,
+           b->out_raw, M_BUF_SIZE);
   squash_to_log(b, d);
   linear_mapping(b, d, v->smearing, v->smoothing, v->target_frames);
 }
