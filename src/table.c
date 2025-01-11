@@ -39,6 +39,9 @@ void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
     return;
   }
 
+  // If this function gets called and the pointer passed was a null value, we
+  // just set the node to null, which we conditionally check for whenever we
+  // search for/retrieve a node.
   if (!tbuf) {
     n->tbuf = NULL;
     // We do the check on the validity, then free or assign memory as per it's

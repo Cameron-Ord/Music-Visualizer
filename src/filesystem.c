@@ -328,10 +328,7 @@ Paths *unix_read_dir(const char *path) {
         d = tmp;
         size = new_size;
       }
-      // The current index gets set to invalid by default, this way if the loop
-      // errors, we can just return the pointer to the buffer, and decide what
-      // to do with the malformed data at that point to maintain a
-      // understandable control flow
+
       d[count].is_valid = 0;
       d[count].path = NULL;
       d[count].path_length = 0;

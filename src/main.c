@@ -398,8 +398,8 @@ int main(int argc, char **argv) {
 
           case SDLK_RIGHT: {
             Node *current = search_table(&table, node_idx.cur_node);
-            const size_t access = current->tbuf->info.cursor;
             if (current && valid_ptr(current->pbuf, current->tbuf)) {
+              const size_t access = current->tbuf->info.cursor;
               const char *item_name = current->tbuf[access].text->name;
               const char *item_path = find_pathstr(item_name, current->pbuf);
               const int item_type = find_type(item_name, current->pbuf);
@@ -439,7 +439,9 @@ int main(int argc, char **argv) {
               mode = PLAYBACK;
             } else {
               TextBuffer *t = search_table(&table, node_idx.cur_node)->tbuf;
-              move_down(t, w.height);
+              if (t) {
+                move_down(t, w.height);
+              }
             }
           } break;
 
@@ -448,7 +450,9 @@ int main(int argc, char **argv) {
               mode = TEXT;
             } else {
               TextBuffer *t = search_table(&table, node_idx.cur_node)->tbuf;
-              move_up(t);
+              if (t) {
+                move_up(t);
+              }
             }
           } break;
           }
