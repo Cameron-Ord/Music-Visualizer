@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "../inc/audio.h"
 
 static inline Compf c_from_real(const float real) {
   Compf _complex;

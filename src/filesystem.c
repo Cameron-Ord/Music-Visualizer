@@ -1,5 +1,5 @@
-#include "filesystem.h"
-#include "utils.h"
+#include "../inc/filesystem.h"
+#include "../inc/utils.h"
 
 #include <errno.h>
 #include <stdbool.h>

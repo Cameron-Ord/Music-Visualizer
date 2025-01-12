@@ -1,5 +1,5 @@
-#include "font.h"
-#include "utils.h"
+#include "../inc/font.h"
+#include "../inc/utils.h"
 
 #include <errno.h>
 #include <stdio.h>

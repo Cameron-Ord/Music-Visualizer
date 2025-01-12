@@ -6,7 +6,6 @@
 
 #include <SDL2/SDL_audio.h>
 #include <complex.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 

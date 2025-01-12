@@ -1,5 +1,5 @@
-#include "fontdef.h"
-#include "renderer.h"
+#include "../inc/fontdef.h"
+#include "../inc/renderer.h"
 
 const int text_spacing = 32;
 

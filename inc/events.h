@@ -1,5 +1,6 @@
 #ifndef EVENTS_H
 #define EVENTS_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

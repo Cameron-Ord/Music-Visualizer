@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "../inc/renderer.h"
 
 void render_bg(const SDL_Color *col, SDL_Renderer *r) {
   SDL_SetRenderDrawColor(r, col->r, col->g, col->b, col->a);

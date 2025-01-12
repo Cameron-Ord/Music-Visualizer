@@ -1,10 +1,7 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 #include "audiodefs.h"
-
 // Audio functions
-//
-//
 int access_clamp(const int access);
 void clean_buffers(FFTBuffers *b);
 int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a);

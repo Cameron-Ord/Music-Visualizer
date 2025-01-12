@@ -1,8 +1,9 @@
-#include "audio.h"
-#include "audiodefs.h"
-#include "utils.h"
+#include "../inc/audio.h"
+#include "../inc/audiodefs.h"
+#include "../inc/utils.h"
 #include <errno.h>
 #include <sndfile.h>
+#include <stdbool.h>
 
 static void fft_push(const uint32_t *pos, float *in, float *buffer,
                      size_t bytes);

@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "../inc/utils.h"
 #include <ctype.h>
 
 #ifndef MAX

@@ -1,7 +1,7 @@
-#include "table.h"
-#include "filesystem.h"
-#include "font.h"
-#include "utils.h"
+#include "../inc/table.h"
+#include "../inc/filesystem.h"
+#include "../inc/font.h"
+#include "../inc/utils.h"
 #include <errno.h>
 
 size_t hash(size_t i) { return i % MAX_NODES; }

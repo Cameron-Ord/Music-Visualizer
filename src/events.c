@@ -1,4 +1,4 @@
-#include "events.h"
+#include "../inc/events.h"
 
 static int get_i(const char *direction);
 
