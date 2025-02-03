@@ -2,7 +2,19 @@
 #define FONT_DEF
 #define TEXT_SPACING 8
 #define FONT_SIZE 16
+#define TXTMAX 256
+
+struct _TTF_Font;
+typedef struct _TTF_Font TTF_Font;
+
 #include <SDL2/SDL_render.h>
+#include <stddef.h>
+
+typedef struct {
+  TTF_Font *font;
+  int char_limit;
+  int size;
+} Font;
 
 typedef struct {
   SDL_Texture *tex[2];
@@ -24,9 +36,11 @@ typedef struct {
   int is_valid;
 } IdxInfo;
 
-typedef struct {
+struct TextBuffer {
   Text *text;
   IdxInfo info;
-} TextBuffer;
+};
+
+typedef struct TextBuffer TextBuffer;
 
 #endif // FONT_DEF_H

@@ -1,6 +1,9 @@
 #include "../inc/font.h"
 #include "../inc/utils.h"
 
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_ttf.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -74,28 +77,22 @@ TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
   }
 
   for (size_t i = 0; i < pbuf->size; i++) {
-    tbuf[i].text = NULL;
-    Text *text = malloc(sizeof(Text));
-    if (!text) {
+    (tbuf + i)->text = calloc(1, sizeof(Text));
+    if (!tbuf->text) {
       ERRNO_CALLBACK("malloc() failed!", strerror(errno));
       return tbuf;
     }
 
-    tbuf[i].text = text;
+    StrVals name = (pbuf + i)->name;
+    Text *text = (tbuf + i)->text;
 
-    text->is_valid = 0;
-    text->surf[0] = NULL;
-    text->tex[0] = NULL;
-    text->surf[1] = NULL;
-    text->tex[1] = NULL;
-
-    if (!pbuf[i].name) {
+    if (!name.path) {
       fprintf(stderr, "Path name is NULL!\n");
       return tbuf;
     }
 
     // strdup uses malloc() so this needs to be freed when not used.
-    text->name = strdup(pbuf[i].name);
+    text->name = strdup(name.path);
     if (!text->name) {
       ERRNO_CALLBACK("strdup() failed!", strerror(errno));
       return tbuf;

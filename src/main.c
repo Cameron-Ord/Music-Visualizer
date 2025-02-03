@@ -80,125 +80,6 @@ static int handle_type_file(const char *path, AudioDataContainer *adc,
 static int handle_type_dir(const int i, TypeDirArgs *args);
 static int go_back(const int i, Table *tbl);
 
-#ifdef LUA_FLAG
-
-static int load_config(Visualizer *v, Colors *c, const char *home) {
-  int written = 0;
-  char *path_buffer = NULL;
-  size_t path_size = 0;
-
-  const char *config_name = "config.lua";
-  path_size =
-      get_length(3, strlen(config_name), strlen(home), strlen(ASSETS_DIR));
-
-  path_buffer = malloc(path_size + 1);
-  if (!path_buffer) {
-    fprintf(stderr, "Failed to allocate pointer! -> %s\n", strerror(errno));
-    return 0;
-  }
-  written = snprintf(path_buffer, path_size + 1, "%s%s%s", home, ASSETS_DIR,
-                     config_name);
-  if (written <= 0) {
-    fprintf(stderr, "snprintf failed! -> %s\n", strerror(errno));
-    free(path_buffer);
-    return 0;
-  }
-
-  printf("Lua config path -> %s\n", path_buffer);
-
-  lua_State *L = luaL_newstate();
-  if (!L) {
-    free(path_buffer);
-    return 0;
-  }
-
-  luaL_openlibs(L);
-
-  if (luaL_dostring(L, "print('Lua state initialized!')") != LUA_OK) {
-    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    lua_close(L);
-    return 0;
-  }
-
-  if (luaL_dofile(L, path_buffer) != LUA_OK) {
-    fprintf(stderr, "Lua Error: %s\n", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    lua_close(L);
-    return 0;
-  }
-
-  free(path_buffer);
-
-  lua_getglobal(L, "Config");
-  lua_getfield(L, -1, "FPS");
-  v->target_frames = lua_tointeger(L, -1);
-  lua_pop(L, 1);
-
-  lua_getfield(L, -1, "smearing");
-  v->smearing = lua_tointeger(L, -1);
-  lua_pop(L, 1);
-
-  lua_getfield(L, -1, "smoothing");
-  v->smoothing = lua_tointeger(L, -1);
-  lua_pop(L, 1);
-
-  const char *fields[] = {"primary", "secondary", "background", "secondary_bg",
-                          "text"};
-
-  SDL_Color *color_ptrs[] = {&c->primary, &c->secondary, &c->background,
-                             &c->secondary_bg, &c->text};
-
-  const size_t col_size = sizeof(color_ptrs) / sizeof(color_ptrs[0]);
-  for (size_t i = 0; i < col_size; i++) {
-    lua_getfield(L, -1, fields[i]);
-    for (size_t j = 0; j < 4; j++) {
-
-      /*
-        int lua_gettable (lua_State *L, int index);
-
-        Pushes onto the stack the value t[k], where t is the value at the
-        given index and k is the value at the top of the stack.
-
-        This function pops the key from the stack, pushing the resulting
-        value in its place. As in Lua, this function may trigger a
-        metamethod for the "index" event (see §2.4).
-      */
-
-      // push index onto the stack
-      lua_pushinteger(L, j + 1);
-      // get the j-th value from the table (array)
-      lua_gettable(L, -2);
-      switch (j) {
-      case 0: {
-        color_ptrs[i]->r = lua_tointeger(L, -1);
-      } break;
-
-      case 1: {
-        color_ptrs[i]->g = lua_tointeger(L, -1);
-      } break;
-
-      case 2: {
-        color_ptrs[i]->b = lua_tointeger(L, -1);
-      } break;
-
-      case 3: {
-        color_ptrs[i]->a = lua_tointeger(L, -1);
-      } break;
-      }
-
-      lua_pop(L, 1);
-    }
-
-    lua_pop(L, 1);
-  }
-
-  lua_pop(L, 1);
-  lua_close(L);
-  return 1;
-}
-#endif
-
 int main(int argc, char **argv) {
 #ifdef __linux__
   // Root processes have an effective user ID of 0
@@ -269,11 +150,6 @@ int main(int argc, char **argv) {
   }
 
   Font font = {.font = NULL, .char_limit = 0, .size = 16};
-
-#ifdef LUA_FLAG
-  load_config(&vis, &colors, home);
-#endif
-
   fprintf(stdout, "FPS TARGET -> %d\n", vis.target_frames);
 
   if (!open_ttf_file("dogicapixel.ttf", home, &font)) {
@@ -282,16 +158,17 @@ int main(int argc, char **argv) {
 
   font.char_limit = get_char_limit(w.width, font.size);
 
-  AudioDataContainer adc = {0};
+  AudioData ad = {0};
   FFTBuffers f_buffers = {0};
   FFTData f_data = {0};
 
+  AudioDataContainer adc = {.buffer = NULL,
+                            .ad = &ad,
+                            .fftbuff = &f_buffers,
+                            .fftdata = &f_data,
+                            &vis.dev};
+
   zero_fft(&f_buffers, &f_data);
-  adc.buffer = NULL;
-  adc.next = &f_buffers;
-  adc.dev_ptr = &vis.dev;
-  f_buffers.next = &f_data;
-  f_data.next = &adc;
 
   NodeIdx node_idx = {.p_node = 0, .cur_node = 0, .node_curs = 0};
 
@@ -328,11 +205,11 @@ int main(int argc, char **argv) {
     render_bg(&colors.background, r.r);
     render_clear(r.r);
 
-    if (adc.buffer && adc.position < adc.length) {
+    if (adc.buffer && ad.position < ad.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PLAYING) {
         do_fft(&f_buffers, &f_data, &vis);
       }
-    } else if (adc.buffer && adc.position >= adc.length) {
+    } else if (adc.buffer && ad.position >= ad.length) {
       if (get_status(&vis.dev) == SDL_AUDIO_PAUSED) {
         autoplay(&node_idx.p_node, &node_idx.node_curs, &table, &vis, &adc);
       }
@@ -351,8 +228,7 @@ int main(int argc, char **argv) {
 
     case PLAYBACK: {
       RenderArgs args = make_args(&f_data, &f_buffers);
-      render_seek_bar(&adc.position, &adc.length, w.width, &colors.primary,
-                      r.r);
+      render_seek_bar(&ad.position, &ad.length, w.width, &colors.primary, r.r);
       render_draw_music(&args, w.width, w.height, r.r, &colors.primary,
                         &colors.secondary_bg);
     } break;

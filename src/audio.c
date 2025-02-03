@@ -1,6 +1,8 @@
 #include "../inc/audio.h"
 #include "../inc/audiodefs.h"
 #include "../inc/utils.h"
+
+#include <SDL2/SDL_audio.h>
 #include <errno.h>
 #include <sndfile.h>
 #include <stdbool.h>
@@ -24,40 +26,40 @@ int access_clamp(const int access) {
 void callback(void *userdata, uint8_t *stream, int length) {
   AudioDataContainer *adc = (AudioDataContainer *)userdata;
   if (adc && adc->buffer) {
-    const uint32_t file_length = adc->length;
+    const uint32_t file_length = adc->ad->length;
     const uint32_t uint32_len = (uint32_t)length;
     const uint32_t samples = uint32_len / sizeof(float);
-    const uint32_t remaining = (file_length - adc->position);
+    const uint32_t remaining = (file_length - adc->ad->position);
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    if (adc->position >= file_length) {
-      pause_device(*adc->dev_ptr);
+    if (adc->ad->position >= file_length) {
+      pause_device(*adc->device);
     }
 
     if (stream) {
       float *f32_stream = (float *)stream;
       for (uint32_t i = 0; i < copy; i++) {
-        if (i + adc->position < file_length) {
-          f32_stream[i] = adc->buffer[i + adc->position] * 1.0f;
+        if (i + adc->ad->position < file_length) {
+          f32_stream[i] = adc->buffer[i + adc->ad->position] * 1.0f;
         }
       }
-      adc->position += copy;
+      adc->ad->position += copy;
     }
 
-    if (adc->position >= file_length) {
-      pause_device(*adc->dev_ptr);
+    if (adc->ad->position >= file_length) {
+      pause_device(*adc->device);
     }
 
-    FFTBuffers *bufs = adc->next;
-    FFTData *data = bufs->next;
+    FFTBuffers *bufs = adc->fftbuff;
+    FFTData *data = adc->fftdata;
 
     data->buffer_access = !data->buffer_access;
 
     float *buf = bufs->fft_in[access_clamp(!data->buffer_access)];
     const size_t bytes = copy * sizeof(float);
 
-    if ((adc->position + copy) < file_length) {
-      fft_push(&adc->position, buf, adc->buffer, bytes);
+    if ((adc->ad->position + copy) < file_length) {
+      fft_push(&adc->ad->position, buf, adc->buffer, bytes);
     }
   }
 }
@@ -70,15 +72,15 @@ static void fft_push(const uint32_t *pos, float *in, float *buffer,
 }
 
 static void zero_values(AudioDataContainer *adc) {
-  adc->bytes = 0;
-  adc->channels = 0;
-  adc->format = 0;
-  adc->bytes = 0;
-  adc->length = 0;
-  adc->position = 0;
-  adc->samples = 0;
-  adc->SR = 0;
-  adc->volume = 1.0;
+  adc->ad->bytes = 0;
+  adc->ad->channels = 0;
+  adc->ad->format = 0;
+  adc->ad->bytes = 0;
+  adc->ad->length = 0;
+  adc->ad->position = 0;
+  adc->ad->samples = 0;
+  adc->ad->SR = 0;
+  adc->ad->volume = 1.0;
 }
 
 int read_audio_file(const char *file_path, AudioDataContainer *adc) {
@@ -132,16 +134,14 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   }
 
   zero_values(adc);
-  if (adc->next) {
-    zero_fft(adc->next, adc->next->next);
-  }
+  zero_fft(adc->fftbuff, adc->fftdata);
 
-  adc->channels = sfinfo.channels;
-  adc->SR = sfinfo.samplerate;
-  adc->format = sfinfo.format;
-  adc->samples = sfinfo.frames * sfinfo.channels;
-  adc->bytes = adc->samples * sizeof(float);
-  adc->length = (uint32_t)(adc->samples);
+  adc->ad->channels = sfinfo.channels;
+  adc->ad->SR = sfinfo.samplerate;
+  adc->ad->format = sfinfo.format;
+  adc->ad->samples = sfinfo.frames * sfinfo.channels;
+  adc->ad->bytes = adc->ad->samples * sizeof(float);
+  adc->ad->length = (uint32_t)(adc->ad->samples);
 
   adc->buffer = tmp;
 
@@ -167,13 +167,13 @@ int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a) {
   if (s->format != AUDIO_F32SYS)
     return 0;
 
-  if (s->channels != a->channels)
+  if (s->channels != a->ad->channels)
     return 0;
 
-  if (s->freq != a->SR)
+  if (s->freq != a->ad->SR)
     return 0;
 
-  if (s->samples != (M_BUF_SIZE) / a->channels)
+  if (s->samples != (M_BUF_SIZE) / a->ad->channels)
     return 0;
 
   return 1;
@@ -182,10 +182,10 @@ int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a) {
 void set_spec(AudioDataContainer *adc, SDL_AudioSpec *s) {
   s->userdata = adc;
   s->callback = callback;
-  s->channels = adc->channels;
-  s->freq = adc->SR;
+  s->channels = adc->ad->channels;
+  s->freq = adc->ad->SR;
   s->format = AUDIO_F32SYS;
-  s->samples = M_BUF_SIZE / adc->channels;
+  s->samples = M_BUF_SIZE / adc->ad->channels;
 }
 
 int get_status(const unsigned int *dev) {

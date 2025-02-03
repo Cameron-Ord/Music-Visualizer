@@ -1,10 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
+
 int check_file_str(const char *str);
 int get_char_limit(const int width, const int font_size);
 int clamp_font_size(int size);

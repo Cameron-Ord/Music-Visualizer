@@ -1,9 +1,12 @@
 #ifndef MAIN_H
 #define MAIN_H
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+
 #define WIN_W 600
 #define WIN_H 400
+
+#include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_render.h>
+#include <stddef.h>
 
 typedef struct {
   // Audio devices
@@ -39,12 +42,6 @@ typedef struct {
 typedef struct {
   SDL_Renderer *r;
 } Renderer;
-
-typedef struct {
-  TTF_Font *font;
-  int char_limit;
-  int size;
-} Font;
 
 typedef struct {
   size_t p_node;

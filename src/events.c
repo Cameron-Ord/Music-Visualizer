@@ -1,4 +1,5 @@
 #include "../inc/events.h"
+#include <string.h>
 
 static int get_i(const char *direction);
 

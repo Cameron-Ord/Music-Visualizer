@@ -1,4 +1,8 @@
 #include "../inc/audio.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static inline Compf c_from_real(const float real) {
   Compf _complex;
@@ -43,13 +47,14 @@ static inline Compf compf_mult(const Compf *a, const Compf *b) {
   return mult;
 }
 
-static inline Compf compf_divide(const Compf *a, const Compf *b) {
-  Compf divide;
-  float denom = b->real * b->real + b->imag * b->imag;
-  divide.real = (a->real * b->real + a->imag * b->imag) / denom;
-  divide.imag = (a->imag * b->real - a->real * b->imag) / denom;
-  return divide;
-}
+// Not used
+//  static inline Compf compf_divide(const Compf *a, const Compf *b) {
+//  Compf divide;
+//  float denom = b->real * b->real + b->imag * b->imag;
+//  divide.real = (a->real * b->real + a->imag * b->imag) / denom;
+//  divide.imag = (a->imag * b->real - a->real * b->imag) / denom;
+//  return divide;
+// }
 
 static inline Compf compf_step(const size_t *half_len, const Compf *iota) {
   Compf step;

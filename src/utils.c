@@ -1,5 +1,9 @@
 #include "../inc/utils.h"
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -80,23 +84,6 @@ void free_ptrs(size_t size, ...) {
   }
 }
 
-/*
- Real ascii chars start at 32, which is the space key. So if a char is
- greater than this, pretty much means it isnt only spaces.
-*/
-int not_empty(const char *str) {
-  int i = 0;
-
-  while (str[i] != '\0') {
-    if (str[i] > ' ') {
-      return 1;
-    }
-    i++;
-  }
-
-  return 0;
-}
-
 int clamp_font_size(int size) {
   int min_size = 16;
   int max_size = 24;
@@ -111,28 +98,3 @@ int clamp_font_size(int size) {
 
   return size;
 }
-
-// int min_titles(TextBuffer *t, int h) {
-// int accumulator = TEXT_SPACING;
-// int is_greater = 0;
-//
-// size_t j = 0;
-// for (j = 0; j < t->size; j++) {
-// if (t[j].text) {
-// int rect_h = t[j].text->rect.h;
-// accumulator += rect_h + TEXT_SPACING;
-//}
-//
-//// If this check is met, return with the truthy flag before adding another
-//// +1 to the max variable
-// if (accumulator >= h) {
-// return is_greater + 1;
-//}
-//
-// if (t->max < (int)j) {
-// t->max = j;
-//}
-//}
-//
-// return is_greater;
-//}

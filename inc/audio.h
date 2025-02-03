@@ -1,6 +1,10 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 #include "audiodefs.h"
+
+struct SDL_AudioSpec;
+typedef struct SDL_AudioSpec SDL_AudioSpec;
+
 // Audio functions
 int access_clamp(const int access);
 void clean_buffers(FFTBuffers *b);

@@ -1,19 +1,26 @@
 #ifndef FILESYSDEFS_H
 #define FILESYSDEFS_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 typedef enum { TYPE_DIRECTORY = 0, TYPE_FILE = 1, UNKNOWN = -1 } FT_ENUM;
 
+#define PBUFMAX 256
+
 typedef struct {
-  char *name;
-  size_t name_length;
   char *path;
-  size_t path_length;
+  size_t length;
+} StrVals;
+
+struct Paths {
+  StrVals name;
+  StrVals path;
   size_t size;
+  int id;
   int type;
   int is_valid;
-} Paths;
+};
+
+typedef struct Paths Paths;
 
 #endif

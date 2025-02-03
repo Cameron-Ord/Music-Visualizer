@@ -1,11 +1,16 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-#include "filesysdefs.h"
-#include "fontdef.h"
-
 #define MAX_NODES 16
 #define MODES 2
+
+#include <stddef.h>
+
+struct Paths;
+struct TextBuffer;
+
+typedef struct Paths Paths;
+typedef struct TextBuffer TextBuffer;
 
 typedef struct Node Node;
 typedef struct Table Table;

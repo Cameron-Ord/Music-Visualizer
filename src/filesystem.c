@@ -11,9 +11,9 @@ const char *find_pathstr(const char *search_key, Paths *buffer) {
   if (buffer) {
     Paths *start = buffer;
 
-    while (buffer != NULL) {
-      if (strcmp(search_key, buffer->name) == 0) {
-        return buffer->path;
+    while (buffer && buffer->name.path) {
+      if (strcmp(search_key, buffer->name.path) == 0) {
+        return buffer->path.path;
       }
       buffer++;
     }
@@ -29,8 +29,8 @@ const size_t *get_name_length(const char *search_key, Paths *buffer) {
     Paths *start = buffer;
 
     while (buffer != NULL) {
-      if (strcmp(search_key, buffer->name) == 0) {
-        return &buffer->name_length;
+      if (strcmp(search_key, buffer->name.path) == 0) {
+        return &buffer->name.length;
       }
       buffer++;
     }
@@ -46,7 +46,7 @@ int find_type(const char *search_key, Paths *buffer) {
     Paths *start = buffer;
 
     while (buffer != NULL) {
-      if (strcmp(search_key, buffer->name) == 0) {
+      if (strcmp(search_key, buffer->name.path) == 0) {
         return buffer->type;
       }
       buffer++;
@@ -64,14 +64,14 @@ void *free_paths(Paths *buf, const size_t *count) {
   }
 
   for (size_t i = 0; i < *count; i++) {
-    if (buf[i].name) {
-      free(buf[i].name);
-      buf[i].name_length = 0;
+    if (buf[i].name.path) {
+      free(buf[i].name.path);
+      buf[i].name.length = 0;
     }
 
-    if (buf[i].path) {
-      free(buf[i].path);
-      buf[i].path_length = 0;
+    if (buf[i].path.path) {
+      free(buf[i].path.path);
+      buf[i].path.length = 0;
     }
   }
 
@@ -329,22 +329,22 @@ Paths *unix_read_dir(const char *path) {
         size = new_size;
       }
 
-      d[count].is_valid = 0;
-      d[count].path = NULL;
-      d[count].path_length = 0;
-      d[count].name = NULL;
-      d[count].name_length = 0;
+      Paths *cur = &d[count];
+
+      cur->is_valid = 0;
+      memset(&cur->path, 0, sizeof(StrVals));
+      memset(&cur->name, 0, sizeof(StrVals));
 
       size_t entry_size = strlen(e->d_name);
-      d[count].name = malloc(entry_size + 1);
-      if (!d[count].name) {
+      cur->name.path = malloc(entry_size + 1);
+      if (!cur->name.path) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
         d->is_valid = 0;
         return d;
       }
 
-      if (!strcpy(d[count].name, e->d_name)) {
+      if (!strcpy(cur->name.path, e->d_name)) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
         d->is_valid = 0;
@@ -353,32 +353,44 @@ Paths *unix_read_dir(const char *path) {
 
       size_t path_size =
           get_length(3, strlen(path), strlen("/"), strlen(e->d_name));
-      d[count].path = malloc(path_size + 1);
-      if (!d[count].path) {
+      cur->path.path = malloc(path_size + 1);
+      if (!cur->path.path) {
         ERRNO_CALLBACK("malloc() failed!", strerror(errno));
         closedir(dir);
         d->is_valid = 0;
         return d;
       }
 
-      if (!snprintf(d[count].path, path_size + 1, "%s/%s", path, e->d_name)) {
-        ERRNO_CALLBACK("snprintf() failed!", strerror(errno));
+      const char *strings[] = {"/", e->d_name};
+      const int str_count = 2;
+
+      if (!strcpy(cur->path.path, path)) {
+        ERRNO_CALLBACK("strcpy() failed!", strerror(errno));
         closedir(dir);
         d->is_valid = 0;
         return d;
       }
 
+      for (int k = 0; k < str_count; k++) {
+        if (!strcat(cur->path.path, strings[k])) {
+          ERRNO_CALLBACK("strcat() failed!", strerror(errno));
+          closedir(dir);
+          d->is_valid = 0;
+          return d;
+        }
+      }
+
       if (get_file_type(e->d_type) == TYPE_FILE &&
-          !check_file_str(d[count].name)) {
-        free(d[count].path);
-        free(d[count].name);
+          !check_file_str(cur->name.path)) {
+        free(cur->path.path);
+        free(cur->name.path);
         continue;
       }
 
-      d[count].name_length = entry_size;
-      d[count].path_length = path_size;
-      d[count].type = get_file_type(e->d_type);
-      d[count].is_valid = 1;
+      cur->name.length = entry_size;
+      cur->path.length = path_size;
+      cur->type = get_file_type(e->d_type);
+      cur->is_valid = 1;
       count++;
     }
   }

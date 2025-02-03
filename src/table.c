@@ -39,15 +39,9 @@ void table_set_text(Table *t, size_t i, TextBuffer *tbuf) {
     return;
   }
 
-  // If this function gets called and the pointer passed was a null value, we
-  // just set the node to null, which we conditionally check for whenever we
-  // search for/retrieve a node.
   if (!tbuf) {
     n->tbuf = NULL;
-    // We do the check on the validity, then free or assign memory as per it's
-    // value. Easier to manage this way.
   } else if (tbuf && !tbuf->info.is_valid) {
-    // returns null
     n->tbuf = free_text_buffer(tbuf, &tbuf->info.size);
   } else {
     n->tbuf = tbuf;
@@ -62,10 +56,7 @@ void table_set_paths(Table *t, size_t i, Paths *pbuf) {
 
   if (!pbuf) {
     n->pbuf = NULL;
-    // We do the check on the validity, then free or assign memory as per it's
-    // value. Easier to manage this way.
   } else if (pbuf && !pbuf->is_valid) {
-    // returns null
     n->pbuf = free_paths(pbuf, &pbuf->size);
   } else {
     n->pbuf = pbuf;

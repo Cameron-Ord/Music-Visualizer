@@ -1,8 +1,11 @@
 #ifndef RENDERER_H
 #define RENDERER_H
-#include "fontdef.h"
-#include <SDL2/SDL_pixels.h>
+
 #include <SDL2/SDL_render.h>
+#include <stddef.h>
+
+struct TextBuffer;
+typedef struct TextBuffer TextBuffer;
 
 typedef struct {
   const float *smear;
