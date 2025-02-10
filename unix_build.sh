@@ -12,18 +12,16 @@ cd build
 make -j$(nproc)
 
 cd $working_dir
-share_dir=~/.local/share/MVis
+share_dir=~/.local/share/mvis
 
 if [ -d $share_dir ]; then
   echo "Copying font and config to $share_dir"
   cp assets/dogicapixel.ttf $share_dir
-  cp lua/config.lua $share_dir
 else
   echo "Making directory $share_dir"
   mkdir -p $share_dir
-  echo "Copying font and config to $share_dir"
+  echo "Copying font to $share_dir"
   cp assets/dogicapixel.ttf $share_dir
-  cp lua/config.lua $share_dir
 fi
 
 bin_dir=/usr/local/bin

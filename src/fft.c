@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+FFTData data = {0};
+FFTBuffers bufs = {0};
+
 static inline Compf c_from_real(const float real) {
   Compf _complex;
   _complex.real = real;
@@ -67,7 +70,41 @@ static inline Compf compf_step(const size_t *half_len, const Compf *iota) {
   return step;
 }
 
-size_t bit_reverse(size_t index, size_t log2n) {
+static int access_clamp(const int access) {
+  if (access > 1) {
+    return 1;
+  }
+
+  if (access < 0) {
+    return 0;
+  }
+
+  return access;
+}
+
+static void fft_push(const uint32_t *pos, float *buffer, const size_t bytes) {
+  if (buffer) {
+    data.buffer_access = !data.buffer_access;
+    float *buf = bufs.fft_in[access_clamp(!data.buffer_access)];
+    memcpy(buf, buffer + *pos, bytes);
+  }
+}
+
+static void zero_fft(void) {
+  memset(bufs.extracted, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs.fft_in[0], 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs.fft_in[1], 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs.out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
+  memset(bufs.processed_samples, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs.smear, 0, sizeof(float) * M_BUF_SIZE);
+  memset(bufs.smoothed, 0, sizeof(float) * M_BUF_SIZE);
+
+  data.max_ampl = 1.0;
+  data.cell_width = 0;
+  data.output_len = 0;
+}
+
+static size_t bit_reverse(size_t index, size_t log2n) {
   size_t reversed = 0;
   for (size_t i = 0; i < log2n; i++) {
     reversed <<= 1;
@@ -77,27 +114,30 @@ size_t bit_reverse(size_t index, size_t log2n) {
   return reversed;
 }
 
-void clean_buffers(FFTBuffers *bufs) {
-  memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
-  memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
-}
-
-void zero_fft(FFTBuffers *bufs, FFTData *f_data) {
-  memset(bufs->extracted, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->fft_in[0], 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->fft_in[1], 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->out_raw, 0, sizeof(Compf) * M_BUF_SIZE);
-  memset(bufs->processed_samples, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->smear, 0, sizeof(float) * M_BUF_SIZE);
-  memset(bufs->smoothed, 0, sizeof(float) * M_BUF_SIZE);
-
-  f_data->max_ampl = 1.0;
-  f_data->cell_width = 0;
-  f_data->output_len = 0;
-}
-
 // https://www.geeksforgeeks.org/iterative-fast-fourier-transformation-polynomial-multiplication/
+static float window(const float in, const float coeff) { return in * coeff; }
+static float get_freq(const Compf *c) {
+  return (c->real * c->real + c->imag * c->imag);
+}
+
+static float interpolate(float base, float interpolated, int coeff,
+                         const int tframes) {
+  return (base - interpolated) * coeff * (1.0 / tframes);
+}
+
+static float amp(float z) {
+  if (z == 0.0f) {
+    return 0.0f;
+  }
+  return logf(z);
+}
+
+void _fft_push(const uint32_t *pos, float *buffer, const size_t bytes) {
+  fft_push(pos, buffer, bytes);
+}
+
+void _zero_fft(void) { zero_fft(); }
+
 void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
   for (size_t i = 0; i < size; i++) {
     int rev_index = bit_reverse(i, log2(size));
@@ -124,15 +164,6 @@ void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
   }
 }
 
-float get_freq(const Compf *c) {
-  return (c->real * c->real + c->imag * c->imag);
-}
-
-static float interpolate(float base, float interpolated, int coeff,
-                         const int tframes) {
-  return (base - interpolated) * coeff * (1.0 / tframes);
-}
-
 void linear_mapping(FFTBuffers *bufs, FFTData *data, const int smear_c,
                     const int smooth_c, const int tframes) {
   for (size_t i = 0; i < data->output_len; ++i) {
@@ -143,13 +174,6 @@ void linear_mapping(FFTBuffers *bufs, FFTData *data, const int smear_c,
     bufs->smear[i] +=
         interpolate(bufs->smoothed[i], bufs->smear[i], smear_c, tframes);
   }
-}
-
-float amp(float z) {
-  if (z == 0.0f) {
-    return 0.0f;
-  }
-  return logf(z);
 }
 
 void squash_to_log(FFTBuffers *bufs, FFTData *data) {
@@ -178,8 +202,6 @@ void squash_to_log(FFTBuffers *bufs, FFTData *data) {
 
   data->output_len = m;
 }
-
-float window(const float in, const float coeff) { return in * coeff; }
 
 void calculate_window(float *hamming_values) {
   for (int i = 0; i < M_BUF_SIZE; ++i) {

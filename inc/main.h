@@ -4,15 +4,15 @@
 #define WIN_W 600
 #define WIN_H 400
 
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_render.h>
 #include <stddef.h>
 
-typedef struct {
-  // Audio devices
-  SDL_AudioDeviceID dev;
-  SDL_AudioSpec *spec;
+struct SDL_AudioSpec;
+typedef struct SDL_AudioSpec SDL_AudioSpec;
 
+struct SDL_Color;
+typedef struct SDL_Color SDL_Color;
+
+typedef struct {
   // Flags
   int awaiting;
   int quit;
@@ -26,27 +26,9 @@ typedef struct {
   // Colors
 } Visualizer;
 
-typedef struct {
-  SDL_Color primary;
-  SDL_Color secondary;
-  SDL_Color background;
-  SDL_Color secondary_bg;
-  SDL_Color text;
-} Colors;
+void sdl_err(const char *msg);
+void errno_string(const char *function, const char *msg);
 
-typedef struct {
-  SDL_Window *w;
-  int width, height;
-} Window;
-
-typedef struct {
-  SDL_Renderer *r;
-} Renderer;
-
-typedef struct {
-  size_t p_node;
-  size_t cur_node;
-  size_t node_curs;
-} NodeIdx;
-
+const SDL_Color *_sec(void);
+const SDL_Color *_text(void);
 #endif // MAIN_H

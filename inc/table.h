@@ -17,8 +17,7 @@ typedef struct Table Table;
 
 struct Node {
   size_t key;
-  Paths *pbuf;
-  TextBuffer *tbuf;
+  Paths *paths;
   Node *next;
 };
 
@@ -29,7 +28,6 @@ struct Table {
 Node *search_table(Table *t, size_t i);
 int create_node(Table *t, size_t i);
 size_t hash(size_t i);
-void table_set_paths(Table *t, size_t i, Paths *pbuf);
-void table_set_text(Table *t, size_t i, TextBuffer *tbuf);
+void table_set_paths(Table *t, Paths *pbuf);
 
 #endif

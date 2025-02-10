@@ -1,11 +1,9 @@
-#ifndef FILESYSDEFS_H
-#define FILESYSDEFS_H
+#ifndef FILESYSTEM_H
+#define FILESYSTEM_H
 
 #include <stddef.h>
 
 typedef enum { TYPE_DIRECTORY = 0, TYPE_FILE = 1, UNKNOWN = -1 } FT_ENUM;
-
-#define PBUFMAX 256
 
 typedef struct {
   char *path;
@@ -22,5 +20,12 @@ struct Paths {
 };
 
 typedef struct Paths Paths;
+
+#ifdef __linux__
+#include <dirent.h>
+Paths *unix_fs_search(const char *pathstr);
+Paths *unix_read_dir(const char *path);
+int get_file_type(const int type);
+#endif
 
 #endif

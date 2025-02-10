@@ -1,36 +1,27 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <SDL2/SDL_render.h>
 #include <stddef.h>
 
-struct TextBuffer;
-typedef struct TextBuffer TextBuffer;
+struct SDL_Renderer;
+typedef struct SDL_Renderer SDL_Renderer;
 
-typedef struct {
-  const float *smear;
-  const float *smooth;
-  const size_t *length;
-} RenderArgs;
+struct SDL_Color;
+typedef struct SDL_Color SDL_Color;
 
-typedef struct {
-  int max_tw;
-  int height;
-  int first_y;
-  int last_y;
-  int max_y;
-  int last_iter;
-} MaxValues;
+struct Renderer {
+  SDL_Renderer *r;
+  int blendmode;
+  int accelerated;
+};
 
-// Render functions
-void render_seek_bar(const uint32_t *position, const uint32_t *length,
-                     const int w, const SDL_Color *col, SDL_Renderer *r);
-void render_bg(const SDL_Color *col, SDL_Renderer *r);
-void render_draw_text(SDL_Renderer *r, TextBuffer *buf, const int h,
-                      const int w);
-void render_clear(SDL_Renderer *r);
-void render_present(SDL_Renderer *r);
-void render_draw_music(RenderArgs *args, const int w, const int h,
-                       SDL_Renderer *r, const SDL_Color *p, SDL_Color *s);
+typedef struct Renderer Renderer;
 
+const void *create_renderer(void);
+Renderer *get_renderer(void);
+void destroy_renderer(void);
+
+void render_bg(const SDL_Color *col);
+void render_clear(void);
+void render_present(void);
 #endif

@@ -1,90 +1,121 @@
 #include "../inc/audio.h"
-#include "../inc/audiodefs.h"
-#include "../inc/utils.h"
+#include "../inc/main.h"
 
 #include <SDL2/SDL_audio.h>
 #include <errno.h>
 #include <sndfile.h>
 #include <stdbool.h>
 
-static void fft_push(const uint32_t *pos, float *in, float *buffer,
-                     size_t bytes);
-static void zero_values(AudioDataContainer *adc);
+AudioData ad = {0};
+SDL_AudioSpec spec = {0};
+SDL_AudioDeviceID device = {0};
+int device_needs_update = 0;
 
-int access_clamp(const int access) {
-  if (access > 1) {
-    return 1;
-  }
+void callback(void *userdata, uint8_t *stream, int length);
 
-  if (access < 0) {
+static unsigned int open_device(void) {
+  device =
+      SDL_OpenAudioDevice(NULL, 0, &spec, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
+  if (!device) {
+    sdl_err(SDL_GetError());
     return 0;
   }
 
-  return access;
+  return 1;
+}
+
+static void close_device(void) { SDL_CloseAudioDevice(device); }
+
+static void pause_device(void) {
+  if (device) {
+    if (SDL_GetAudioDeviceStatus(device) != SDL_AUDIO_PAUSED) {
+      SDL_PauseAudioDevice(device, true);
+    }
+  }
+}
+
+static void resume_device(void) {
+  if (device) {
+    if (SDL_GetAudioDeviceStatus(device) != SDL_AUDIO_PLAYING) {
+      SDL_PauseAudioDevice(device, false);
+    }
+  }
+}
+
+static void zero_values(void) {
+  ad.bytes = 0;
+  ad.channels = 0;
+  ad.format = 0;
+  ad.bytes = 0;
+  ad.length = 0;
+  ad.position = 0;
+  ad.samples = 0;
+  ad.SR = 0;
+  ad.volume = 1.0;
+}
+
+static void set_spec(void) {
+  spec.userdata = NULL;
+  spec.callback = callback;
+  spec.channels = ad.channels;
+  spec.freq = ad.SR;
+  spec.format = AUDIO_F32SYS;
+  spec.samples = M_BUF_SIZE / ad.channels;
+}
+
+static int spec_cmp(void) {
+  if (!spec.callback)
+    return 0;
+
+  if (spec.format != AUDIO_F32SYS)
+    return 0;
+
+  if (spec.channels != ad.channels)
+    return 0;
+
+  if (spec.freq != ad.SR)
+    return 0;
+
+  if (spec.samples != (M_BUF_SIZE) / ad.channels)
+    return 0;
+
+  return 1;
 }
 
 void callback(void *userdata, uint8_t *stream, int length) {
-  AudioDataContainer *adc = (AudioDataContainer *)userdata;
-  if (adc && adc->buffer) {
-    const uint32_t file_length = adc->ad->length;
+  if (ad.buffer) {
     const uint32_t uint32_len = (uint32_t)length;
     const uint32_t samples = uint32_len / sizeof(float);
-    const uint32_t remaining = (file_length - adc->ad->position);
+    const uint32_t remaining = (ad.length - ad.position);
     const uint32_t copy = (samples < remaining) ? samples : remaining;
 
-    if (adc->ad->position >= file_length) {
-      pause_device(*adc->device);
+    if (ad.position >= ad.length) {
+      pause_device();
     }
 
     if (stream) {
       float *f32_stream = (float *)stream;
       for (uint32_t i = 0; i < copy; i++) {
-        if (i + adc->ad->position < file_length) {
-          f32_stream[i] = adc->buffer[i + adc->ad->position] * 1.0f;
+        if (i + ad.position < ad.length) {
+          f32_stream[i] = ad.buffer[i + ad.position] * 1.0f;
         }
       }
-      adc->ad->position += copy;
+      ad.position += copy;
     }
 
-    if (adc->ad->position >= file_length) {
-      pause_device(*adc->device);
+    if (ad.position >= ad.length) {
+      pause_device();
     }
 
-    FFTBuffers *bufs = adc->fftbuff;
-    FFTData *data = adc->fftdata;
-
-    data->buffer_access = !data->buffer_access;
-
-    float *buf = bufs->fft_in[access_clamp(!data->buffer_access)];
     const size_t bytes = copy * sizeof(float);
-
-    if ((adc->ad->position + copy) < file_length) {
-      fft_push(&adc->ad->position, buf, adc->buffer, bytes);
+    if ((ad.position + copy) < ad.length) {
+      _fft_push(&ad.position, ad.buffer, bytes);
     }
   }
 }
 
-static void fft_push(const uint32_t *pos, float *in, float *buffer,
-                     size_t bytes) {
-  if (buffer && in) {
-    memcpy(in, buffer + *pos, bytes);
-  }
-}
-
-static void zero_values(AudioDataContainer *adc) {
-  adc->ad->bytes = 0;
-  adc->ad->channels = 0;
-  adc->ad->format = 0;
-  adc->ad->bytes = 0;
-  adc->ad->length = 0;
-  adc->ad->position = 0;
-  adc->ad->samples = 0;
-  adc->ad->SR = 0;
-  adc->ad->volume = 1.0;
-}
-
-int read_audio_file(const char *file_path, AudioDataContainer *adc) {
-  if (!adc || !file_path) {
+static int read_audio_file(const char *file_path) {
+  if (!file_path) {
     return 0;
   }
 
@@ -128,84 +159,50 @@ int read_audio_file(const char *file_path, AudioDataContainer *adc) {
   }
   sf_close(sndfile);
 
-  if (adc->buffer) {
-    free(adc->buffer);
-    adc->buffer = NULL;
+  if (ad.buffer) {
+    free(ad.buffer);
+    ad.buffer = NULL;
   }
 
-  zero_values(adc);
-  zero_fft(adc->fftbuff, adc->fftdata);
+  zero_values();
+  _zero_fft();
 
-  adc->ad->channels = sfinfo.channels;
-  adc->ad->SR = sfinfo.samplerate;
-  adc->ad->format = sfinfo.format;
-  adc->ad->samples = sfinfo.frames * sfinfo.channels;
-  adc->ad->bytes = adc->ad->samples * sizeof(float);
-  adc->ad->length = (uint32_t)(adc->ad->samples);
+  ad.channels = sfinfo.channels;
+  ad.SR = sfinfo.samplerate;
+  ad.format = sfinfo.format;
+  ad.samples = sfinfo.frames * sfinfo.channels;
+  ad.bytes = ad.samples * sizeof(float);
+  ad.length = (uint32_t)(ad.samples);
 
-  adc->buffer = tmp;
+  device_needs_update = spec_cmp();
+
+  ad.buffer = tmp;
+  return 1;
+}
+
+int _file_read(const char *filepath) {
+  if (!read_audio_file(filepath)) {
+    return 0;
+  };
 
   return 1;
 }
 
-unsigned int open_device(SDL_AudioSpec *spec) {
-  unsigned int dev;
-  dev = SDL_OpenAudioDevice(NULL, 0, spec, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
-  if (!dev) {
-    SDL_ERR_CALLBACK(SDL_GetError());
+int _start_device(void) {
+  if (device_needs_update == 0) {
+    if (device) {
+      close_device();
+    }
+
+    if (!open_device()) {
+      return 0;
+    }
   }
-  return dev;
-}
 
-int spec_compare(const SDL_AudioSpec *s, const AudioDataContainer *a) {
-  if (!s->callback)
-    return 0;
-
-  if (!s->userdata)
-    return 0;
-
-  if (s->format != AUDIO_F32SYS)
-    return 0;
-
-  if (s->channels != a->ad->channels)
-    return 0;
-
-  if (s->freq != a->ad->SR)
-    return 0;
-
-  if (s->samples != (M_BUF_SIZE) / a->ad->channels)
-    return 0;
-
+  resume_device();
   return 1;
-}
-
-void set_spec(AudioDataContainer *adc, SDL_AudioSpec *s) {
-  s->userdata = adc;
-  s->callback = callback;
-  s->channels = adc->ad->channels;
-  s->freq = adc->ad->SR;
-  s->format = AUDIO_F32SYS;
-  s->samples = M_BUF_SIZE / adc->ad->channels;
 }
 
 int get_status(const unsigned int *dev) {
   return SDL_GetAudioDeviceStatus(*dev);
-}
-
-void close_device(unsigned int dev) { SDL_CloseAudioDevice(dev); }
-
-void pause_device(unsigned int dev) {
-  if (dev) {
-    if (SDL_GetAudioDeviceStatus(dev) != SDL_AUDIO_PAUSED) {
-      SDL_PauseAudioDevice(dev, true);
-    }
-  }
-}
-
-void resume_device(unsigned int dev) {
-  if (dev) {
-    if (SDL_GetAudioDeviceStatus(dev) != SDL_AUDIO_PLAYING) {
-      SDL_PauseAudioDevice(dev, false);
-    }
-  }
 }

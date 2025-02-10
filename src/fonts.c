@@ -1,5 +1,6 @@
 #include "../inc/font.h"
-#include "../inc/utils.h"
+#include "../inc/main.h"
+#include "../inc/renderer.h"
 
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_ttf.h>
@@ -8,149 +9,81 @@
 #include <stdio.h>
 #include <string.h>
 
-void *free_text_buffer(TextBuffer *buf, const size_t *count) {
-  if (!buf) {
-    return NULL;
-  }
+#define ATLAS_SIZE 128
 
-  for (size_t i = 0; i < *count; i++) {
-    if (buf[i].text) {
-      Text *t = buf[i].text;
-      if (t->name) {
-        free(t->name);
-      }
+Font font = {16, NULL};
+Character atlas[ATLAS_SIZE];
 
-      if (t->tex[0]) {
-        SDL_DestroyTexture(t->tex[0]);
-      }
-
-      if (t->tex[1]) {
-        SDL_DestroyTexture(t->tex[1]);
-      }
-
-      free(t);
+static int fill_text_atlas(void) {
+  for (int i = 0; i < ATLAS_SIZE; i++) {
+    const char *c = (char[]){i, '\0'};
+    SDL_Surface *s = TTF_RenderText_Blended(font.font, c, *_text());
+    if (!s) {
+      sdl_err(SDL_GetError());
+      return 0;
     }
+
+    SDL_Texture *t = SDL_CreateTextureFromSurface(get_renderer()->r, s);
+    if (!t) {
+      SDL_FreeSurface(s);
+      sdl_err(SDL_GetError());
+      return 0;
+    }
+
+    atlas[i].value = i;
+    atlas[i].texture = t;
+    atlas[i].w = s->w;
+    atlas[i].h = s->h;
+
+    SDL_FreeSurface(s);
   }
 
-  free(buf);
-  return NULL;
+  return 1;
 }
 
-static void zero_data(IdxInfo *i) {
-  i->is_valid = 0;
-  i->size = 0;
-  i->start = 0;
-  i->cursor = 0;
-  i->max_text_height = 0;
+int _fill_text_atlas(void) { return fill_text_atlas(); }
+
+static int ascii_bounds(unsigned int c) {
+  if (c > 127) {
+    return 0;
+  }
+
+  return 1;
 }
 
-static void zero_buffer(TextBuffer *t) { t->text = NULL; }
-
-static int validate_paths(const Paths *p) { return p && p->size > 0; }
-
-static TextBuffer *text_buf_allocate(const size_t size) {
-  TextBuffer *tbuf = malloc(sizeof(TextBuffer) * size);
-  if (!tbuf) {
-    ERRNO_CALLBACK("Malloc failed!", strerror(errno));
+const Character *atlas_lookup_char(unsigned int c) {
+  if (!ascii_bounds(c)) {
     return NULL;
   }
 
-  for (size_t i = 0; i < size; i++) {
-    zero_buffer(&tbuf[i]);
-    zero_data(&tbuf[i].info);
-  }
-
-  tbuf->info.size = size;
-  return tbuf;
+  return &atlas[c];
 }
 
-TextBuffer *create_fonts(const Paths *pbuf, SDL_Renderer *r, Font *f,
-                         const int w, const SDL_Color *c_text,
-                         const SDL_Color *c_sec) {
-  if (!validate_paths(pbuf)) {
-    return NULL;
+static int open_ttf_file(const char *path, const char *env) {
+  const int size = strlen(path) + strlen(env);
+  char path_buffer[size + 1];
+
+  if (!strcpy(path_buffer, env)) {
+    errno_string("strcpy()\n", strerror(errno));
+    return 0;
   }
 
-  TextBuffer *tbuf = text_buf_allocate(pbuf->size);
-  if (!tbuf) {
-    return NULL;
+  if (!strcat(path_buffer, path)) {
+    errno_string("strcat()\n", strerror(errno));
+    return 0;
   }
 
-  for (size_t i = 0; i < pbuf->size; i++) {
-    (tbuf + i)->text = calloc(1, sizeof(Text));
-    if (!tbuf->text) {
-      ERRNO_CALLBACK("malloc() failed!", strerror(errno));
-      return tbuf;
-    }
+  path_buffer[size] = '\0';
 
-    StrVals name = (pbuf + i)->name;
-    Text *text = (tbuf + i)->text;
-
-    if (!name.path) {
-      fprintf(stderr, "Path name is NULL!\n");
-      return tbuf;
-    }
-
-    // strdup uses malloc() so this needs to be freed when not used.
-    text->name = strdup(name.path);
-    if (!text->name) {
-      ERRNO_CALLBACK("strdup() failed!", strerror(errno));
-      return tbuf;
-    }
-
-    text->id = i;
-
-    const size_t max_chars = get_char_limit(w, f->size);
-    char name_buffer[max_chars + 1];
-    name_buffer[max_chars] = '\0';
-
-    size_t j = 0;
-    while (j < max_chars && text->name[j] != '\0') {
-      name_buffer[j] = text->name[j];
-      j++;
-    }
-
-    if (j == max_chars) {
-      name_buffer[j - 1] = '~';
-    } else {
-      name_buffer[j] = '\0';
-    }
-
-    text->surf[0] = TTF_RenderText_Solid(f->font, name_buffer, *c_text);
-    if (!text->surf[0]) {
-      return tbuf;
-    }
-
-    text->tex[0] = SDL_CreateTextureFromSurface(r, text->surf[0]);
-    if (!text->tex[0]) {
-      return tbuf;
-    }
-
-    text->width = text->surf[0]->w;
-    text->height = text->surf[0]->h;
-    SDL_FreeSurface(text->surf[0]);
-
-    text->surf[1] = TTF_RenderText_Solid(f->font, name_buffer, *c_sec);
-    if (!text->surf[1]) {
-      return tbuf;
-    }
-
-    text->tex[1] = SDL_CreateTextureFromSurface(r, text->surf[1]);
-    if (!text->tex[1]) {
-      return tbuf;
-    }
-
-    SDL_FreeSurface(text->surf[1]);
-
-    text->surf[0] = NULL;
-    text->surf[1] = NULL;
-    text->is_valid = 1;
-
-    if (text->height > tbuf->info.max_text_height) {
-      tbuf->info.max_text_height = text->height;
-    }
+  font.font = TTF_OpenFont(path_buffer, font.size);
+  if (!font.font) {
+    sdl_err(SDL_GetError());
+    return 0;
   }
 
-  tbuf->info.is_valid = 1;
-  return tbuf;
+  return 1;
+}
+
+int _open_ttf_file(const char *path, const char *env) {
+  return open_ttf_file(path, env);
 }
