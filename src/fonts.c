@@ -15,7 +15,7 @@ Font font = {16, NULL};
 Character atlas[ATLAS_SIZE];
 
 static int fill_text_atlas(void) {
-  for (int i = 0; i < ATLAS_SIZE; i++) {
+  for (int i = 32; i < ATLAS_SIZE; i++) {
     const char *c = (char[]){i, '\0'};
     SDL_Surface *s = TTF_RenderText_Blended(font.font, c, *_text());
     if (!s) {
