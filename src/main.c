@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
   }
 
   table_set_paths(&table, fs_search(home));
+  Paths *current_paths = search_table(&table, get_current_index())->paths;
 
   SDL_EnableScreenSaver();
 
@@ -139,6 +140,8 @@ int main(int argc, char **argv) {
       } break;
       }
     }
+
+    render_node_text(current_paths);
 
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {

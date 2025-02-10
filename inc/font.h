@@ -10,8 +10,8 @@ typedef struct _TTF_Font TTF_Font;
 typedef struct {
   unsigned int id;
   unsigned char value;
-  int w, h;
-  SDL_Texture *texture;
+  int w[2], h[2];
+  SDL_Texture *texture[2];
 } Character;
 
 typedef struct {
@@ -21,4 +21,5 @@ typedef struct {
 
 int _open_ttf_file(const char *path, const char *env);
 int _fill_text_atlas(void);
+const Character *atlas_lookup_char(unsigned int c);
 #endif

@@ -30,4 +30,8 @@ int create_node(Table *t, size_t i);
 size_t hash(size_t i);
 void table_set_paths(Table *t, Paths *pbuf);
 
+void set_current_index(const int i);
+int get_current_index(void);
+void set_last_index(const int i);
+int get_last_index(void);
 #endif

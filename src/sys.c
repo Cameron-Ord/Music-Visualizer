@@ -143,12 +143,6 @@ Paths *unix_read_dir(const char *path) {
         }
       }
 
-      if (get_file_type(e->d_type) == TYPE_FILE) {
-        free(cur->path.path);
-        free(cur->name.path);
-        continue;
-      }
-
       cur->name.length = entry_size;
       cur->path.length = path_size;
       cur->type = get_file_type(e->d_type);

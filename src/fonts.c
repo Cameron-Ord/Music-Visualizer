@@ -17,25 +17,50 @@ Character atlas[ATLAS_SIZE];
 static int fill_text_atlas(void) {
   for (int i = 32; i < ATLAS_SIZE; i++) {
     const char *c = (char[]){i, '\0'};
-    SDL_Surface *s = TTF_RenderText_Blended(font.font, c, *_text());
-    if (!s) {
+    SDL_Surface *surf_p = TTF_RenderText_Solid(font.font, c, *_text());
+    if (!surf_p) {
       sdl_err(SDL_GetError());
       return 0;
     }
 
-    SDL_Texture *t = SDL_CreateTextureFromSurface(get_renderer()->r, s);
-    if (!t) {
-      SDL_FreeSurface(s);
+    SDL_Surface *surf_s = TTF_RenderText_Solid(font.font, c, *_sec());
+    if (!surf_s) {
+      SDL_FreeSurface(surf_p);
+      sdl_err(SDL_GetError());
+      return 0;
+    }
+
+    SDL_Texture *primary =
+        SDL_CreateTextureFromSurface(get_renderer()->r, surf_p);
+    if (!primary) {
+      SDL_FreeSurface(surf_p);
+      SDL_FreeSurface(surf_s);
+      sdl_err(SDL_GetError());
+      return 0;
+    }
+
+    SDL_Texture *secondary =
+        SDL_CreateTextureFromSurface(get_renderer()->r, surf_s);
+    if (!primary) {
+      SDL_FreeSurface(surf_p);
+      SDL_FreeSurface(surf_s);
+      SDL_DestroyTexture(primary);
       sdl_err(SDL_GetError());
       return 0;
     }
 
     atlas[i].value = i;
-    atlas[i].texture = t;
-    atlas[i].w = s->w;
-    atlas[i].h = s->h;
+    atlas[i].texture[0] = primary;
+    atlas[i].texture[1] = secondary;
 
-    SDL_FreeSurface(s);
+    atlas[i].w[1] = surf_s->w;
+    atlas[i].h[1] = surf_s->h;
+
+    atlas[i].w[0] = surf_p->w;
+    atlas[i].h[0] = surf_p->h;
+
+    SDL_FreeSurface(surf_s);
+    SDL_FreeSurface(surf_p);
   }
 
   return 1;
