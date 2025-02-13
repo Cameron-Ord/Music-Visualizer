@@ -2,7 +2,6 @@
 #define TABLE_H
 
 #define MAX_NODES 16
-#define MODES 2
 
 #include <stddef.h>
 

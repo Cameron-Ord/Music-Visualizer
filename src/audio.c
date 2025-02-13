@@ -97,7 +97,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
       float *f32_stream = (float *)stream;
       for (uint32_t i = 0; i < copy; i++) {
         if (i + ad.position < ad.length) {
-          f32_stream[i] = ad.buffer[i + ad.position] * 1.0f;
+          f32_stream[i] = ad.buffer[i + ad.position] * 0.0f;
         }
       }
       ad.position += copy;

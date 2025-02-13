@@ -9,7 +9,7 @@ void render_node_text(const Paths *p) {
   int y = 0;
   int padding = 4;
 
-  for (size_t i = 0; i < p->size; i++) {
+  for (size_t i = p->cursor; i < p->size; i++) {
     int x = 0;
     int h = 0;
     for (size_t k = 0; k < p[i].name.length; k++) {

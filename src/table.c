@@ -49,6 +49,13 @@ void table_set_paths(Table *t, Paths *paths) {
     return;
   }
 
+  if (n->paths) {
+    for (size_t i = 0; i < n->paths->size; i++) {
+      free_entry(&n->paths[i]);
+    }
+    free(n->paths);
+  }
+
   if (!paths) {
     n->paths = NULL;
   } else {

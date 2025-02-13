@@ -7,6 +7,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+void free_entry(Paths *p) {
+  if (!p) {
+    return;
+  }
+
+  if (p->name.path) {
+    free(p->name.path);
+  }
+
+  if (p->path.path) {
+    free(p->path.path);
+  }
+}
+
 static int not_nav(const char *str) {
   if (strcmp("..", str) == 0) {
     return 0;

@@ -1,4 +1,6 @@
 #include "../inc/main.h"
+#include "../inc/audio.h"
+#include "../inc/events.h"
 #include "../inc/font.h"
 #include "../inc/renderer.h"
 #include "../inc/sys.h"
@@ -112,6 +114,7 @@ int main(int argc, char **argv) {
 
   table_set_paths(&table, fs_search(home));
   Paths *current_paths = search_table(&table, get_current_index())->paths;
+  int node_index_changed = 0;
 
   SDL_EnableScreenSaver();
 
@@ -120,6 +123,8 @@ int main(int argc, char **argv) {
   int frame_time;
 
   SDL_ShowWindow(get_window()->w);
+
+  int mode = PLAYBACK;
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -132,6 +137,45 @@ int main(int argc, char **argv) {
         break;
 
       case SDL_KEYDOWN: {
+        switch (e.key.keysym.sym) {
+        default:
+          break;
+
+        case SDLK_LEFT: {
+          set_current_index(nav_up(get_current_index(), MAX_NODES));
+          current_paths = search_table(&table, get_current_index())->paths;
+        } break;
+
+        case SDLK_RIGHT: {
+          const char *pathstr = current_paths[current_paths->cursor].path.path;
+          const int entry_type = current_paths[current_paths->cursor].type;
+
+          switch (entry_type) {
+          default:
+            break;
+          case TYPE_FILE: {
+            _file_read(pathstr);
+            _start_device();
+          } break;
+
+          case TYPE_DIRECTORY: {
+            set_current_index(nav_down(get_current_index(), MAX_NODES));
+            table_set_paths(&table, fs_search(pathstr));
+            current_paths = search_table(&table, get_current_index())->paths;
+          } break;
+          }
+        } break;
+
+        case SDLK_DOWN: {
+          current_paths->cursor =
+              nav_down(current_paths->cursor, current_paths->size);
+        } break;
+
+        case SDLK_UP: {
+          current_paths->cursor =
+              nav_up(current_paths->cursor, current_paths->size);
+        } break;
+        }
 
       } break;
 

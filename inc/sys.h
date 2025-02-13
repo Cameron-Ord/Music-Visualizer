@@ -14,7 +14,7 @@ struct Paths {
   StrVals name;
   StrVals path;
   size_t size;
-  int id;
+  int cursor;
   int type;
   int is_valid;
 };
@@ -27,5 +27,7 @@ Paths *unix_fs_search(const char *pathstr);
 Paths *unix_read_dir(const char *path);
 int get_file_type(const int type);
 #endif
+
+void free_entry(Paths *p);
 
 #endif
