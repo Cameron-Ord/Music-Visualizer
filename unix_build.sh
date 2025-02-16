@@ -1,7 +1,7 @@
 working_dir=$(pwd)
 
 build_dir=build
-cmake -DCMAKE_BUILD_TYPE=Debug \
+cmake -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER=gcc \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
   -S. \
