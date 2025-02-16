@@ -27,7 +27,10 @@ static unsigned int open_device(void) {
   return 1;
 }
 
-static void close_device(void) { SDL_CloseAudioDevice(device); }
+static void close_device(void) {
+  SDL_CloseAudioDevice(device);
+  device = 0;
+}
 
 static void pause_device(void) {
   if (device) {
@@ -178,7 +181,7 @@ static int read_audio_file(const char *file_path) {
   ad.bytes = ad.samples * sizeof(float);
   ad.length = (uint32_t)(ad.samples);
 
-  if (device_needs_update == spec_cmp()) {
+  if ((device_needs_update = spec_cmp())) {
     set_spec();
   }
 
