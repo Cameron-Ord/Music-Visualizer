@@ -61,7 +61,10 @@ void set_cursor(const int set, int *target) {
   *target = set;
 }
 
-static int autoplay(Paths *current_paths, Table *table) {
+static int autoplay(Paths *current_paths) {
+  set_cursor(auto_nav_down(current_paths->cursor, current_paths->size),
+             &current_paths->cursor);
+
   const char *pathstr = current_paths[current_paths->cursor].path.path;
   const int entry_type = current_paths[current_paths->cursor].type;
 
@@ -313,7 +316,7 @@ int main(int argc, char **argv) {
         default:
           break;
         case 0: {
-          if (!autoplay(current_paths, &table)) {
+          if (!autoplay(current_paths)) {
             mode = TEXT;
           }
         } break;
