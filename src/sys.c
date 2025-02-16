@@ -109,6 +109,7 @@ Paths *unix_read_dir(const char *path) {
 
       Paths *cur = &d[count];
 
+      cur->cursor = 0;
       cur->is_valid = 0;
       memset(&cur->path, 0, sizeof(StrVals));
       memset(&cur->name, 0, sizeof(StrVals));

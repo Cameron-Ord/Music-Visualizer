@@ -43,10 +43,15 @@ Node *search_table(Table *t, size_t i) {
   return NULL;
 }
 
-void table_set_paths(Table *t, Paths *paths) {
+int table_set_paths(Table *t, Paths *paths) {
   Node *n = search_table(t, current_index);
   if (!n) {
-    return;
+    return 0;
+  }
+
+  if (paths->size <= 0) {
+    free(paths);
+    return 0;
   }
 
   if (n->paths) {
@@ -58,7 +63,9 @@ void table_set_paths(Table *t, Paths *paths) {
 
   if (!paths) {
     n->paths = NULL;
+    return 0;
   } else {
     n->paths = paths;
+    return 1;
   }
 }

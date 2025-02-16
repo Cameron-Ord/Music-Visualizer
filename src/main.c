@@ -8,7 +8,9 @@
 #include "../inc/window.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_video.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -50,6 +52,40 @@ void sdl_err(const char *msg) { fprintf(stderr, "%s\n", msg); }
 
 void errno_string(const char *func, const char *msg) {
   fprintf(stderr, "%s failed! -> %s\n", func, msg);
+}
+
+void set_cursor(const int set, int *target) {
+  if (!target) {
+    return;
+  }
+  *target = set;
+}
+
+static int autoplay(Paths *current_paths, Table *table) {
+  const char *pathstr = current_paths[current_paths->cursor].path.path;
+  const int entry_type = current_paths[current_paths->cursor].type;
+
+  switch (entry_type) {
+  default:
+    return 0;
+
+  case TYPE_DIRECTORY: {
+    return 0;
+  } break;
+
+  case TYPE_FILE: {
+    switch (_file_read(pathstr)) {
+    default:
+      return 0;
+
+    case 1: {
+      return _start_device();
+    } break;
+    }
+  } break;
+  }
+
+  return 0;
 }
 
 int main(int argc, char **argv) {
@@ -104,6 +140,9 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+  // Set hamming window values
+  calculate_window();
+
   Table table;
   for (size_t i = 0; i < MAX_NODES; i++) {
     table.node_buffer[i] = NULL;
@@ -114,7 +153,6 @@ int main(int argc, char **argv) {
 
   table_set_paths(&table, fs_search(home));
   Paths *current_paths = search_table(&table, get_current_index())->paths;
-  int node_index_changed = 0;
 
   SDL_EnableScreenSaver();
 
@@ -124,7 +162,7 @@ int main(int argc, char **argv) {
 
   SDL_ShowWindow(get_window()->w);
 
-  int mode = PLAYBACK;
+  int mode = TEXT;
 
   while (!vis.quit) {
     frame_start = SDL_GetTicks64();
@@ -137,55 +175,187 @@ int main(int argc, char **argv) {
         break;
 
       case SDL_KEYDOWN: {
-        switch (e.key.keysym.sym) {
+        const int keysym = e.key.keysym.sym;
+        const int modkey = e.key.keysym.mod;
+
+        switch (keysym) {
         default:
           break;
 
+        case SDLK_p: {
+          switch (_get_status()) {
+          default:
+            break;
+
+          case SDL_AUDIO_PAUSED: {
+            _resume();
+          } break;
+
+          case SDL_AUDIO_PLAYING: {
+            _pause();
+          } break;
+          }
+        } break;
+
         case SDLK_LEFT: {
-          set_current_index(nav_up(get_current_index(), MAX_NODES));
-          current_paths = search_table(&table, get_current_index())->paths;
+          switch (mode) {
+          case TEXT: {
+            set_current_index(nav_up(get_current_index(), MAX_NODES));
+            current_paths = search_table(&table, get_current_index())->paths;
+          } break;
+
+          case PLAYBACK: {
+          } break;
+          }
         } break;
 
         case SDLK_RIGHT: {
-          const char *pathstr = current_paths[current_paths->cursor].path.path;
-          const int entry_type = current_paths[current_paths->cursor].type;
+          switch (mode) {
+          case TEXT: {
+            const char *pathstr =
+                current_paths[current_paths->cursor].path.path;
+            const int entry_type = current_paths[current_paths->cursor].type;
 
-          switch (entry_type) {
-          default:
-            break;
-          case TYPE_FILE: {
-            _file_read(pathstr);
-            _start_device();
+            switch (entry_type) {
+            default:
+              break;
+            case TYPE_FILE: {
+              switch (_file_read(pathstr)) {
+              default:
+                break;
+
+              case 1: {
+                if (_start_device()) {
+                  mode = PLAYBACK;
+                }
+              } break;
+              }
+            } break;
+
+            case TYPE_DIRECTORY: {
+              set_last_index(get_current_index());
+              set_current_index(nav_down(get_current_index(), MAX_NODES));
+              switch (table_set_paths(&table, fs_search(pathstr))) {
+              case 0: {
+                set_current_index(get_last_index());
+              } break;
+
+              case 1: {
+                current_paths =
+                    search_table(&table, get_current_index())->paths;
+              } break;
+              }
+            } break;
+            }
           } break;
-
-          case TYPE_DIRECTORY: {
-            set_current_index(nav_down(get_current_index(), MAX_NODES));
-            table_set_paths(&table, fs_search(pathstr));
-            current_paths = search_table(&table, get_current_index())->paths;
+          case PLAYBACK: {
           } break;
           }
         } break;
 
         case SDLK_DOWN: {
-          current_paths->cursor =
-              nav_down(current_paths->cursor, current_paths->size);
+          if (modkey & KMOD_SHIFT) {
+            mode = !mode;
+          } else {
+            switch (mode) {
+            case TEXT: {
+              set_cursor(nav_down(current_paths->cursor, current_paths->size),
+                         &current_paths->cursor);
+            } break;
+            case PLAYBACK: {
+            } break;
+            }
+          }
         } break;
 
         case SDLK_UP: {
-          current_paths->cursor =
-              nav_up(current_paths->cursor, current_paths->size);
+          if (modkey & KMOD_SHIFT) {
+            mode = !mode;
+          } else {
+            switch (mode) {
+            case TEXT: {
+              set_cursor(nav_up(current_paths->cursor, current_paths->size),
+                         &current_paths->cursor);
+            } break;
+            case PLAYBACK: {
+            } break;
+            }
+          }
+
         } break;
         }
-
       } break;
 
       case SDL_QUIT: {
         vis.quit = 1;
       } break;
+
+      case SDL_WINDOWEVENT: {
+        switch (e.window.event) {
+        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+          win_push_update();
+
+        } break;
+        case SDL_WINDOWEVENT_RESIZED: {
+          win_push_update();
+        } break;
+        }
+      } break;
       }
     }
 
-    render_node_text(current_paths);
+    switch (mode) {
+    case PLAYBACK: {
+      switch (_get_status()) {
+      case SDL_AUDIO_PAUSED: {
+        const int gate = get_ad()->position < get_ad()->length && get_ad();
+        switch (gate) {
+        default:
+          break;
+        case 0: {
+          if (!autoplay(current_paths, &table)) {
+            mode = TEXT;
+          }
+        } break;
+
+        case 1: {
+          _do_fft(&vis.smearing, &vis.smoothing, &vis.target_frames);
+          render_seek_bar(get_window()->width, &primary, get_renderer()->r);
+          SDL_Color p_alpha_mod = {primary.r, primary.g, primary.b, 125};
+          SDL_Color s_alpha_mod = {secondary_bg.r, secondary_bg.g,
+                                   secondary_bg.b, 125};
+          render_draw_music(get_window()->width, get_window()->height,
+                            get_renderer()->r, &p_alpha_mod, &s_alpha_mod);
+        } break;
+        }
+      } break;
+
+      case SDL_AUDIO_PLAYING: {
+        const int gate = get_ad()->position < get_ad()->length && get_ad();
+        switch (gate) {
+        default:
+          break;
+        case 1: {
+          _do_fft(&vis.smearing, &vis.smoothing, &vis.target_frames);
+          render_seek_bar(get_window()->width, &primary, get_renderer()->r);
+          render_draw_music(get_window()->width, get_window()->height,
+                            get_renderer()->r, &primary, &secondary_bg);
+
+        } break;
+        }
+
+      } break;
+
+      case SDL_AUDIO_STOPPED: {
+        mode = TEXT;
+      } break;
+      }
+    } break;
+
+    case TEXT: {
+      render_node_text(current_paths);
+    } break;
+    }
 
     frame_time = SDL_GetTicks64() - frame_start;
     if (ticks_per_frame > frame_time) {

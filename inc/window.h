@@ -16,5 +16,6 @@ typedef struct Window Window;
 const void *create_window(void);
 Window *get_window(void);
 void close_window(void);
+void win_push_update(void);
 
 #endif // WINDOW_H

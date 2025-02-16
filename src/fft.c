@@ -6,6 +6,14 @@
 
 FFTData data = {0};
 FFTBuffers bufs = {0};
+float *in_buffer = NULL;
+
+const FFTData *get_data(void) { return &data; }
+const FFTBuffers *get_bufs(void) { return &bufs; }
+
+static void iter_fft(float *in, float *coeffs, Compf *out, size_t size);
+static void squash_to_log(void);
+static void linear(const int *smear_c, const int *smooth_c, const int *tframes);
 
 static inline Compf c_from_real(const float real) {
   Compf _complex;
@@ -85,9 +93,26 @@ static int access_clamp(const int access) {
 static void fft_push(const uint32_t *pos, float *buffer, const size_t bytes) {
   if (buffer) {
     data.buffer_access = !data.buffer_access;
-    float *buf = bufs.fft_in[access_clamp(!data.buffer_access)];
-    memcpy(buf, buffer + *pos, bytes);
+    in_buffer = bufs.fft_in[access_clamp(!data.buffer_access)];
+    memcpy(in_buffer, buffer + *pos, bytes);
   }
+}
+
+static void do_fft(const int *smear_v, const int *smooth_v,
+                   const int *tframes) {
+  if (!in_buffer) {
+    return;
+  }
+
+  float tmp[M_BUF_SIZE];
+  memcpy(tmp, in_buffer, sizeof(float) * M_BUF_SIZE);
+  iter_fft(tmp, data.hamming_values, bufs.out_raw, M_BUF_SIZE);
+  squash_to_log();
+  linear(smear_v, smooth_v, tframes);
+}
+
+void _do_fft(const int *smear_v, const int *smooth_v, const int *tframes) {
+  do_fft(smear_v, smooth_v, tframes);
 }
 
 static void zero_fft(void) {
@@ -138,7 +163,7 @@ void _fft_push(const uint32_t *pos, float *buffer, const size_t bytes) {
 
 void _zero_fft(void) { zero_fft(); }
 
-void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
+static void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
   for (size_t i = 0; i < size; i++) {
     int rev_index = bit_reverse(i, log2(size));
     out[i] = c_from_real(window(in[rev_index], coeffs[rev_index]));
@@ -164,49 +189,49 @@ void iter_fft(float *in, float *coeffs, Compf *out, size_t size) {
   }
 }
 
-void linear_mapping(FFTBuffers *bufs, FFTData *data, const int smear_c,
-                    const int smooth_c, const int tframes) {
-  for (size_t i = 0; i < data->output_len; ++i) {
-    const float n = bufs->processed_samples[i] / data->max_ampl;
+static void linear(const int *smear_v, const int *smooth_v,
+                   const int *tframes) {
+  for (size_t i = 0; i < data.output_len; ++i) {
+    const float n = bufs.processed_samples[i] / data.max_ampl;
     // interpolated audio amplitudes
-    bufs->smoothed[i] += interpolate(n, bufs->smoothed[i], smooth_c, tframes);
+    bufs.smoothed[i] += interpolate(n, bufs.smoothed[i], *smooth_v, *tframes);
     // interpolated smear frames (of the audio amplitudes)
-    bufs->smear[i] +=
-        interpolate(bufs->smoothed[i], bufs->smear[i], smear_c, tframes);
+    bufs.smear[i] +=
+        interpolate(bufs.smoothed[i], bufs.smear[i], *smear_v, *tframes);
   }
 }
 
-void squash_to_log(FFTBuffers *bufs, FFTData *data) {
+static void squash_to_log(void) {
   float step = 1.06f;
   float lowf = 1.0f;
   size_t m = 0;
 
-  data->max_ampl = 1.0f;
+  data.max_ampl = 1.0f;
   for (float f = lowf; (size_t)f < HALF_BUFF_SIZE; f = ceilf(f * step)) {
     float fs = ceilf(f * step);
     float a = 0.0f;
 
     for (size_t q = (size_t)f; q < HALF_BUFF_SIZE && q < (size_t)fs; ++q) {
-      float b = amp(get_freq(&bufs->out_raw[q]));
+      float b = amp(get_freq(&bufs.out_raw[q]));
       if (b > a) {
         a = b;
       }
     }
 
-    if (data->max_ampl < a) {
-      data->max_ampl = a;
+    if (data.max_ampl < a) {
+      data.max_ampl = a;
     }
 
-    bufs->processed_samples[m++] = a;
+    bufs.processed_samples[m++] = a;
   }
 
-  data->output_len = m;
+  data.output_len = m;
 }
 
-void calculate_window(float *hamming_values) {
+void calculate_window(void) {
   for (int i = 0; i < M_BUF_SIZE; ++i) {
     float Nf = (float)M_BUF_SIZE;
     float t = (float)i / (Nf - 1);
-    hamming_values[i] = 0.54 - 0.46 * cosf(2 * M_PI * t);
+    data.hamming_values[i] = 0.54 - 0.46 * cosf(2 * M_PI * t);
   }
 }

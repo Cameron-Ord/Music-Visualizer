@@ -1,34 +1,6 @@
 #include "../inc/events.h"
 #include <string.h>
 
-static int get_i(const char *direction);
-
-static int get_i(const char *direction) {
-  if (strcmp("--", direction) == 0) {
-    return -1;
-  }
-
-  if (strcmp("++", direction) == 0) {
-    return 1;
-  }
-
-  return 0;
-}
-
-int node_index(const char *direction, int node_index, int max) {
-  int tmp_index = node_index;
-  tmp_index += get_i(direction);
-  if (tmp_index > max - 1) {
-    tmp_index = max - 1;
-  }
-
-  if (tmp_index < 0) {
-    tmp_index = 0;
-  }
-
-  return tmp_index;
-}
-
 static int clamp(int size, int curs) {
   if (curs < 0)
     curs = 0;

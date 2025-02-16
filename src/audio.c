@@ -9,9 +9,12 @@
 AudioData ad = {0};
 SDL_AudioSpec spec = {0};
 SDL_AudioDeviceID device = {0};
-int device_needs_update = 0;
+int device_needs_update = 1;
 
 void callback(void *userdata, uint8_t *stream, int length);
+const AudioData *get_ad(void);
+
+const AudioData *get_ad(void) { return &ad; }
 
 static unsigned int open_device(void) {
   device =
@@ -65,24 +68,25 @@ static void set_spec(void) {
 
 static int spec_cmp(void) {
   if (!spec.callback)
-    return 0;
+    return 1;
 
   if (spec.format != AUDIO_F32SYS)
-    return 0;
+    return 1;
 
   if (spec.channels != ad.channels)
-    return 0;
+    return 1;
 
   if (spec.freq != ad.SR)
-    return 0;
+    return 1;
 
   if (spec.samples != (M_BUF_SIZE) / ad.channels)
-    return 0;
+    return 1;
 
-  return 1;
+  return 0;
 }
 
 void callback(void *userdata, uint8_t *stream, int length) {
+
   if (ad.buffer) {
     const uint32_t uint32_len = (uint32_t)length;
     const uint32_t samples = uint32_len / sizeof(float);
@@ -97,7 +101,7 @@ void callback(void *userdata, uint8_t *stream, int length) {
       float *f32_stream = (float *)stream;
       for (uint32_t i = 0; i < copy; i++) {
         if (i + ad.position < ad.length) {
-          f32_stream[i] = ad.buffer[i + ad.position] * 0.0f;
+          f32_stream[i] = ad.buffer[i + ad.position] * 1.0f;
         }
       }
       ad.position += copy;
@@ -174,7 +178,9 @@ static int read_audio_file(const char *file_path) {
   ad.bytes = ad.samples * sizeof(float);
   ad.length = (uint32_t)(ad.samples);
 
-  device_needs_update = spec_cmp();
+  if (device_needs_update == spec_cmp()) {
+    set_spec();
+  }
 
   ad.buffer = tmp;
   return 1;
@@ -189,7 +195,7 @@ int _file_read(const char *filepath) {
 }
 
 int _start_device(void) {
-  if (device_needs_update == 0) {
+  if (device_needs_update == 1) {
     if (device) {
       close_device();
     }
@@ -203,6 +209,8 @@ int _start_device(void) {
   return 1;
 }
 
-int get_status(const unsigned int *dev) {
-  return SDL_GetAudioDeviceStatus(*dev);
-}
+static int get_status(void) { return SDL_GetAudioDeviceStatus(device); }
+int _get_status(void) { return get_status(); }
+
+void _pause(void) { pause_device(); }
+void _resume(void) { resume_device(); }

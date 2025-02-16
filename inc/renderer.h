@@ -24,6 +24,9 @@ const void *create_renderer(void);
 Renderer *get_renderer(void);
 void destroy_renderer(void);
 
+void render_draw_music(const int w, const int h, SDL_Renderer *r,
+                       const SDL_Color *p, const SDL_Color *s);
+void render_seek_bar(const int w, const SDL_Color *col, SDL_Renderer *r);
 void render_bg(const SDL_Color *col);
 void render_clear(void);
 void render_present(void);

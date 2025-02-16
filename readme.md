@@ -12,8 +12,6 @@ I am making this for myself only, but if you wanna use it, check out the build s
 ### Releases
 There are currently no releases. If you want to use this program, you will have to build it. Thankfully it's relatively painless. Build steps are at the end of the readme. Thanks!
 
-### Configuration
-- If you compiled with Lua lib, you can change some settings in the config.lua.
 
 ## Controls
 **General controls**
@@ -34,25 +32,12 @@ My program depends on these libs:
 2. SDL2-devel
 3. SDL2_ttf-devel
 
-> Optional dependencies:
-1. Lua
-
-# OTHER REQUIREMENTS
+# BUILD TOOLS
 1. CMake
-2. MinGW(For windows)
-
-> For windows the most painless option is to use MSYS2 and install all the related packages from there
-
-Building is relatively painless. Just make sure you have the afforementioned libs installed so that **CMake** can search for them.
 
 ## Build steps for linux
-- Simply run the ```unix_build.sh``` bash script. It will ask if you wish to link with lua, so you can use the config.lua.
+- Simply run the ```unix_build.sh``` bash script. 
 The program will be executable from anywhere and you can launch it using ```MVis```
-
-## Build steps for windows
-- You have a few options but generally you can either install the dependencies using MSYS2 (These are MinGW packages) and can run the CMake script ```win64_make.sh``` to build the program.
-
-- Alternatively, you can build SDL2 and libsndfile from source and write your own build script to build the program from that. I don't have an implementation of that, so using MSYS2 and the script I have is the easiest way.
 
 
 

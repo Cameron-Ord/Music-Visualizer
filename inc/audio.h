@@ -48,16 +48,23 @@ typedef struct AudioData AudioData;
 struct SDL_AudioSpec;
 typedef struct SDL_AudioSpec SDL_AudioSpec;
 
+const FFTData *get_data(void);
+const FFTBuffers *get_bufs(void);
+const AudioData *get_ad(void);
+int _get_status(void);
+
 void _fft_push(const uint32_t *pos, float *buffer, const size_t bytes);
 void _zero_fft(void);
 
-void _resume_device(void);
-void _pause_device(void);
+void _resume(void);
+void _pause(void);
 
 void _close_device(void);
 int _start_device(void);
 
 int _file_read(const char *filepath);
+void _do_fft(const int *smear_v, const int *smooth_v, const int *tframes);
 
+void calculate_window(void);
 // Audio functions
 #endif

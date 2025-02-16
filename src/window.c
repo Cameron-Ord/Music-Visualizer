@@ -15,8 +15,13 @@ const void *create_window(void) {
     return NULL;
   }
 
+  window.width = 600, window.height = 400;
+
   return window.w;
 }
 
 Window *get_window(void) { return &window; }
 void close_window(void) { SDL_DestroyWindow(window.w); }
+void win_push_update(void) {
+  SDL_GetWindowSize(window.w, &window.width, &window.height);
+}
