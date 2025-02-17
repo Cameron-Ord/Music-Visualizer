@@ -55,6 +55,45 @@ static Paths *reallocate_paths(Paths **p, const size_t size) {
   return tmp;
 }
 
+int check_headers(const char *path, const size_t size) {
+  if (!size) {
+    return 0;
+  }
+
+  FILE *fptr = NULL;
+  if (!(fptr = fopen(path, "rb"))) {
+    return 0;
+  }
+
+  const int chunk_size = 16;
+  char buffer[chunk_size];
+  memset(buffer, 0, chunk_size);
+
+  const int read = fread(buffer, 1, chunk_size, fptr);
+  if (!read) {
+    fclose(fptr);
+    return 0;
+  }
+
+  const char *headers[] = {"RIFF", "ID3", "fLaC", "OggS", "FORM"};
+  const int header_len = sizeof(headers) / sizeof(headers[0]);
+
+  for (int i = 0; i < read; i++) {
+    for (int j = 0; j < header_len; j++) {
+      const char *head = headers[j];
+      const char bytes = strlen(head);
+
+      if (memcmp(&buffer[i], head, bytes) == 0) {
+        fclose(fptr);
+        return 1;
+      }
+    }
+  }
+
+  fclose(fptr);
+  return 0;
+}
+
 #ifdef __linux__
 int get_file_type(const int type) {
   if (type == DT_REG) {
@@ -158,9 +197,20 @@ Paths *unix_read_dir(const char *path) {
         }
       }
 
+      cur->type = get_file_type(e->d_type);
+
+      switch (cur->type) {
+      default:
+        break;
+      case TYPE_FILE: {
+        if (!check_headers(cur->path.path, path_size)) {
+          continue;
+        }
+      } break;
+      }
+
       cur->name.length = entry_size;
       cur->path.length = path_size;
-      cur->type = get_file_type(e->d_type);
       cur->is_valid = 1;
       count++;
     }

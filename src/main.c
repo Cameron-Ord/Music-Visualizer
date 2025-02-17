@@ -62,30 +62,36 @@ void set_cursor(const int set, int *target) {
 }
 
 static int autoplay(Paths *current_paths) {
-  set_cursor(auto_nav_down(current_paths->cursor, current_paths->size),
-             &current_paths->cursor);
+  for (size_t i = 0; i < current_paths->size; i++) {
+    size_t nav = auto_nav_down(current_paths->cursor, current_paths->size);
+    set_cursor(nav, &current_paths->cursor);
 
-  const char *pathstr = current_paths[current_paths->cursor].path.path;
-  const int entry_type = current_paths[current_paths->cursor].type;
+    const char *pathstr = current_paths[current_paths->cursor].path.path;
+    const int entry_type = current_paths[current_paths->cursor].type;
 
-  switch (entry_type) {
-  default:
-    return 0;
-
-  case TYPE_DIRECTORY: {
-    return 0;
-  } break;
-
-  case TYPE_FILE: {
-    switch (_file_read(pathstr)) {
+    switch (entry_type) {
     default:
-      return 0;
+      continue;
 
-    case 1: {
-      return _start_device();
-    } break;
+    case TYPE_DIRECTORY: {
+      continue;
+    };
+
+    case TYPE_FILE: {
+      switch (_file_read(pathstr)) {
+      default:
+        continue;
+
+      case 0: {
+        return 0;
+      };
+
+      case 1: {
+        return _start_device();
+      };
+      }
+    };
     }
-  } break;
   }
 
   return 0;
@@ -215,40 +221,42 @@ int main(int argc, char **argv) {
         case SDLK_RIGHT: {
           switch (mode) {
           case TEXT: {
-            const char *pathstr =
-                current_paths[current_paths->cursor].path.path;
-            const int entry_type = current_paths[current_paths->cursor].type;
+            if (current_paths) {
+              const char *pathstr =
+                  current_paths[current_paths->cursor].path.path;
+              const int entry_type = current_paths[current_paths->cursor].type;
 
-            switch (entry_type) {
-            default:
-              break;
-            case TYPE_FILE: {
-              switch (_file_read(pathstr)) {
+              switch (entry_type) {
               default:
                 break;
+              case TYPE_FILE: {
+                switch (_file_read(pathstr)) {
+                default:
+                  break;
 
-              case 1: {
-                if (_start_device()) {
-                  mode = PLAYBACK;
+                case 1: {
+                  if (_start_device()) {
+                    mode = PLAYBACK;
+                  }
+                } break;
+                }
+              } break;
+
+              case TYPE_DIRECTORY: {
+                set_last_index(get_current_index());
+                set_current_index(nav_down(get_current_index(), MAX_NODES));
+                switch (table_set_paths(&table, fs_search(pathstr))) {
+                case 0: {
+                  set_current_index(get_last_index());
+                } break;
+
+                case 1: {
+                  current_paths =
+                      search_table(&table, get_current_index())->paths;
+                } break;
                 }
               } break;
               }
-            } break;
-
-            case TYPE_DIRECTORY: {
-              set_last_index(get_current_index());
-              set_current_index(nav_down(get_current_index(), MAX_NODES));
-              switch (table_set_paths(&table, fs_search(pathstr))) {
-              case 0: {
-                set_current_index(get_last_index());
-              } break;
-
-              case 1: {
-                current_paths =
-                    search_table(&table, get_current_index())->paths;
-              } break;
-              }
-            } break;
             }
           } break;
           case PLAYBACK: {
@@ -262,8 +270,10 @@ int main(int argc, char **argv) {
           } else {
             switch (mode) {
             case TEXT: {
-              set_cursor(nav_down(current_paths->cursor, current_paths->size),
-                         &current_paths->cursor);
+              if (current_paths) {
+                set_cursor(nav_down(current_paths->cursor, current_paths->size),
+                           &current_paths->cursor);
+              }
             } break;
             case PLAYBACK: {
             } break;
@@ -277,8 +287,10 @@ int main(int argc, char **argv) {
           } else {
             switch (mode) {
             case TEXT: {
-              set_cursor(nav_up(current_paths->cursor, current_paths->size),
-                         &current_paths->cursor);
+              if (current_paths) {
+                set_cursor(nav_up(current_paths->cursor, current_paths->size),
+                           &current_paths->cursor);
+              }
             } break;
             case PLAYBACK: {
             } break;
@@ -324,11 +336,10 @@ int main(int argc, char **argv) {
         case 1: {
           _do_fft(&vis.smearing, &vis.smoothing, &vis.target_frames);
           render_seek_bar(get_window()->width, &primary, get_renderer()->r);
-          SDL_Color p_alpha_mod = {primary.r, primary.g, primary.b, 125};
-          SDL_Color s_alpha_mod = {secondary_bg.r, secondary_bg.g,
-                                   secondary_bg.b, 125};
+          SDL_Color p = alpha_mod(primary);
+          SDL_Color s = alpha_mod(secondary_bg);
           render_draw_music(get_window()->width, get_window()->height,
-                            get_renderer()->r, &p_alpha_mod, &s_alpha_mod);
+                            get_renderer()->r, &p, &s);
         } break;
         }
       } break;
@@ -356,7 +367,9 @@ int main(int argc, char **argv) {
     } break;
 
     case TEXT: {
-      render_node_text(current_paths);
+      if (current_paths) {
+        render_node_text(current_paths);
+      }
     } break;
     }
 

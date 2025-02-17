@@ -29,3 +29,9 @@ void render_bg(const SDL_Color *col) {
 void render_clear(void) { SDL_RenderClear(renderer.r); }
 
 void render_present(void) { SDL_RenderPresent(renderer.r); }
+
+SDL_Color alpha_mod(SDL_Color col) {
+  SDL_Color mod;
+  mod.r = col.r, mod.g = col.g, mod.b = col.b, mod.a = 127;
+  return mod;
+}
