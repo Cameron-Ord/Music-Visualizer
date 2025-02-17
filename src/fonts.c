@@ -89,16 +89,36 @@ static int open_ttf_file(const char *path, const char *env) {
   char path_buffer[size + 1];
 
   if (!strcpy(path_buffer, env)) {
-    errno_string("strcpy()\n", strerror(errno));
+    errno_string("strcpy()", strerror(errno));
     return 0;
   }
 
   if (!strcat(path_buffer, path)) {
-    errno_string("strcat()\n", strerror(errno));
+    errno_string("strcat()", strerror(errno));
     return 0;
   }
 
-  path_buffer[size] = '\0';
+  // Check for the file in the location it SHOULD be in if installed
+  FILE *file = NULL;
+  if (!(file = fopen(path_buffer, "rb"))) {
+    errno_string("fopen()", strerror(errno));
+
+    memset(path_buffer, 0, size);
+    if (!strcpy(path_buffer, "dogicapixel.ttf")) {
+      errno_string("strcpy()", strerror(errno));
+      return 0;
+    }
+
+    // If that failed, check if it's in the current directory
+    if (!(file = fopen(path_buffer, "rb"))) {
+      errno_string("fopen()", strerror(errno));
+      return 0;
+    }
+  }
+
+  // If both failed to open then the function returns, so if it made it here
+  // it's safe to close it.
+  fclose(file);
 
   font.font = TTF_OpenFont(path_buffer, font.size);
   if (!font.font) {

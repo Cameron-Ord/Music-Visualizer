@@ -1,3 +1,6 @@
 build/
 bin/
 .cache/
+dist/
+dist.zip
+lib/
