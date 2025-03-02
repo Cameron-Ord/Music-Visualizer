@@ -11,6 +11,7 @@ SDL_AudioSpec spec = {0};
 SDL_AudioDeviceID device = {0};
 int device_needs_update = 1;
 
+static int get_status(void) { return SDL_GetAudioDeviceStatus(device); }
 void callback(void *userdata, uint8_t *stream, int length);
 const AudioData *get_ad(void);
 
@@ -122,6 +123,10 @@ void callback(void *userdata, uint8_t *stream, int length) {
 }
 
 static int read_audio_file(const char *file_path) {
+  if (get_status() == SDL_AUDIO_PLAYING) {
+    pause_device();
+  }
+
   if (!file_path) {
     return 0;
   }
@@ -212,7 +217,6 @@ int _start_device(void) {
   return 1;
 }
 
-static int get_status(void) { return SDL_GetAudioDeviceStatus(device); }
 int _get_status(void) { return get_status(); }
 
 void _pause(void) { pause_device(); }
