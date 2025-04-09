@@ -20,6 +20,7 @@ struct Paths {
 };
 
 typedef struct Paths Paths;
+int paths_check_sanity(const Paths *p);
 
 #ifdef __linux__
 #include <dirent.h>

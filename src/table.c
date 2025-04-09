@@ -64,8 +64,20 @@ int table_set_paths(Table *t, Paths *paths) {
   if (!paths) {
     n->paths = NULL;
     return 0;
-  } else {
-    n->paths = paths;
-    return 1;
+  } else if (paths) {
+    switch (paths_check_sanity(paths)) {
+    case 0: {
+      n->paths = NULL;
+      for (size_t i = 0; i < paths->size; i++) {
+        free_entry(&paths[i]);
+      }
+      free(paths);
+    } break;
+    case 1: {
+      n->paths = paths;
+      return 1;
+    } break;
+    }
   }
+  return 0;
 }

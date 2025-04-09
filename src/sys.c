@@ -1,6 +1,7 @@
 #include "../inc/sys.h"
 #include "../inc/main.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -112,6 +113,17 @@ Paths *unix_fs_search(const char *pathstr) {
   }
 
   return NULL;
+}
+
+// if this returns 0, the element inside the table will be NULL; the fonts for
+// the paths wont be rendered.
+int paths_check_sanity(const Paths *p) {
+  for (size_t i = 0; i < p->size; i++) {
+    if (!p[i].is_valid) {
+      return 0;
+    }
+  }
+  return 1;
 }
 
 Paths *unix_read_dir(const char *path) {
